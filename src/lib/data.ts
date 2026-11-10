@@ -15,6 +15,8 @@ export interface Game {
   hue: string;
   blurb: string;
 }
+/** Games whose official store icon is in public/games/<slug>.png. Drop a file there and add the slug to use another. */
+export const LOGOS = new Set(["bgmi", "cod-mobile", "clash-royale", "fortnite", "mobile-legends"]);
 export const GAMES: Game[] = [
   { slug: "bgmi", name: "Battlegrounds Mobile India", short: "BGMI", platform: "Mobile", genre: "Battle royale", team: "Squads of 4", hue: "from-amber-400 to-orange-600", blurb: "Squad battle royale on phones. The biggest grassroots circuit for mobile in India." },
   { slug: "free-fire-max", name: "Free Fire MAX", short: "FF MAX", platform: "Mobile", genre: "Battle royale", team: "Squads of 4", hue: "from-rose-400 to-red-600", blurb: "Fast battle royale that runs on modest phones, with a large community-run scene." },
