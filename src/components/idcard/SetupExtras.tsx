@@ -1,6 +1,6 @@
 "use client";
 
-import { randomPassphrase, type EventInfo, type Team } from "@/lib/idcard/types";
+import { prettyDate, randomPassphrase, type EventInfo, type Team } from "@/lib/idcard/types";
 
 /** Reads a small logo picture into a data URL, shrunk so saving it in the browser stays light. */
 export async function readLogo(file: File, max = 320): Promise<string> {
@@ -11,56 +11,84 @@ export async function readLogo(file: File, max = 320): Promise<string> {
   return cv.toDataURL("image/png");
 }
 
-/** Event details, the sponsor strip and the signed-pass switch. */
-export default function SetupExtras({ info, setInfo }: { info: EventInfo; setInfo: (i: EventInfo) => void }) {
+const Field = ({ label, hint, children, className = "" }: { label: string; hint?: string; children: React.ReactNode; className?: string }) => (
+  <label className={`block text-sm text-zinc-300 ${className}`}>{label}{children}{hint && <span className="mt-1 block text-xs text-zinc-500">{hint}</span>}</label>
+);
+
+/**
+ * Everything that is not needed to make a first card: the back of the card, the age check and signed QR codes.
+ * It is folded away by default and its heading says what is currently set, so nothing is hidden without a clue.
+ */
+export function MoreOptions({ info, setInfo }: { info: EventInfo; setInfo: (i: EventInfo) => void }) {
   const set = (p: Partial<EventInfo>) => setInfo({ ...info, ...p });
+  const rules = info.rules.split("\n").filter(Boolean).length;
   return (
-    <section className="card space-y-4 md:col-span-2">
-      <h2 className="font-display text-xl font-bold text-white">Details for the back of the card and the gate</h2>
-      <div className="grid gap-4 md:grid-cols-3">
-        <label className="block text-sm text-zinc-400">Event date<input type="date" className="field mt-1" value={info.date} onChange={(e) => set({ date: e.target.value })} /></label>
-        <label className="block text-sm text-zinc-400 md:col-span-2">Venue<input className="field mt-1" value={info.venue} onChange={(e) => set({ venue: e.target.value })} /></label>
-        <label className="block text-sm text-zinc-400 md:col-span-3">Emergency contact (printed on the back)<input className="field mt-1" value={info.emergency} onChange={(e) => set({ emergency: e.target.value })} /></label>
-        <label className="block text-sm text-zinc-400 md:col-span-2">Rules (one per line, up to 8)<textarea className="field mt-1 min-h-24 py-2" value={info.rules} onChange={(e) => set({ rules: e.target.value })} /></label>
-        <div>
-          <p className="text-sm text-zinc-400">Sponsor logo</p>
-          <div className="mt-1 flex items-center gap-3">
-            <span className="grid h-16 w-24 place-items-center overflow-hidden rounded-lg border border-white/10 bg-white/5">{info.sponsorLogo ? /* eslint-disable-next-line @next/next/no-img-element */ <img src={info.sponsorLogo} alt="" className="max-h-full max-w-full object-contain" /> : <span className="text-xs text-zinc-500">None</span>}</span>
-            <div className="flex flex-col gap-2">
-              <label className="btn-ghost !min-h-9 cursor-pointer px-3 text-sm">{info.sponsorLogo ? "Change" : "Upload"}<input type="file" accept="image/*" className="sr-only" onChange={async (e) => { const f = e.target.files?.[0]; if (f) set({ sponsorLogo: await readLogo(f) }); e.target.value = ""; }} /></label>
-              {info.sponsorLogo && <button type="button" className="chip !min-h-8" onClick={() => set({ sponsorLogo: undefined })}>Remove</button>}
-            </div>
+    <details className="group rounded-2xl border border-white/10 bg-zinc-900/40">
+      <summary className="flex cursor-pointer list-none flex-wrap items-center justify-between gap-2 px-4 py-3 outline-none focus-visible:ring-2 focus-visible:ring-cyan">
+        <span>
+          <span className="font-display text-base font-bold text-white">More options</span>
+          <span className="ml-2 text-sm text-zinc-500">optional: back of the card, age check, signed QR</span>
+        </span>
+        <span className="flex items-center gap-2 text-xs text-zinc-400">
+          <span>{prettyDate(info.date)}</span><span aria-hidden="true">·</span><span>{info.sign ? "signed QR on" : "signed QR off"}</span><span aria-hidden="true">·</span><span>{rules} {rules === 1 ? "rule" : "rules"}</span>
+          <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4 fill-none stroke-current transition-transform group-open:rotate-180" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9l6 6 6-6" /></svg>
+        </span>
+      </summary>
+      <div className="grid gap-4 border-t border-white/10 p-4 lg:grid-cols-3">
+        <div className="space-y-3">
+          <h3 className="text-sm font-bold text-white">Back of the card</h3>
+          <Field label="Venue" hint="Printed on the back."><input className="field mt-1" value={info.venue} onChange={(e) => set({ venue: e.target.value })} /></Field>
+          <Field label="Emergency contact" hint="Who to call if the card is found."><input className="field mt-1" value={info.emergency} onChange={(e) => set({ emergency: e.target.value })} /></Field>
+          <Field label="Rules" hint="One per line, up to 8."><textarea className="field mt-1 min-h-20 py-2" value={info.rules} onChange={(e) => set({ rules: e.target.value })} /></Field>
+          <div className="flex items-center gap-3">
+            <span className="grid h-12 w-20 shrink-0 place-items-center overflow-hidden rounded-lg border border-white/10 bg-white/5">{info.sponsorLogo ? /* eslint-disable-next-line @next/next/no-img-element */ <img src={info.sponsorLogo} alt="" className="max-h-full max-w-full object-contain" /> : <span className="text-[11px] text-zinc-500">No logo</span>}</span>
+            <label className="btn-ghost !min-h-9 cursor-pointer px-3 text-sm">{info.sponsorLogo ? "Change sponsor logo" : "Add sponsor logo"}<input type="file" accept="image/*" className="sr-only" onChange={async (e) => { const f = e.target.files?.[0]; if (f) set({ sponsorLogo: await readLogo(f) }); e.target.value = ""; }} /></label>
+            {info.sponsorLogo && <button type="button" className="chip !min-h-8" onClick={() => set({ sponsorLogo: undefined })}>Remove</button>}
           </div>
         </div>
+        <div className="space-y-3">
+          <h3 className="text-sm font-bold text-white">Age check</h3>
+          <Field label="Event date" hint="Anyone under 18 on this date is flagged, so you can collect a guardian's consent before printing."><input type="date" className="field mt-1" value={info.date} onChange={(e) => set({ date: e.target.value })} /></Field>
+        </div>
+        <div className="space-y-3">
+          <h3 className="text-sm font-bold text-white">Signed QR codes</h3>
+          <label className="flex items-start gap-3 text-sm text-zinc-300">
+            <input type="checkbox" checked={info.sign} onChange={(e) => set({ sign: e.target.checked, passphrase: e.target.checked && !info.passphrase ? randomPassphrase() : info.passphrase })} className="mt-0.5 h-5 w-5 accent-cyan" />
+            <span>Make copied or edited cards fail at the gate. The Check-in tool needs the same passphrase.</span>
+          </label>
+          {info.sign && (
+            <div className="space-y-2">
+              <Field label="Passphrase" hint="Keep it among the organisers. Anyone with it can make valid passes."><input className="field mt-1 font-mono" value={info.passphrase} onChange={(e) => set({ passphrase: e.target.value })} spellCheck={false} /></Field>
+              <button type="button" className="chip" onClick={() => set({ passphrase: randomPassphrase() })}>Make a new one</button>
+            </div>
+          )}
+        </div>
       </div>
-      <div className="rounded-xl border border-white/10 p-4">
-        <label className="flex items-start gap-3 text-sm text-zinc-300">
-          <input type="checkbox" checked={info.sign} onChange={(e) => set({ sign: e.target.checked, passphrase: e.target.checked && !info.passphrase ? randomPassphrase() : info.passphrase })} className="mt-1 h-5 w-5 accent-cyan" />
-          <span><strong className="text-white">Tamper-proof QR codes.</strong> Each card&apos;s QR is signed with a passphrase, so a copied or edited card fails at the gate. The check-in page needs the same passphrase.</span>
-        </label>
-        {info.sign && (
-          <div className="mt-3 grid gap-3 sm:grid-cols-[1fr_auto]">
-            <label className="block text-sm text-zinc-400">Passphrase (keep it among the organisers)
-              <input className="field mt-1 font-mono" value={info.passphrase} onChange={(e) => set({ passphrase: e.target.value })} spellCheck={false} />
-            </label>
-            <button type="button" className="btn-ghost self-end text-sm" onClick={() => set({ passphrase: randomPassphrase() })}>Make a new one</button>
-          </div>
-        )}
-      </div>
-    </section>
+    </details>
   );
 }
 
-/** One row per team: a name, a logo and a button to recolour the team's card from that logo. */
-export function TeamLogoButton({ team, onLogo }: { team: Team; onLogo: (logo: string | undefined) => void }) {
+/** A team's logo: a button that adds, changes or removes it. */
+export function TeamLogoButton({ team, onLogo, compact = false }: { team: Team; onLogo: (logo: string | undefined) => void; compact?: boolean }) {
+  if (compact) {
+    return (
+      <span className="relative inline-flex shrink-0">
+        <label title={team.logo ? "Change this team's logo" : "Add a logo for this team"} className="grid h-11 w-11 cursor-pointer place-items-center overflow-hidden rounded-lg border border-dashed border-white/25 bg-white/5 text-lg text-zinc-400 transition-colors hover:border-cyan hover:text-cyan">
+          {team.logo ? /* eslint-disable-next-line @next/next/no-img-element */ <img src={team.logo} alt={`${team.name} logo`} className="h-full w-full object-contain" /> : "+"}
+          <input type="file" accept="image/*" className="sr-only" aria-label={`Logo for ${team.name}`} onChange={async (e) => { const f = e.target.files?.[0]; if (f) onLogo(await readLogo(f)); e.target.value = ""; }} />
+        </label>
+        {team.logo && <button type="button" aria-label="Remove logo" title="Remove logo" onClick={() => onLogo(undefined)} className="absolute -right-1.5 -top-1.5 grid h-5 w-5 place-items-center rounded-full bg-zinc-800 text-[11px] text-zinc-300 ring-1 ring-white/20 hover:bg-red-500 hover:text-white">×</button>}
+      </span>
+    );
+  }
   return (
-    <div className="flex items-center gap-2">
+    <span className="inline-flex items-center gap-2">
       {team.logo
         // eslint-disable-next-line @next/next/no-img-element
-        ? <img src={team.logo} alt="" className="h-9 w-9 shrink-0 rounded-md border border-white/10 bg-white/5 object-contain" />
+        ? <img src={team.logo} alt="" className="h-8 w-8 shrink-0 rounded-md border border-white/10 bg-white/5 object-contain" />
         : null}
-      <label className="btn-ghost !min-h-9 cursor-pointer px-3 text-xs">{team.logo ? "Change logo" : "Add logo"}<input type="file" accept="image/*" className="sr-only" onChange={async (e) => { const f = e.target.files?.[0]; if (f) onLogo(await readLogo(f)); e.target.value = ""; }} /></label>
-      {team.logo && <button type="button" className="chip !min-h-8 text-xs" onClick={() => onLogo(undefined)}>Remove</button>}
-    </div>
+      <label className="chip cursor-pointer" title="Upload the team's logo. Designs can show it, and the card can take its colours from it.">{team.logo ? "Change team logo" : "Team logo"}<input type="file" accept="image/*" className="sr-only" onChange={async (e) => { const f = e.target.files?.[0]; if (f) onLogo(await readLogo(f)); e.target.value = ""; }} /></label>
+      {team.logo && <button type="button" className="chip" onClick={() => onLogo(undefined)}>Remove</button>}
+    </span>
   );
 }

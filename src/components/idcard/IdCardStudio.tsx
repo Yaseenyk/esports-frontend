@@ -2,8 +2,6 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import GameBadge from "@/components/GameBadge";
-import Select from "@/components/Select";
 import { useXp } from "@/components/XpProvider";
 import { maskAadhaar, type AadhaarRead } from "@/lib/idcard/aadhaar";
 import { buildBack } from "@/lib/idcard/back";
@@ -13,14 +11,13 @@ import { dominantColour, recolour } from "@/lib/idcard/recolor";
 import { findDuplicates, isMinor } from "@/lib/idcard/roster";
 import { eventKey, signPass } from "@/lib/idcard/sign";
 import { scanAadhaar, stopOcr } from "@/lib/idcard/ocr";
-import { posterFmt, suggest, themeById, THEMES, VIBES, type ThemeEntry } from "@/lib/idcard/themes";
+import { suggest, themeById } from "@/lib/idcard/themes";
 import { DEFAULT_INFO, FORMATS, ROLES, fmtOf, prettyDate, randomPassphrase, uid, type EventInfo, type Fmt, type Person, type Role, type Team, type Template } from "@/lib/idcard/types";
-import { GAMES } from "@/lib/data";
-import CardView, { type Ctx } from "./CardView";
-import Editor from "./Editor";
+import { type Ctx } from "./CardView";
 import PrintPanel from "./PrintPanel";
-import RosterPanel from "./RosterPanel";
-import SetupExtras, { TeamLogoButton } from "./SetupExtras";
+import DesignStep from "./DesignStep";
+import PeopleStep, { type Job } from "./PeopleStep";
+import SetupStep from "./SetupStep";
 
 const STORE = "eh-idstudio-v3"; // designs and team names only; people and photos are never saved
 const STEPS = ["Event & teams", "People", "Design", "Print"];
@@ -40,12 +37,6 @@ const SAMPLE_PEOPLE: Person[] = [
   { id: "PUN-002", name: "Zoya Khan", teamId: "t3", role: "Player", dob: "21/08/2003", gender: "Female", last4: "7731", photo: "/samples/people/zoya-khan.webp", cutout: true },
   { id: "PUN-003", name: "Aditya Chavan", teamId: "t3", role: "Coach", dob: "16/02/1994", gender: "Male", last4: "1259", photo: "/samples/people/aditya-chavan.webp", cutout: true },
 ];
-const DEMO_CARDS = [
-  { file: "aarav-mehta", label: "Aarav Mehta" },
-  { file: "diya-kulkarni", label: "Diya Kulkarni" },
-  { file: "rohan-deshmukh", label: "Rohan Deshmukh" },
-];
-const uidT = () => `t${Date.now().toString(36)}${Math.floor(Math.random() * 1e3).toString(36)}`;
 const prefix = (name: string) => (name.replace(/[^A-Za-z0-9]/g, "").slice(0, 3) || "ID").toUpperCase();
 
 /** Photos are shrunk to a sensible size so a full roster stays light in memory and prints sharply. */
@@ -62,8 +53,6 @@ async function shrink(file: File, max = 800): Promise<{ url: string; cutout: boo
   const cutout = seen > 0 && clear / seen > 0.06;
   return { url: cutout ? cv.toDataURL("image/png") : cv.toDataURL("image/jpeg", 0.88), cutout };
 }
-
-interface Job { key: number; file: string; state: "queued" | "reading" | "done" | "error"; pct: number; note?: string }
 
 export default function IdCardStudio() {
   const { award, addXp } = useXp();
@@ -114,7 +103,6 @@ export default function IdCardStudio() {
   const withBack = (t: Template): Template => (t.back || fmtOf(t) === "strip" ? t : { ...t, back: buildBack(t) });
   const tplFor = useCallback((t: Team): Template => templates[t.id] ?? withBack({ ...themeById(suggest(null, t.name, fmt))!.make(fmt), id: t.id }), [templates, fmt]); // eslint-disable-line react-hooks/exhaustive-deps
   const teamById = (id: string) => teams.find((t) => t.id === id) ?? teams[0];
-  const gameObj = GAMES.find((g) => g.short === game);
 
   const eventDay = useMemo(() => { const d = new Date(info.date + "T00:00:00"); return Number.isNaN(d.getTime()) ? new Date() : d; }, [info.date]);
   const minorOf = useCallback((p: Person) => isMinor(p.dob, eventDay), [eventDay]);
@@ -216,213 +204,48 @@ export default function IdCardStudio() {
     setTemplates((s) => { const base = s[dTeam.id] ?? tplFor(dTeam); const next = recolour(base, c); return { ...s, [dTeam.id]: next.back ? { ...next, back: buildBack(next) } : next }; });
   };
 
-  const themeGrid = (list: ThemeEntry[], title: string) => {
-    if (!dTeam) return null;
-    const f = fmtOf(tplFor(dTeam));
-    return (
-      <div>
-        <h3 className="mb-3 font-display text-lg font-bold text-white">{title} <span className="text-sm font-normal text-zinc-500">· {list.length}</span></h3>
-        <ul className={`grid gap-3 ${f === "strip" ? "grid-cols-1 sm:grid-cols-2" : FORMATS[f].w < FORMATS[f].h ? "grid-cols-2 sm:grid-cols-4 lg:grid-cols-5" : "grid-cols-2 sm:grid-cols-3 lg:grid-cols-5"}`}>
-          {list.map((th) => (
-            <li key={th.id} className={vibe && !th.tags.includes(vibe) ? "opacity-35" : ""}>
-              <button type="button" onClick={() => applyTheme(th.id, [dTeam.id])} className={`group w-full rounded-xl border p-2 text-left outline-none transition-colors focus-visible:ring-2 focus-visible:ring-cyan ${tplFor(dTeam).theme === th.id ? "border-cyan" : "border-white/10 hover:border-white/30"}`} aria-label={`Use the ${th.name} theme`}>
-                <CardView tpl={th.make(f)} ctx={ctxFor(sample)} />
-                <span className="mt-2 block text-center text-xs font-semibold text-zinc-300">{th.name}</span>
-              </button>
-            </li>
-          ))}
-        </ul>
-      </div>
-    );
-  };
+  // ---- design step helpers
+  const changeFormat = (v: Fmt) => setTemplates((t) => { const cur = tplFor(dTeam); return { ...t, [dTeam.id]: withBack({ ...(themeById(cur.theme ?? "") ?? themeById(suggest(null, dTeam.name, v))!).make(v), id: dTeam.id }) }; });
+  const sameForAll = () => setTemplates((t) => { const n = { ...t }; teams.forEach((x) => { n[x.id] = { ...curTpl, id: x.id, els: curTpl.els.map((e) => ({ ...e })), back: curTpl.back ? { bg: curTpl.back.bg, els: curTpl.back.els.map((e) => ({ ...e })) } : undefined }; }); return n; });
+  const differentPerTeam = () => setTemplates((t) => { const n = { ...t }; teams.forEach((x, i) => { const id = suggest(vibe, x.name + i, fmtOf(tplFor(x))); n[x.id] = withBack({ ...themeById(id)!.make(fmtOf(tplFor(x))), id: x.id }); }); return n; });
+
+  const stepMeta = [`${teams.length} ${teams.length === 1 ? "team" : "teams"}`, `${people.length} ${people.length === 1 ? "person" : "people"}`, FORMATS[fmt].label, `${printable.length} ${printable.length === 1 ? "card" : "cards"}`];
+  const hint = ["Next you will add the people on each team.", needReview > 0 ? `${needReview} ${needReview === 1 ? "person needs" : "people need"} a quick check.` : `${people.length} people ready.`, "Last step: print or download the cards.", ""][step];
 
   return (
-    <div className="mt-8">
-      {/* Stepper */}
-      <ol className="no-print mb-8 grid grid-cols-4 gap-2" aria-label="Steps">
+    <div className="studio">
+      <header className="no-print mb-4">
+        <h1 className="font-display text-2xl font-bold text-white sm:text-3xl">ID cards <span className="text-cyan">&amp;</span> passes</h1>
+        <p className="text-sm text-zinc-400"><span className="sm:hidden">Teams, people, design, print. Runs in your browser; demo data is loaded.</span><span className="hidden sm:inline">Set up your teams, add people (scan Aadhaar cards or import a sheet), design a card for each team, then print or download. Everything stays in your browser. Demo data is loaded so you can try it.</span></p>
+      </header>
+
+      <ol className="no-print mb-5 grid grid-cols-4 gap-1.5 sm:gap-2" aria-label="Steps">
         {STEPS.map((s, i) => (
           <li key={s}>
-            <button type="button" onClick={() => setStep(i)} aria-current={step === i ? "step" : undefined} className={`relative w-full rounded-xl border px-2 py-2.5 text-center text-xs font-semibold outline-none transition-colors focus-visible:ring-2 focus-visible:ring-cyan sm:text-sm ${step === i ? "border-cyan/60 bg-cyan/10 text-white" : i < step ? "border-white/10 bg-white/5 text-zinc-300" : "border-white/10 text-zinc-500 hover:text-zinc-300"}`}>
-              <span className="mr-1 text-cyan">{i < step ? "✓" : i + 1}</span><span className="hidden sm:inline">{s}</span><span className="sm:hidden">{s.split(" ")[0]}</span>
+            <button type="button" onClick={() => setStep(i)} aria-current={step === i ? "step" : undefined} aria-label={`${s}, ${stepMeta[i]}`} className={`flex w-full flex-col items-center gap-1 rounded-xl border px-1.5 py-2 text-center outline-none transition-colors focus-visible:ring-2 focus-visible:ring-cyan sm:flex-row sm:gap-3 sm:px-3 sm:text-left ${step === i ? "border-cyan/60 bg-cyan/10" : "border-white/10 hover:border-white/25"}`}>
+              <span className={`grid h-6 w-6 shrink-0 place-items-center rounded-full text-xs font-bold sm:h-7 sm:w-7 ${step === i ? "bg-cyan text-ink" : i < step ? "bg-emerald-500/20 text-emerald-300" : "bg-white/10 text-zinc-300"}`}>{i < step ? "✓" : i + 1}</span>
+              <span className="min-w-0"><span className={`block truncate text-xs font-semibold sm:text-sm ${step === i ? "text-white" : "text-zinc-200"}`}><span className="sm:hidden">{s.split(" ")[0]}</span><span className="hidden sm:inline">{s}</span></span><span className="hidden truncate text-[11px] text-zinc-500 sm:block">{stepMeta[i]}</span></span>
             </button>
           </li>
         ))}
       </ol>
 
       <AnimatePresence mode="wait" initial={false}>
-        <motion.div key={step} initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.22 }}>
-          {step === 0 && (
-            <div className="no-print grid gap-6 md:grid-cols-2">
-              <section className="card space-y-4">
-                <h2 className="font-display text-xl font-bold text-white">Event</h2>
-                <label className="block text-sm text-zinc-400">Event name<input className="field mt-1" value={event} onChange={(e) => setEvent(e.target.value)} /></label>
-                <Select label="Game" value={game} onChange={setGame} options={[...GAMES.map((g) => ({ value: g.short, label: g.name, icon: <GameBadge game={g} size="sm" /> })), { value: "Multi-game", label: "Several games" }]} />
-                <label className="block text-sm text-zinc-400">Organiser<input className="field mt-1" value={organiser} onChange={(e) => setOrganiser(e.target.value)} /></label>
-                <div>
-                  <p className="mb-2 text-sm text-zinc-400">Card type <span className="text-zinc-500">(you can change it per team later)</span></p>
-                  <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label="Card type">
-                    {(Object.keys(FORMATS) as Fmt[]).map((k) => {
-                      const f = FORMATS[k]; const r = f.w / f.h; const on = fmt === k;
-                      return (
-                        <button key={k} type="button" role="radio" aria-checked={on} onClick={() => { setFmt(k); setTemplates({}); }} className={`flex flex-col items-center gap-2 rounded-xl border p-3 text-center outline-none transition-colors focus-visible:ring-2 focus-visible:ring-cyan ${on ? "border-cyan bg-cyan/10" : "border-white/10 hover:border-white/30"}`}>
-                          <span aria-hidden="true" className="relative grid place-items-center rounded-md border border-white/40 bg-white/5" style={{ width: r >= 1 ? Math.min(64, 22 * Math.min(r, 3)) : 40 * r + 6, height: r >= 1 ? Math.max(14, (r > 3 ? 14 : 22 * Math.min(r, 3)) / r) : 46 }}>{f.slot && <span className="absolute top-1 h-1 w-3 rounded-full border border-dashed border-white/70" />}</span>
-                          <span className="text-sm font-semibold text-white">{f.label}</span>
-                          <span className="text-[11px] leading-snug text-zinc-500">{f.note}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              </section>
-              <section className="card space-y-3">
-                <div className="flex items-center justify-between"><h2 className="font-display text-xl font-bold text-white">Teams</h2><button type="button" className="btn-ghost !min-h-9 px-3 text-sm" onClick={() => setTeams((t) => [...t, { id: uidT(), name: `Team ${t.length + 1}` }])}>+ Add team</button></div>
-                <p className="text-sm text-zinc-400">Each team gets its own card design. People are assigned to a team from a dropdown in the next step.</p>
-                <ul className="space-y-2">
-                  {teams.map((t) => (
-                    <li key={t.id} className="space-y-2 rounded-xl border border-white/10 p-2">
-                      <div className="flex gap-2">
-                        <input className="field" aria-label="Team name" value={t.name} onChange={(e) => setTeams((l) => l.map((x) => (x.id === t.id ? { ...x, name: e.target.value } : x)))} />
-                        <button type="button" disabled={teams.length < 2} className="btn-ghost px-3 text-sm text-red-300 disabled:opacity-40" aria-label={`Remove ${t.name}`} onClick={() => { setTeams((l) => l.filter((x) => x.id !== t.id)); setPeople((l) => l.map((p) => (p.teamId === t.id ? { ...p, teamId: teams.find((x) => x.id !== t.id)!.id } : p))); }}>Remove</button>
-                      </div>
-                      <TeamLogoButton team={t} onLogo={(logo) => setTeams((l) => l.map((x) => (x.id === t.id ? { ...x, logo } : x)))} />
-                    </li>
-                  ))}
-                </ul>
-              </section>
-              <SetupExtras info={info} setInfo={setInfo} />
-            </div>
-          )}
-
-          {step === 1 && (
-            <div className="no-print space-y-6">
-              <section className="card space-y-4">
-                <div>
-                  <h2 className="font-display text-xl font-bold text-white">Read Aadhaar cards automatically</h2>
-                  <p className="mt-1 text-sm text-zinc-400">Upload a photo, scan or photocopy of an Aadhaar card. Name, date of birth and gender are filled in for you. Everything is read <strong className="text-zinc-200">inside your browser</strong>: the picture is not uploaded or saved, and only the <strong className="text-zinc-200">last 4 digits</strong> of the number are kept, shown as XXXX XXXX 1234.</p>
-                </div>
-                <label className="flex items-start gap-3 rounded-xl border border-white/10 p-3 text-sm text-zinc-300">
-                  <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} className="mt-1 h-5 w-5 accent-cyan" />
-                  <span>I have the card holder&apos;s permission to read their Aadhaar card for this event, and I will not share the card image.</span>
-                </label>
-                <div className="grid gap-3 sm:grid-cols-[16rem_1fr] sm:items-end">
-                  <Select label="Add scanned people to" value={valid(scanTeam)} onChange={setScanTeam} options={teamOpts} searchable={false} />
-                  <label className={`flex min-h-24 cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed px-4 py-4 text-center transition-colors ${consent ? "border-cyan/50 hover:bg-cyan/5" : "cursor-not-allowed border-white/10 opacity-50"}`}>
-                    <span className="font-semibold text-white">{consent ? "Choose card images (you can pick many)" : "Tick the permission box first"}</span>
-                    <span className="text-xs text-zinc-500">JPG, PNG, a phone photo or an e-Aadhaar PDF. The side with the QR code or the name and date of birth.</span>
-                    <input type="file" accept="image/*,application/pdf" multiple disabled={!consent} className="sr-only" onChange={(e) => { scan(e.target.files); e.target.value = ""; }} />
-                  </label>
-                </div>
-                <div className="flex flex-wrap items-center gap-2 text-sm">
-                  <span className="text-zinc-400">No card handy? Try a dummy sample card:</span>
-                  {DEMO_CARDS.map((c) => (<button key={c.file} type="button" disabled={!consent} className="chip disabled:cursor-not-allowed disabled:opacity-40" onClick={() => trySample(c.file)}>{c.label}</button>))}
-                </div>
-                {jobs.length > 0 && (
-                  <ul className="space-y-2" aria-live="polite">
-                    {jobs.slice(-6).map((j) => (
-                      <li key={j.key} className="rounded-lg border border-white/10 px-3 py-2 text-sm">
-                        <div className="flex items-center justify-between gap-3"><span className="truncate text-zinc-300">{j.file}</span><span className={j.state === "error" ? "text-red-300" : j.state === "done" ? "text-emerald-300" : "text-zinc-400"}>{j.state === "reading" ? `Reading ${j.pct}%` : j.state === "queued" ? "Waiting" : j.state === "done" ? "Done" : "Failed"}</span></div>
-                        {j.state === "reading" && <div className="mt-2 h-1 overflow-hidden rounded bg-white/10"><div className="h-full bg-gradient-to-r from-cyan to-purple transition-[width]" style={{ width: `${j.pct}%` }} /></div>}
-                        {j.note && <p className="mt-1 text-xs text-zinc-500">{j.note}</p>}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-                {pdfAsk && (
-                  <form className="flex flex-wrap items-end gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3" onSubmit={(e) => { e.preventDefault(); if (pdfPass) scan([pdfAsk.file], pdfPass); }}>
-                    <label className="block flex-1 text-sm text-amber-100">Password for {pdfAsk.file.name}<input type="password" autoComplete="off" className="field mt-1 min-w-48" value={pdfPass} onChange={(e) => setPdfPass(e.target.value)} placeholder="For example RAVI1998" /></label>
-                    <button type="submit" className="btn !min-h-11 text-sm" disabled={!pdfPass}>Open PDF</button>
-                    <p className="w-full text-xs text-amber-100/80">An e-Aadhaar PDF is usually protected with the first 4 letters of the name in capitals followed by the year of birth. The password is only used on this device.</p>
-                  </form>
-                )}
-              </section>
-
-              <RosterPanel teams={teams} people={people} setTeams={setTeams} setPeople={setPeople} minorOf={minorOf} />
-
-              <section className="card space-y-3">
-                <div className="flex flex-wrap items-center justify-between gap-2"><h2 className="font-display text-xl font-bold text-white">People ({people.length})</h2><div className="flex flex-wrap items-center gap-3"><label className="flex items-center gap-2 text-xs text-zinc-400"><input type="checkbox" checked={autoBg} onChange={(e) => setAutoBg(e.target.checked)} className="h-4 w-4 accent-cyan" />Remove photo backgrounds automatically</label><button type="button" className="btn-ghost !min-h-9 px-3 text-sm" onClick={() => addPerson(valid(scanTeam))}>+ Add manually</button></div></div>
-                {bgNote && <p className="text-xs text-zinc-400" role="status">{bgNote}{bgBusy ? " (the first time downloads a small model, then it works offline)" : ""}</p>}
-                {needReview > 0 && <p className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm text-amber-200">{needReview} {needReview === 1 ? "person was" : "people were"} read from printed text (OCR). Check the details, then tap <strong>Looks right</strong>. Cards read from their QR code are exact and need no check.</p>}
-                <ul className="space-y-3">
-                  {people.map((p) => (
-                    <li key={p.id} className={`grid gap-2 rounded-xl border p-3 sm:grid-cols-6 ${p.review ? "border-amber-500/40" : "border-white/10"}`}>
-                      <input className="field sm:col-span-2" aria-label="Full name" placeholder="Full name" value={p.name} onChange={(e) => setPerson(p.id, { name: e.target.value })} />
-                      <Select ariaLabel="Team" value={valid(p.teamId)} onChange={(v) => setPerson(p.id, { teamId: v })} options={teamOpts} searchable={false} className="sm:col-span-2" />
-                      <Select ariaLabel="Role" value={p.role} onChange={(v) => setPerson(p.id, { role: v as Role })} options={ROLES.map((r) => ({ value: r, label: r }))} searchable={false} />
-                      <button type="button" className="btn-ghost text-sm text-red-300" onClick={() => setPeople((l) => l.filter((x) => x.id !== p.id))} aria-label={`Remove ${p.name || "person"}`}>Remove</button>
-                      <input className="field" aria-label="Date of birth" placeholder="Date of birth" value={p.dob ?? ""} onChange={(e) => setPerson(p.id, { dob: e.target.value })} />
-                      <Select ariaLabel="Gender" value={p.gender ?? ""} onChange={(v) => setPerson(p.id, { gender: v || undefined })} options={[{ value: "", label: "Gender" }, { value: "Male", label: "Male" }, { value: "Female", label: "Female" }, { value: "Transgender", label: "Transgender" }]} searchable={false} />
-                      <input className="field" aria-label="ID number" placeholder="ID" value={p.id} onChange={(e) => { const v = e.target.value; setPeople((l) => l.map((x) => (x === p ? { ...x, id: v } : x))); }} />
-                      <span className="flex min-h-11 items-center justify-between gap-2 rounded-lg border border-white/10 px-3 font-mono text-sm text-zinc-400" title="Only the last 4 digits are kept">{p.last4 ? maskAadhaar(p.last4) : "No Aadhaar"}{p.source && <span className={`rounded px-1.5 font-sans text-[10px] font-bold ${p.source === "qr" ? "bg-emerald-500/20 text-emerald-300" : "bg-amber-500/20 text-amber-200"}`}>{p.source === "qr" ? "QR" : "OCR"}</span>}</span>
-                      <label className="field flex cursor-pointer items-center text-sm text-zinc-400">{p.photo ? (p.cutout ? "Cut-out ✓ (change)" : "Photo ✓ (change)") : "Add photo"}<input type="file" accept="image/*" className="sr-only" onChange={(e) => photo(p.id, e.target.files?.[0])} /></label>
-                      {p.review ? <button type="button" className="btn !min-h-11 text-sm" onClick={() => setPerson(p.id, { review: false })}>Looks right</button> : <span />}
-                      <input className="field sm:col-span-2" aria-label="Access zones" placeholder="Access zones, e.g. Main hall; Backstage" value={p.zones ?? ""} onChange={(e) => setPerson(p.id, { zones: e.target.value })} />
-                      <div className="flex flex-wrap items-center gap-2 sm:col-span-4">
-                        {minorOf(p) && <label className={`inline-flex cursor-pointer items-center gap-2 rounded-full border px-3 py-1.5 text-xs ${p.guardian ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-200" : "border-red-500/40 bg-red-500/10 text-red-200"}`}><input type="checkbox" checked={!!p.guardian} onChange={(e) => setPerson(p.id, { guardian: e.target.checked })} className="h-4 w-4 accent-cyan" />Under 18 on the event date · guardian consent received</label>}
-                        {duplicates.has(p.id) && <span className="rounded-full border border-amber-500/40 bg-amber-500/10 px-3 py-1.5 text-xs text-amber-200">Possible duplicate of {duplicates.get(p.id)!.map((id) => people.find((x) => x.id === id)?.name || id).join(", ")}</span>}
-                        {!p.photo && <span className="rounded-full border border-white/10 px-3 py-1.5 text-xs text-zinc-400">No photo yet</span>}
-                        {p.photo && !p.cutout && <button type="button" className="chip !min-h-8 text-xs" disabled={bgBusy === p.id} onClick={() => cutOutExisting(p)}>{bgBusy === p.id ? "Cutting out…" : "Remove background"}</button>}
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </section>
-            </div>
-          )}
-
-          {step === 2 && dTeam && (
-            <div className="no-print space-y-6">
-              <section className="card space-y-4">
-                <div className="grid gap-3 sm:grid-cols-[16rem_1fr] sm:items-end">
-                  <div className="grid gap-3">
-                    <Select label="Designing for team" value={dTeam.id} onChange={setDesignTeam} options={teamOpts} searchable={false} />
-                    <Select label="Card type for this team" value={fmtOf(tplFor(dTeam))} onChange={(v) => setTemplates((t) => { const cur = tplFor(dTeam); return { ...t, [dTeam.id]: withBack({ ...(themeById(cur.theme ?? "") ?? themeById(suggest(null, dTeam.name, v as Fmt))!).make(v as Fmt), id: dTeam.id }) }; })} options={(Object.keys(FORMATS) as Fmt[]).map((k) => ({ value: k, label: FORMATS[k].label, hint: `${FORMATS[k].w} x ${FORMATS[k].h} mm` }))} searchable={false} />
-                    {fmtOf(tplFor(dTeam)) !== fmt && <p className="text-xs text-zinc-500">Changing the card type rebuilds this team&apos;s card from its theme. Your own edits to the layout are replaced.</p>}
-                  </div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="text-sm text-zinc-400">Style assistant:</span>
-                    {VIBES.map((v) => (<button key={v} type="button" className="chip capitalize" aria-pressed={vibe === v} onClick={() => setVibe(vibe === v ? null : v)}>{v}</button>))}
-                    <button type="button" className="btn !min-h-9 px-3 text-sm" onClick={() => { applyTheme(suggest(vibe, dTeam.name, fmtOf(tplFor(dTeam))), [dTeam.id]); }}>Suggest for this team</button>
-                    <button type="button" className="btn-ghost !min-h-9 px-3 text-sm" onClick={() => setTemplates((t) => { const n = { ...t }; teams.forEach((x, i) => { const id = suggest(vibe, x.name + i, fmtOf(tplFor(x))); n[x.id] = withBack({ ...themeById(id)!.make(fmtOf(tplFor(x))), id: x.id }); }); return n; })}>Different theme for every team</button>
-                  </div>
-                </div>
-                {posterFmt(fmtOf(tplFor(dTeam))) && themeGrid(THEMES.filter((t) => t.group === "poster" && !!t.fmts?.includes(fmtOf(tplFor(dTeam)))), "Themes drawn for this card type")}
-                {!posterFmt(fmtOf(tplFor(dTeam))) && themeGrid(THEMES.filter((t) => t.group === "classic"), "Classic themes")}
-                {!posterFmt(fmtOf(tplFor(dTeam))) && <p className="text-sm text-zinc-500">Want the poster-style cards (cut-out portraits, big type, ribbons)? Change the card type above to Poster card, Story card or Digital pass.</p>}
-                <button type="button" className="btn-ghost text-sm" onClick={() => { const cur = tplFor(dTeam); setTemplates((t) => { const n = { ...t }; teams.forEach((x) => { n[x.id] = { ...cur, id: x.id, els: cur.els.map((e) => ({ ...e })), back: cur.back ? { bg: cur.back.bg, els: cur.back.els.map((e) => ({ ...e })) } : undefined }; }); return n; }); }}>Copy this team&apos;s design to all teams</button>
-              </section>
-              <section className="card !p-4 sm:!p-6">
-                <h3 className="mb-4 font-display text-lg font-bold text-white">Customise <span className="text-cyan">{dTeam.name}</span>&apos;s card</h3>
-                <div className="mb-4 grid gap-3 sm:grid-cols-[18rem_1fr] sm:items-end">
-                  <Select label="Preview with" value={sample.id} onChange={setPreviewId} options={teamPeople.map((p) => ({ value: p.id, label: p.name || p.id, hint: p.photo ? (p.cutout ? "cut-out" : "photo") : "no photo" }))} searchable={false} />
-                  <p className="text-sm text-zinc-500">Uploaded photos appear on the card exactly as they will print. Add one here with &ldquo;Add photo&rdquo; in the toolbar, or in the People step. Transparent PNGs give the full cut-out look. The demo pictures are AI-generated cartoon avatars of invented people.</p>
-                </div>
-                <div className="mb-4 flex flex-wrap items-center gap-2">
-                  <div className="flex gap-1" role="group" aria-label="Side of the card">
-                    <button type="button" className="chip" aria-pressed={side === "front"} onClick={() => setSide("front")}>Front</button>
-                    <button type="button" className="chip" aria-pressed={side === "back"} disabled={!curTpl.back} onClick={() => setSide("back")}>Back</button>
-                  </div>
-                  {curTpl.back
-                    ? <button type="button" className="chip" onClick={() => setTemplates((t) => ({ ...t, [dTeam.id]: { ...curTpl, back: buildBack(curTpl) } }))}>Rebuild back from front</button>
-                    : fmtOf(curTpl) === "strip" ? <span className="text-xs text-zinc-500">Wristbands have no back.</span> : <button type="button" className="chip" onClick={() => setTemplates((t) => ({ ...t, [dTeam.id]: withBack(curTpl) }))}>Add a back</button>}
-                  <button type="button" className="chip" aria-pressed={curTpl.els.some((e) => e.id.startsWith("rolebar"))} onClick={toggleRoleBar}>Role colour stripe</button>
-                  <TeamLogoButton team={dTeam} onLogo={(logo) => setTeams((l) => l.map((x) => (x.id === dTeam.id ? { ...x, logo } : x)))} />
-                  <button type="button" className="chip" disabled={!dTeam.logo} onClick={recolourFromLogo} title="Takes the main colour of the team logo and uses it as the card's accent">Recolour from logo</button>
-                </div>
-                <Editor tpl={editView} onChange={onEdit} ctx={ctxFor(sample)} onPhotoFile={(f) => photo(sample.id, f)} />
-              </section>
-            </div>
-          )}
-
+        <motion.div key={step} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.18 }}>
+          {step === 0 && <SetupStep event={event} setEvent={setEvent} game={game} setGame={setGame} organiser={organiser} setOrganiser={setOrganiser} fmt={fmt} onFmt={(f) => { setFmt(f); setTemplates({}); }} teams={teams} setTeams={setTeams} setPeople={setPeople} info={info} setInfo={setInfo} />}
+          {step === 1 && <PeopleStep people={people} teams={teams} teamOpts={teamOpts} valid={valid} scanTeam={scanTeam} setScanTeam={setScanTeam} consent={consent} setConsent={setConsent} jobs={jobs} scan={scan} trySample={trySample} pdfAsk={pdfAsk} pdfPass={pdfPass} setPdfPass={setPdfPass} setPeople={setPeople} setTeams={setTeams} setPerson={setPerson} addPerson={addPerson} minorOf={minorOf} duplicates={duplicates} photo={photo} cutOutExisting={cutOutExisting} bgBusy={bgBusy} bgNote={bgNote} autoBg={autoBg} setAutoBg={setAutoBg} />}
+          {step === 2 && dTeam && <DesignStep teamOpts={teamOpts} dTeam={dTeam} setDesignTeam={setDesignTeam} curTpl={curTpl} editView={editView} onEdit={onEdit} ctxFor={ctxFor} sample={sample} teamPeople={teamPeople} setPreviewId={setPreviewId} side={side} setSide={setSide} vibe={vibe} setVibe={setVibe} onFormat={changeFormat} applyTheme={(id) => applyTheme(id, [dTeam.id])} surprise={() => applyTheme(suggest(vibe, dTeam.name, fmtOf(curTpl)), [dTeam.id])} sameForAll={sameForAll} differentPerTeam={differentPerTeam} addBack={() => setTemplates((t) => ({ ...t, [dTeam.id]: withBack(curTpl) }))} rebuildBack={() => setTemplates((t) => ({ ...t, [dTeam.id]: { ...curTpl, back: buildBack(curTpl) } }))} toggleRoleBar={toggleRoleBar} roleBarOn={curTpl.els.some((e) => e.id.startsWith("rolebar"))} recolourFromLogo={recolourFromLogo} setTeamLogo={(logo) => setTeams((l) => l.map((x) => (x.id === dTeam.id ? { ...x, logo } : x)))} photoForSample={(f) => photo(sample.id, f)} />}
           {step === 3 && (
             <PrintPanel people={printable} allPeople={people} teams={teams} teamOpts={teamOpts} printTeam={printTeam === "all" ? "all" : valid(printTeam)} setPrintTeam={setPrintTeam} tplFor={tplFor} teamById={teamById} ctxFor={ctxFor} event={event} info={info} minorOf={minorOf} duplicates={duplicates} needReview={needReview} onPrinted={() => award("card-shark", 20, "Card shark: printed your first ID cards")} />
           )}
         </motion.div>
       </AnimatePresence>
 
-      <div className="no-print mt-8 flex justify-between">
-        <button type="button" className="btn-ghost" disabled={step === 0} onClick={() => setStep((s) => s - 1)}>← Back</button>
-        {step < 3 && <button type="button" className="btn" onClick={() => setStep((s) => s + 1)}>Next: {STEPS[step + 1]} →</button>}
-      </div>
+      <nav aria-label="Step navigation" className="no-print sticky bottom-24 z-30 mt-6 flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-ink/85 px-3 py-2.5 shadow-2xl backdrop-blur-xl sm:bottom-3">
+        <button type="button" className="btn-ghost !min-h-10 px-4 text-sm" disabled={step === 0} onClick={() => setStep((s) => s - 1)}>← Back</button>
+        <p className="hidden min-w-0 truncate text-sm text-zinc-400 sm:block">{hint}</p>
+        {step < 3 ? <button type="button" className="btn !min-h-10 px-5 text-sm" onClick={() => setStep((s) => s + 1)}>Next: {STEPS[step + 1]} →</button> : <span />}
+      </nav>
     </div>
   );
 }

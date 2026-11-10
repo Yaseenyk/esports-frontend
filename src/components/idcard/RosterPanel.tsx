@@ -9,8 +9,10 @@ const uidT = () => `t${Date.now().toString(36)}${Math.floor(Math.random() * 1e3)
 const prefix = (name: string) => (name.replace(/[^A-Za-z0-9]/g, "").slice(0, 3) || "ID").toUpperCase();
 
 /** Bring a whole roster in from a sheet, and take it back out. People who are not on a team yet get one made for them. */
-export default function RosterPanel({ teams, people, setTeams, setPeople, minorOf }: {
+export default function RosterPanel({ teams, people, setTeams, setPeople, minorOf, bare = false }: {
   teams: Team[]; people: Person[]; setTeams: (t: Team[]) => void; setPeople: (p: Person[]) => void; minorOf: (p: Person) => boolean;
+  /** Inside a tab that already has its own frame and heading. */
+  bare?: boolean;
 }) {
   const [text, setText] = useState("");
   const [msg, setMsg] = useState<string | null>(null);
@@ -34,12 +36,12 @@ export default function RosterPanel({ teams, people, setTeams, setPeople, minorO
   };
 
   return (
-    <section className="card space-y-3">
+    <section className={bare ? "space-y-3" : "card space-y-3"}>
       <div>
-        <h2 className="font-display text-xl font-bold text-white">Import or export the whole roster</h2>
-        <p className="mt-1 text-sm text-zinc-400">Paste rows copied from Excel or Google Sheets, or upload a CSV. Columns: name, team, role, dob, gender, zones (a header row is optional). New teams are created for you.</p>
+        {!bare && <h2 className="font-display text-lg font-bold text-white">Import or export the whole roster</h2>}
+        <p className="text-sm text-zinc-400">Paste rows copied from Excel or Google Sheets, or upload a CSV. Columns: name, team, role, dob, gender, zones (a header row is optional). New teams are created for you.</p>
       </div>
-      <textarea className="field min-h-24 py-2 font-mono text-sm" aria-label="Roster rows" placeholder={"name\tteam\trole\tdob\tgender\nAarav Mehta\tKonkan Kings\tPlayer\t12/05/2003\tMale"} value={text} onChange={(e) => setText(e.target.value)} />
+      <textarea className="field min-h-20 py-2 font-mono text-sm" aria-label="Roster rows" placeholder={"name\tteam\trole\tdob\tgender\nAarav Mehta\tKonkan Kings\tPlayer\t12/05/2003\tMale"} value={text} onChange={(e) => setText(e.target.value)} />
       <div className="flex flex-wrap gap-2">
         <button type="button" className="btn !min-h-10 text-sm" disabled={!text.trim()} onClick={() => run(text)}>Add these people</button>
         <label className="btn-ghost !min-h-10 cursor-pointer px-4 text-sm">Upload a CSV<input type="file" accept=".csv,.tsv,.txt,text/csv,text/plain" className="sr-only" onChange={async (e) => { const f = e.target.files?.[0]; if (f) run(await f.text()); e.target.value = ""; }} /></label>

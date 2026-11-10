@@ -34,6 +34,7 @@ function Range({ label, value, min, max, step = 1, onChange }: { label: string; 
 
 export default function Editor({ tpl, onChange, ctx, onPhotoFile }: { tpl: Template; onChange: (t: Template) => void; ctx: Ctx; onPhotoFile?: (f: File) => void }) {
   const [sel, setSel] = useState<string | null>(null);
+  const [menu, setMenu] = useState(false);
   const past = useRef<Template[]>([]);
   const future = useRef<Template[]>([]);
   const [, bump] = useState(0);
@@ -97,6 +98,21 @@ export default function Editor({ tpl, onChange, ctx, onPhotoFile }: { tpl: Templ
   };
 
   const logo = (f?: File) => { if (!f) return; const r = new FileReader(); r.onload = () => add({ kind: "image", src: String(r.result), w: 20, h: 20, x: 70, y: 70 }); r.readAsDataURL(f); };
+  const logoFile = (f?: File) => { if (!f) return; const r = new FileReader(); r.onload = () => add({ kind: "image", src: String(r.result), w: 20, h: 20, x: 70, y: 70 }); r.readAsDataURL(f); };
+  const pickImage = () => { const i = document.createElement("input"); i.type = "file"; i.accept = "image/*"; i.onchange = () => logoFile(i.files?.[0]); i.click(); };
+  const addItems: { label: string; help: string; run: () => void }[] = [
+    { label: "Text", help: "A line of text you type yourself.", run: () => add({ kind: "text", text: "Your text", size: 5, color: "#ffffff", font: "display", weight: 700, align: "left", w: 40, h: 10 }) },
+    { label: "Info from the person", help: "Fills in by itself for each person: name, team, role, ID, date and more.", run: () => add({ kind: "field", field: "name", size: 5, color: "#ffffff", font: "display", weight: 700, align: "left", w: 50, h: 10 }) },
+    { label: "Photo frame", help: "A framed spot for each person's photo.", run: () => add({ kind: "photo", w: 24, h: 45, radius: 6, fill: "#00000055", stroke: "#22D3EE", strokeW: 0.9 }) },
+    { label: "Cut-out person", help: "The person stands in front of the design with no frame. Best with a cut-out photo.", run: () => add({ kind: "photo", cutout: true, w: 60, h: 55, x: 20, y: 30, color: "#334155", shadow: true }) },
+    { label: "QR code", help: "A QR code for the pass. Signed, if you turned that on.", run: () => add({ kind: "qr", w: 24, h: 15, color: "#111111", fill: "#ffffff", radius: 3 }) },
+    { label: "Box", help: "A coloured rectangle, for bars, tags and panels.", run: () => add({ kind: "rect", fill: "#22D3EE", w: 30, h: 12, radius: 2 }) },
+    { label: "Circle", help: "A coloured circle or oval.", run: () => add({ kind: "ellipse", fill: "#A855F7", w: 20, h: 32 }) },
+    { label: "Role colour bar", help: "A bar whose colour follows each person's role.", run: () => add({ kind: "rect", fill: "#22d3ee", roleColor: true, w: 100, h: 2.4, x: 0, y: 97.6, radius: 0 }) },
+    { label: "Team logo", help: "Shows the team's logo (add it in Event & teams).", run: () => add({ kind: "image", bind: "team", w: 18, h: 11, x: 76, y: 5 }) },
+    { label: "Sponsor logo", help: "Shows the event sponsor's logo.", run: () => add({ kind: "image", bind: "sponsor", w: 30, h: 7, x: 35, y: 91 }) },
+    { label: "Picture from your device", help: "Any image: a badge, a pattern, a mascot.", run: pickImage },
+  ];
   const isText = el && (el.kind === "text" || el.kind === "field");
   const isShape = el && (el.kind === "rect" || el.kind === "ellipse" || (el.kind === "photo" && !el.cutout));
 
@@ -104,23 +120,32 @@ export default function Editor({ tpl, onChange, ctx, onPhotoFile }: { tpl: Templ
     <div ref={root} tabIndex={-1} className="grid gap-4 outline-none lg:grid-cols-[1fr_17rem]" onKeyDown={onKey}>
       <div>
         <div className="mb-3 flex flex-wrap items-center gap-2" role="toolbar" aria-label="Design tools">
-          <button type="button" className="btn-ghost !min-h-9 px-3 text-sm" onClick={undo} disabled={!past.current.length} aria-label="Undo">↶ Undo</button>
-          <button type="button" className="btn-ghost !min-h-9 px-3 text-sm" onClick={redo} disabled={!future.current.length} aria-label="Redo">↷ Redo</button>
+          <button type="button" title="Undo the last change (Ctrl+Z)" className="btn-ghost !min-h-9 px-3 text-sm" onClick={undo} disabled={!past.current.length} aria-label="Undo">↶ Undo</button>
+          <button type="button" title="Redo (Ctrl+Y)" className="btn-ghost !min-h-9 px-3 text-sm" onClick={redo} disabled={!future.current.length} aria-label="Redo">↷ Redo</button>
           <span className="mx-1 h-5 w-px bg-white/10" aria-hidden="true" />
-          <button type="button" className="btn-ghost !min-h-9 px-3 text-sm" onClick={() => add({ kind: "text", text: "Your text", size: 5, color: "#ffffff", font: "display", weight: 700, align: "left", w: 40, h: 10 })}>+ Text</button>
-          <button type="button" className="btn-ghost !min-h-9 px-3 text-sm" onClick={() => add({ kind: "field", field: "name", size: 5, color: "#ffffff", font: "display", weight: 700, align: "left", w: 50, h: 10 })}>+ Detail</button>
-          <button type="button" className="btn-ghost !min-h-9 px-3 text-sm" onClick={() => add({ kind: "rect", fill: "#22D3EE", w: 30, h: 12, radius: 2 })}>+ Box</button>
-          <button type="button" className="btn-ghost !min-h-9 px-3 text-sm" onClick={() => add({ kind: "ellipse", fill: "#A855F7", w: 20, h: 32 })}>+ Circle</button>
-          <button type="button" className="btn-ghost !min-h-9 px-3 text-sm" onClick={() => add({ kind: "photo", w: 24, h: 45, radius: 6, fill: "#00000055", stroke: "#22D3EE", strokeW: 0.9 })}>+ Photo</button>
-          <button type="button" className="btn-ghost !min-h-9 px-3 text-sm" onClick={() => add({ kind: "photo", cutout: true, w: 60, h: 55, x: 20, y: 30, color: "#334155", shadow: true })}>+ Cut-out</button>
-          <button type="button" className="btn-ghost !min-h-9 px-3 text-sm" onClick={() => add({ kind: "qr", w: 24, h: 15, color: "#111111", fill: "#ffffff", radius: 3 })}>+ QR</button>
-          {onPhotoFile && <label className="btn !min-h-9 cursor-pointer px-3 text-sm">{ctx.person.photo ? "Change photo" : "Add photo"}<input type="file" accept="image/*" className="sr-only" onChange={(e) => { const f = e.target.files?.[0]; if (f) onPhotoFile(f); e.target.value = ""; }} /></label>}
-          <button type="button" className="btn-ghost !min-h-9 px-3 text-sm" onClick={() => add({ kind: "image", bind: "team", w: 18, h: 11, x: 76, y: 5 })}>+ Team logo</button>
-          <button type="button" className="btn-ghost !min-h-9 px-3 text-sm" onClick={() => add({ kind: "image", bind: "sponsor", w: 30, h: 7, x: 35, y: 91 })}>+ Sponsor logo</button>
-          <button type="button" className="btn-ghost !min-h-9 px-3 text-sm" onClick={() => add({ kind: "rect", fill: "#22d3ee", roleColor: true, w: 100, h: 2.4, x: 0, y: 97.6, radius: 0 })}>+ Role bar</button>
-          <label className="btn-ghost !min-h-9 cursor-pointer px-3 text-sm">+ Logo<input type="file" accept="image/*" className="sr-only" onChange={(e) => { logo(e.target.files?.[0]); e.target.value = ""; }} /></label>
+          <div className="relative">
+            <button type="button" aria-haspopup="menu" aria-expanded={menu} onClick={() => setMenu((m) => !m)} className="btn !min-h-9 px-4 text-sm">+ Add to the card</button>
+            {menu && (
+              <>
+                <button type="button" aria-label="Close menu" className="fixed inset-0 z-40 cursor-default" onClick={() => setMenu(false)} />
+                <div role="menu" className="absolute left-0 top-full z-50 mt-2 w-[min(92vw,34rem)] rounded-2xl border border-white/15 bg-zinc-950/95 p-2 shadow-2xl backdrop-blur-xl">
+                  <ul className="grid gap-1 sm:grid-cols-2">
+                    {addItems.map((it) => (
+                      <li key={it.label}>
+                        <button type="button" role="menuitem" onClick={() => { it.run(); setMenu(false); }} className="flex w-full flex-col rounded-xl px-3 py-2 text-left outline-none hover:bg-white/10 focus-visible:bg-white/10">
+                          <span className="text-sm font-semibold text-white">{it.label}</span>
+                          <span className="text-xs text-zinc-400">{it.help}</span>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </>
+            )}
+          </div>
+          {onPhotoFile && <label title="Add or change the photo of the person being previewed. It appears on every design." className="btn-ghost !min-h-9 cursor-pointer px-3 text-sm">{ctx.person.photo ? "Change photo" : "Add photo"}<input type="file" accept="image/*" className="sr-only" onChange={(e) => { const f = e.target.files?.[0]; if (f) onPhotoFile(f); e.target.value = ""; }} /></label>}
         </div>
-        <div className="mx-auto w-full select-none" style={{ maxWidth: FORMATS[fmtOf(tpl)].w < FORMATS[fmtOf(tpl)].h ? 330 : 640 }} ref={box} onPointerDown={() => { root.current?.focus({ preventScroll: true }); setSel(null); }}>
+        <div className="mx-auto w-full select-none" style={{ maxWidth: FORMATS[fmtOf(tpl)].w < FORMATS[fmtOf(tpl)].h ? 380 : fmtOf(tpl) === "strip" ? 980 : 760 }} ref={box} onPointerDown={() => { root.current?.focus({ preventScroll: true }); setSel(null); }}>
           <CardView tpl={tpl} ctx={ctx} className="ring-1 ring-white/10 shadow-2xl shadow-black/60">
             {tpl.els.map((e) => (
               <div key={e.id} data-el={e.id} onPointerDown={(ev) => drag(ev, e, "move")} className={`absolute cursor-move touch-none ${sel === e.id ? "outline outline-2 outline-cyan" : "hover:outline hover:outline-1 hover:outline-white/40"}`}
