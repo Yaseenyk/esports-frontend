@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useXp } from "@/components/XpProvider";
 import { GAMES } from "@/lib/data";
 
 type Role = "Player" | "Substitute" | "Coach" | "Staff" | "Guest" | "Caster";
@@ -45,6 +46,7 @@ function Card({ p, event, game, organiser }: { p: Person; event: string; game: s
 }
 
 export default function IdCardMaker() {
+  const { award } = useXp();
   const [event, setEvent] = useState("Sample Campus Cup");
   const [game, setGame] = useState("BGMI");
   const [organiser, setOrganiser] = useState("Sample College Esports Club");
@@ -87,7 +89,7 @@ export default function IdCardMaker() {
       <div className="space-y-6">
         <section className="no-print card space-y-3">
           <div className="flex items-center justify-between"><h2 className="font-bold text-zinc-50">People ({people.length})</h2>
-            <div className="flex gap-2"><button type="button" className="btn-ghost !min-h-9 text-sm" onClick={add}>Add person</button><button type="button" className="btn !min-h-9 text-sm" onClick={() => window.print()}>Print cards</button></div></div>
+            <div className="flex gap-2"><button type="button" className="btn-ghost !min-h-9 text-sm" onClick={add}>Add person</button><button type="button" className="btn !min-h-9 text-sm" onClick={() => { award("card-shark", 20, "Card shark: printed your first ID cards"); window.print(); }}>Print cards</button></div></div>
           <ul className="space-y-3">
             {people.map((p, i) => (
               <li key={i} className="grid gap-2 rounded-xl border border-zinc-800 p-3 sm:grid-cols-[1fr_1fr_8rem_auto]">

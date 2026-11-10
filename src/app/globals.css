@@ -8,9 +8,6 @@
     @apply text-zinc-100 antialiased;
     overflow-x: hidden;
     background-color: #05070a;
-    background-image: linear-gradient(to right, #4f4f4f1f 1px, transparent 1px), linear-gradient(to bottom, #4f4f4f1f 1px, transparent 1px);
-    background-size: 40px 40px;
-    background-attachment: fixed;
   }
   h1, h2, h3 { text-wrap: balance; font-family: var(--font-display), system-ui, sans-serif; letter-spacing: -0.02em; }
   input, select, textarea { font-size: 16px; }
@@ -55,3 +52,13 @@ a.card:hover { transform: translateY(-4px); box-shadow: 0 18px 40px -18px rgba(3
   a.card:hover { transform: none; }
 }
 @media print { .aurora { display: none; } }
+
+/* Tilt cards: the TiltLink component sets --rx/--ry/--gx/--gy from the pointer. */
+a.tilt { transform: perspective(700px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); transform-style: preserve-3d; will-change: transform; }
+a.tilt::after { content: ""; position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity .25s; background: radial-gradient(circle at var(--gx, 50%) var(--gy, 50%), rgba(255,255,255,.14), transparent 55%); }
+a.tilt:hover::after { opacity: 1; }
+a.tilt:hover { transform: perspective(700px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translateY(-4px); }
+/* Konami code: overdrive swaps the cyan and violet ambience for warm hues. */
+html[data-overdrive] .aurora, html[data-overdrive] .hexfield { filter: hue-rotate(150deg) saturate(1.5); }
+@media (hover: none) { a.tilt, a.tilt:hover { transform: none; } a.tilt::after { display: none; } }
+@media (prefers-reduced-motion: reduce) { a.tilt, a.tilt:hover { transform: none; } a.tilt::after { display: none; } }

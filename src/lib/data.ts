@@ -133,5 +133,6 @@ export const SEARCH_INDEX: Hit[] = [
   ...EVENTS.map((e) => ({ kind: "Event" as const, title: e.name, sub: `${gameBySlug(e.game)?.short} · ${e.level} · ${e.mode}`, href: `/events/${e.slug}/` })),
   ...COMMUNITIES.map((c) => ({ kind: "Community" as const, title: c.name, sub: `${c.kind} · ${c.city}`, href: `/communities/${c.slug}/` })),
   ...POSTS.map((p) => ({ kind: "Guide" as const, title: p.title, sub: `${p.tag} · ${p.minutes} min`, href: `/guides/` })),
+  { kind: "Tool" as const, title: "Arcade: aim trainer and reaction test", sub: "Warm up and earn XP", href: "/arcade/" },
   ...TOOLS.map((t) => ({ kind: "Tool" as const, title: t.name, sub: t.status, href: t.href ?? "/tools/" })),
 ];

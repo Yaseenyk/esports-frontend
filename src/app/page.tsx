@@ -1,6 +1,7 @@
 import Link from "next/link";
 import GameBadge from "@/components/GameBadge";
 import { Counter, Item, Marquee, Reveal, Stagger } from "@/components/Motion";
+import TiltLink from "@/components/TiltLink";
 import SearchBox from "@/components/SearchBox";
 import { COMMUNITIES, EVENTS, GAMES, POSTS, TOOLS, gameBySlug } from "@/lib/data";
 
@@ -82,10 +83,10 @@ export default function Home() {
         <Stagger className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5" step={0.04}>
           {GAMES.slice(0, 15).map((g) => (
             <Item key={g.slug}>
-              <Link href={`/games/${g.slug}/`} className="card flex items-center gap-3 !p-3">
-                <GameBadge game={g} />
-                <span className="min-w-0"><span className="block truncate font-display font-semibold text-white">{g.short}</span><span className="block truncate text-xs text-zinc-500">{g.platform}</span></span>
-              </Link>
+              <TiltLink href={`/games/${g.slug}/`} className="!p-3">
+                <span className="flex items-center gap-3"><GameBadge game={g} />
+                <span className="min-w-0"><span className="block truncate font-display font-semibold text-white">{g.short}</span><span className="block truncate text-xs text-zinc-500">{g.platform}</span></span></span>
+              </TiltLink>
             </Item>
           ))}
         </Stagger>
