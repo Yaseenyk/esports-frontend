@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import BracketMaker from "./BracketMaker";
+import BracketMaker from "@/components/tools/BracketMaker";
 
 export const metadata: Metadata = { title: "Bracket maker" };
 

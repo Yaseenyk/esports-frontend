@@ -1,20 +1,30 @@
 import type { Metadata } from "next";
-import { POSTS } from "@/lib/data";
+import Link from "next/link";
+import JsonLd from "@/components/seo/JsonLd";
+import { GUIDES } from "@/content/guides";
+import { SITE_URL } from "@/lib/site";
 
-export const metadata: Metadata = { title: "Guides" };
+export const metadata: Metadata = {
+  title: "Esports event guides for organisers",
+  description: "Practical guides for running esports and gaming events: tournament formats, points tables, rules templates, ID cards, gate check-in, streaming and sponsors.",
+  alternates: { canonical: "/guides/" },
+};
 
 export default function Guides() {
   return (
-    <div>
-      <h1 className="text-3xl font-black text-zinc-50 sm:text-4xl">Guides</h1>
-      <p className="mt-2 max-w-2xl text-zinc-400">Practical articles for organisers, managers and streamers. These are titles and summaries only: the articles are not written yet.</p>
-      <div className="mt-8 grid gap-4 md:grid-cols-2">
-        {POSTS.map((p) => (
-          <article key={p.slug} className="card">
-            <div className="flex items-center justify-between"><span className="tag">{p.tag}</span><span className="text-xs text-zinc-400">{p.minutes} min</span></div>
-            <h2 className="mt-3 font-bold text-zinc-50">{p.title}</h2>
-            <p className="mt-1 text-sm text-zinc-400">{p.blurb}</p>
-          </article>
+    <div className="space-y-8">
+      <JsonLd data={{ "@context": "https://schema.org", "@type": "CollectionPage", name: "Esports event guides", url: `${SITE_URL}/guides/`, hasPart: GUIDES.map((g) => ({ "@type": "Article", headline: g.title, url: `${SITE_URL}/guides/${g.slug}/` })) }} />
+      <header>
+        <h1 className="text-3xl font-black text-zinc-50 sm:text-5xl">Guides for running esports events</h1>
+        <p className="mt-3 max-w-2xl text-lg text-zinc-300">Plain, practical guides for organisers of college, community and club events. Each one ends with a free tool you can use straight away.</p>
+      </header>
+      <div className="grid gap-4 md:grid-cols-2">
+        {GUIDES.map((g) => (
+          <Link key={g.slug} href={`/guides/${g.slug}/`} className="card block outline-none focus-visible:ring-2 focus-visible:ring-cyan">
+            <div className="flex items-center justify-between"><span className="tag">{g.tag}</span><span className="text-xs text-zinc-400">{g.minutes} min read</span></div>
+            <h2 className="mt-3 font-display text-lg font-bold text-white">{g.title}</h2>
+            <p className="mt-1 text-sm text-zinc-300">{g.description}</p>
+          </Link>
         ))}
       </div>
     </div>

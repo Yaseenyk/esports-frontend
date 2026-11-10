@@ -4,7 +4,7 @@ import { signedIn } from "./helpers";
 
 test.setTimeout(120_000); // axe on a busy page is slow when several browsers run at once
 
-const PAGES = ["/", "/games/", "/events/", "/communities/", "/arcade/", "/tools/", "/tools/id-cards/", "/tools/check-in/", "/tools/brackets/", "/login/", "/signup/", "/gate/"];
+const PAGES = ["/", "/games/", "/events/", "/communities/", "/arcade/", "/tools/", "/tools/id-cards/", "/tools/check-in/", "/tools/brackets/", "/login/", "/signup/", "/gate/", "/tools/points-table/", "/guides/", "/guides/points-table/", "/guides/event-gate-checkin/", "/about/", "/contact/", "/privacy/"];
 const APP_PAGES = ["/app/", "/app/check-in/", "/app/brackets/", "/app/account/"];
 
 for (const path of PAGES) {

@@ -1,3 +1,4 @@
+import { GUIDES } from "@/content/guides";
 /**
  * DEMO DATA for the interface prototype. Nothing here is a real event, community or result: the names, dates, fees and prizes are
  * invented to show how the site will look when it is full. Games are listed with generic facts only (platform and the usual team size). When the app is
@@ -109,30 +110,19 @@ export interface Post {
   blurb: string;
   minutes: number;
 }
-export const POSTS: Post[] = [
-  { slug: "run-a-campus-tournament", title: "How to run a campus tournament, step by step", tag: "Organiser guide", blurb: "Pick a game, write the rules, open registration, check teams in, publish results and hand out certificates.", minutes: 8 },
-  { slug: "player-id-cards", title: "Why every event needs player ID cards and passes", tag: "Organiser guide", blurb: "How passes stop duplicate entries and stand-ins, and make check-in on the day much faster.", minutes: 5 },
-  { slug: "points-table", title: "Setting up a fair points table for battle royale events", tag: "Game guide", blurb: "Placement points, kill points and tie-breakers, with a worked example for a three-lobby event.", minutes: 6 },
-  { slug: "manage-multiple-games", title: "Managing rosters in more than one game", tag: "Community", blurb: "One organisation, several teams, one calendar: how to keep rosters and substitutes straight.", minutes: 7 },
-  { slug: "stream-your-event", title: "Streaming your own event on a small budget", tag: "Streaming", blurb: "Scenes, overlays, casters and a run-sheet you can follow live.", minutes: 9 },
-  { slug: "sponsor-pitch", title: "Writing a sponsor pitch for a community event", tag: "Community", blurb: "What to include, what to promise and what to report back once the event is over.", minutes: 6 },
-];
 
 export interface Tool {
   slug: string;
   name: string;
   blurb: string;
-  status: "Working in this prototype" | "Planned";
-  href?: string;
+  href: string;
 }
+/** The free tools. Only tools that work today are listed. */
 export const TOOLS: Tool[] = [
-  { slug: "id-cards", name: "ID cards and passes", blurb: "Read Aadhaar cards automatically, pick from 10 team themes, redesign the card like a mini Canva, and print. Everything runs in your browser.", status: "Working in this prototype", href: "/tools/id-cards/" },
-  { slug: "check-in", name: "Gate check-in", blurb: "Scan a card's QR at the gate: genuine passes show the person's photo, role and zones; copies and edits are rejected. Works offline.", status: "Working in this prototype", href: "/tools/check-in/" },
-  { slug: "brackets", name: "Bracket maker", blurb: "Paste your teams, get a seeded single-elimination bracket, and click winners to advance them to the final.", status: "Working in this prototype", href: "/tools/brackets/" },
-  { slug: "schedule", name: "Event schedule", blurb: "A run-sheet and match schedule you can share or print.", status: "Planned" },
-  { slug: "rosters", name: "Team and roster manager", blurb: "One organisation, several games: players, substitutes, staff and contracts in one place.", status: "Planned" },
-  { slug: "registration", name: "Registration forms", blurb: "Collect teams and players, check eligibility, and confirm slots.", status: "Planned" },
-  { slug: "certificates", name: "Certificates", blurb: "Winner and participation certificates generated from your results.", status: "Planned" },
+  { slug: "id-cards", name: "ID card maker", blurb: "Make player and event ID cards with signed QR passes. Free, in your browser, no account.", href: "/tools/id-cards/" },
+  { slug: "brackets", name: "Bracket maker", blurb: "Paste your teams, get a seeded single-elimination bracket with byes, and click winners forward.", href: "/tools/brackets/" },
+  { slug: "points-table", name: "Points table calculator", blurb: "Battle royale placement and kill points with tie-breakers, ranked standings and CSV export.", href: "/tools/points-table/" },
+  { slug: "check-in", name: "Gate check-in scanner", blurb: "Scan QR passes at the gate, online or offline. Fake and copied passes are rejected.", href: "/tools/check-in/" },
 ];
 
 export const gameBySlug = (slug: string) => GAMES.find((g) => g.slug === slug);
@@ -148,8 +138,7 @@ export const SEARCH_INDEX: Hit[] = [
   ...GAMES.map((g) => ({ kind: "Game" as const, title: g.name, sub: `${g.platform} · ${g.genre} · ${g.short}`, href: `/games/${g.slug}/` })),
   ...EVENTS.map((e) => ({ kind: "Event" as const, title: e.name, sub: `${gameBySlug(e.game)?.short} · ${e.level} · ${e.mode}`, href: `/events/${e.slug}/` })),
   ...COMMUNITIES.map((c) => ({ kind: "Community" as const, title: c.name, sub: `${c.kind} · ${c.city}`, href: `/communities/${c.slug}/` })),
-  ...POSTS.map((p) => ({ kind: "Guide" as const, title: p.title, sub: `${p.tag} · ${p.minutes} min`, href: `/guides/` })),
-  { kind: "Tool" as const, title: "Gate check-in: scan passes", sub: "Verify cards offline", href: "/tools/check-in/" },
+  ...GUIDES.map((g) => ({ kind: "Guide" as const, title: g.title, sub: `${g.tag} · ${g.minutes} min`, href: `/guides/${g.slug}/` })),
+  ...TOOLS.map((t) => ({ kind: "Tool" as const, title: t.name, sub: "Free tool", href: t.href })),
   { kind: "Tool" as const, title: "Arcade: aim trainer and reaction test", sub: "Warm up and earn XP", href: "/arcade/" },
-  ...TOOLS.map((t) => ({ kind: "Tool" as const, title: t.name, sub: t.status, href: t.href ?? "/tools/" })),
 ];

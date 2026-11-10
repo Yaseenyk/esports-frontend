@@ -11,13 +11,13 @@ import SearchBox from "./SearchBox";
 
 interface Section { href: string; label: string; blurb: string; icon: string }
 const SECTIONS: Section[] = [
-  { href: "/games/", label: "Games", blurb: "28 titles", icon: "M6 12h4M8 10v4M15 11h.01M18 13h.01M7 6h10a5 5 0 015 5v2a4 4 0 01-7 2.6L14 14h-4l-1 1.6A4 4 0 012 13v-2a5 5 0 015-5z" },
-  { href: "/events/", label: "Events", blurb: "Brackets & leagues", icon: "M8 21h8M12 17v4M7 4h10v5a5 5 0 01-10 0zM17 5h3v2a3 3 0 01-3 3M7 5H4v2a3 3 0 003 3" },
-  { href: "/communities/", label: "Communities", blurb: "Clubs & orgs", icon: "M16 20v-1a4 4 0 00-4-4H8a4 4 0 00-4 4v1M10 11a3.5 3.5 0 100-7 3.5 3.5 0 000 7zM20 20v-1a3.5 3.5 0 00-2.5-3.4M16 4.2a3.5 3.5 0 010 6.6" },
-  { href: "/tools/", label: "Tools", blurb: "ID cards & more", icon: "M3 7a2 2 0 012-2h14a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2zM8 11a2 2 0 100-4 2 2 0 000 4zM5.5 16a3 3 0 015 0M14 9h4M14 13h4" },
-  { href: "/arcade/", label: "Arcade", blurb: "Aim & reflex games", icon: "M12 3l2.4 5 5.6.8-4 3.9.9 5.5L12 15.6 7.1 18.2 8 12.7 4 8.8 9.6 8z" },
+  { href: "/tools/", label: "Tools", blurb: "All free tools", icon: "M3 7a2 2 0 012-2h14a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2zM8 11a2 2 0 100-4 2 2 0 000 4zM5.5 16a3 3 0 015 0M14 9h4M14 13h4" },
+  { href: "/tools/id-cards/", label: "ID cards", blurb: "Passes & badges", icon: "M3 7a2 2 0 012-2h14a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2zM8 11a2 2 0 100-4 2 2 0 000 4zM5.5 16a3 3 0 015 0M14 9h4M14 13h4" },
+  { href: "/tools/brackets/", label: "Brackets", blurb: "Seeded bracket", icon: "M8 21h8M12 17v4M7 4h10v5a5 5 0 01-10 0zM17 5h3v2a3 3 0 01-3 3M7 5H4v2a3 3 0 003 3" },
+  { href: "/tools/points-table/", label: "Points table", blurb: "Battle royale", icon: "M4 4h7v7H4zM13 4h7v4h-7zM13 10h7v10h-7zM4 13h7v7H4z" },
   { href: "/guides/", label: "Guides", blurb: "How to run it", icon: "M4 5a2 2 0 012-2h13v16H6a2 2 0 00-2 2zM4 19a2 2 0 012-2h13M9 7h6" },
-  { href: "/manage/", label: "Manage", blurb: "Organiser desk", icon: "M4 4h7v7H4zM13 4h7v4h-7zM13 10h7v10h-7zM4 13h7v7H4z" },
+  { href: "/gate/", label: "Gate scanner", blurb: "Event-day check-in", icon: "M12 3l2.4 5 5.6.8-4 3.9.9 5.5L12 15.6 7.1 18.2 8 12.7 4 8.8 9.6 8z" },
+  { href: "/about/", label: "About", blurb: "Who and why", icon: "M16 20v-1a4 4 0 00-4-4H8a4 4 0 00-4 4v1M10 11a3.5 3.5 0 100-7 3.5 3.5 0 000 7zM20 20v-1a3.5 3.5 0 00-2.5-3.4M16 4.2a3.5 3.5 0 010 6.6" },
 ];
 const HEX = "polygon(50% 0%, 93% 25%, 93% 75%, 50% 100%, 7% 75%, 7% 25%)";
 const EASE = [0.22, 1, 0.36, 1] as const;
@@ -72,7 +72,7 @@ export default function HubNav() {
   const xp = useXp();
   const opener = useRef<HTMLElement | null>(null);
   const panel = useRef<HTMLDivElement>(null);
-  const current = SECTIONS.find((s) => path.startsWith(s.href.slice(0, -1)));
+  const current = [...SECTIONS].sort((x, y) => y.href.length - x.href.length).find((s) => path.startsWith(s.href.slice(0, -1)));
 
   const show = useCallback((from?: HTMLElement | null) => { opener.current = from ?? (document.activeElement as HTMLElement); setOpen(true); }, []);
   const hide = useCallback(() => { setOpen(false); opener.current?.focus?.(); }, []);

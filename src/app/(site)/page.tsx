@@ -1,156 +1,83 @@
+import type { Metadata } from "next";
 import Link from "next/link";
-import GameBadge from "@/components/GameBadge";
-import { Counter, Item, Marquee, Reveal, Stagger } from "@/components/Motion";
-import TiltLink from "@/components/TiltLink";
-import SearchBox from "@/components/SearchBox";
-import { COMMUNITIES, EVENTS, GAMES, POSTS, TOOLS, gameBySlug } from "@/lib/data";
+import JsonLd from "@/components/seo/JsonLd";
+import { GUIDES } from "@/content/guides";
+import { TOOLS } from "@/lib/data";
 
-const AUDIENCES = [
-  { t: "Players", d: "Find a game, a team and an event you can enter.", href: "/events/", icon: "M12 12a4 4 0 100-8 4 4 0 000 8zM4 21a8 8 0 0116 0" },
-  { t: "Organisers", d: "Registration, ID cards, schedule and points table in one flow.", href: "/tools/", icon: "M4 6h16M4 12h16M4 18h10" },
-  { t: "Communities", d: "One profile for every game your club or organisation plays.", href: "/communities/", icon: "M3 20v-2a5 5 0 015-5h2M17 11a3 3 0 100-6 3 3 0 000 6zM21 20v-1a4 4 0 00-3-3.9M9 9a3 3 0 100-6 3 3 0 000 6z" },
-  { t: "Streamers", d: "List your events, share your run-sheet and find casters.", href: "/guides/", icon: "M4 6h12a2 2 0 012 2v8a2 2 0 01-2 2H4zM18 10l4-2v8l-4-2" },
+export const metadata: Metadata = {
+  title: { absolute: "Esports Hub: free tools and guides for esports event organisers" },
+  description: "Free ID card maker, bracket maker, points table calculator and gate check-in scanner, plus practical guides for running college and community esports events in India.",
+  alternates: { canonical: "/" },
+};
+
+const FAQ = [
+  { q: "What is Esports Hub?", a: "Esports Hub is a set of free tools and written guides for people who organise esports and gaming events: college tournaments, club cups and community game nights." },
+  { q: "Is it free?", a: "Yes. The ID card maker, bracket maker, points table calculator and gate scanner are free and work in your browser without an account. A free account adds saving events online, invite links for players and live check-in across several doors." },
+  { q: "Do I need to install anything?", a: "No. Everything runs in a web browser on a phone or computer. You can add the gate scanner to your phone's home screen." },
+  { q: "What happens to players' personal details?", a: "Cards are made in your browser. Scanning an Aadhaar card happens on your own device and only the last four digits are kept. If you save an event online, only names, teams, roles, access zones, photos and logos are stored; birth dates and Aadhaar digits stay in your browser." },
+  { q: "Who makes it?", a: "Esports Hub is an independent project and is not affiliated with any game publisher. See the about page for how the guides are written and kept up to date." },
 ];
 
-function Icon({ d }: { d: string }) {
-  return <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5 fill-none stroke-current" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d={d} /></svg>;
-}
-
 export default function Home() {
-  const hero = GAMES.filter((g) => ["bgmi", "cod-mobile", "fortnite", "clash-royale"].includes(g.slug));
+  const latest = GUIDES.slice(0, 6);
   return (
-    <div className="space-y-24">
-      <section className="relative grid items-center gap-12 pt-4 lg:grid-cols-[1.15fr_.85fr]">
-        <div>
-          <p className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-cyan">
-            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-cyan" /> All games · one hub
-          </p>
-          <h1 className="mt-5 text-5xl font-bold leading-[1.05] text-white sm:text-6xl lg:text-7xl">
-            Run every game, every event, <span className="text-sheen">one hub</span>
-          </h1>
-          <p className="mt-6 max-w-xl text-lg leading-relaxed text-zinc-400">
-            Gaming communities play several games, from BGMI and Valorant to Minecraft and Roblox, and run several events. Search them all, manage teams together and print the passes on the day.
-          </p>
-          <div className="mt-8 max-w-xl"><SearchBox large /></div>
-          <div className="mt-6 flex flex-wrap gap-3">
-            <Link href="/tools/id-cards/" className="btn">Make ID cards</Link>
-            <Link href="/events/" className="btn-ghost">Browse events</Link>
-          </div>
-          <dl className="mt-10 grid max-w-md grid-cols-4 gap-4">
-            {[["Games", GAMES.length], ["Events", EVENTS.length], ["Communities", COMMUNITIES.length], ["Tools", TOOLS.length]].map(([k, v]) => (
-              <div key={k as string}><dd className="font-display text-3xl font-bold text-white"><Counter to={v as number} /></dd><dt className="text-xs text-zinc-400">{k}</dt></div>
-            ))}
-          </dl>
-          <p className="mt-2 text-[11px] text-zinc-600">Counts of sample entries in this prototype.</p>
+    <div className="space-y-16">
+      <JsonLd data={{ "@context": "https://schema.org", "@type": "FAQPage", mainEntity: FAQ.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })) }} />
+
+      <section className="max-w-3xl pt-4">
+        <p className="text-sm font-semibold uppercase tracking-widest text-cyan">For organisers of esports and gaming events</p>
+        <h1 className="mt-4 text-4xl font-bold leading-[1.1] text-white sm:text-6xl">Free tools and guides for running esports events</h1>
+        <p className="mt-6 text-lg leading-relaxed text-zinc-200">Make player ID cards with QR passes, build a tournament bracket, work out a battle royale points table and check guests in at the gate. Then read the plain, practical guides that explain how to run the whole event, from the first idea to the results.</p>
+        <div className="mt-8 flex flex-wrap gap-3">
+          <Link href="/tools/id-cards/" className="btn">Make ID cards</Link>
+          <Link href="/guides/run-a-campus-tournament/" className="btn-ghost">How to run a college tournament</Link>
         </div>
-        <div className="relative mx-auto hidden h-[26rem] w-full max-w-md lg:block" aria-hidden="true">
-          <div className="absolute inset-8 rounded-[2.5rem] border border-white/[0.14] bg-[#0a0b0d]" />
-          {hero.map((g, i) => (
-            <div key={g.slug} className="absolute animate-float" style={{ top: ["4%", "16%", "52%", "62%"][i], left: ["8%", "52%", "2%", "46%"][i], animationDelay: `${i * -1.4}s` }}>
-              <div className="rounded-3xl border border-white/[0.14] bg-[#0a0b0d] p-3"><GameBadge game={g} size="xl" /><p className="mt-2 text-center font-display text-sm font-semibold text-zinc-200">{g.short}</p></div>
-            </div>
-          ))}
-        </div>
+        <p className="mt-4 text-sm text-zinc-400">Free. Works in your browser. No account needed to use the tools.</p>
       </section>
 
-      <Reveal>
-        <Marquee>
-          {GAMES.map((g) => (
-            <Link key={g.slug} href={`/games/${g.slug}/`} className="flex shrink-0 items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.03] py-2 pe-5 ps-2 transition-colors hover:border-cyan/50">
-              <GameBadge game={g} size="sm" /><span className="font-display font-semibold text-zinc-200">{g.name}</span>
+      <section aria-labelledby="tools">
+        <div className="mb-6 flex items-end justify-between gap-3"><h2 id="tools" className="text-3xl font-bold text-white">Free tools</h2><Link href="/tools/" className="text-sm font-medium text-cyan hover:underline">All tools</Link></div>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {TOOLS.map((t) => (
+            <Link key={t.slug} href={t.href} className="card block h-full outline-none focus-visible:ring-2 focus-visible:ring-cyan">
+              <h3 className="font-display text-lg font-bold text-white">{t.name}</h3>
+              <p className="mt-2 text-sm leading-relaxed text-zinc-300">{t.blurb}</p>
+              <span className="mt-3 inline-block text-sm font-semibold text-cyan">Open →</span>
             </Link>
           ))}
-        </Marquee>
-      </Reveal>
-
-      <section aria-labelledby="who">
-        <h2 id="who" className="sr-only">Who it is for</h2>
-        <Stagger className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {AUDIENCES.map((a) => (
-            <Item key={a.t}>
-              <Link href={a.href} className="card group block h-full">
-                <span className="grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-cyan/20 to-purple/20 text-cyan ring-1 ring-white/10"><Icon d={a.icon} /></span>
-                <h3 className="mt-4 text-lg font-semibold text-white">{a.t}</h3>
-                <p className="mt-1 text-sm leading-relaxed text-zinc-400">{a.d}</p>
-              </Link>
-            </Item>
-          ))}
-        </Stagger>
-      </section>
-
-      <section aria-labelledby="games">
-        <Reveal className="mb-6 flex items-end justify-between"><h2 id="games" className="text-3xl font-bold text-white">Browse by game</h2><Link href="/games/" className="text-sm font-medium text-cyan hover:underline">All games →</Link></Reveal>
-        <Stagger className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5" step={0.04}>
-          {GAMES.slice(0, 15).map((g) => (
-            <Item key={g.slug}>
-              <TiltLink href={`/games/${g.slug}/`} className="!p-3">
-                <span className="flex items-center gap-3"><GameBadge game={g} />
-                <span className="min-w-0"><span className="block truncate font-display font-semibold text-white">{g.short}</span><span className="block truncate text-xs text-zinc-400">{g.platform}</span></span></span>
-              </TiltLink>
-            </Item>
-          ))}
-        </Stagger>
-      </section>
-
-      <section aria-labelledby="events">
-        <Reveal className="mb-6 flex items-end justify-between"><h2 id="events" className="text-3xl font-bold text-white">Upcoming events</h2><Link href="/events/" className="text-sm font-medium text-cyan hover:underline">All events →</Link></Reveal>
-        <Stagger className="grid gap-4 md:grid-cols-3">
-          {EVENTS.slice(0, 3).map((e) => {
-            const g = gameBySlug(e.game)!;
-            return (
-              <Item key={e.slug}>
-                <Link href={`/events/${e.slug}/`} className="card block h-full">
-                  <div className="flex items-center gap-3"><GameBadge game={g} size="sm" /><div className="flex gap-2"><span className="tag">{e.mode}</span><span className="tag">{e.level}</span></div></div>
-                  <h3 className="mt-4 text-lg font-semibold text-white">{e.name}</h3>
-                  <p className="mt-1 text-sm text-zinc-400">{e.format}</p>
-                  <p className="mt-4 text-xs text-zinc-400">{e.organiser}</p>
-                </Link>
-              </Item>
-            );
-          })}
-        </Stagger>
-      </section>
-
-      <Reveal>
-        <section aria-labelledby="tools" className="relative overflow-hidden rounded-3xl border border-white/[0.14] bg-[#0a0b0d] p-6 sm:p-10">
-          <div className="grid items-center gap-10 md:grid-cols-2">
-            <div>
-              <p className="text-sm font-semibold uppercase tracking-widest text-purple-400">Organiser tools</p>
-              <h2 id="tools" className="mt-2 text-3xl font-bold text-white sm:text-4xl">Print player ID cards in a minute</h2>
-              <p className="mt-3 leading-relaxed text-zinc-400">Add players, pick roles and print credit-card-size cards on A4. It runs in your browser, so photos never leave your device.</p>
-              <div className="mt-6 flex flex-wrap gap-3"><Link href="/tools/id-cards/" className="btn">Make ID cards</Link><Link href="/tools/" className="btn-ghost">All {TOOLS.length} tools</Link></div>
-            </div>
-            <ul className="grid grid-cols-2 gap-2 text-sm text-zinc-300">
-              {TOOLS.map((t) => (<li key={t.slug} className="flex items-center gap-2 rounded-xl border border-white/[0.14] bg-[#0f1013] px-3 py-2.5"><span className={`h-2 w-2 rounded-full ${t.href ? "bg-cyan" : "bg-zinc-600"}`} />{t.name}</li>))}
-            </ul>
-          </div>
-        </section>
-      </Reveal>
-
-      <section aria-labelledby="comm" className="grid gap-10 lg:grid-cols-2">
-        <div>
-          <Reveal className="mb-6 flex items-end justify-between"><h2 id="comm" className="text-3xl font-bold text-white">Communities</h2><Link href="/communities/" className="text-sm font-medium text-cyan hover:underline">See all →</Link></Reveal>
-          <Stagger className="space-y-3">
-            {COMMUNITIES.slice(0, 3).map((c) => (
-              <Item key={c.slug}>
-                <Link href={`/communities/${c.slug}/`} className="card block !p-4">
-                  <div className="flex items-center justify-between gap-2"><h3 className="font-semibold text-white">{c.name}</h3><span className="tag">{c.kind}</span></div>
-                  <div className="mt-3 flex -space-x-2">{c.games.map((s) => <GameBadge key={s} game={gameBySlug(s)!} size="sm" />)}</div>
-                </Link>
-              </Item>
-            ))}
-          </Stagger>
         </div>
-        <div>
-          <Reveal className="mb-6 flex items-end justify-between"><h2 className="text-3xl font-bold text-white">Guides</h2><Link href="/guides/" className="text-sm font-medium text-cyan hover:underline">All guides →</Link></Reveal>
-          <Stagger className="space-y-3">
-            {POSTS.slice(0, 3).map((p) => (
-              <Item key={p.slug}>
-                <Link href="/guides/" className="card block !p-4"><span className="tag">{p.tag}</span><h3 className="mt-2 font-semibold text-white">{p.title}</h3><p className="mt-1 text-xs text-zinc-400">{p.minutes} min read</p></Link>
-              </Item>
-            ))}
-          </Stagger>
+      </section>
+
+      <section aria-labelledby="how">
+        <h2 id="how" className="text-3xl font-bold text-white">How an event comes together</h2>
+        <ol className="mt-6 grid gap-4 md:grid-cols-4">
+          {[
+            ["Plan", "Choose the game and the format, write the rules, and set the schedule.", "/guides/run-a-campus-tournament/"],
+            ["Register", "Collect teams and players, and make a card for each person.", "/tools/id-cards/"],
+            ["Run the day", "Check guests in at the gate and keep the points table or bracket up to date.", "/guides/event-gate-checkin/"],
+            ["Finish", "Publish results, thank sponsors and keep the roster for next time.", "/guides/sponsor-pitch/"],
+          ].map(([t, d, href], i) => (
+            <li key={t} className="card"><span className="grid h-8 w-8 place-items-center rounded-full bg-cyan text-sm font-bold text-ink">{i + 1}</span><h3 className="mt-3 font-display font-bold text-white">{t}</h3><p className="mt-1 text-sm text-zinc-300">{d}</p><Link href={href as string} className="mt-2 inline-block text-sm text-cyan hover:underline">Read more</Link></li>
+          ))}
+        </ol>
+      </section>
+
+      <section aria-labelledby="guides">
+        <div className="mb-6 flex items-end justify-between gap-3"><h2 id="guides" className="text-3xl font-bold text-white">Guides</h2><Link href="/guides/" className="text-sm font-medium text-cyan hover:underline">All guides</Link></div>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {latest.map((g) => (
+            <Link key={g.slug} href={`/guides/${g.slug}/`} className="card block h-full outline-none focus-visible:ring-2 focus-visible:ring-cyan">
+              <div className="flex items-center justify-between"><span className="tag">{g.tag}</span><span className="text-xs text-zinc-400">{g.minutes} min read</span></div>
+              <h3 className="mt-3 font-display font-bold text-white">{g.title}</h3>
+              <p className="mt-1 text-sm text-zinc-300">{g.description}</p>
+            </Link>
+          ))}
         </div>
+      </section>
+
+      <section aria-labelledby="faq" className="max-w-3xl">
+        <h2 id="faq" className="text-3xl font-bold text-white">Questions</h2>
+        <div className="mt-6 space-y-3">{FAQ.map((f) => <details key={f.q} className="card !p-4"><summary className="cursor-pointer font-semibold text-white outline-none focus-visible:ring-2 focus-visible:ring-cyan">{f.q}</summary><p className="mt-2 text-sm leading-relaxed text-zinc-300">{f.a}</p></details>)}</div>
       </section>
     </div>
   );

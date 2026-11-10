@@ -1,27 +1,34 @@
 import type { Metadata } from "next";
-import TiltLink from "@/components/TiltLink";
+import Link from "next/link";
+import JsonLd from "@/components/seo/JsonLd";
 import { TOOLS } from "@/lib/data";
+import { SITE_URL } from "@/lib/site";
 
-export const metadata: Metadata = { title: "Organiser tools" };
+export const metadata: Metadata = {
+  title: "Free tools for esports and gaming event organisers",
+  description: "Free tools for running esports and gaming events: ID card maker, tournament bracket maker, battle royale points table calculator and a QR gate check-in scanner.",
+  alternates: { canonical: "/tools/" },
+};
 
 export default function Tools() {
   return (
-    <div>
-      <h1 className="text-3xl font-black text-zinc-50 sm:text-4xl">Organiser tools</h1>
-      <p className="mt-2 max-w-2xl text-zinc-400">What an event team needs on the day, built to work for any game.</p>
-      <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {TOOLS.map((t) => {
-          const live = !!t.href;
-          const body = (
-            <>
-              <span className={`tag ${live ? "!bg-cyan/15 !text-cyan" : ""}`}>{t.status}</span>
-              <h2 className="mt-3 font-bold text-zinc-50">{t.name}</h2>
-              <p className="mt-1 text-sm text-zinc-400">{t.blurb}</p>
-            </>
-          );
-          return live ? <TiltLink key={t.slug} href={t.href!}>{body}</TiltLink> : <div key={t.slug} className="card opacity-85">{body}</div>;
-        })}
+    <div className="space-y-8">
+      <JsonLd data={{ "@context": "https://schema.org", "@type": "ItemList", name: "Free tools for event organisers", itemListElement: TOOLS.map((t, i) => ({ "@type": "ListItem", position: i + 1, name: t.name, url: `${SITE_URL}${t.href}` })) }} />
+      <header>
+        <h1 className="text-3xl font-black text-zinc-50 sm:text-5xl">Free tools for event organisers</h1>
+        <p className="mt-3 max-w-2xl text-lg text-zinc-300">Everything here is free and works in your browser. You do not need an account to use the tools. An account adds saving events online, invite links for players and live check-in across several doors.</p>
+      </header>
+      <div className="grid gap-4 md:grid-cols-2">
+        {TOOLS.map((t) => (
+          <Link key={t.slug} href={t.href} className="card block outline-none focus-visible:ring-2 focus-visible:ring-cyan">
+            <span className="tag !bg-cyan/15 !text-cyan">Free</span>
+            <h2 className="mt-3 font-display text-xl font-bold text-white">{t.name}</h2>
+            <p className="mt-1 text-sm text-zinc-300">{t.blurb}</p>
+            <span className="mt-3 inline-block text-sm font-semibold text-cyan">Open →</span>
+          </Link>
+        ))}
       </div>
+      <p className="text-sm text-zinc-400">New to running an event? Start with the <Link href="/guides/run-a-campus-tournament/" className="text-cyan underline">college tournament guide</Link>.</p>
     </div>
   );
 }

@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { json, preflight, signedIn } from "./helpers";
 
-const PAGES = ["/", "/games/", "/events/", "/communities/", "/arcade/", "/guides/", "/tools/", "/tools/id-cards/", "/tools/check-in/", "/tools/brackets/", "/manage/", "/login/", "/signup/", "/gate/"];
+const PAGES = ["/", "/games/", "/events/", "/communities/", "/arcade/", "/guides/", "/tools/", "/tools/id-cards/", "/tools/check-in/", "/tools/brackets/", "/tools/points-table/", "/manage/", "/login/", "/signup/", "/gate/", "/about/", "/privacy/", "/terms/", "/contact/", "/guides/points-table/", "/guides/run-a-campus-tournament/"];
 
 for (const path of PAGES) {
   test(`${path} loads with no errors and no sideways scroll`, async ({ page }) => {
@@ -39,7 +39,7 @@ test("games can be searched", async ({ page }) => {
 });
 
 test("the public tool pages are real, readable pages for search engines", async ({ page }) => {
-  for (const [path, h1] of [["/tools/id-cards/", /ID cards and passes/i], ["/tools/check-in/", /Gate check-in/i], ["/tools/brackets/", /bracket/i]] as const) {
+  for (const [path, h1] of [["/tools/id-cards/", /ID card maker/i], ["/tools/check-in/", /Gate check-in/i], ["/tools/brackets/", /bracket/i], ["/tools/points-table/", /points table/i]] as const) {
     await page.goto(path);
     await expect(page.getByRole("heading", { level: 1 })).toContainText(h1);
     await expect(page.getByRole("link", { name: /Create a free account/ }).first()).toHaveAttribute("href", "/signup/");
@@ -48,11 +48,70 @@ test("the public tool pages are real, readable pages for search engines", async 
   }
 });
 
-test("the website is not offered to search engines while it shows sample data, and the app never is", async ({ page, request }) => {
-  expect(await (await request.get("/robots.txt")).text()).toContain("Disallow: /");
-  await page.goto("/app/");
-  await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
-  expect((await request.get("/sitemap.xml")).status()).toBe(200);
+test("the website is open to search engines, but demo-data pages and the app are not", async ({ page, request }) => {
+  const robots = await (await request.get("/robots.txt")).text();
+  expect(robots).toContain("Allow: /");
+  expect(robots).toContain("Disallow: /app/");
+  expect(robots).toContain("Sitemap:");
+  const sitemap = await (await request.get("/sitemap.xml")).text();
+  expect(sitemap).toContain("/guides/points-table/");
+  expect(sitemap).toContain("/tools/id-cards/");
+  expect(sitemap).not.toContain("/games/");
+  expect(sitemap).not.toContain("/events/");
+  for (const [path, noindex] of [["/", false], ["/guides/", false], ["/guides/points-table/", false], ["/tools/brackets/", false], ["/about/", false], ["/games/", true], ["/events/", true], ["/communities/", true], ["/login/", true], ["/app/", true]] as const) {
+    await page.goto(path);
+    const meta = page.locator('meta[name="robots"]');
+    if (noindex) await expect(meta).toHaveAttribute("content", /noindex/);
+    else expect(await meta.count() === 0 || !/noindex/.test((await meta.getAttribute("content")) ?? "")).toBe(true);
+  }
+});
+
+test("the home page and the guides carry real content, not demo data", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByRole("heading", { level: 1 })).toContainText(/Free tools and guides/);
+  await expect(page.locator("body")).not.toContainText(/made-up|sample data|Monsoon Clash/i);
+  await page.goto("/guides/");
+  await expect(page.locator("article, a.card").first()).toBeVisible();
+  expect(await page.getByRole("heading", { level: 2 }).count()).toBeGreaterThanOrEqual(8);
+  await page.goto("/guides/points-table/");
+  await expect(page.getByRole("heading", { level: 1 })).toContainText(/points table/i);
+  await expect(page.getByRole("navigation", { name: "On this page" })).toBeVisible();
+  await expect(page.getByRole("table").first()).toBeVisible();
+});
+
+test("the ID card maker opens on the public tool page with no account", async ({ page }) => {
+  await page.goto("/tools/id-cards/");
+  await page.getByRole("button", { name: "Open the ID card maker" }).click();
+  await expect(page.getByText(/Step 1 of 4/)).toBeVisible({ timeout: 20000 });
+});
+
+test("the points table calculator ranks the example, reacts to changes and exports", async ({ page }) => {
+  await page.goto("/tools/points-table/");
+  const standings = page.getByRole("region", { name: "Standings table" });
+  await expect(standings.getByRole("row").nth(1)).toContainText("Charlie");
+  await expect(standings.getByRole("row").nth(1)).toContainText("34");
+  // Give Alpha a better last match: their kills now decide the lead
+  await page.getByLabel("Alpha, match 2, kills").fill("30");
+  await expect(standings.getByRole("row").nth(1)).toContainText("Alpha");
+  // A broken scale is explained, not silently ignored
+  await page.getByLabel(/Placement points/).fill("ten, six");
+  await expect(page.getByRole("alert").filter({ hasText: /numbers only/i })).toBeVisible();
+  await page.getByLabel(/Placement points/).fill("10, 6, 5, 4, 3, 2, 1, 1");
+  const [dl] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Download as CSV" }).click()]);
+  expect(dl.suggestedFilename()).toBe("points-table.csv");
+});
+
+test("the contact form validates and sends", async ({ page }) => {
+  await preflight(page);
+  let sent: Record<string, unknown> | null = null;
+  await page.route("**/esports-api.yaseenyk.workers.dev/public/contact", async (r) => { sent = r.request().postDataJSON(); await r.fulfill(json({ ok: true }, 201)); });
+  await page.goto("/contact/");
+  await expect(page.getByRole("button", { name: "Send message" })).toBeDisabled();
+  await page.getByLabel(/Message/).fill("The points guide has a typo in the third table.");
+  await page.getByLabel(/Your email/).fill("asha@example.com");
+  await page.getByRole("button", { name: "Send message" }).click();
+  await expect(page.getByText("Thank you. Your message was sent.")).toBeVisible();
+  expect((sent as unknown as Record<string, string>).website).toBe(""); // the bot trap stayed empty
 });
 
 test("the app sends a signed-out visitor to sign in and brings them back afterwards", async ({ page }) => {
