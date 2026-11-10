@@ -62,7 +62,7 @@ export default function PointsTable() {
               </div>
               <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
                 {t.matches.map((m, mi) => (
-                  <fieldset key={mi} className="rounded-lg border border-white/[0.1] p-2">
+                  <fieldset key={mi} className="min-w-0 rounded-lg border border-white/[0.1] p-2">
                     <legend className="px-1 text-xs font-medium text-zinc-300">Match {mi + 1}</legend>
                     <div className="flex gap-2">
                       <label className="block min-w-0 flex-1 text-[11px] text-zinc-400">Place<input aria-label={`${t.name || `Team ${ti + 1}`}, match ${mi + 1}, placement`} className="field !min-h-9 mt-0.5 !px-2 text-center" inputMode="numeric" value={m.placement || ""} onChange={(e) => setCell(ti, mi, "placement", e.target.value)} /></label>

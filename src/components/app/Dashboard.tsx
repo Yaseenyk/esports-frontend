@@ -51,7 +51,7 @@ export default function Dashboard() {
             {list.map((ev) => (
               <li key={ev.id} className="card flex flex-wrap items-center justify-between gap-3 !p-4">
                 <span className="min-w-0"><span className="block truncate font-semibold text-white">{ev.name}</span><span className="text-xs text-zinc-400">{ev.game || "No game"} · {ev.date || "No date"}{ev.venue ? ` · ${ev.venue}` : ""}</span></span>
-                <span className="flex gap-2"><Link href={`/app/id-cards/?open=${encodeURIComponent(ev.id)}`} className="btn-ghost !min-h-9 px-3 text-sm">Open cards</Link><Link href="/app/check-in/" className="btn-ghost !min-h-9 px-3 text-sm">Gate</Link></span>
+                <span className="flex gap-2"><Link href={`/app/id-cards/?open=${encodeURIComponent(ev.id)}`} className="btn-ghost !min-h-9 px-3 text-sm">Open cards</Link><Link href={`/app/events/?id=${encodeURIComponent(ev.id)}`} className="btn-ghost !min-h-9 px-3 text-sm">Details</Link></span>
               </li>
             ))}
           </ul>

@@ -10,6 +10,7 @@ import { Sk } from "@/components/skeleton/Sk";
 
 const TABS = [
   { href: "/app/", label: "Home" },
+  { href: "/app/events/", label: "Events" },
   { href: "/app/id-cards/", label: "ID cards" },
   { href: "/app/check-in/", label: "Gate check-in" },
   { href: "/app/brackets/", label: "Brackets" },

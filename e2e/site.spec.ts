@@ -1,7 +1,8 @@
+import fs from "node:fs";
 import { expect, test } from "@playwright/test";
 import { json, preflight, signedIn } from "./helpers";
 
-const PAGES = ["/", "/games/", "/events/", "/communities/", "/arcade/", "/guides/", "/tools/", "/tools/id-cards/", "/tools/check-in/", "/tools/brackets/", "/tools/points-table/", "/manage/", "/login/", "/signup/", "/gate/", "/about/", "/privacy/", "/terms/", "/contact/", "/guides/points-table/", "/guides/run-a-campus-tournament/"];
+const PAGES = ["/", "/games/", "/events/", "/communities/", "/arcade/", "/guides/", "/tools/", "/tools/id-cards/", "/tools/check-in/", "/tools/brackets/", "/tools/points-table/", "/tools/round-robin/", "/tools/schedule/", "/tools/certificates/", "/manage/", "/login/", "/signup/", "/gate/", "/about/", "/privacy/", "/terms/", "/contact/", "/guides/points-table/", "/guides/run-a-campus-tournament/"];
 
 for (const path of PAGES) {
   test(`${path} loads with no errors and no sideways scroll`, async ({ page }) => {
@@ -151,4 +152,56 @@ test("every app screen opens after sign-in, and an expired sign-in returns to th
   await page.route("**/esports-api.yaseenyk.workers.dev/events", (r) => r.fulfill(json({ error: "Authentication required" }, 401)));
   await page.getByRole("navigation", { name: "App" }).getByRole("link", { name: "Home" }).click();
   await expect(page).toHaveURL(/\/login\//, { timeout: 15000 });
+});
+
+test("the round robin generator makes fixtures, takes scores and ranks teams", async ({ page }) => {
+  await page.goto("/tools/round-robin/");
+  await expect(page.getByText(/5 teams, 5 rounds, 10 matches/)).toBeVisible();
+  await expect(page.getByText(/has a bye/).first()).toBeVisible();
+  const first = page.getByRole("group").filter({ hasText: "Round 1" }).locator("input").first();
+  await first.fill("3");
+  await page.getByRole("group").filter({ hasText: "Round 1" }).locator("input").nth(1).fill("1");
+  const table = page.getByRole("region", { name: "League table" }).last();
+  await expect(table.getByRole("row").nth(1)).toContainText("3"); // a win is worth 3 points
+  await page.getByLabel(/Play everyone twice/).check();
+  await expect(page.getByText(/20 matches/)).toBeVisible();
+  const [dl] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Download fixtures (CSV)" }).click()]);
+  expect(dl.suggestedFilename()).toBe("round-robin-fixtures.csv");
+});
+
+test("the schedule maker works out the finish time and refuses bad input", async ({ page }) => {
+  await page.goto("/tools/schedule/");
+  await expect(page.getByText(/5 rounds/)).toBeVisible();
+  await page.getByLabel("Number of matches").fill("8");
+  await page.getByLabel("Matches at the same time").fill("2");
+  await expect(page.getByText(/4 rounds/)).toBeVisible();
+  const table = page.getByRole("region", { name: "Schedule table" });
+  await expect(table.getByRole("row").nth(1)).toContainText("10:00");
+  await expect(table.getByRole("row").nth(1)).toContainText("M1, M2");
+  await page.getByLabel("First match starts at").fill("");
+  await expect(page.getByRole("alert").filter({ hasText: /start time/i })).toBeVisible();
+});
+
+test("the certificate maker previews a certificate and downloads a PDF with one page per name", async ({ page }) => {
+  test.setTimeout(120_000);
+  await page.goto("/tools/certificates/");
+  await expect(page.getByText("Aarav Mehta").first()).toBeVisible();
+  await page.getByLabel("Names, one per line").fill("आरव मेहता\nDiya Kulkarni");
+  const [dl] = await Promise.all([page.waitForEvent("download", { timeout: 90_000 }), page.getByRole("button", { name: /Download PDF \(2\)/ }).click()]);
+  expect(dl.suggestedFilename()).toBe("certificates.pdf");
+  const bytes = fs.readFileSync((await dl.path())!);
+  expect(bytes.subarray(0, 5).toString()).toBe("%PDF-");
+  expect((bytes.toString("latin1").match(/\/Type\s*\/Page[^s]/g) || []).length).toBe(2);
+});
+
+test("the app shows an event with its numbers and warnings", async ({ page }) => {
+  await signedIn(page, [{ id: "e1", key: "cup", name: "Spring Cup", game: "BGMI", organiser: "Guild", date: "2026-12-01", venue: "Pune", emergency: "", rules: "", settings: {}, updatedAt: "" }]);
+  await page.route("**/esports-api.yaseenyk.workers.dev/events/e1/roster", (r) => r.fulfill(json({ teams: [{ id: "t1", name: "Kings" }], people: [{ id: "K-1", name: "A", teamId: "t1", role: "Player", minor: true, guardian: false, photoUrl: null }, { id: "K-2", name: "B", teamId: "t1", role: "Coach", minor: false, guardian: false, photoUrl: "/x" }] })));
+  await page.route("**/esports-api.yaseenyk.workers.dev/events/e1/checkins", (r) => r.fulfill(json({ checkins: [], total: 2, checkedIn: 1 })));
+  await page.goto("/app/events/");
+  await page.getByRole("button", { name: /Spring Cup/ }).click();
+  await expect(page.getByRole("heading", { name: "Spring Cup" })).toBeVisible();
+  await expect(page.getByText("1 of 2")).toBeVisible();
+  await expect(page.getByText(/without a guardian/).first()).toBeVisible();
+  await expect(page.getByRole("link", { name: "Open the cards" })).toHaveAttribute("href", /open=e1/);
 });
