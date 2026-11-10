@@ -1,6 +1,8 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
+test.setTimeout(120_000); // axe on a busy page is slow when several browsers run at once
+
 const PAGES = ["/", "/games/", "/events/", "/communities/", "/arcade/", "/tools/", "/tools/id-cards/", "/tools/check-in/", "/tools/brackets/"];
 
 for (const path of PAGES) {
