@@ -127,6 +127,7 @@ export const TOOLS: Tool[] = [
   { slug: "round-robin", name: "Round robin generator", blurb: "Fixtures for every team playing every other team, with results entry and a league table.", href: "/tools/round-robin/" },
   { slug: "schedule", name: "Match schedule maker", blurb: "Turn a number of matches, lobbies and break times into a timed run-sheet you can download.", href: "/tools/schedule/" },
   { slug: "certificates", name: "Certificate maker", blurb: "Winner and participation certificates, one per name, as a single print-ready PDF.", href: "/tools/certificates/" },
+  { slug: "display-screen", name: "Display screen for TV and OBS", blurb: "Show standings, tables, the schedule or a countdown full screen on a TV, projector, OBS or YouTube stream.", href: "/tools/display-screen/" },
   { slug: "check-in", name: "Gate check-in scanner", blurb: "Scan QR passes at the gate, online or offline. Fake and copied passes are rejected.", href: "/tools/check-in/" },
 ];
 

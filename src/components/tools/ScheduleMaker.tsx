@@ -1,6 +1,8 @@
 "use client";
 
 import { Fragment, useMemo, useState } from "react";
+import ScreenButtons from "@/components/display/ScreenButtons";
+import { scheduleView } from "@/lib/display-views";
 import { downloadBlob } from "@/lib/idcard/download";
 import { buildSchedule, summary, type ScheduleInput } from "@/lib/schedule";
 
@@ -11,6 +13,7 @@ export default function ScheduleMaker() {
   const [i, setI] = useState<ScheduleInput>({ start: "10:00", matches: 19, duration: 40, gap: 10, lobbies: 4, breakEvery: 3, breakLength: 30 });
   const slots = useMemo(() => buildSchedule(i), [i]);
   const sum = slots ? summary(i, slots) : null;
+  const screen = useMemo(() => (slots ? scheduleView(slots) : null), [slots]);
   const field = (k: keyof ScheduleInput, label: string, min: number, max: number, hint?: string) => (
     <label className="block text-sm text-zinc-200">{label}<input className="field mt-1" type="number" min={min} max={max} value={i[k] as number} onChange={(e) => setI({ ...i, [k]: toInt(e.target.value, min, max) })} />{hint && <span className="mt-1 block text-xs text-zinc-400">{hint}</span>}</label>
   );
@@ -64,6 +67,7 @@ export default function ScheduleMaker() {
           </>
         )}
       </section>
+      <ScreenButtons payload={screen} what="schedule" />
     </div>
   );
 }

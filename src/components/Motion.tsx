@@ -40,14 +40,18 @@ export function Item({ children, className }: { children: ReactNode; className?:
   return <div className={className}>{children}</div>;
 }
 
-/** Counts up to a number when it comes into view. */
+/**
+ * Counts up to a number when it comes into view. The real number is in the page from the start (so search engines and anyone without
+ * JavaScript read it), and the count-up plays over the top once the number is seen.
+ */
 export function Counter({ to, suffix = "" }: { to: number; suffix?: string }) {
   const ref = useRef<HTMLSpanElement>(null);
   const inView = useInView(ref, { once: true });
   const reduce = useReducedMotion();
-  const [n, setN] = useState(reduce ? to : 0);
+  const [n, setN] = useState(to);
   useEffect(() => {
     if (!inView || reduce) return;
+    setN(0);
     const c = animate(0, to, { duration: 1.2, ease: EASE, onUpdate: (v) => setN(Math.round(v)) });
     return () => c.stop();
   }, [inView, to, reduce]);

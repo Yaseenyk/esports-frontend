@@ -165,3 +165,64 @@ test("double elimination: the reset final is needed only when the losers-bracket
   assert.equal(resolve(b, { t: "winner", of: "GF2" }, upset).kind, "tbd");
   assert.equal(resolve(b, { t: "winner", of: "GF2" }, { ...upset, GF2: 0 }).name, "A");
 });
+
+// ---- display screens ----
+import { encode, decode, validate, lookFrom, remaining, slotNow, DEFAULT_LOOK } from "../src/lib/display.ts";
+
+test("a display link round-trips a table, a schedule and a countdown", async () => {
+  const table = { v: "table", d: { title: "Standings", subtitle: "After match 3", head: ["#", "Team", "Pts"], rows: [["1", "Charlie", "34"], ["2", "Bravo", "30"]], strong: 2 } };
+  const schedule = { v: "schedule", d: { title: "Run-sheet", date: "2026-12-12", slots: [{ n: 1, start: "10:00", end: "10:40", label: "M1, M2", breakAfter: 0 }] } };
+  const countdown = { v: "countdown", d: { title: "Monsoon Clash", subtitle: "Doors open soon", at: "2026-12-12T10:00:00+05:30" } };
+  for (const p of [table, schedule, countdown]) {
+    const text = await encode(p);
+    assert.match(text, /^[zp]\.[A-Za-z0-9_-]+$/, "safe to put in a link");
+    assert.deepEqual(await decode(text), p);
+  }
+});
+
+test("a long table is much smaller once compressed", async () => {
+  const rows = Array.from({ length: 60 }, (_, i) => [String(i + 1), `Team number ${i + 1}`, String(100 - i)]);
+  const p = { v: "table", d: { title: "Big", head: ["#", "Team", "Pts"], rows } };
+  const z = await encode(p);
+  assert.ok(z.startsWith("z."));
+  assert.ok(z.length < JSON.stringify(p).length * 0.6, `compressed ${z.length} vs ${JSON.stringify(p).length}`);
+});
+
+test("damaged, oversized or hostile links are refused, and text is trimmed", async () => {
+  assert.equal(await decode("z.not-valid-data"), null);
+  assert.equal(await decode("q.abc"), null);
+  assert.equal(await decode(""), null);
+  assert.equal(await decode("p." + "A".repeat(200_001)), null);
+  assert.equal(validate({ v: "table", d: { head: [], rows: "nope" } }), null);
+  assert.equal(validate({ v: "countdown", d: { title: "x", at: "not a date" } }), null);
+  assert.equal(validate({ v: "script", d: {} }), null);
+  const t = validate({ v: "table", d: { title: "x".repeat(500), head: ["a", "b"], rows: [["<img src=x onerror=alert(1)>", 5, null]] } });
+  assert.equal(t.d.title.length, 100);
+  assert.equal(t.d.rows[0][0], "<img src=x onerror=alert(1)>"); // kept as plain text: the screen renders it as text, never as markup
+  assert.deepEqual(t.d.rows[0], ["<img src=x onerror=alert(1)>", "5"]); // a row can never be wider than the header
+});
+
+test("look settings come from the address, with safe limits", () => {
+  assert.deepEqual(lookFrom(new URLSearchParams("")), DEFAULT_LOOK);
+  const l = lookFrom(new URLSearchParams("theme=neon&bg=transparent&safe=50&scale=9&names=1"));
+  assert.deepEqual([l.theme, l.bg, l.safe, l.scale, l.names], ["neon", "transparent", 15, 2.5, true]);
+  assert.equal(lookFrom(new URLSearchParams("bg=ff0000")).bg, "#ff0000");
+  assert.equal(lookFrom(new URLSearchParams("bg=javascript")).bg, DEFAULT_LOOK.bg);
+  assert.equal(lookFrom(new URLSearchParams("theme=evil")).theme, "dark");
+});
+
+test("countdown splits the time left and stops at zero", () => {
+  const at = "2026-12-12T10:00:00Z";
+  const r = remaining(at, Date.parse("2026-12-10T08:58:55Z"));
+  assert.deepEqual([r.days, r.hours, r.minutes, r.seconds, r.done], [2, 1, 1, 5, false]);
+  assert.equal(remaining(at, Date.parse("2026-12-13T00:00:00Z")).done, true);
+  assert.equal(remaining(at, Date.parse("2026-12-13T00:00:00Z")).ms, 0);
+});
+
+test("the schedule screen finds the round on now and the one next", () => {
+  const d = { title: "x", date: "2026-12-12", slots: [{ n: 1, start: "10:00", end: "10:40", label: "M1" }, { n: 2, start: "10:50", end: "11:30", label: "M2" }, { n: 3, start: "11:40", end: "12:20", label: "M3" }] };
+  assert.deepEqual(slotNow(d, new Date("2026-12-12T10:20:00")), { current: 0, next: 1 });
+  assert.deepEqual(slotNow(d, new Date("2026-12-12T10:45:00")), { current: -1, next: 1 }); // between rounds
+  assert.deepEqual(slotNow(d, new Date("2026-12-12T09:00:00")), { current: -1, next: 0 });
+  assert.deepEqual(slotNow(d, new Date("2026-12-12T13:00:00")), { current: -1, next: -1 });
+});

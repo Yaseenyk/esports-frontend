@@ -3,7 +3,7 @@ import { api, API_BASE, setAuthFailHandler, setToken } from "./index";
 import { createBatchQueue } from "./queue";
 
 export interface User { id: string; email: string; name: string }
-export interface CloudEvent { id: string; key: string; name: string; game: string; organiser: string; date: string; venue: string; emergency: string; rules: string; settings: unknown; updatedAt: string }
+export interface CloudEvent { role?: "owner" | "editor" | "viewer"; id: string; key: string; name: string; game: string; organiser: string; date: string; venue: string; emergency: string; rules: string; settings: unknown; updatedAt: string }
 export interface CloudTeam { id: string; name: string; logo?: string | null }
 export interface CloudPerson { id: string; name: string; teamId: string; role: string; zones?: string | string[]; minor: boolean; guardian: boolean; photoUrl: string | null }
 export interface CloudRoster { teams: CloudTeam[]; people: CloudPerson[] }
@@ -17,6 +17,7 @@ export interface RegForm { token: string; title: string; intro: string; closesAt
 export interface RegPlayer { name: string; ign: string; minor: boolean }
 export interface Registration { id: string; teamName: string; captainName: string; captainContact: string; players: RegPlayer[]; notes: string; status: "pending" | "approved" | "rejected"; createdAt: string }
 export interface PublicReg { event: { name: string; date: string; venue: string }; form: { title: string; intro: string; teamSize: number; subs: number; closesAt: string | null; spotsLeft: number | null; status: "open" | "closed" | "full" } }
+export interface Members { owner: { userId: string; name: string; email: string } | null; members: { userId: string; name: string; email: string; role: "editor" | "viewer"; addedAt: string }[] }
 export type CheckResult = { status: "ok" | "again" | "bad"; reason?: string; person?: { id: string; name: string; team: string | null; role: string; zones: unknown; minor: boolean; guardian: boolean }; at?: string };
 
 // ---- session: the sign-in token lives in this browser only ----
@@ -53,6 +54,7 @@ export function explain(e: unknown): string {
   if (s === 401) return "Your sign-in has expired or the details are wrong. Sign in again.";
   if (s === 409) return "That email already has an account. Sign in instead.";
   if (s === 429) return "Too many tries. Wait a few minutes and try again.";
+  if (s === 403) return "You do not have permission to do that. Ask the owner of the event.";
   if (s === 404) return "That was not found. It may have been removed.";
   if (s && s >= 500) return "The server had a problem. Try again in a moment.";
   if (s) return "The server did not accept that. Check what you typed.";
@@ -81,6 +83,9 @@ export const events = {
   submissions: (id: string, status = "pending") => api.get<Submission[]>(`/events/${id}/submissions?status=${status}`, { ttl: 8000 }),
   approve: (id: string, sid: string) => api.post<{ ok: true; personId: string }>(`/events/${id}/submissions/${sid}/approve`, {}),
   reject: (id: string, sid: string) => api.post<{ ok: true }>(`/events/${id}/submissions/${sid}/reject`, {}),
+  members: (id: string) => api.get<Members>(`/events/${id}/members`, { ttl: 3000 }),
+  addMember: (id: string, email: string, role: "editor" | "viewer") => api.post<{ userId: string; name: string; email: string; role: string }>(`/events/${id}/members`, { email, role }),
+  removeMember: (id: string, userId: string) => api.del<{ ok: true }>(`/events/${id}/members/${userId}`),
   registration: (id: string) => api.get<{ form: RegForm | null; counts: { pending: number; approved: number; rejected: number } }>(`/events/${id}/registration`, { ttl: 5000 }),
   saveRegistration: (id: string, b: Partial<Pick<RegForm, "title" | "intro" | "closesAt" | "maxTeams" | "teamSize" | "subs" | "open">>) => api.put<RegForm>(`/events/${id}/registration`, b),
   registrations: (id: string, status = "pending") => api.get<Registration[]>(`/events/${id}/registrations?status=${status}`, { ttl: 5000 }),

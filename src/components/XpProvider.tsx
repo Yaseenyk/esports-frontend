@@ -106,7 +106,7 @@ export default function XpProvider({ children }: { children: ReactNode }) {
   return (
     <Ctx.Provider value={api}>
       {children}
-      <div className="no-print pointer-events-none fixed inset-x-0 bottom-20 z-[60] flex flex-col-reverse items-center gap-2 px-3 sm:bottom-auto sm:top-24 sm:flex-col sm:items-end sm:pr-5" role="status" aria-live="polite">
+      <div className="xp-toasts no-print pointer-events-none fixed inset-x-0 bottom-20 z-[60] flex flex-col-reverse items-center gap-2 px-3 sm:bottom-auto sm:top-24 sm:flex-col sm:items-end sm:pr-5" role="status" aria-live="polite">
         <AnimatePresence>
           {toasts.map((t) => (
             <motion.div key={t.id} layout initial={reduce ? false : { opacity: 0, x: 40, scale: 0.9 }} animate={{ opacity: 1, x: 0, scale: 1 }} exit={{ opacity: 0, x: 40, scale: 0.9 }} transition={{ type: "spring", stiffness: 380, damping: 26 }}

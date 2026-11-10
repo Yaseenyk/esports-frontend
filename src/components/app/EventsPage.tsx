@@ -6,6 +6,7 @@ import { events, explain, type CloudEvent, type CloudRoster, type Live } from "@
 import { useQuery } from "@/lib/api/useQuery";
 import { Waiting } from "@/components/skeleton/Scenes";
 import { Sk } from "@/components/skeleton/Sk";
+import MembersPanel from "@/components/cloud/MembersPanel";
 import RegistrationPanel from "@/components/cloud/RegistrationPanel";
 
 /** Saved events: a list, and for one event its numbers (people, teams, minors, checked in) with shortcuts to the tools. */
@@ -32,12 +33,31 @@ export default function EventsPage() {
         (list.data ?? []).length > 0 && (
           <ul className="grid gap-3 md:grid-cols-2">
             {(list.data ?? []).map((ev) => (
-              <li key={ev.id}><button type="button" onClick={() => select(ev.id)} className="card block w-full text-left outline-none focus-visible:ring-2 focus-visible:ring-cyan"><span className="block truncate font-display text-lg font-bold text-white">{ev.name}</span><span className="mt-1 block text-sm text-zinc-300">{[ev.game, ev.date, ev.venue].filter(Boolean).join(" · ") || "No details yet"}</span><span className="mt-2 inline-block text-sm font-semibold text-cyan">Open →</span></button></li>
+              <li key={ev.id}><button type="button" onClick={() => select(ev.id)} className="card block w-full text-left outline-none focus-visible:ring-2 focus-visible:ring-cyan"><span className="block truncate font-display text-lg font-bold text-white">{ev.name}</span><span className="mt-1 block text-sm text-zinc-300">{[ev.game, ev.date, ev.venue].filter(Boolean).join(" · ") || "No details yet"}</span><span className="mt-2 flex items-center gap-2 text-sm font-semibold text-cyan">Open →{ev.role && ev.role !== "owner" && <span className="tag !text-zinc-200">Shared with you · {ev.role === "editor" ? "editor" : "view only"}</span>}</span></button></li>
             ))}
           </ul>
         )
       )}
     </div>
+  );
+}
+
+/** Opens a live "guests checked in" screen for the venue TV or the stream. It makes a gate key just for that screen (the screen only reads the guest count). */
+function ScreenLauncher({ ev }: { ev: CloudEvent }) {
+  const [names, setNames] = useState(false), [busy, setBusy] = useState(false), [err, setErr] = useState("");
+  const open = async () => {
+    setBusy(true); setErr("");
+    try { const k = await events.newGateKey(ev.id, "Check-in screen", 12); window.open(`/display/?v=checkin&k=${encodeURIComponent(k.key)}&title=${encodeURIComponent(ev.name)}${names ? "&names=1" : ""}`, "eh-screen"); }
+    catch (x) { setErr(explain(x)); } finally { setBusy(false); }
+  };
+  if (ev.role === "viewer") return null;
+  return (
+    <section aria-label="Check-in screen" className="card space-y-2 !p-4">
+      <h3 className="font-display text-lg font-bold text-white">Check-in screen</h3>
+      <p className="text-sm text-zinc-300">Show how many guests have arrived on the venue TV or your stream. It makes a gate key that lasts 12 hours, used only by this screen. Names stay hidden unless you tick the box.</p>
+      <div className="flex flex-wrap items-center gap-3"><button type="button" className="btn !min-h-10 px-4 text-sm" disabled={busy} onClick={open}>{busy ? "Opening…" : "Open the check-in screen"}</button><label className="flex items-center gap-2 text-sm text-zinc-200"><input type="checkbox" className="h-5 w-5 accent-cyan" checked={names} onChange={(e) => setNames(e.target.checked)} />Show names of recent arrivals</label></div>
+      {err && <p role="alert" className="text-sm text-red-300">{err}</p>}
+    </section>
   );
 }
 
@@ -71,7 +91,10 @@ function Detail({ ev, onBack }: { ev: CloudEvent; onBack: () => void }) {
       {roster.data && teams.length > 0 && (
         <div className="card !p-4"><h3 className="font-display font-bold text-white">Teams</h3><ul className="mt-2 grid gap-1.5 text-sm sm:grid-cols-2">{teams.map((t) => <li key={t.id} className="flex justify-between gap-2 rounded-lg border border-white/10 px-3 py-2"><span className="truncate text-zinc-200">{t.name}</span><span className="text-zinc-400">{people.filter((p) => p.teamId === t.id).length} people</span></li>)}</ul></div>
       )}
+      {ev.role === "viewer" && <p role="note" className="rounded-xl border border-amber-500/30 bg-[#0a0b0d] p-3 text-sm text-amber-100">You have view-only access to this event. You can look, but not change anything.</p>}
       <RegistrationPanel eventId={ev.id} onApproved={() => { roster.refetch(); }} />
+      {(ev.role === undefined || ev.role === "owner") && <MembersPanel eventId={ev.id} />}
+      <ScreenLauncher ev={ev} />
       <div className="flex flex-wrap gap-2"><Link href={`/app/id-cards/?open=${encodeURIComponent(ev.id)}`} className="btn !min-h-10 px-4 text-sm">Open the cards</Link><Link href="/app/check-in/" className="btn-ghost !min-h-10 px-4 text-sm">Gate check-in</Link><Link href="/tools/points-table/" className="btn-ghost !min-h-10 px-4 text-sm">Points table</Link><Link href="/tools/certificates/" className="btn-ghost !min-h-10 px-4 text-sm">Certificates</Link></div>
     </section>
   );

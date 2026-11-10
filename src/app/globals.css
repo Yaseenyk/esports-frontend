@@ -132,3 +132,31 @@ a.card:hover { background-color: #0f1013; border-color: rgba(255, 255, 255, 0.28
 
 /* Smooth edges: images scale with the best filter, and nothing is painted with a blur that could band. */
 img { image-rendering: auto; }
+
+/* ---- Game-feel: animation comes back as a layer on top of the content, never in front of it ---- */
+.hero-fade-in { animation: heroIn .8s ease-out both; }
+@keyframes heroIn { from { opacity: 0; transform: translateY(12px) scale(.97); } to { opacity: 1; transform: none; } }
+/* Layers lean away from the pointer by different amounts, which gives the picture depth. */
+.hero-layer { translate: calc(var(--px, 0) * var(--depth, 10) * -1px) calc(var(--py, 0) * var(--depth, 10) * -1px); transition: translate .25s ease-out; }
+/* Cards lean toward the pointer on devices that have one. Text stays sharp because the lean is applied only while hovering. */
+@media (hover: hover) and (pointer: fine) {
+  a.tilt { transition: transform .2s ease, border-color .2s ease, background-color .2s ease; }
+  a.tilt:hover { transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translateY(-4px); border-color: rgba(34, 211, 238, .55); }
+  a.tilt::after { content: ""; position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity .25s; background: radial-gradient(circle at var(--gx, 50%) var(--gy, 50%), rgba(34, 211, 238, .16), rgba(168, 85, 247, .08) 40%, transparent 60%); }
+  a.tilt:hover::after { opacity: 1; }
+}
+.marquee-fade { -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent); mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent); }
+.tool-icon { transition: transform .3s cubic-bezier(.22, 1, .36, 1); }
+.card:hover .tool-icon { transform: translateY(-2px) rotate(-6deg) scale(1.08); }
+@media (prefers-reduced-motion: reduce) { .hero-fade-in { animation: none; } .hero-layer { transition: none; translate: none; } a.tilt:hover { transform: none; } }
+
+/* ---- Display screens (TV, projector, OBS and YouTube): nothing from the website may show through ---- */
+html[data-display] .aurora, html[data-display] canvas.hexfield, html[data-display] .xp-toasts { display: none !important; }
+@keyframes dsIn { from { opacity: 0; transform: translateY(2vmin); } to { opacity: 1; transform: none; } }
+@keyframes dsScroll { from { transform: translateY(0); } to { transform: translateY(-50%); } }
+@keyframes dsFlash { 0%, 100% { box-shadow: none; } 20%, 60% { box-shadow: 0 0 0 .5vmin #34d399, 0 0 4vmin #34d39988; } }
+@keyframes dsPulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: .7; transform: scale(1.04); } }
+.ds-scroll { animation: dsScroll var(--ds-dur, 30s) linear infinite; }
+.ds-flash { animation: dsFlash 3.4s ease-out 1 !important; }
+.ds-pulse { animation: dsPulse 1.6s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) { .ds-scroll, .ds-flash, .ds-pulse { animation: none !important; } }

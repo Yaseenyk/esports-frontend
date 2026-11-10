@@ -2,7 +2,7 @@ import fs from "node:fs";
 import { expect, test } from "@playwright/test";
 import { json, preflight, signedIn } from "./helpers";
 
-const PAGES = ["/", "/games/", "/events/", "/communities/", "/arcade/", "/guides/", "/tools/", "/tools/id-cards/", "/tools/check-in/", "/tools/brackets/", "/tools/points-table/", "/tools/round-robin/", "/tools/double-elimination/", "/tools/registration/", "/tools/schedule/", "/tools/certificates/", "/manage/", "/login/", "/signup/", "/gate/", "/about/", "/privacy/", "/terms/", "/contact/", "/guides/points-table/", "/guides/run-a-campus-tournament/"];
+const PAGES = ["/", "/games/", "/events/", "/communities/", "/arcade/", "/guides/", "/tools/", "/tools/id-cards/", "/tools/check-in/", "/tools/brackets/", "/tools/points-table/", "/tools/round-robin/", "/tools/double-elimination/", "/tools/display-screen/", "/tools/registration/", "/tools/schedule/", "/tools/certificates/", "/manage/", "/login/", "/signup/", "/gate/", "/about/", "/privacy/", "/terms/", "/contact/", "/guides/points-table/", "/guides/run-a-campus-tournament/"];
 
 for (const path of PAGES) {
   test(`${path} loads with no errors and no sideways scroll`, async ({ page }) => {
@@ -284,4 +284,125 @@ test("an organiser sets up registration and approves a team in the app", async (
   await expect(page.getByText(/under 18/).first()).toBeVisible();
   await page.getByRole("button", { name: "Approve" }).click();
   await expect(page.getByText(/added to the roster \(2 people\)/)).toBeVisible();
+});
+
+test("the registration page can be read in Hindi and Marathi", async ({ page }) => {
+  await preflight(page);
+  await page.route("**/esports-api.yaseenyk.workers.dev/public/registration/tok", (r) => r.fulfill(json({ event: { name: "Spring Cup", date: "", venue: "" }, form: { title: "", intro: "", teamSize: 2, subs: 1, closesAt: null, spotsLeft: 3, status: "open" } })));
+  await page.goto("/register/?t=tok");
+  await expect(page.getByRole("heading", { name: "Register for Spring Cup" })).toBeVisible();
+  await page.getByRole("button", { name: "हिन्दी" }).click();
+  await expect(page.getByRole("heading", { name: "Spring Cup के लिए पंजीकरण करें" })).toBeVisible();
+  await expect(page.getByText("3 स्थान बचे हैं")).toBeVisible();
+  await expect(page.getByRole("button", { name: "मेरी टीम पंजीकृत करें" })).toBeVisible();
+  await page.getByRole("button", { name: "मराठी" }).click();
+  await expect(page.getByRole("button", { name: "माझी टीम नोंदवा" })).toBeVisible();
+  await expect(page.getByText("3 जागा शिल्लक")).toBeVisible();
+});
+
+test("the owner can add an organiser by email, and a shared event shows its role", async ({ page }) => {
+  await signedIn(page, [{ id: "e1", key: "cup", name: "Spring Cup", game: "BGMI", organiser: "", date: "", venue: "", emergency: "", rules: "", settings: {}, updatedAt: "", role: "owner" }, { id: "e2", key: "lan", name: "LAN Night", game: "", organiser: "", date: "", venue: "", emergency: "", rules: "", settings: {}, updatedAt: "", role: "viewer" }]);
+  await page.route("**/esports-api.yaseenyk.workers.dev/events/e1/roster", (r) => r.fulfill(json({ teams: [], people: [] })));
+  await page.route("**/esports-api.yaseenyk.workers.dev/events/e1/checkins", (r) => r.fulfill(json({ checkins: [], total: 0, checkedIn: 0 })));
+  await page.route("**/esports-api.yaseenyk.workers.dev/events/e1/registration", (r) => r.fulfill(json({ form: null, counts: { pending: 0, approved: 0, rejected: 0 } })));
+  let added = false;
+  await page.route("**/esports-api.yaseenyk.workers.dev/events/e1/members", async (r) => {
+    if (r.request().method() === "POST") { added = true; return r.fulfill(json({ userId: "u2", name: "Eddie Editor", email: "eddie@example.com", role: "editor" }, 201)); }
+    return r.fulfill(json({ owner: { userId: "u", name: "Olivia", email: "olivia@example.com" }, members: added ? [{ userId: "u2", name: "Eddie Editor", email: "eddie@example.com", role: "editor", addedAt: "" }] : [] }));
+  });
+  await page.goto("/app/events/");
+  await expect(page.getByText(/Shared with you . view only/)).toBeVisible();
+  await page.getByRole("button", { name: /Spring Cup/ }).click();
+  const panel = page.getByRole("region", { name: "Organisers" });
+  await panel.getByLabel("Their email").fill("eddie@example.com");
+  await panel.getByRole("button", { name: "Add", exact: true }).click();
+  await expect(panel.getByText("Eddie Editor").first()).toBeVisible();
+  await expect(panel.getByText("now has edit access")).toBeVisible();
+});
+
+test("a view-only organiser sees the event with a notice and no access controls", async ({ page }) => {
+  await signedIn(page, [{ id: "e2", key: "lan", name: "LAN Night", game: "", organiser: "", date: "", venue: "", emergency: "", rules: "", settings: {}, updatedAt: "", role: "viewer" }]);
+  await page.route("**/esports-api.yaseenyk.workers.dev/events/e2/roster", (r) => r.fulfill(json({ teams: [], people: [] })));
+  await page.route("**/esports-api.yaseenyk.workers.dev/events/e2/checkins", (r) => r.fulfill(json({ checkins: [], total: 0, checkedIn: 0 })));
+  await page.route("**/esports-api.yaseenyk.workers.dev/events/e2/registration", (r) => r.fulfill(json({ form: null, counts: { pending: 0, approved: 0, rejected: 0 } })));
+  await page.goto("/app/events/?id=e2");
+  await expect(page.getByText(/view-only access/i)).toBeVisible();
+  await expect(page.getByRole("region", { name: "Organisers" })).toHaveCount(0);
+});
+
+test("the home page keeps its motion and imagery, and the content is in the page before any script runs", async ({ page, request }) => {
+  // What a search engine reads first: the plain HTML, with the real numbers and no placeholder zeros.
+  const html = await (await request.get("/")).text();
+  expect(html).toContain("Free tools and guides for running");
+  expect(html).toMatch(/<dd[^>]*><span>23<\/span><\/dd>/);
+  expect(html).not.toMatch(/<dd[^>]*><span>0<\/span><\/dd>/);
+  // What a person sees: the game strip, the floating game icons and the animated hero cards arrive after the page has settled.
+  await page.goto("/");
+  await expect(page.locator(".marquee-track")).toHaveCount(1);
+  await expect(page.locator("img[src*='/games/']").first()).toBeAttached();
+  await page.waitForLoadState("networkidle");
+  if ((page.viewportSize()?.width ?? 0) >= 1024) {
+    await expect(page.locator(".hero-art")).toBeVisible({ timeout: 10_000 });
+    expect(await page.locator(".hero-art .animate-float").count()).toBeGreaterThanOrEqual(6);
+    expect(await page.locator(".hero-art img").count()).toBeGreaterThanOrEqual(4);
+  }
+});
+
+test("a display screen shows a table from its link, bare of site chrome, and a damaged link is explained", async ({ page, request }) => {
+  await page.goto("/tools/points-table/");
+  const [screen] = await Promise.all([page.waitForEvent("popup"), page.getByRole("button", { name: "Open the screen" }).click()]);
+  await screen.waitForLoadState("load");
+  await expect(screen.getByRole("heading", { name: "Standings" })).toBeVisible();
+  await expect(screen.getByText("Charlie").first()).toBeVisible();
+  await expect(screen.locator("nav, footer")).toHaveCount(0); // nothing from the website is on a TV
+  await expect(screen.locator("canvas.hexfield")).toBeHidden();
+  // A separate browser profile, so the open tool page cannot answer the screen over the live channel.
+  const bad = await (await page.context().browser()!.newContext()).newPage();
+  await bad.goto("/display/#d=z.not-valid");
+  await expect(bad.getByText("This screen link is damaged")).toBeVisible();
+  await bad.goto("/display/");
+  await expect(bad.getByText("Waiting for a view")).toBeVisible();
+  expect((await request.get("/robots.txt")).ok()).toBe(true);
+});
+
+test("a screen follows the tool it was opened from, live", async ({ page }) => {
+  await page.goto("/tools/points-table/");
+  const [screen] = await Promise.all([page.waitForEvent("popup"), page.getByRole("button", { name: "Open the screen" }).click()]);
+  await screen.waitForLoadState("load");
+  const first = screen.getByRole("row").nth(1).or(screen.locator("li").first());
+  await expect(screen.locator("li").first()).toContainText("Charlie");
+  await page.getByLabel("Alpha, match 2, kills").fill("30"); // Alpha now leads
+  await expect(screen.locator("li").first()).toContainText("Alpha", { timeout: 10_000 });
+  void first;
+});
+
+test("the countdown, transparent background and look settings work from the address", async ({ page }) => {
+  const soon = new Date(Date.now() + 3 * 3600_000 + 30_000).toISOString();
+  await page.goto(`/display/?v=countdown&t=${encodeURIComponent(soon)}&title=Spring%20Cup&sub=Doors%20open%20soon&bg=transparent&theme=neon`);
+  await expect(page.getByRole("heading", { name: "Spring Cup" })).toBeVisible();
+  await expect(page.getByText("hours", { exact: true })).toBeVisible();
+  await expect(page.locator("body")).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
+  await page.goto(`/display/?v=countdown&t=${encodeURIComponent(new Date(Date.now() - 1000).toISOString())}&title=Go`);
+  await expect(page.getByText("LIVE NOW")).toBeVisible();
+});
+
+test("the schedule screen marks the round on now and the next round", async ({ page }) => {
+  const d = new Date(); const hh = (x: Date) => `${String(x.getHours()).padStart(2, "0")}:${String(x.getMinutes()).padStart(2, "0")}`;
+  const a = new Date(d.getTime() - 10 * 60_000), b = new Date(d.getTime() + 30 * 60_000), c = new Date(d.getTime() + 40 * 60_000), e = new Date(d.getTime() + 80 * 60_000);
+  const day = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  const payload = { v: "schedule", d: { title: "Run-sheet", date: day, slots: [{ n: 1, start: hh(a), end: hh(b), label: "M1, M2", breakAfter: 0 }, { n: 2, start: hh(c), end: hh(e), label: "M3, M4", breakAfter: 0 }] } };
+  await page.goto("/tools/display-screen/");
+  const hash = await page.evaluate(async (p) => { const bytes = new TextEncoder().encode(JSON.stringify(p)); let s = ""; for (const x of bytes) s += String.fromCharCode(x); return "p." + btoa(s).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, ""); }, payload);
+  await page.goto(`/display/#d=${hash}`);
+  await expect(page.getByText("NOW", { exact: true })).toBeVisible();
+  await expect(page.getByText("NEXT", { exact: true })).toBeVisible();
+});
+
+test("the display screen page explains itself and previews each screen", async ({ page }) => {
+  await page.goto("/tools/display-screen/");
+  await expect(page.getByRole("heading", { level: 1 })).toContainText(/scoreboard display/i);
+  for (const name of ["Battle royale standings", "League table", "Run-sheet", "Countdown"]) {
+    await page.getByRole("button", { name }).click();
+    await expect(page.locator("iframe")).toHaveAttribute("src", /\/display\//);
+  }
 });

@@ -2,8 +2,8 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { KEYS, LANGS, translate, isLang } from "../src/lib/i18n.ts";
 
-const VARS = { team: "@team", step: "@step", n: "@n" };
-const holes = (s) => (s.match(/@(team|step|n)/g) || []).sort().join(",");
+const VARS = { team: "@team", step: "@step", n: "@n", event: "@event", when: "@when", size: "@size", subs: "@subs" };
+const holes = (s) => (s.match(/@(team|step|n|event|when|size|subs)/g) || []).sort().join(",");
 
 test("every line exists in Hindi and Marathi, so nothing silently falls back to English", () => {
   for (const lang of ["hi", "mr"]) for (const k of KEYS) assert.notEqual(translate(lang, k), translate("en", k), `${lang}.${k} is missing or identical to English`);

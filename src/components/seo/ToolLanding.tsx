@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Item, Reveal, Stagger } from "@/components/Motion";
 import JsonLd from "./JsonLd";
 import { GUIDES } from "@/content/guides";
 import { SITE_URL } from "@/lib/site";
@@ -40,11 +41,11 @@ export default function ToolLanding({ t, children }: { t: ToolPage; children?: R
       {children && <section aria-labelledby="use"><h2 id="use" className="mb-4 font-display text-2xl font-bold text-white">{t.useHeading ?? "Use it now"}</h2>{children}</section>}
 
       <section aria-labelledby="why"><h2 id="why" className="font-display text-2xl font-bold text-white">What you get</h2>
-        <div className="mt-4 grid gap-4 md:grid-cols-3">{t.benefits.map((b) => <div key={b.title} className="card"><h3 className="font-display font-bold text-white">{b.title}</h3><p className="mt-2 text-sm text-zinc-300">{b.body}</p></div>)}</div>
+        <Stagger className="mt-4 grid gap-4 md:grid-cols-3">{t.benefits.map((b) => <Item key={b.title}><div className="card h-full"><h3 className="font-display font-bold text-white">{b.title}</h3><p className="mt-2 text-sm text-zinc-300">{b.body}</p></div></Item>)}</Stagger>
       </section>
 
       <section aria-labelledby="how"><h2 id="how" className="font-display text-2xl font-bold text-white">How it works</h2>
-        <ol className="mt-4 space-y-3">{t.steps.map((s, i) => <li key={s} className="card flex gap-4 !p-4"><span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-cyan font-bold text-ink">{i + 1}</span><span className="text-zinc-200">{s}</span></li>)}</ol>
+        <Stagger className="mt-4 space-y-3"><ol className="contents">{t.steps.map((s, i) => <li key={s} className="list-none"><Item><div className="card flex gap-4 !p-4"><span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-cyan font-bold text-ink">{i + 1}</span><span className="text-zinc-200">{s}</span></div></Item></li>)}</ol></Stagger>
       </section>
 
       {guides.length > 0 && (

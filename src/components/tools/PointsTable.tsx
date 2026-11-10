@@ -2,6 +2,8 @@
 
 import { Fragment, useMemo, useState } from "react";
 import { EXAMPLE_SCALE, parsePlacement, standings, type TeamEntry } from "@/lib/points";
+import ScreenButtons from "@/components/display/ScreenButtons";
+import { pointsView } from "@/lib/display-views";
 import { downloadBlob } from "@/lib/idcard/download";
 
 const EXAMPLE: TeamEntry[] = [
@@ -24,6 +26,7 @@ export default function PointsTable() {
   const normalised = useMemo(() => teams.map((t) => ({ ...t, matches: Array.from({ length: matches }, (_, i) => t.matches[i] ?? { placement: 0, kills: 0 }) })), [teams, matches]);
   const table = useMemo(() => (placement ? standings(normalised.filter((t) => t.name.trim()), { placement, perKill: kill }) : []), [normalised, placement, kill]);
 
+  const screen = useMemo(() => (table.length ? pointsView(table, matches) : null), [table, matches]);
   const setCell = (ti: number, mi: number, key: "placement" | "kills", v: string) =>
     setTeams(normalised.map((t, i) => (i === ti ? { ...t, matches: t.matches.map((m, j) => (j === mi ? { ...m, [key]: num(v) } : m)) } : t)));
   const csv = () => {
@@ -88,6 +91,7 @@ export default function PointsTable() {
         )}
         <p className="text-xs text-zinc-400">Ties are broken by most wins, then most kills, then the better placement in the last match, then team name. Put your own tie-breakers in your rules before the event.</p>
       </section>
+      <ScreenButtons payload={screen} what="standings" />
     </div>
   );
 }

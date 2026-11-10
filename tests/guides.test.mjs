@@ -83,3 +83,14 @@ test("every public tool page has the fields search results need", () => {
   }
   assert.deepEqual(Object.keys(TOOL_PAGES).sort(), TOOLS.map((t) => t.slug).sort());
 });
+
+import { THEMES } from "../src/lib/idcard/themes.ts";
+import { FORMATS } from "../src/lib/idcard/types.ts";
+import { LANGS } from "../src/lib/i18n.ts";
+import { CARD_DESIGNS, CARD_SHAPES, LANGUAGES_COUNT } from "../src/lib/facts.ts";
+
+test("the numbers shown on the home page match the code they describe", () => {
+  assert.equal(CARD_DESIGNS, THEMES.length);
+  assert.equal(CARD_SHAPES, Object.keys(FORMATS).length);
+  assert.equal(LANGUAGES_COUNT, LANGS.length);
+});

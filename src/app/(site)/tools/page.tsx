@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Item, Stagger } from "@/components/Motion";
+import TiltLink from "@/components/TiltLink";
 import JsonLd from "@/components/seo/JsonLd";
 import { TOOLS } from "@/lib/data";
 import { SITE_URL } from "@/lib/site";
@@ -18,16 +20,16 @@ export default function Tools() {
         <h1 className="text-3xl font-black text-zinc-50 sm:text-5xl">Free tools for event organisers</h1>
         <p className="mt-3 max-w-2xl text-lg text-zinc-300">Everything here is free and works in your browser. You do not need an account to use the tools. An account adds saving events online, invite links for players and live check-in across several doors.</p>
       </header>
-      <div className="grid gap-4 md:grid-cols-2">
+      <Stagger className="grid gap-4 md:grid-cols-2">
         {TOOLS.map((t) => (
-          <Link key={t.slug} href={t.href} className="card block outline-none focus-visible:ring-2 focus-visible:ring-cyan">
+          <Item key={t.slug} className="h-full"><TiltLink href={t.href} className="h-full">
             <span className="tag !bg-cyan/15 !text-cyan">Free</span>
             <h2 className="mt-3 font-display text-xl font-bold text-white">{t.name}</h2>
             <p className="mt-1 text-sm text-zinc-300">{t.blurb}</p>
             <span className="mt-3 inline-block text-sm font-semibold text-cyan">Open →</span>
-          </Link>
+          </TiltLink></Item>
         ))}
-      </div>
+      </Stagger>
       <p className="text-sm text-zinc-400">New to running an event? Start with the <Link href="/guides/run-a-campus-tournament/" className="text-cyan underline">college tournament guide</Link>.</p>
     </div>
   );

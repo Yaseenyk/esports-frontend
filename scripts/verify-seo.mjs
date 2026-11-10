@@ -8,7 +8,7 @@ const problems = [];
 const bad = (page, msg) => problems.push(`${page}: ${msg}`);
 
 // Pages that must stay out of search results (demo data, private screens, one-off links).
-const NOINDEX = [/^\/games\//, /^\/events\//, /^\/communities\//, /^\/manage\//, /^\/arcade\//, /^\/login\//, /^\/signup\//, /^\/app\//, /^\/gate\//, /^\/join\//, /^\/pass\//, /^\/register\//];
+const NOINDEX = [/^\/games\//, /^\/events\//, /^\/communities\//, /^\/manage\//, /^\/arcade\//, /^\/login\//, /^\/signup\//, /^\/app\//, /^\/gate\//, /^\/join\//, /^\/pass\//, /^\/register\//, /^\/display\//];
 const isNoindexPath = (p) => NOINDEX.some((re) => re.test(p));
 
 function walk(dir) { return fs.readdirSync(dir, { withFileTypes: true }).flatMap((e) => (e.isDirectory() ? walk(path.join(dir, e.name)) : [path.join(dir, e.name)])); }
@@ -48,6 +48,7 @@ for (const p of pages) {
   if (words < 120 && !["/contact/", "/privacy/", "/terms/"].includes(p.url)) bad(p.url, `thin page: only about ${words} words of text`);
   for (const phrase of ["made-up", "sample data", "lorem ipsum", "TODO", "coming soon", "not written yet", "prototype"]) if (text.toLowerCase().includes(phrase.toLowerCase())) bad(p.url, `contains placeholder wording: "${phrase}"`);
 
+  for (const m of html.matchAll(/<img[^>]*>/g)) { if (!/alt=/.test(m[0])) bad(p.url, `image without alt: ${m[0].slice(0, 80)}`); if (!/loading="lazy"/.test(m[0]) && !/fetchPriority|fetchpriority/.test(m[0])) bad(p.url, `image that is not lazy-loaded: ${m[0].slice(0, 80)}`); }
   for (const m of html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)) { try { JSON.parse(m[1]); } catch { bad(p.url, "invalid JSON-LD"); } }
   if (p.url.startsWith("/guides/") && p.url !== "/guides/" && !/"@type":"Article"/.test(html)) bad(p.url, "guide without Article structured data");
 

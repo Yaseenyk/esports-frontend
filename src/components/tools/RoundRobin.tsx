@@ -1,6 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import ScreenButtons from "@/components/display/ScreenButtons";
+import { leagueView } from "@/lib/display-views";
 import { downloadBlob } from "@/lib/idcard/download";
 import { BYE, DEFAULT_POINTS, fixtures, matchCount, table, type Score } from "@/lib/roundrobin";
 
@@ -20,6 +22,7 @@ export default function RoundRobin() {
   const rows = useMemo(() => table(teams, rounds, grid, pts), [teams, rounds, grid, pts]);
   const setScore = (ri: number, fi: number, side: "a" | "b", v: string) => setScores((s) => ({ ...s, [`${ri}-${fi}`]: { ...(s[`${ri}-${fi}`] ?? { a: null, b: null }), [side]: num(v) } }));
   const tooMany = teams.length > 40;
+  const screen = useMemo(() => (rows.length ? leagueView(rows) : null), [rows]);
 
   const csv = (kind: "fixtures" | "table") => {
     const q = (c: unknown) => `"${String(c).replace(/"/g, '""')}"`;
@@ -81,6 +84,7 @@ export default function RoundRobin() {
             </div>
             <p className="text-xs text-zinc-400">Order: points, then score difference, then scores for, then wins, then team name. Write your own tie-breakers in your rules before the event.</p>
           </section>
+          <ScreenButtons payload={screen} what="league table" />
         </>
       )}
     </div>

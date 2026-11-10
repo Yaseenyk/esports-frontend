@@ -11,7 +11,7 @@ export const TOOL_PAGES: Record<string, ToolPage & { title: string; description:
     useHeading: "Make your cards",
     benefits: [
       { title: "Fast roster entry", body: "Type people in, import a spreadsheet, or scan Aadhaar cards with the holder's permission. Scanning happens on your own device and only the last four digits of a number are kept." },
-      { title: "Designs for every team", body: "Ten classic and twelve poster-style designs, seven card shapes from wallet cards to phone passes, and an editor to move, resize and recolour anything. Add team and sponsor logos." },
+      { title: "Designs for every team", body: "Ten classic and thirteen poster-style designs, seven card shapes from wallet cards to phone passes, and an editor to move, resize and recolour anything. Add team and sponsor logos." },
       { title: "Print-ready files", body: "A PDF at real size with crop marks, optional 3 mm bleed, fronts and mirrored backs for double-sided printing, A4 or US Letter, or a zip of PNG pictures." },
     ],
     steps: ["Name your event, choose the game and the card shape, and list your teams.", "Add people by hand, from a sheet, or by scanning Aadhaar cards with their permission.", "Choose a design for each team and adjust it.", "Download the PDF to print, or share the pictures. Create a free account if you also want to save the event online and check guests in live."],
@@ -127,6 +127,28 @@ export const TOOL_PAGES: Record<string, ToolPage & { title: string; description:
       { q: "What paper size is used?", a: "A4 landscape. Print at 100% (not fit to page) on thick paper for a good finish." },
       { q: "Can I use my own wording?", a: "Yes. Edit the heading and the sentence. The words {award}, {event} and {date} are filled in from the fields below for you." },
       { q: "Is there a limit on names?", a: "Up to about a hundred names in one file works well. For more, make several files." },
+    ],
+  },
+  "display-screen": {
+    slug: "display-screen", name: "Display screen for TV and OBS",
+    title: "Free scoreboard display for TV, OBS and YouTube",
+    description: "Free fullscreen scoreboard for esports events: standings, league table, schedule or countdown on a TV, projector, OBS or YouTube, with a transparent background.",
+    h1: "Free scoreboard display for TV, OBS and YouTube",
+    lead: "Show your standings, league table, schedule or a countdown on a big screen. Open the screen from a tool, put it on the venue TV or projector, or capture it in OBS for your stream. It is full screen, easy to read from the back of the room, and it updates the moment you change a result.",
+    useHeading: "Try a screen",
+    benefits: [
+      { title: "Made for a big screen", body: "Large text, safe margins for TVs, and long tables scroll on their own. The top three get medals and a team that moves up flashes so the room notices." },
+      { title: "Works with OBS and YouTube", body: "Choose a transparent background and use the screen as an OBS browser source or capture the window, so it sits on top of your stream." },
+      { title: "Live from your tools", body: "Open a screen from the points table, the round robin or the schedule tool and every change you make appears on it straight away. Nothing is uploaded and no account is needed." },
+    ],
+    steps: ["Make your standings, league table or schedule in one of the tools.", "Press Open the screen and put that window on the TV or projector (press F for full screen).", "For a stream, tick transparent background and capture the window in OBS, or copy the link into an OBS browser source.", "Keep updating results in the tool and the screen follows."],
+    guides: ["stream-your-event", "points-table", "run-a-campus-tournament"],
+    faq: [
+      { q: "How do I show it on a TV?", a: "Connect the TV as a second display, drag the screen window onto it and press F for full screen. Or open the same link in the TV's browser." },
+      { q: "How do I use it in OBS or on YouTube?", a: "Add a Browser source in OBS with the copied link, or capture the open screen window. Choose the transparent background option to place it over your game footage." },
+      { q: "Does it update by itself?", a: "A screen opened from a tool updates live while that tool page stays open in the same browser. A copied link is a snapshot of that moment, so paste a fresh link if you want to refresh it in OBS." },
+      { q: "Does it need an account or the internet?", a: "No account. The screen works offline once the page has loaded, because the data travels inside the link and is never uploaded. The live check-in counter needs internet and a gate key." },
+      { q: "Can I show live check-in numbers?", a: "Yes. In the app, open an event and choose Check-in screen to show how many guests have arrived. Names stay hidden unless you switch them on." },
     ],
   },
   "check-in": {

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { Item, Stagger } from "@/components/Motion";
+import TiltLink from "@/components/TiltLink";
 import JsonLd from "@/components/seo/JsonLd";
 import { GUIDES } from "@/content/guides";
 import { SITE_URL } from "@/lib/site";
@@ -18,15 +19,15 @@ export default function Guides() {
         <h1 className="text-3xl font-black text-zinc-50 sm:text-5xl">Guides for running esports events</h1>
         <p className="mt-3 max-w-2xl text-lg text-zinc-300">Plain, practical guides for organisers of college, community and club events. Each one ends with a free tool you can use straight away.</p>
       </header>
-      <div className="grid gap-4 md:grid-cols-2">
+      <Stagger className="grid gap-4 md:grid-cols-2">
         {GUIDES.map((g) => (
-          <Link key={g.slug} href={`/guides/${g.slug}/`} className="card block outline-none focus-visible:ring-2 focus-visible:ring-cyan">
+          <Item key={g.slug} className="h-full"><TiltLink href={`/guides/${g.slug}/`} className="h-full">
             <div className="flex items-center justify-between"><span className="tag">{g.tag}</span><span className="text-xs text-zinc-400">{g.minutes} min read</span></div>
             <h2 className="mt-3 font-display text-lg font-bold text-white">{g.title}</h2>
             <p className="mt-1 text-sm text-zinc-300">{g.description}</p>
-          </Link>
+          </TiltLink></Item>
         ))}
-      </div>
+      </Stagger>
     </div>
   );
 }
