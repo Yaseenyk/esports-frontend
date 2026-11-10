@@ -4,6 +4,8 @@
  */
 export const FIELDS = {
   name: "Full name",
+  first: "First name",
+  last: "Last name",
   team: "Team",
   role: "Role",
   id: "ID number",
@@ -61,6 +63,8 @@ export interface El {
   sticker?: string;
   /** photo cut-out: soft drop shadow */
   shadow?: boolean;
+  /** photo cut-out with a normal (not transparent) photo: set false to show it as a plain rounded picture instead of fading at the bottom */
+  fade?: boolean;
 }
 
 /** A texture drawn over the background: dots, grid, stripes, sunburst rays, concentric rings or a diamond lattice. */
@@ -96,12 +100,18 @@ export interface Person {
   cutout?: boolean;
 }
 
+/** k is the typical width of a letter as a share of the font size, so text can be shrunk to fit its box. */
 export const FONTS = {
-  display: { label: "Display", css: "var(--font-display), system-ui, sans-serif" },
-  body: { label: "Clean", css: "var(--font-body), system-ui, sans-serif" },
-  mono: { label: "Mono", css: "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" },
-  serif: { label: "Serif", css: "Georgia, 'Times New Roman', serif" },
-  heavy: { label: "Heavy", css: "'Arial Black', Impact, 'Haettenschweiler', sans-serif" },
+  display: { label: "Display", css: "var(--font-display), system-ui, sans-serif", k: 0.56 },
+  body: { label: "Clean", css: "var(--font-body), system-ui, sans-serif", k: 0.56 },
+  mono: { label: "Mono", css: "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace", k: 0.62 },
+  serif: { label: "Serif", css: "Georgia, 'Times New Roman', serif", k: 0.52 },
+  heavy: { label: "Heavy", css: "'Arial Black', Impact, 'Haettenschweiler', sans-serif", k: 0.8 },
+  poppins: { label: "Poppins", css: "var(--font-poppins), var(--font-body), system-ui, sans-serif", k: 0.6 },
+  anton: { label: "Anton (poster)", css: "var(--font-anton), Impact, 'Arial Narrow', sans-serif", k: 0.47 },
+  bebas: { label: "Bebas (tall)", css: "var(--font-bebas), Impact, 'Arial Narrow', sans-serif", k: 0.4 },
+  oswald: { label: "Oswald", css: "var(--font-oswald), Impact, 'Arial Narrow', sans-serif", k: 0.5 },
+  montserrat: { label: "Montserrat Black", css: "var(--font-montserrat), 'Arial Black', sans-serif", k: 0.68 },
 } as const;
 export type FontKey = keyof typeof FONTS;
 
@@ -114,6 +124,9 @@ export const FORMATS = {
   portrait: { label: "Lanyard badge", w: 54, h: 85.6, cols: 3, slot: { w: 26, h: 3.6 }, note: "Credit-card size, upright. Punch the slot and wear it on a lanyard." },
   badge: { label: "Event badge", w: 76, h: 102, cols: 2, slot: { w: 19, h: 3 }, note: "Large 3 x 4 in badge for lanyards, clips and pins." },
   strip: { label: "Wristband strip", w: 190, h: 22, cols: 1, slot: null, note: "A long strip. Cut it, then fit it around the wrist or a bag strap." },
+  poster: { label: "Poster card (2:3)", w: 70, h: 105, cols: 2, slot: null, note: "Big poster-style card for events and teams. Shows well on screens too." },
+  story: { label: "Story card (9:16)", w: 60, h: 106.7, cols: 3, slot: null, note: "Tall card for phones and social stories, or a large printed badge." },
+  pass: { label: "Digital pass (phone)", w: 54, h: 112.4, cols: 3, slot: null, note: "Shaped like a phone screen, for a digital ID shown in an app or shared as an image." },
 } as const;
 export type Fmt = keyof typeof FORMATS;
 export const fmtOf = (t: { fmt?: Fmt }): Fmt => t.fmt ?? "wallet";

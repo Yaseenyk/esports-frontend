@@ -10,6 +10,8 @@ export function fieldValue(el: El, c: Ctx): string {
   const p = c.person;
   switch (el.field) {
     case "name": return p.name;
+    case "first": return p.name.trim().split(/\s+/)[0] ?? "";
+    case "last": { const w = p.name.trim().split(/\s+/); return w.length > 1 ? w.slice(1).join(" ") : w[0] ?? ""; }
     case "team": return c.teamName;
     case "role": return p.role;
     case "id": return p.id;
@@ -31,7 +33,7 @@ function patternStyle(p: Pattern): CSSProperties {
     case "dots": return { backgroundImage: `radial-gradient(circle, ${c} ${s * 0.1}cqw, transparent ${s * 0.12}cqw)`, backgroundSize: `${s}cqw ${s}cqw` };
     case "grid": return { backgroundImage: `linear-gradient(${c} 0.15cqw, transparent 0.15cqw), linear-gradient(90deg, ${c} 0.15cqw, transparent 0.15cqw)`, backgroundSize: `${s}cqw ${s}cqw` };
     case "stripes": return { backgroundImage: `repeating-linear-gradient(45deg, ${c} 0, ${c} ${s * 0.2}cqw, transparent ${s * 0.2}cqw, transparent ${s}cqw)` };
-    case "rays": return { backgroundImage: `repeating-conic-gradient(from 0deg at ${cx}% ${cy}%, ${c} 0deg, ${c} ${s}deg, transparent ${s}deg, transparent ${s * 2}deg)` };
+    case "rays": return { backgroundImage: `repeating-conic-gradient(from 0deg at ${cx}% ${cy}%, ${c} 0deg, ${c} ${s * 0.16}deg, transparent ${s * 0.16}deg, transparent ${s}deg)` };
     case "rings": return { backgroundImage: `repeating-radial-gradient(circle at ${cx}% ${cy}%, transparent 0, transparent ${s}cqw, ${c} ${s}cqw, ${c} ${s + 0.35}cqw)` };
     case "diamonds": return { backgroundImage: `linear-gradient(45deg, ${c} 0.18cqw, transparent 0.18cqw), linear-gradient(-45deg, ${c} 0.18cqw, transparent 0.18cqw)`, backgroundSize: `${s}cqw ${s}cqw` };
   }
@@ -79,7 +81,7 @@ export function ElView({ el, ctx }: { el: El; ctx: Ctx }) {
       if (el.shadow) filters.push("drop-shadow(0 1cqw 1.6cqw rgba(0,0,0,.45))");
       return (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={src} alt="" style={{ ...box, objectFit: hasAlpha ? "contain" : "cover", objectPosition: "center bottom", filter: filters.join(" ") || undefined, WebkitMaskImage: hasAlpha ? undefined : "linear-gradient(#000 72%, transparent)", maskImage: hasAlpha ? undefined : "linear-gradient(#000 72%, transparent)" }} />
+        <img src={src} alt="" style={{ ...box, objectFit: hasAlpha ? "contain" : "cover", objectPosition: hasAlpha ? "center bottom" : "center 18%", filter: filters.join(" ") || undefined, borderRadius: hasAlpha ? undefined : `${r}cqmin`, WebkitMaskImage: hasAlpha || el.fade === false ? undefined : "linear-gradient(#000 72%, transparent)", maskImage: hasAlpha || el.fade === false ? undefined : "linear-gradient(#000 72%, transparent)" }} />
       );
     }
     return (
@@ -101,7 +103,7 @@ export function ElView({ el, ctx }: { el: El; ctx: Ctx }) {
   const raw = el.kind === "field" ? fieldValue(el, ctx) : el.text ?? "";
   const text = el.ticker ? Array.from({ length: 16 }, () => raw).join("   •   ") : raw;
   // Auto-fit: long names shrink to fit their box instead of being cut off. Wide, heavy or capital letters take more room.
-  const k = el.font === "heavy" ? 0.8 : el.upper ? 0.7 : el.font === "mono" ? 0.62 : el.font === "serif" ? 0.52 : 0.56;
+  const k = FONTS[el.font ?? "body"].k * (el.upper ? 1.1 : 1);
   const base = el.size ?? 4;
   const fit = el.ticker ? base : Math.min(base, (el.w * 0.96) / Math.max(1, text.length * k + (el.spacing ?? 0) * text.length * 0.5));
   const lines = Math.max(1, Math.min(8, el.repeat ?? 1));

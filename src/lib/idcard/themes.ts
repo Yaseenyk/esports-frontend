@@ -64,7 +64,7 @@ function buildStrip(p: Pal): El[] {
 }
 
 function build(p: Pal, fmt: Fmt = "wallet"): El[] {
-  if (fmt === "portrait" || fmt === "badge") return buildUpright(p);
+  if (fmt !== "wallet" && fmt !== "strip") return buildUpright(p);
   if (fmt === "strip") return buildStrip(p);
   const els: El[] = [];
   const f = p.font;
@@ -125,11 +125,11 @@ const classic: ThemeEntry[] = PALS.map((p) => ({
   make: (fmt: Fmt = "wallet") => ({ id: p.id, name: p.name, theme: p.id, fmt, bg: { a: p.bg[0], b: p.bg[1], angle: p.angle }, els: build(p, fmt) }),
 }));
 
-/** Poster themes are made for upright badges. On other card shapes they rebuild from a matching classic palette instead. */
+/** Poster and app-pass themes are drawn for specific card types (poster, story, pass). On other shapes they rebuild from a matching classic palette. */
 const posters: ThemeEntry[] = POSTERS.map((p) => ({
-  id: p.id, name: p.name, tags: p.tags, group: "poster" as const, fmts: ["portrait", "badge"] as Fmt[],
-  make: (fmt: Fmt = "portrait") => {
-    if (fmt === "portrait" || fmt === "badge") {
+  id: p.id, name: p.name, tags: p.tags, group: "poster" as const, fmts: p.fmts,
+  make: (fmt: Fmt = p.fmts[0]) => {
+    if (p.fmts.includes(fmt)) {
       const f = FORMATS[fmt];
       return { id: p.id, name: p.name, theme: p.id, fmt, bg: { ...p.bg }, els: p.build(f.h / f.w) };
     }
@@ -139,14 +139,15 @@ const posters: ThemeEntry[] = POSTERS.map((p) => ({
 }));
 
 export const THEMES: ThemeEntry[] = [...classic, ...posters];
-const upright = (f?: Fmt) => f === "portrait" || f === "badge";
+/** True for the card types that have their own poster-style themes. */
+export const posterFmt = (f?: Fmt) => f === "poster" || f === "story" || f === "pass";
 
 export const VIBES = ["neon", "premium", "minimal", "aggressive", "playful", "light", "bold"] as const;
 export const themeById = (id: string) => THEMES.find((t) => t.id === id);
 /** A simple, honest helper: picks a theme from the chosen vibe and the team name, so each team lands on a different one. */
 export function suggest(vibe: string | null, teamName: string, fmt?: Fmt): string {
-  // Upright badges get the poster themes; other shapes get the classic ones.
-  const eligible = THEMES.filter((t) => (upright(fmt) ? t.group === "poster" : t.group === "classic"));
+  // Poster, story and pass cards get the themes drawn for them; every other shape gets the classic ones.
+  const eligible = THEMES.filter((t) => (posterFmt(fmt) ? t.group === "poster" && !!fmt && !!t.fmts?.includes(fmt) : t.group === "classic"));
   const pool = eligible.filter((t) => !vibe || t.tags.includes(vibe));
   const list = pool.length ? pool : eligible;
   let h = 0; for (const c of teamName) h = (h * 31 + c.charCodeAt(0)) >>> 0;

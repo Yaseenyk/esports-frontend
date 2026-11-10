@@ -7,7 +7,7 @@ import Select from "@/components/Select";
 import { useXp } from "@/components/XpProvider";
 import { maskAadhaar } from "@/lib/idcard/aadhaar";
 import { scanAadhaar, stopOcr } from "@/lib/idcard/ocr";
-import { suggest, themeById, THEMES, VIBES, type ThemeEntry } from "@/lib/idcard/themes";
+import { posterFmt, suggest, themeById, THEMES, VIBES, type ThemeEntry } from "@/lib/idcard/themes";
 import { FORMATS, ROLES, fmtOf, type Fmt, type Person, type Role, type Team, type Template } from "@/lib/idcard/types";
 import { GAMES } from "@/lib/data";
 import CardView, { type Ctx } from "./CardView";
@@ -18,18 +18,18 @@ const STEPS = ["Event & teams", "People", "Design", "Print"];
 const SAMPLE_TEAMS: Team[] = [{ id: "t1", name: "Konkan Kings" }, { id: "t2", name: "Deadly Duos" }, { id: "t3", name: "Pune Phantoms" }];
 /** Demo roster: invented names, dates and card numbers. */
 const SAMPLE_PEOPLE: Person[] = [
-  { id: "KON-001", name: "Aarav Mehta", teamId: "t1", role: "Player", dob: "12/05/2003", gender: "Male", last4: "4471" },
-  { id: "KON-002", name: "Diya Kulkarni", teamId: "t1", role: "Player", dob: "23/09/2004", gender: "Female", last4: "8802" },
-  { id: "KON-003", name: "Rohan Deshmukh", teamId: "t1", role: "Player", dob: "02/11/2002", gender: "Male", last4: "1936" },
-  { id: "KON-004", name: "Sneha Iyer", teamId: "t1", role: "Substitute", dob: "14/01/2005", gender: "Female", last4: "5520" },
-  { id: "KON-005", name: "Kabir Sheikh", teamId: "t1", role: "Coach", dob: "30/07/1995", gender: "Male", last4: "7714" },
-  { id: "DEA-001", name: "Vihaan Patil", teamId: "t2", role: "Player", dob: "08/03/2003", gender: "Male", last4: "3068" },
-  { id: "DEA-002", name: "Ananya Nair", teamId: "t2", role: "Player", dob: "19/12/2003", gender: "Female", last4: "9245" },
-  { id: "DEA-003", name: "Ishita Joshi", teamId: "t2", role: "Substitute", dob: "27/06/2004", gender: "Female", last4: "6183" },
-  { id: "DEA-004", name: "Arjun Reddy", teamId: "t2", role: "Manager", dob: "11/10/1992", gender: "Male", last4: "2857" },
-  { id: "PUN-001", name: "Meera Pawar", teamId: "t3", role: "Player", dob: "05/04/2002", gender: "Female", last4: "4096" },
-  { id: "PUN-002", name: "Zoya Khan", teamId: "t3", role: "Player", dob: "21/08/2003", gender: "Female", last4: "7731" },
-  { id: "PUN-003", name: "Aditya Chavan", teamId: "t3", role: "Coach", dob: "16/02/1994", gender: "Male", last4: "1259" },
+  { id: "KON-001", name: "Aarav Mehta", teamId: "t1", role: "Player", dob: "12/05/2003", gender: "Male", last4: "4471", photo: "/samples/people/aarav-mehta.webp", cutout: true },
+  { id: "KON-002", name: "Diya Kulkarni", teamId: "t1", role: "Player", dob: "23/09/2004", gender: "Female", last4: "8802", photo: "/samples/people/diya-kulkarni.webp", cutout: true },
+  { id: "KON-003", name: "Rohan Deshmukh", teamId: "t1", role: "Player", dob: "02/11/2002", gender: "Male", last4: "1936", photo: "/samples/people/rohan-deshmukh.webp", cutout: true },
+  { id: "KON-004", name: "Sneha Iyer", teamId: "t1", role: "Substitute", dob: "14/01/2005", gender: "Female", last4: "5520", photo: "/samples/people/sneha-iyer.webp", cutout: true },
+  { id: "KON-005", name: "Kabir Sheikh", teamId: "t1", role: "Coach", dob: "30/07/1995", gender: "Male", last4: "7714", photo: "/samples/people/kabir-sheikh.webp", cutout: true },
+  { id: "DEA-001", name: "Vihaan Patil", teamId: "t2", role: "Player", dob: "08/03/2003", gender: "Male", last4: "3068", photo: "/samples/people/vihaan-patil.webp", cutout: true },
+  { id: "DEA-002", name: "Ananya Nair", teamId: "t2", role: "Player", dob: "19/12/2003", gender: "Female", last4: "9245", photo: "/samples/people/ananya-nair.webp", cutout: true },
+  { id: "DEA-003", name: "Ishita Joshi", teamId: "t2", role: "Substitute", dob: "27/06/2004", gender: "Female", last4: "6183", photo: "/samples/people/ishita-joshi.webp", cutout: true },
+  { id: "DEA-004", name: "Arjun Reddy", teamId: "t2", role: "Manager", dob: "11/10/1992", gender: "Male", last4: "2857", photo: "/samples/people/arjun-reddy.webp", cutout: true },
+  { id: "PUN-001", name: "Meera Pawar", teamId: "t3", role: "Player", dob: "05/04/2002", gender: "Female", last4: "4096", photo: "/samples/people/meera-pawar.webp", cutout: true },
+  { id: "PUN-002", name: "Zoya Khan", teamId: "t3", role: "Player", dob: "21/08/2003", gender: "Female", last4: "7731", photo: "/samples/people/zoya-khan.webp", cutout: true },
+  { id: "PUN-003", name: "Aditya Chavan", teamId: "t3", role: "Coach", dob: "16/02/1994", gender: "Male", last4: "1259", photo: "/samples/people/aditya-chavan.webp", cutout: true },
 ];
 const DEMO_CARDS = [
   { file: "aarav-mehta", label: "Aarav Mehta" },
@@ -69,6 +69,7 @@ export default function IdCardStudio() {
   const [designTeam, setDesignTeam] = useState("t1");
   const [printTeam, setPrintTeam] = useState("all");
   const [vibe, setVibe] = useState<string | null>(null);
+  const [previewId, setPreviewId] = useState<string>("");
   const [consent, setConsent] = useState(false);
   const [scanTeam, setScanTeam] = useState("t1");
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -124,12 +125,12 @@ export default function IdCardStudio() {
   const printable = useMemo(() => people.filter((p) => printTeam === "all" || p.teamId === printTeam), [people, printTeam]);
   const teamOpts = teams.map((t) => ({ value: t.id, label: t.name || "Untitled team" }));
   const dTeam = teamById(valid(designTeam));
-  const sample: Person = people.find((p) => p.teamId === dTeam?.id) ?? { id: "ID-001", name: "Player Name", teamId: dTeam?.id ?? "", role: "Player" };
+  const teamPeople = people.filter((p) => p.teamId === dTeam?.id);
+  const sample: Person = teamPeople.find((p) => p.id === previewId) ?? teamPeople[0] ?? { id: "ID-001", name: "Player Name", teamId: dTeam?.id ?? "", role: "Player" };
   const needReview = people.filter((p) => p.review).length;
 
   const applyTheme = (themeId: string, teamIds: string[]) => setTemplates((t) => { const n = { ...t }; for (const id of teamIds) { const cur = n[id] ?? tplFor(teamById(id)); n[id] = { ...themeById(themeId)!.make(fmtOf(cur)), id }; } return n; });
 
-  const upright = (f: Fmt) => f === "portrait" || f === "badge";
   const themeGrid = (list: ThemeEntry[], title: string) => {
     if (!dTeam) return null;
     const f = fmtOf(tplFor(dTeam));
@@ -278,13 +279,18 @@ export default function IdCardStudio() {
                     <button type="button" className="btn-ghost !min-h-9 px-3 text-sm" onClick={() => setTemplates((t) => { const n = { ...t }; teams.forEach((x, i) => { const id = suggest(vibe, x.name + i, fmtOf(tplFor(x))); n[x.id] = { ...themeById(id)!.make(fmtOf(tplFor(x))), id: x.id }; }); return n; })}>Different theme for every team</button>
                   </div>
                 </div>
-                {upright(fmtOf(tplFor(dTeam))) && themeGrid(THEMES.filter((t) => t.group === "poster"), "Poster themes")}
-                {themeGrid(THEMES.filter((t) => t.group === "classic"), "Classic themes")}
+                {posterFmt(fmtOf(tplFor(dTeam))) && themeGrid(THEMES.filter((t) => t.group === "poster" && !!t.fmts?.includes(fmtOf(tplFor(dTeam)))), "Themes drawn for this card type")}
+                {!posterFmt(fmtOf(tplFor(dTeam))) && themeGrid(THEMES.filter((t) => t.group === "classic"), "Classic themes")}
+                {!posterFmt(fmtOf(tplFor(dTeam))) && <p className="text-sm text-zinc-500">Want the poster-style cards (cut-out portraits, big type, ribbons)? Change the card type above to Poster card, Story card or Digital pass.</p>}
                 <button type="button" className="btn-ghost text-sm" onClick={() => { const cur = tplFor(dTeam); setTemplates((t) => { const n = { ...t }; teams.forEach((x) => { n[x.id] = { ...cur, id: x.id, els: cur.els.map((e) => ({ ...e })) }; }); return n; }); }}>Copy this team&apos;s design to all teams</button>
               </section>
               <section className="card !p-4 sm:!p-6">
                 <h3 className="mb-4 font-display text-lg font-bold text-white">Customise <span className="text-cyan">{dTeam.name}</span>&apos;s card</h3>
-                <Editor tpl={tplFor(dTeam)} onChange={(t) => { setTemplates((s) => ({ ...s, [dTeam.id]: { ...t, id: dTeam.id } })); }} ctx={{ event, game, teamName: dTeam.name, person: sample }} />
+                <div className="mb-4 grid gap-3 sm:grid-cols-[18rem_1fr] sm:items-end">
+                  <Select label="Preview with" value={sample.id} onChange={setPreviewId} options={teamPeople.map((p) => ({ value: p.id, label: p.name || p.id, hint: p.photo ? (p.cutout ? "cut-out" : "photo") : "no photo" }))} searchable={false} />
+                  <p className="text-sm text-zinc-500">Uploaded photos appear on the card exactly as they will print. Add one here with &ldquo;Add photo&rdquo; in the toolbar, or in the People step. Transparent PNGs give the full cut-out look. The demo pictures are AI-generated cartoon avatars of invented people.</p>
+                </div>
+                <Editor tpl={tplFor(dTeam)} onChange={(t) => { setTemplates((s) => ({ ...s, [dTeam.id]: { ...t, id: dTeam.id } })); }} ctx={{ event, game, teamName: dTeam.name, person: sample }} onPhotoFile={(f) => photo(sample.id, f)} />
               </section>
             </div>
           )}

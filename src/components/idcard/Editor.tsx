@@ -32,7 +32,7 @@ function Range({ label, value, min, max, step = 1, onChange }: { label: string; 
   );
 }
 
-export default function Editor({ tpl, onChange, ctx }: { tpl: Template; onChange: (t: Template) => void; ctx: Ctx }) {
+export default function Editor({ tpl, onChange, ctx, onPhotoFile }: { tpl: Template; onChange: (t: Template) => void; ctx: Ctx; onPhotoFile?: (f: File) => void }) {
   const [sel, setSel] = useState<string | null>(null);
   const past = useRef<Template[]>([]);
   const future = useRef<Template[]>([]);
@@ -114,6 +114,7 @@ export default function Editor({ tpl, onChange, ctx }: { tpl: Template; onChange
           <button type="button" className="btn-ghost !min-h-9 px-3 text-sm" onClick={() => add({ kind: "photo", w: 24, h: 45, radius: 6, fill: "#00000055", stroke: "#22D3EE", strokeW: 0.9 })}>+ Photo</button>
           <button type="button" className="btn-ghost !min-h-9 px-3 text-sm" onClick={() => add({ kind: "photo", cutout: true, w: 60, h: 55, x: 20, y: 30, color: "#334155", shadow: true })}>+ Cut-out</button>
           <button type="button" className="btn-ghost !min-h-9 px-3 text-sm" onClick={() => add({ kind: "qr", w: 24, h: 15, color: "#111111", fill: "#ffffff", radius: 3 })}>+ QR</button>
+          {onPhotoFile && <label className="btn !min-h-9 cursor-pointer px-3 text-sm">{ctx.person.photo ? "Change photo" : "Add photo"}<input type="file" accept="image/*" className="sr-only" onChange={(e) => { const f = e.target.files?.[0]; if (f) onPhotoFile(f); e.target.value = ""; }} /></label>}
           <label className="btn-ghost !min-h-9 cursor-pointer px-3 text-sm">+ Logo<input type="file" accept="image/*" className="sr-only" onChange={(e) => { logo(e.target.files?.[0]); e.target.value = ""; }} /></label>
         </div>
         <div className="mx-auto w-full select-none" style={{ maxWidth: FORMATS[fmtOf(tpl)].w < FORMATS[fmtOf(tpl)].h ? 330 : 640 }} ref={box} onPointerDown={() => { root.current?.focus({ preventScroll: true }); setSel(null); }}>
@@ -121,6 +122,11 @@ export default function Editor({ tpl, onChange, ctx }: { tpl: Template; onChange
             {tpl.els.map((e) => (
               <div key={e.id} data-el={e.id} onPointerDown={(ev) => drag(ev, e, "move")} className={`absolute cursor-move touch-none ${sel === e.id ? "outline outline-2 outline-cyan" : "hover:outline hover:outline-1 hover:outline-white/40"}`}
                 style={{ left: `${e.x}%`, top: `${e.y}%`, width: `${e.w}%`, height: `${e.h}%`, transform: e.rot ? `rotate(${e.rot}deg)` : undefined }}>
+                {e.kind === "photo" && !ctx.person.photo && onPhotoFile && (
+                  <label onPointerDown={(ev) => ev.stopPropagation()} className="absolute inset-x-[8%] top-[42%] z-10 flex cursor-pointer items-center justify-center rounded-full border border-dashed border-white/70 bg-black/55 px-2 py-1.5 text-center text-[11px] font-semibold text-white backdrop-blur-sm">
+                    Click to add the photo<input type="file" accept="image/*" className="sr-only" onChange={(ev) => { const f = ev.target.files?.[0]; if (f) onPhotoFile(f); ev.target.value = ""; }} />
+                  </label>
+                )}
                 {sel === e.id && <span data-handle onPointerDown={(ev) => drag(ev, e, "resize")} className="absolute -bottom-2 -right-2 h-4 w-4 cursor-nwse-resize touch-none rounded-sm border-2 border-cyan bg-ink" />}
               </div>
             ))}
