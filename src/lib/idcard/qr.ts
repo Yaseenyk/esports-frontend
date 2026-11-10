@@ -33,6 +33,13 @@ async function gunzip(b: Uint8Array): Promise<Uint8Array> {
 
 const fixDob = (d: string) => d.replace(/-/g, "/");
 
+/** The unpacked bytes of a Secure QR (all fields, the photo and the trailing signature), or null if the text is not one. */
+export async function unpackSecureQr(payload: string): Promise<Uint8Array | null> {
+  const p = payload.trim();
+  if (!/^\d{120,}$/.test(p)) return null;
+  try { return await gunzip(decimalToBytes(p)); } catch { return null; }
+}
+
 export async function parseQrPayload(payload: string): Promise<AadhaarRead | null> {
   const p = payload.trim();
   // Secure QR
@@ -112,5 +119,10 @@ export async function findQr(file: File | Blob): Promise<string | null> {
 
 export async function scanQr(file: File | Blob): Promise<AadhaarRead | null> {
   const payload = await findQr(file);
-  return payload ? parseQrPayload(payload) : null;
+  if (!payload) return null;
+  const read = await parseQrPayload(payload);
+  if (!read) return null;
+  const raw = await unpackSecureQr(payload);
+  if (raw) { const { loadUidaiCerts, verdictFor } = await import("./uidai"); read.verified = await verdictFor(raw, await loadUidaiCerts()); } // the old XML QR carries no signature we can check
+  return read;
 }

@@ -7,6 +7,8 @@ import { maskAadhaar, type AadhaarRead } from "@/lib/idcard/aadhaar";
 import { buildBack } from "@/lib/idcard/back";
 import { removeBackground } from "@/lib/idcard/bgremove";
 import { pdfToImages } from "@/lib/idcard/pdf";
+import { downloadBlob } from "@/lib/idcard/export";
+import { buildProject, designToJson, parseDesign, parseProject } from "@/lib/idcard/project";
 import { dominantColour, recolour } from "@/lib/idcard/recolor";
 import { findDuplicates, isMinor } from "@/lib/idcard/roster";
 import { eventKey, signPass } from "@/lib/idcard/sign";
@@ -80,6 +82,8 @@ export default function IdCardStudio() {
   const [bgBusy, setBgBusy] = useState<string | null>(null);
   const [bgNote, setBgNote] = useState<string | null>(null);
   const [autoBg, setAutoBg] = useState(false);
+  const [ocrLang, setOcrLang] = useState("auto");
+  const [projectMsg, setProjectMsg] = useState<string | null>(null);
   const jobKey = useRef(0);
   const peopleRef = useRef(people); peopleRef.current = people;
   // A saved or removed team can leave a stale id behind; fall back to the first team so no dropdown is ever empty.
@@ -124,12 +128,12 @@ export default function IdCardStudio() {
 
   // Aadhaar scanning: strictly one at a time, in the browser. A PDF is drawn to pictures first.
   const readFile = async (f: File, upd: (p: Partial<Job>) => void, password?: string): Promise<AadhaarRead> => {
-    if (!(f.type === "application/pdf" || /\.pdf$/i.test(f.name))) return scanAadhaar(f, (pct) => upd({ pct: Math.round(pct * 100) }));
+    if (!(f.type === "application/pdf" || /\.pdf$/i.test(f.name))) return scanAadhaar(f, (pct) => upd({ pct: Math.round(pct * 100) }), ocrLang);
     const res = await pdfToImages(f, password);
     if ("needPassword" in res) throw Object.assign(new Error("password"), { needPassword: true, wrong: res.wrong });
     let best: AadhaarRead = {};
     for (const [i, img] of res.images.entries()) {
-      const r = await scanAadhaar(new File([img], `${f.name}-page${i + 1}.png`, { type: "image/png" }), (pct) => upd({ pct: Math.round(pct * 100) }));
+      const r = await scanAadhaar(new File([img], `${f.name}-page${i + 1}.png`, { type: "image/png" }), (pct) => upd({ pct: Math.round(pct * 100) }), ocrLang);
       if (r.name) return r;
       if (!best.name && (r.dob || r.last4)) best = r;
     }
@@ -146,8 +150,8 @@ export default function IdCardStudio() {
       try {
         const r = await readFile(f, upd, password);
         if (!r.name && !r.dob && !r.last4) { upd({ state: "error", note: "Could not read this card. Try a sharper, straight-on photo." }); continue; }
-        setPeople((l) => [...l, { id: nextId(target, l.filter((p) => p.teamId === target).length - peopleRef.current.filter((p) => p.teamId === target).length), name: r.name ?? "", teamId: target, role: "Player", dob: r.dob ?? (r.yob ? `Year ${r.yob}` : undefined), gender: r.gender, last4: r.last4, source: r.source, review: r.source !== "qr" }]);
-        upd({ state: "done", pct: 100, note: r.source === "qr" ? "Read from the QR code: exact." : "Read by OCR: please check the details." });
+        setPeople((l) => [...l, { id: nextId(target, l.filter((p) => p.teamId === target).length - peopleRef.current.filter((p) => p.teamId === target).length), name: r.name ?? "", teamId: target, role: "Player", dob: r.dob ?? (r.yob ? `Year ${r.yob}` : undefined), gender: r.gender, last4: r.last4, source: r.source, verified: r.verified, review: r.source !== "qr" || r.verified === "invalid" }]);
+        upd({ state: "done", pct: 100, note: r.source === "qr" ? (r.verified === "valid" ? "Read from the QR code. UIDAI signature verified." : r.verified === "invalid" ? "Read from the QR code, but the UIDAI signature did NOT match. The QR may have been edited: check this person." : "Read from the QR code: exact. (UIDAI signature not checked: no certificate installed.)") : "Read by OCR: please check the details." });
         setPdfAsk(null); setPdfPass("");
         addXp(5, r.source === "qr" ? "Card read from QR" : "Card read");
       } catch (e) {
@@ -204,6 +208,32 @@ export default function IdCardStudio() {
     setTemplates((s) => { const base = s[dTeam.id] ?? tplFor(dTeam); const next = recolour(base, c); return { ...s, [dTeam.id]: next.back ? { ...next, back: buildBack(next) } : next }; });
   };
 
+  // ---- project and design files
+  const saveProject = () => {
+    const withPass = info.sign && !!info.passphrase && window.confirm("Include the signing passphrase in the file?\n\nAnyone who has the file could then make valid passes. Choose Cancel to leave it out (you will need to enter it again after opening the file).");
+    downloadBlob(new Blob([JSON.stringify(buildProject({ event, game, organiser, fmt, info, teams, templates, people }, withPass))], { type: "application/json" }), `${eventKey(event)}-project.json`);
+    setProjectMsg(`Saved. The file holds ${people.length} ${people.length === 1 ? "person" : "people"} with their birth dates and photos, so keep it private.`);
+  };
+  const openProject = async (f?: File) => {
+    if (!f) return;
+    const r = parseProject(await f.text());
+    if ("error" in r) { setProjectMsg(r.error); return; }
+    if (people.length > 0 && !window.confirm("Opening a project replaces everything you have here. Continue?")) return;
+    const pj = r.project;
+    setEvent(pj.event.name); setGame(pj.event.game); setOrganiser(pj.event.organiser); setFmt(pj.event.fmt);
+    setTeams(pj.teams); setTemplates(pj.templates); setPeople(pj.people);
+    setInfo((cur) => ({ ...DEFAULT_INFO, ...pj.info, passphrase: pj.info.passphrase || cur.passphrase || randomPassphrase() }));
+    setDesignTeam(pj.teams[0].id); setScanTeam(pj.teams[0].id); setPrintTeam("all"); setPreviewId(""); setStep(0);
+    setProjectMsg(`Opened “${pj.event.name}”: ${pj.people.length} people in ${pj.teams.length} teams.${pj.info.passphrase ? "" : " The signing passphrase was not in the file; a new one was made. Enter your old one in More options if you need it."}`);
+  };
+  const saveDesign = () => downloadBlob(new Blob([designToJson(curTpl)], { type: "application/json" }), `${(dTeam.name || "team").replace(/[^A-Za-z0-9]+/g, "-").toLowerCase()}-design.json`);
+  const loadDesign = async (f: File) => {
+    const r = parseDesign(await f.text());
+    if ("error" in r) { setProjectMsg(r.error); return; }
+    setTemplates((t) => ({ ...t, [dTeam.id]: withBack({ ...r.design, id: dTeam.id }) }));
+    setProjectMsg(`Design loaded for ${dTeam.name}.`);
+  };
+
   // ---- design step helpers
   const changeFormat = (v: Fmt) => setTemplates((t) => { const cur = tplFor(dTeam); return { ...t, [dTeam.id]: withBack({ ...(themeById(cur.theme ?? "") ?? themeById(suggest(null, dTeam.name, v))!).make(v), id: dTeam.id }) }; });
   const sameForAll = () => setTemplates((t) => { const n = { ...t }; teams.forEach((x) => { n[x.id] = { ...curTpl, id: x.id, els: curTpl.els.map((e) => ({ ...e })), back: curTpl.back ? { bg: curTpl.back.bg, els: curTpl.back.els.map((e) => ({ ...e })) } : undefined }; }); return n; });
@@ -214,10 +244,17 @@ export default function IdCardStudio() {
 
   return (
     <div className="studio">
-      <header className="no-print mb-4">
+      <header className="no-print mb-4 flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
+        <div>
         <h1 className="font-display text-2xl font-bold text-white sm:text-3xl">ID cards <span className="text-cyan">&amp;</span> passes</h1>
         <p className="text-sm text-zinc-400"><span className="sm:hidden">Teams, people, design, print. Runs in your browser; demo data is loaded.</span><span className="hidden sm:inline">Set up your teams, add people (scan Aadhaar cards or import a sheet), design a card for each team, then print or download. Everything stays in your browser. Demo data is loaded so you can try it.</span></p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <button type="button" className="btn-ghost !min-h-9 px-3 text-sm" onClick={saveProject} title="Download this event (details, teams, people, photos and designs) as one file">Save project</button>
+          <label className="btn-ghost !min-h-9 cursor-pointer px-3 text-sm" title="Open a project file you saved before">Open project<input type="file" accept="application/json,.json" className="sr-only" onChange={(e) => { openProject(e.target.files?.[0]); e.target.value = ""; }} /></label>
+        </div>
       </header>
+      {projectMsg && <p className="no-print mb-3 flex items-start justify-between gap-3 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-zinc-200" role="status"><span>{projectMsg}</span><button type="button" aria-label="Dismiss" className="shrink-0 text-zinc-400 hover:text-white" onClick={() => setProjectMsg(null)}>×</button></p>}
 
       <ol className="no-print mb-5 grid grid-cols-4 gap-1.5 sm:gap-2" aria-label="Steps">
         {STEPS.map((s, i) => (
@@ -233,8 +270,8 @@ export default function IdCardStudio() {
       <AnimatePresence mode="wait" initial={false}>
         <motion.div key={step} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.18 }}>
           {step === 0 && <SetupStep event={event} setEvent={setEvent} game={game} setGame={setGame} organiser={organiser} setOrganiser={setOrganiser} fmt={fmt} onFmt={(f) => { setFmt(f); setTemplates({}); }} teams={teams} setTeams={setTeams} setPeople={setPeople} info={info} setInfo={setInfo} />}
-          {step === 1 && <PeopleStep people={people} teams={teams} teamOpts={teamOpts} valid={valid} scanTeam={scanTeam} setScanTeam={setScanTeam} consent={consent} setConsent={setConsent} jobs={jobs} scan={scan} trySample={trySample} pdfAsk={pdfAsk} pdfPass={pdfPass} setPdfPass={setPdfPass} setPeople={setPeople} setTeams={setTeams} setPerson={setPerson} addPerson={addPerson} minorOf={minorOf} duplicates={duplicates} photo={photo} cutOutExisting={cutOutExisting} bgBusy={bgBusy} bgNote={bgNote} autoBg={autoBg} setAutoBg={setAutoBg} />}
-          {step === 2 && dTeam && <DesignStep teamOpts={teamOpts} dTeam={dTeam} setDesignTeam={setDesignTeam} curTpl={curTpl} editView={editView} onEdit={onEdit} ctxFor={ctxFor} sample={sample} teamPeople={teamPeople} setPreviewId={setPreviewId} side={side} setSide={setSide} vibe={vibe} setVibe={setVibe} onFormat={changeFormat} applyTheme={(id) => applyTheme(id, [dTeam.id])} surprise={() => applyTheme(suggest(vibe, dTeam.name, fmtOf(curTpl)), [dTeam.id])} sameForAll={sameForAll} differentPerTeam={differentPerTeam} addBack={() => setTemplates((t) => ({ ...t, [dTeam.id]: withBack(curTpl) }))} rebuildBack={() => setTemplates((t) => ({ ...t, [dTeam.id]: { ...curTpl, back: buildBack(curTpl) } }))} toggleRoleBar={toggleRoleBar} roleBarOn={curTpl.els.some((e) => e.id.startsWith("rolebar"))} recolourFromLogo={recolourFromLogo} setTeamLogo={(logo) => setTeams((l) => l.map((x) => (x.id === dTeam.id ? { ...x, logo } : x)))} photoForSample={(f) => photo(sample.id, f)} />}
+          {step === 1 && <PeopleStep ocrLang={ocrLang} setOcrLang={setOcrLang} people={people} teams={teams} teamOpts={teamOpts} valid={valid} scanTeam={scanTeam} setScanTeam={setScanTeam} consent={consent} setConsent={setConsent} jobs={jobs} scan={scan} trySample={trySample} pdfAsk={pdfAsk} pdfPass={pdfPass} setPdfPass={setPdfPass} setPeople={setPeople} setTeams={setTeams} setPerson={setPerson} addPerson={addPerson} minorOf={minorOf} duplicates={duplicates} photo={photo} cutOutExisting={cutOutExisting} bgBusy={bgBusy} bgNote={bgNote} autoBg={autoBg} setAutoBg={setAutoBg} />}
+          {step === 2 && dTeam && <DesignStep teamOpts={teamOpts} dTeam={dTeam} setDesignTeam={setDesignTeam} curTpl={curTpl} editView={editView} onEdit={onEdit} ctxFor={ctxFor} sample={sample} teamPeople={teamPeople} setPreviewId={setPreviewId} side={side} setSide={setSide} vibe={vibe} setVibe={setVibe} onFormat={changeFormat} applyTheme={(id) => applyTheme(id, [dTeam.id])} surprise={() => applyTheme(suggest(vibe, dTeam.name, fmtOf(curTpl)), [dTeam.id])} sameForAll={sameForAll} differentPerTeam={differentPerTeam} addBack={() => setTemplates((t) => ({ ...t, [dTeam.id]: withBack(curTpl) }))} rebuildBack={() => setTemplates((t) => ({ ...t, [dTeam.id]: { ...curTpl, back: buildBack(curTpl) } }))} toggleRoleBar={toggleRoleBar} roleBarOn={curTpl.els.some((e) => e.id.startsWith("rolebar"))} recolourFromLogo={recolourFromLogo} setTeamLogo={(logo) => setTeams((l) => l.map((x) => (x.id === dTeam.id ? { ...x, logo } : x)))} photoForSample={(f) => photo(sample.id, f)} onSaveDesign={saveDesign} onLoadDesign={loadDesign} />}
           {step === 3 && (
             <PrintPanel people={printable} allPeople={people} teams={teams} teamOpts={teamOpts} printTeam={printTeam === "all" ? "all" : valid(printTeam)} setPrintTeam={setPrintTeam} tplFor={tplFor} teamById={teamById} ctxFor={ctxFor} event={event} info={info} minorOf={minorOf} duplicates={duplicates} needReview={needReview} onPrinted={() => award("card-shark", 20, "Card shark: printed your first ID cards")} />
           )}

@@ -14,6 +14,28 @@ export async function cardToJpeg(node: HTMLElement, targetPx = 1100): Promise<st
   return toJpeg(node, { pixelRatio: Math.max(1, targetPx / w), quality: 0.92, backgroundColor: "#ffffff", cacheBust: true });
 }
 
+/**
+ * A print-shop version of a card: square corners, with `bleedMm` of extra edge around the trim size. The extra edge is made by
+ * repeating the outermost pixels outward, which is the standard way to extend a design that already runs to the edge.
+ */
+export async function cardToBleedJpeg(node: HTMLElement, fmt: Fmt, bleedMm: number, targetPx = 1100): Promise<string> {
+  const prev = node.style.borderRadius;
+  node.style.borderRadius = "0";
+  let url: string;
+  try { url = await cardToJpeg(node, targetPx); } finally { node.style.borderRadius = prev; }
+  const img = new Image(); img.src = url; await img.decode();
+  const b = Math.round((bleedMm / FORMATS[fmt].w) * img.width);
+  const cv = document.createElement("canvas"); cv.width = img.width + 2 * b; cv.height = img.height + 2 * b;
+  const c = cv.getContext("2d")!;
+  c.drawImage(img, b, b);
+  const w = img.width, h = img.height;
+  c.drawImage(img, 0, 0, w, 1, b, 0, w, b); c.drawImage(img, 0, h - 1, w, 1, b, b + h, w, b); // top, bottom
+  c.drawImage(img, 0, 0, 1, h, 0, b, b, h); c.drawImage(img, w - 1, 0, 1, h, b + w, b, b, h); // left, right
+  c.drawImage(img, 0, 0, 1, 1, 0, 0, b, b); c.drawImage(img, w - 1, 0, 1, 1, b + w, 0, b, b); // corners
+  c.drawImage(img, 0, h - 1, 1, 1, 0, b + h, b, b); c.drawImage(img, w - 1, h - 1, 1, 1, b + w, b + h, b, b);
+  return cv.toDataURL("image/jpeg", 0.92);
+}
+
 export const download = (href: string, name: string) => { const a = document.createElement("a"); a.href = href; a.download = name; document.body.appendChild(a); a.click(); a.remove(); };
 export const downloadBlob = (blob: Blob, name: string) => { const u = URL.createObjectURL(blob); download(u, name); setTimeout(() => URL.revokeObjectURL(u), 4000); };
 
@@ -23,9 +45,9 @@ export interface PdfCard { png: string; fmt: Fmt }
  * Lays the cards out on A4 pages at their real size (millimetres), with optional crop marks at each corner.
  * Backs go on their own pages with each row mirrored, so the pages line up when printed double-sided and flipped on the long edge.
  */
-export function buildPdf(fronts: PdfCard[], backs: PdfCard[], opts: { marks: boolean }): Blob {
+export function buildPdf(fronts: PdfCard[], backs: PdfCard[], opts: { marks: boolean; bleedMm?: number }): Blob {
   const doc = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
-  const PW = 210, PH = 297, M = 10, GAP = opts.marks ? 7 : 4;
+  const PW = 210, PH = 297, M = 10, bleed = opts.bleedMm ?? 0, GAP = Math.max(opts.marks ? 7 : 4, 2 * bleed + 3);
   let first = true;
 
   const place = (cards: PdfCard[], mirror: boolean) => {
@@ -42,12 +64,12 @@ export function buildPdf(fronts: PdfCard[], backs: PdfCard[], opts: { marks: boo
           const r = Math.floor(k / cols); let col = k % cols;
           if (mirror) col = cols - 1 - col;
           const x = left + col * (w + GAP), y = M + r * (h + GAP);
-          doc.addImage(c.png, "JPEG", x, y, w, h);
+          doc.addImage(c.png, "JPEG", x - bleed, y - bleed, w + 2 * bleed, h + 2 * bleed);
           if (opts.marks) {
             doc.setDrawColor(0).setLineWidth(0.12);
             for (const [cx, cy] of [[x, y], [x + w, y], [x, y + h], [x + w, y + h]]) {
               const sx = cx === x ? -1 : 1, sy = cy === y ? -1 : 1;
-              doc.line(cx + sx * 1.2, cy, cx + sx * 4.2, cy); doc.line(cx, cy + sy * 1.2, cx, cy + sy * 4.2);
+              doc.line(cx + sx * (1.2 + bleed), cy, cx + sx * (4.2 + bleed), cy); doc.line(cx, cy + sy * (1.2 + bleed), cx, cy + sy * (4.2 + bleed));
             }
           }
         });

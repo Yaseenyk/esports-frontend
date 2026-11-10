@@ -15,7 +15,7 @@ interface Props {
   vibe: string | null; setVibe: (v: string | null) => void;
   onFormat: (f: Fmt) => void; applyTheme: (id: string) => void; surprise: () => void; sameForAll: () => void; differentPerTeam: () => void;
   addBack: () => void; rebuildBack: () => void; toggleRoleBar: () => void; roleBarOn: boolean; recolourFromLogo: () => void; setTeamLogo: (logo: string | undefined) => void;
-  photoForSample: (f: File) => void;
+  photoForSample: (f: File) => void; onSaveDesign: () => void; onLoadDesign: (f: File) => void;
 }
 
 /** Step 3: choose a team and a starting design, then fine-tune it. The designs sit in one scrolling strip so the editor stays on screen. */
@@ -80,6 +80,8 @@ export default function DesignStep(p: Props) {
               : f === "strip" ? <span className="text-xs text-zinc-500">Wristbands have no back.</span> : <button type="button" className="chip" title="Make a back with a QR code, return details and rules" onClick={p.addBack}>Add a back</button>}
             <button type="button" className="chip" aria-pressed={p.roleBarOn} title="A thin stripe whose colour shows the person's role (Player, Staff, VIP…), so guards can tell roles apart at a glance" onClick={p.toggleRoleBar}>Role colour stripe</button>
             <TeamLogoButton team={p.dTeam} onLogo={p.setTeamLogo} />
+            <button type="button" className="chip" title="Save this card's design as a file you can share or reuse in another event" onClick={p.onSaveDesign}>Save design file</button>
+            <label className="chip cursor-pointer" title="Load a design file made with this tool. It replaces this team's card.">Load design file<input type="file" accept="application/json,.json" className="sr-only" onChange={(e) => { const f = e.target.files?.[0]; if (f) p.onLoadDesign(f); e.target.value = ""; }} /></label>
             <button type="button" className="chip" disabled={!p.dTeam.logo} title={p.dTeam.logo ? "Use the main colour of the team logo as this card's accent colour" : "Add a team logo first"} onClick={p.recolourFromLogo}>Colours from logo</button>
           </div>
         </div>

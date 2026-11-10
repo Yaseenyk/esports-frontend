@@ -2,7 +2,8 @@
 
 import { useMemo, useState } from "react";
 import Select from "@/components/Select";
-import { buildPdf, cardToJpeg, cardToPng, download, downloadBlob, type PdfCard } from "@/lib/idcard/export";
+import JSZip from "jszip";
+import { buildPdf, cardToBleedJpeg, cardToJpeg, cardToPng, download, downloadBlob, type PdfCard } from "@/lib/idcard/export";
 import { eventKey } from "@/lib/idcard/sign";
 import { FORMATS, ROLE_COLOURS, fmtOf, type EventInfo, type Fmt, type Person, type Team, type Template } from "@/lib/idcard/types";
 import CardView, { type Ctx } from "./CardView";
@@ -28,6 +29,7 @@ export default function PrintPanel({ people, allPeople, teams, teamOpts, printTe
 }) {
   const [backs, setBacks] = useState(true);
   const [marks, setMarks] = useState(true);
+  const [bleed, setBleed] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
   const [view, setView] = useState<Person | null>(null);
 
@@ -46,16 +48,37 @@ export default function PrintPanel({ people, allPeople, teams, teamOpts, printTe
         const out: PdfCard[] = []; const list = nodes(face);
         for (let i = 0; i < list.length; i++) {
           setStatus(`Preparing ${face} ${i + 1} of ${list.length}…`);
-          out.push({ png: await cardToJpeg(list[i], 1100), fmt: list[i].closest<HTMLElement>("[data-fmt]")!.dataset.fmt as Fmt });
+          const fmt = list[i].closest<HTMLElement>("[data-fmt]")!.dataset.fmt as Fmt;
+          out.push({ png: bleed ? await cardToBleedJpeg(list[i], fmt, 3, 1100) : await cardToJpeg(list[i], 1100), fmt });
         }
         return out;
       };
       const fronts = await gather("front");
       const bk = showBacks ? await gather("back") : [];
       setStatus("Building the PDF…");
-      downloadBlob(buildPdf(fronts, bk, { marks }), `${eventKey(event)}-cards.pdf`);
+      downloadBlob(buildPdf(fronts, bk, { marks, bleedMm: bleed ? 3 : 0 }), `${eventKey(event)}-cards.pdf`);
       setStatus("PDF downloaded.");
     } catch { setStatus("Could not make the PDF. Try Print, then choose Save as PDF."); }
+  };
+
+  const zipAll = async () => {
+    try {
+      const zip = new JSZip();
+      for (const face of ["front", "back"] as const) {
+        if (face === "back" && !showBacks) continue;
+        const list = Array.from(document.querySelectorAll<HTMLElement>(`[data-face="${face}"]`));
+        for (let i = 0; i < list.length; i++) {
+          setStatus(`Preparing ${face} ${i + 1} of ${list.length}…`);
+          const node = list[i].querySelector<HTMLElement>(".idcard-box"); if (!node) continue;
+          const data = (await cardToPng(node, 1100)).split(",")[1];
+          const who = (list[i].dataset.pid || `card-${i + 1}`).replace(/[^A-Za-z0-9_-]/g, "_");
+          zip.file(`${face}/${who}.png`, data, { base64: true });
+        }
+      }
+      setStatus("Zipping…");
+      downloadBlob(await zip.generateAsync({ type: "blob" }), `${eventKey(event)}-cards-png.zip`);
+      setStatus("Zip downloaded.");
+    } catch { setStatus("Could not make the zip."); }
   };
 
   const pack = async () => {
@@ -96,11 +119,13 @@ export default function PrintPanel({ people, allPeople, teams, teamOpts, printTe
           <div className="flex flex-wrap items-center gap-3">
             <label className="flex items-center gap-2 text-sm text-zinc-300"><input type="checkbox" checked={backs} onChange={(e) => setBacks(e.target.checked)} className="h-5 w-5 accent-cyan" />Include backs (double-sided)</label>
             <label className="flex items-center gap-2 text-sm text-zinc-300"><input type="checkbox" checked={marks} onChange={(e) => setMarks(e.target.checked)} className="h-5 w-5 accent-cyan" />Crop marks in the PDF</label>
+            <label className="flex items-center gap-2 text-sm text-zinc-300" title="Adds 3 mm of extra edge around every card so a print shop can trim cleanly. Square corners; the artwork is extended outward from its edges."><input type="checkbox" checked={bleed} onChange={(e) => setBleed(e.target.checked)} className="h-5 w-5 accent-cyan" />3 mm bleed (print shops)</label>
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
           <button type="button" className="btn" onClick={() => { onPrinted(); window.print(); }}>Print {people.length} {people.length === 1 ? "card" : "cards"}</button>
           <button type="button" className="btn-ghost" onClick={makePdf}>Download PDF (real size)</button>
+          <button type="button" className="btn-ghost" onClick={zipAll} title="Every card as a PNG picture, in one zip file">Download all as PNG (zip)</button>
           <button type="button" className="btn-ghost" onClick={pack}>Check-in pack for the gate</button>
         </div>
         {status && <p className="text-sm text-zinc-300" role="status">{status}</p>}

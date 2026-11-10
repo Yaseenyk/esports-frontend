@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import Select from "@/components/Select";
 import { maskAadhaar } from "@/lib/idcard/aadhaar";
 import { ROLES, type Person, type Role, type Team } from "@/lib/idcard/types";
+import { OCR_LANGS } from "@/lib/idcard/ocr";
 import RosterPanel from "./RosterPanel";
 
 export interface Job { key: number; file: string; state: "queued" | "reading" | "done" | "error"; pct: number; note?: string }
@@ -15,6 +16,7 @@ const DEMO_CARDS = [
 ];
 
 interface Props {
+  ocrLang: string; setOcrLang: (v: string) => void;
   people: Person[]; teams: Team[]; teamOpts: { value: string; label: string }[]; valid: (id: string) => string;
   scanTeam: string; setScanTeam: (v: string) => void; consent: boolean; setConsent: (v: boolean) => void;
   jobs: Job[]; scan: (files: FileList | File[] | null, password?: string) => void; trySample: (file: string) => void;
@@ -76,6 +78,11 @@ export default function PeopleStep(p: Props) {
                   <input type="file" accept="image/*,application/pdf" multiple disabled={!p.consent} className="sr-only" onChange={(e) => { p.scan(e.target.files); e.target.value = ""; }} />
                 </label>
               </div>
+              <details className="text-sm text-zinc-400">
+                <summary className="cursor-pointer text-zinc-300 outline-none focus-visible:ring-2 focus-visible:ring-cyan">Card language (only matters when a card has no readable QR code)</summary>
+                <div className="mt-2 max-w-sm"><Select ariaLabel="Card language" value={p.ocrLang} onChange={p.setOcrLang} options={OCR_LANGS.map((l) => ({ value: l.value, label: l.label }))} searchable={false} /></div>
+                <p className="mt-1 text-xs text-zinc-500">The QR code is read first and needs no language. If it cannot be read, the printed text is read instead. Extra languages download a few MB the first time.</p>
+              </details>
               <p className="flex flex-wrap items-center gap-2 text-sm text-zinc-400">
                 <span>No card handy? Try a dummy one:</span>
                 {DEMO_CARDS.map((c) => (<button key={c.file} type="button" disabled={!p.consent} className="chip disabled:cursor-not-allowed disabled:opacity-40" onClick={() => p.trySample(c.file)}>{c.label}</button>))}
@@ -163,7 +170,7 @@ export default function PeopleStep(p: Props) {
                     <label className="block text-sm text-zinc-400">Date of birth<input className="field mt-1 !min-h-10" placeholder="dd/mm/yyyy" value={x.dob ?? ""} onChange={(e) => p.setPerson(x.id, { dob: e.target.value })} /></label>
                     <Select label="Gender" value={x.gender ?? ""} onChange={(v) => p.setPerson(x.id, { gender: v || undefined })} options={[{ value: "", label: "Not set" }, { value: "Male", label: "Male" }, { value: "Female", label: "Female" }, { value: "Transgender", label: "Transgender" }]} searchable={false} />
                     <label className="block text-sm text-zinc-400">ID on the card<input className="field mt-1 !min-h-10" value={x.id} onChange={(e) => { const v = e.target.value; p.setPeople((l) => l.map((y) => (y === x ? { ...y, id: v } : y))); }} /></label>
-                    <div className="text-sm text-zinc-400">Aadhaar (last 4 only)<span className="mt-1 flex min-h-10 items-center justify-between gap-2 rounded-lg border border-white/10 px-3 font-mono text-sm text-zinc-300">{x.last4 ? maskAadhaar(x.last4) : "Not added"}{x.source && <Pill tone={x.source === "qr" ? "green" : "amber"} title={x.source === "qr" ? "Read from the card's QR code: exact" : "Read from printed text: please check"}>{x.source === "qr" ? "QR" : "OCR"}</Pill>}</span></div>
+                    <div className="text-sm text-zinc-400">Aadhaar (last 4 only)<span className="mt-1 flex min-h-10 items-center justify-between gap-2 rounded-lg border border-white/10 px-3 font-mono text-sm text-zinc-300">{x.last4 ? maskAadhaar(x.last4) : "Not added"}{x.source && <Pill tone={x.verified === "invalid" ? "red" : x.source === "qr" ? "green" : "amber"} title={x.verified === "invalid" ? "The UIDAI signature on this QR did not match: it may have been edited" : x.verified === "valid" ? "Read from the QR code, and UIDAI's signature checks out" : x.source === "qr" ? "Read from the card's QR code: exact. UIDAI signature not checked (no certificate installed)" : "Read from printed text: please check"}>{x.verified === "invalid" ? "Signature ✗" : x.verified === "valid" ? "UIDAI ✓" : x.source === "qr" ? "QR" : "OCR"}</Pill>}</span></div>
                     <label className="block text-sm text-zinc-400 sm:col-span-2">Access zones<input className="field mt-1 !min-h-10" placeholder="For example: Main hall; Backstage" value={x.zones ?? ""} onChange={(e) => p.setPerson(x.id, { zones: e.target.value })} /></label>
                     <div className="flex flex-wrap items-end gap-2 sm:col-span-2 lg:pt-6">
                       <label className="btn-ghost !min-h-10 cursor-pointer px-3 text-sm">{x.photo ? (x.cutout ? "Change photo (cut-out)" : "Change photo") : "Add photo"}<input type="file" accept="image/*" className="sr-only" onChange={(e) => p.photo(x.id, e.target.files?.[0])} /></label>

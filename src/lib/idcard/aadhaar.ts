@@ -11,6 +11,8 @@ export interface AadhaarRead {
   last4?: string;
   /** Where the details came from: the QR code on the card (exact) or OCR of the printed text (check it). */
   source?: "qr" | "ocr";
+  /** Secure QR only: whether UIDAI's signature on the QR checked out. "unchecked" means no certificate is installed to check against. */
+  verified?: "valid" | "invalid" | "unchecked";
 }
 
 const NOISE = /(government|india|aadhaar|aadhar|unique|identification|authority|uidai|enrol|vid|address|download|issue|male|female|dob|birth|year|year of birth|signature|digitally|help|www|\.gov|\.in\b|mera|आधार|भारत)/i;

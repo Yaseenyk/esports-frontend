@@ -7,12 +7,30 @@ import { scanQr } from "./qr";
  */
 type Worker = import("tesseract.js").Worker;
 let workerP: Promise<Worker> | null = null;
+let workerLang = "";
 let onProgress: ((p: number) => void) | null = null;
 
-async function getWorker() {
+/** The languages a card can be read in. English is always included, since every Aadhaar prints the name in English too. */
+export const OCR_LANGS: { value: string; label: string; code: string }[] = [
+  { value: "auto", label: "Automatic (English, then Hindi and Marathi)", code: "eng" },
+  { value: "eng", label: "English only", code: "eng" },
+  { value: "hin", label: "English + Hindi", code: "eng+hin" },
+  { value: "mar", label: "English + Marathi", code: "eng+mar" },
+  { value: "guj", label: "English + Gujarati", code: "eng+guj" },
+  { value: "tam", label: "English + Tamil", code: "eng+tam" },
+  { value: "tel", label: "English + Telugu", code: "eng+tel" },
+  { value: "kan", label: "English + Kannada", code: "eng+kan" },
+  { value: "ben", label: "English + Bengali", code: "eng+ben" },
+  { value: "pan", label: "English + Punjabi", code: "eng+pan" },
+];
+
+async function getWorker(lang = "eng") {
+  // One worker per language set. Changing the language starts a fresh one.
+  if (workerP && workerLang !== lang) { const old = workerP; workerP = null; old.then((w) => w.terminate()).catch(() => {}); }
   if (!workerP) {
+    workerLang = lang;
     workerP = import("tesseract.js").then((T) =>
-      T.createWorker("eng", 1, { logger: (m: { status: string; progress: number }) => { if (m.status === "recognizing text") onProgress?.(m.progress); } }),
+      T.createWorker(lang, 1, { logger: (m: { status: string; progress: number }) => { if (m.status === "recognizing text") onProgress?.(m.progress); } }),
     );
   }
   return workerP;
@@ -49,22 +67,26 @@ const score = (r: AadhaarRead) => (r.name ? 2 : 0) + (r.dob ? 2 : r.yob ? 1 : 0)
  * 1. Try the QR code on the card: exact, instant, and needs no OCR at all.
  * 2. Otherwise OCR the printed text. If anything is missing, look again with a harder black-and-white version and keep the better read.
  */
-export async function scanAadhaar(file: File, progress?: (p: number) => void): Promise<AadhaarRead> {
+export async function scanAadhaar(file: File, progress?: (p: number) => void, lang = "auto"): Promise<AadhaarRead> {
   const q = await scanQr(file).catch(() => null);
   if (q?.name) { progress?.(1); return { ...q, source: "qr" }; }
 
   onProgress = progress ?? null;
-  const w = await getWorker();
+  // Automatic: read with English first (fast). If something is still missing, look again with Hindi and Marathi added.
+  const plan = lang === "auto" ? ["eng", "eng+hin+mar"] : [OCR_LANGS.find((l) => l.value === lang)?.code ?? "eng"];
   let best: AadhaarRead = {};
   try {
-    for (const mode of ["soft", "hard"] as const) {
-      const cv = await prepare(file, mode);
-      try {
-        const { data } = await w.recognize(cv);
-        const r = parseAadhaar(data.text, data.lines.map((l) => ({ text: l.text, conf: l.confidence })));
-        if (score(r) > score(best)) best = r;
-      } finally { cv.width = cv.height = 0; } // drop the picture
-      if (!missing(best)) break;
+    outer: for (const code of plan) {
+      const w = await getWorker(code);
+      for (const mode of ["soft", "hard"] as const) {
+        const cv = await prepare(file, mode);
+        try {
+          const { data } = await w.recognize(cv);
+          const r = parseAadhaar(data.text, data.lines.map((l) => ({ text: l.text, conf: l.confidence })));
+          if (score(r) > score(best)) best = r;
+        } finally { cv.width = cv.height = 0; } // drop the picture
+        if (!missing(best)) break outer;
+      }
     }
   } finally { onProgress = null; }
   return { ...best, source: "ocr" };

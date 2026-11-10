@@ -1,12 +1,13 @@
 ﻿import type { Metadata, Viewport } from "next";
-import { Inter, Space_Grotesk } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 import HexField from "@/components/HexField";
 import HubNav from "@/components/HubNav";
 import XpProvider from "@/components/XpProvider";
 
-const body = Inter({ subsets: ["latin"], variable: "--font-body", display: "swap" });
-const display = Space_Grotesk({ subsets: ["latin"], variable: "--font-display", display: "swap" });
+// Fonts are files in src/fonts (see scripts/fetch-fonts.py), so a build never needs Google.
+const body = localFont({ src: [{ path: "../fonts/inter-100-900-normal.woff2", weight: "100 900", style: "normal" }], variable: "--font-body", display: "swap" });
+const display = localFont({ src: [{ path: "../fonts/space-grotesk-300-700-normal.woff2", weight: "300 700", style: "normal" }], variable: "--font-display", display: "swap" });
 
 export const metadata: Metadata = {
   title: { default: "Esports Hub (interface prototype)", template: "%s · Esports Hub" },

@@ -117,6 +117,8 @@ export interface Person {
   review?: boolean;
   /** How a scanned person was read: the card's QR code (exact) or OCR (needs a check). */
   source?: "qr" | "ocr";
+  /** UIDAI signature check of a Secure QR. */
+  verified?: "valid" | "invalid" | "unchecked";
   /** The photo is a cut-out with a transparent background. */
   cutout?: boolean;
   /** Access zones, for example "Main hall, Backstage". */
