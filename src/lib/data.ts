@@ -15,7 +15,7 @@ export interface Game {
   hue: string;
   blurb: string;
 }
-/** Games whose official store icon is in public/games/<slug>.png. Drop a file there and add the slug to use another. */
+/** Games whose official store icon is in public/games/<slug>.webp (192 px). Drop a file there and add the slug to use another. */
 export const LOGOS = new Set(["bgmi", "free-fire-max", "valorant", "cs2", "cod-mobile", "mobile-legends", "dota-2", "ea-fc", "clash-royale", "fortnite", "minecraft", "roblox", "gta-v", "among-us", "fall-guys", "apex-legends", "pubg", "overwatch-2", "rainbow-six-siege", "rocket-league", "tekken-8", "street-fighter-6", "brawl-stars", "clash-of-clans", "pokemon-unite", "genshin-impact", "wild-rift", "chess"]);
 export const GAMES: Game[] = [
   { slug: "bgmi", name: "Battlegrounds Mobile India", short: "BGMI", platform: "Mobile", genre: "Battle royale", team: "Squads of 4", hue: "from-amber-400 to-orange-600", blurb: "Squad battle royale on phones. The biggest grassroots circuit for mobile in India." },

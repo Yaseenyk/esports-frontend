@@ -1,10 +1,8 @@
 "use client";
 
-import { LazyMotion } from "framer-motion";
+import { domAnimation, LazyMotion } from "framer-motion";
 
-// The animation engine loads after first paint instead of inside every page's JavaScript.
-const features = () => import("./motionFeatures").then((m) => m.default);
-
+// Only the small animation feature set (menus, toasts, tabs) is shipped. Page and scroll reveals are plain CSS, see globals.css.
 export default function MotionProvider({ children }: { children: React.ReactNode }) {
-  return <LazyMotion features={features} strict>{children}</LazyMotion>;
+  return <LazyMotion features={domAnimation} strict>{children}</LazyMotion>;
 }

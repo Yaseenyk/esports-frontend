@@ -1,35 +1,43 @@
 "use client";
 
-import { animate, m as motion, useInView, useReducedMotion } from "framer-motion";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { animate, useInView, useReducedMotion } from "framer-motion";
 
 const EASE = [0.22, 1, 0.36, 1] as const;
+import { useEffect, useRef, useState, type ReactNode } from "react";
+
+
+/**
+ * Scroll reveals done with CSS, so nothing is hidden until JavaScript arrives. Everything is visible in the HTML.
+ * After hydration, only content that is still below the fold is tucked away, then eased in when it scrolls into view.
+ */
+function useReveal<T extends HTMLElement>() {
+  const ref = useRef<T>(null);
+  const [hide, setHide] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || window.matchMedia("(prefers-reduced-motion: reduce)").matches || typeof IntersectionObserver === "undefined") return;
+    if (el.getBoundingClientRect().top < window.innerHeight * 0.95) return; // already on screen: leave it alone
+    setHide(true);
+    const io = new IntersectionObserver((e) => { if (e[0]?.isIntersecting) { setHide(false); io.disconnect(); } }, { rootMargin: "0px 0px -60px 0px" });
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+  return [ref, hide] as const;
+}
 
 /** Fades and lifts its children in once, when they scroll into view. */
 export function Reveal({ children, delay = 0, className }: { children: ReactNode; delay?: number; className?: string }) {
-  const reduce = useReducedMotion();
-  return (
-    <motion.div className={className} initial={reduce ? false : { opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-60px" }} transition={{ duration: 0.6, ease: EASE, delay }}>
-      {children}
-    </motion.div>
-  );
+  const [ref, hide] = useReveal<HTMLDivElement>();
+  return <div ref={ref} className={`rv ${className ?? ""}`} data-hide={hide ? "1" : undefined} style={delay ? { transitionDelay: `${delay}s` } : undefined}>{children}</div>;
 }
 
 /** A grid or list whose direct <Item> children rise in one after another. */
-export function Stagger({ children, className, step = 0.06 }: { children: ReactNode; className?: string; step?: number }) {
-  const reduce = useReducedMotion();
-  return (
-    <motion.div className={className} initial={reduce ? false : "hidden"} whileInView="show" viewport={{ once: true, margin: "-40px" }} variants={{ hidden: {}, show: { transition: { staggerChildren: step } } }}>
-      {children}
-    </motion.div>
-  );
+export function Stagger({ children, className }: { children: ReactNode; className?: string; step?: number }) {
+  const [ref, hide] = useReveal<HTMLDivElement>();
+  return <div ref={ref} className={`stagger ${className ?? ""}`} data-hide={hide ? "1" : undefined}>{children}</div>;
 }
 export function Item({ children, className }: { children: ReactNode; className?: string }) {
-  return (
-    <motion.div className={className} variants={{ hidden: { opacity: 0, y: 20, scale: 0.97 }, show: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.5, ease: EASE } } }}>
-      {children}
-    </motion.div>
-  );
+  return <div className={className}>{children}</div>;
 }
 
 /** Counts up to a number when it comes into view. */
@@ -46,10 +54,9 @@ export function Counter({ to, suffix = "" }: { to: number; suffix?: string }) {
   return <span ref={ref}>{n}{suffix}</span>;
 }
 
-/** Page transition: every route fades up on navigation. */
+/** Page transition: a short upward settle done in CSS. The page is fully visible from the first paint. */
 export function PageFade({ children }: { children: ReactNode }) {
-  const reduce = useReducedMotion();
-  return <motion.div initial={reduce ? false : { opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45, ease: EASE }}>{children}</motion.div>;
+  return <div className="page-in">{children}</div>;
 }
 
 /** Endless horizontal strip, paused on hover and when the user prefers reduced motion. */

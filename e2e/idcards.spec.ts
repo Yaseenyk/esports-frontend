@@ -63,9 +63,10 @@ test("a damaged project file is refused with a message and changes nothing", asy
 });
 
 test("the PDF downloads with real card pages", async ({ page }) => {
+  test.setTimeout(150_000); // exporting 12 cards is CPU-heavy when several browsers run at once
   await open(page);
   await step(page, "Print");
-  const [dl] = await Promise.all([page.waitForEvent("download", { timeout: 60_000 }), page.getByRole("button", { name: /Download PDF/ }).click()]);
+  const [dl] = await Promise.all([page.waitForEvent("download", { timeout: 140_000 }), page.getByRole("button", { name: /Download PDF/ }).click()]);
   const bytes = fs.readFileSync((await dl.path())!);
   expect(bytes.subarray(0, 5).toString()).toBe("%PDF-");
   expect(bytes.length).toBeGreaterThan(10_000);
@@ -73,9 +74,10 @@ test("the PDF downloads with real card pages", async ({ page }) => {
 });
 
 test("the PNG zip downloads", async ({ page }) => {
+  test.setTimeout(150_000); // exporting 12 cards is CPU-heavy when several browsers run at once
   await open(page);
   await step(page, "Print");
-  const [dl] = await Promise.all([page.waitForEvent("download", { timeout: 90_000 }), page.getByRole("button", { name: /PNG \(zip\)/ }).click()]);
+  const [dl] = await Promise.all([page.waitForEvent("download", { timeout: 140_000 }), page.getByRole("button", { name: /PNG \(zip\)/ }).click()]);
   expect(dl.suggestedFilename()).toMatch(/\.zip$/);
   const bytes = fs.readFileSync((await dl.path())!);
   expect(bytes.subarray(0, 2).toString()).toBe("PK");
