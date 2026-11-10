@@ -2,7 +2,7 @@ import fs from "node:fs";
 import { expect, test } from "@playwright/test";
 import { json, preflight, signedIn } from "./helpers";
 
-const PAGES = ["/", "/games/", "/events/", "/communities/", "/arcade/", "/guides/", "/tools/", "/tools/id-cards/", "/tools/check-in/", "/tools/brackets/", "/tools/points-table/", "/tools/round-robin/", "/tools/schedule/", "/tools/certificates/", "/manage/", "/login/", "/signup/", "/gate/", "/about/", "/privacy/", "/terms/", "/contact/", "/guides/points-table/", "/guides/run-a-campus-tournament/"];
+const PAGES = ["/", "/games/", "/events/", "/communities/", "/arcade/", "/guides/", "/tools/", "/tools/id-cards/", "/tools/check-in/", "/tools/brackets/", "/tools/points-table/", "/tools/round-robin/", "/tools/double-elimination/", "/tools/registration/", "/tools/schedule/", "/tools/certificates/", "/manage/", "/login/", "/signup/", "/gate/", "/about/", "/privacy/", "/terms/", "/contact/", "/guides/points-table/", "/guides/run-a-campus-tournament/"];
 
 for (const path of PAGES) {
   test(`${path} loads with no errors and no sideways scroll`, async ({ page }) => {
@@ -204,4 +204,84 @@ test("the app shows an event with its numbers and warnings", async ({ page }) =>
   await expect(page.getByText("1 of 2")).toBeVisible();
   await expect(page.getByText(/without a guardian/).first()).toBeVisible();
   await expect(page.getByRole("link", { name: "Open the cards" })).toHaveAttribute("href", /open=e1/);
+});
+
+test("the double elimination bracket advances winners, drops losers and needs a reset only when the upset happens", async ({ page }) => {
+  await page.goto("/tools/double-elimination/");
+  await expect(page.getByText(/6 teams.*2 byes/)).toBeVisible();
+  const winners = page.getByRole("region", { name: "Winners bracket rounds" });
+  // Seed 3 plays seed 6 in round 1; pick the first listed team in the first playable match.
+  await winners.getByRole("button", { name: /Mumbai Mavericks/ }).first().click();
+  await expect(page.getByRole("region", { name: "Winners bracket rounds" })).toContainText("Mumbai Mavericks");
+  await page.getByRole("button", { name: "Clear all results" }).click();
+  await expect(page.getByText(/Reset final: only played if/)).toBeVisible();
+  await expect(page.getByText(/Up to 10 matches, or 11/)).toBeVisible();
+});
+
+test("the registration page copies a form and adapts it to the team size", async ({ page }) => {
+  await page.goto("/tools/registration/");
+  const form = page.getByLabel("Registration form text");
+  await expect(form).toContainText("Player 4");
+  await expect(form).toContainText("Substitute 1");
+  await page.getByLabel("Team size").selectOption("solo");
+  await expect(form).not.toContainText("Player 2");
+  await page.getByLabel("Event name").fill("Spring Cup");
+  await expect(form).toContainText("Spring Cup: team registration");
+});
+
+test("a captain registers a team through a registration link", async ({ page }) => {
+  await preflight(page);
+  await page.route("**/esports-api.yaseenyk.workers.dev/public/registration/tok", (r) => r.fulfill(json({ event: { name: "Spring Cup", date: "2026-12-01", venue: "Pune" }, form: { title: "Spring Cup registration", intro: "Bring your own device.", teamSize: 2, subs: 1, closesAt: null, spotsLeft: 5, status: "open" } })));
+  let sent: Record<string, unknown> | null = null;
+  await page.route("**/esports-api.yaseenyk.workers.dev/public/registration/tok/submit", async (r) => { sent = r.request().postDataJSON(); await r.fulfill(json({ ok: true }, 201)); });
+  await page.goto("/register/?t=tok");
+  await expect(page.getByRole("heading", { name: "Spring Cup registration" })).toBeVisible();
+  await expect(page.getByText("5 places left")).toBeVisible();
+  const send = page.getByRole("button", { name: "Register my team" });
+  await expect(send).toBeDisabled();
+  await page.getByLabel("Team name").fill("Konkan Kings");
+  await page.getByLabel(/Captain.s name/).fill("Asha Captain");
+  await page.getByLabel(/Captain.s phone or email/).fill("9999900000");
+  await page.getByLabel(/Player 1, full name/).fill("Aarav Mehta");
+  await page.getByLabel(/Player 2, full name/).fill("Diya Kulkarni");
+  await send.click();
+  await expect(page.getByText("Registered. Thank you.")).toBeVisible();
+  const body = sent as unknown as { teamName: string; players: { name: string }[] };
+  expect(body.teamName).toBe("Konkan Kings");
+  expect(body.players.map((p) => p.name)).toEqual(["Aarav Mehta", "Diya Kulkarni"]);
+});
+
+test("a closed or unknown registration link says so", async ({ page }) => {
+  await preflight(page);
+  await page.route("**/esports-api.yaseenyk.workers.dev/public/registration/shut", (r) => r.fulfill(json({ event: { name: "Spring Cup", date: "", venue: "" }, form: { title: "", intro: "", teamSize: 4, subs: 1, closesAt: null, spotsLeft: 0, status: "full" } })));
+  await page.route("**/esports-api.yaseenyk.workers.dev/public/registration/gone", (r) => r.fulfill(json({ error: "Not found" }, 404)));
+  await page.goto("/register/?t=shut");
+  await expect(page.getByText(/All places are taken/)).toBeVisible();
+  await page.goto("/register/?t=gone");
+  await expect(page.getByRole("alert").filter({ hasText: /not active/i })).toBeVisible();
+  await page.goto("/register/");
+  await expect(page.getByRole("alert").filter({ hasText: /incomplete/i })).toBeVisible();
+});
+
+test("an organiser sets up registration and approves a team in the app", async ({ page }) => {
+  await signedIn(page, [{ id: "e1", key: "cup", name: "Spring Cup", game: "BGMI", organiser: "Guild", date: "2026-12-01", venue: "Pune", emergency: "", rules: "", settings: {}, updatedAt: "" }]);
+  await page.route("**/esports-api.yaseenyk.workers.dev/events/e1/roster", (r) => r.fulfill(json({ teams: [], people: [] })));
+  await page.route("**/esports-api.yaseenyk.workers.dev/events/e1/checkins", (r) => r.fulfill(json({ checkins: [], total: 0, checkedIn: 0 })));
+  let created = false, approved = false;
+  await page.route("**/esports-api.yaseenyk.workers.dev/events/e1/registration", async (r) => {
+    const m = r.request().method();
+    if (m === "PUT") { created = true; return r.fulfill(json({ token: "tok123", title: "Cup", intro: "", closesAt: null, maxTeams: null, teamSize: 4, subs: 1, open: true, createdAt: "" }, 201)); }
+    return r.fulfill(json({ form: created ? { token: "tok123", title: "Cup", intro: "", closesAt: null, maxTeams: null, teamSize: 4, subs: 1, open: true, createdAt: "" } : null, counts: { pending: approved ? 0 : 1, approved: approved ? 1 : 0, rejected: 0 } }));
+  });
+  await page.route("**/esports-api.yaseenyk.workers.dev/events/e1/registrations?status=pending", (r) => r.fulfill(json(approved ? [] : [{ id: "r1", teamName: "Konkan Kings", captainName: "Asha", captainContact: "9999900000", players: [{ name: "Aarav", ign: "AM", minor: false }, { name: "Diya", ign: "DK", minor: true }], notes: "", status: "pending", createdAt: "" }])));
+  await page.route("**/esports-api.yaseenyk.workers.dev/events/e1/registrations/r1/approve", (r) => { approved = true; return r.fulfill(json({ ok: true, teamId: "R1", people: 2 })); });
+  await page.goto("/app/events/?id=e1");
+  await expect(page.getByRole("heading", { name: "Spring Cup" })).toBeVisible();
+  await page.getByRole("button", { name: "Create the registration link" }).click();
+  await expect(page.getByText(/register\/\?t=tok123/)).toBeVisible();
+  await page.getByRole("button", { name: "Refresh" }).first().click();
+  await expect(page.getByText("Konkan Kings")).toBeVisible();
+  await expect(page.getByText(/under 18/).first()).toBeVisible();
+  await page.getByRole("button", { name: "Approve" }).click();
+  await expect(page.getByText(/added to the roster \(2 people\)/)).toBeVisible();
 });

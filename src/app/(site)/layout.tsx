@@ -4,7 +4,7 @@ import JsonLd from "@/components/seo/JsonLd";
 import { SITE_URL } from "@/lib/site";
 
 const FOOTER = [
-  { title: "Tools", links: [["ID card maker", "/tools/id-cards/"], ["Bracket maker", "/tools/brackets/"], ["Points table calculator", "/tools/points-table/"], ["Round robin generator", "/tools/round-robin/"], ["Match schedule maker", "/tools/schedule/"], ["Certificate maker", "/tools/certificates/"], ["Gate check-in scanner", "/tools/check-in/"]] },
+  { title: "Tools", links: [["ID card maker", "/tools/id-cards/"], ["Bracket maker", "/tools/brackets/"], ["Points table calculator", "/tools/points-table/"], ["Double elimination bracket", "/tools/double-elimination/"], ["Registration form", "/tools/registration/"], ["Round robin generator", "/tools/round-robin/"], ["Match schedule maker", "/tools/schedule/"], ["Certificate maker", "/tools/certificates/"], ["Gate check-in scanner", "/tools/check-in/"]] },
   { title: "Guides", links: [["Run a college tournament", "/guides/run-a-campus-tournament/"], ["Rules template", "/guides/esports-tournament-rules-template/"], ["Tournament formats", "/guides/choosing-a-tournament-format/"], ["All guides", "/guides/"]] },
   { title: "Esports Hub", links: [["About", "/about/"], ["Contact", "/contact/"], ["Privacy policy", "/privacy/"], ["Terms of use", "/terms/"]] },
 ];

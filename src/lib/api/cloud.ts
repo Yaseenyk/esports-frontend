@@ -13,6 +13,10 @@ export interface GateKey { id: string; label: string; expiresAt: string | null; 
 export interface Invite { id: string; teamId: string; token: string; label: string; maxUses: number | null; uses: number; expiresAt: string | null; revoked: boolean; createdAt: string }
 export interface Submission { id: string; teamId: string; team: string | null; name: string; role: string; minor: boolean; status: string; createdAt: string; photoUrl: string | null }
 export interface PassData { event: { name: string; date: string; venue: string }; person: { name: string; team: string | null; role: string; zones: unknown }; code: string; photoUrl: string | null }
+export interface RegForm { token: string; title: string; intro: string; closesAt: string | null; maxTeams: number | null; teamSize: number; subs: number; open: boolean; createdAt: string }
+export interface RegPlayer { name: string; ign: string; minor: boolean }
+export interface Registration { id: string; teamName: string; captainName: string; captainContact: string; players: RegPlayer[]; notes: string; status: "pending" | "approved" | "rejected"; createdAt: string }
+export interface PublicReg { event: { name: string; date: string; venue: string }; form: { title: string; intro: string; teamSize: number; subs: number; closesAt: string | null; spotsLeft: number | null; status: "open" | "closed" | "full" } }
 export type CheckResult = { status: "ok" | "again" | "bad"; reason?: string; person?: { id: string; name: string; team: string | null; role: string; zones: unknown; minor: boolean; guardian: boolean }; at?: string };
 
 // ---- session: the sign-in token lives in this browser only ----
@@ -77,6 +81,11 @@ export const events = {
   submissions: (id: string, status = "pending") => api.get<Submission[]>(`/events/${id}/submissions?status=${status}`, { ttl: 8000 }),
   approve: (id: string, sid: string) => api.post<{ ok: true; personId: string }>(`/events/${id}/submissions/${sid}/approve`, {}),
   reject: (id: string, sid: string) => api.post<{ ok: true }>(`/events/${id}/submissions/${sid}/reject`, {}),
+  registration: (id: string) => api.get<{ form: RegForm | null; counts: { pending: number; approved: number; rejected: number } }>(`/events/${id}/registration`, { ttl: 5000 }),
+  saveRegistration: (id: string, b: Partial<Pick<RegForm, "title" | "intro" | "closesAt" | "maxTeams" | "teamSize" | "subs" | "open">>) => api.put<RegForm>(`/events/${id}/registration`, b),
+  registrations: (id: string, status = "pending") => api.get<Registration[]>(`/events/${id}/registrations?status=${status}`, { ttl: 5000 }),
+  approveRegistration: (id: string, rid: string) => api.post<{ ok: true; teamId: string; people: number }>(`/events/${id}/registrations/${rid}/approve`, {}),
+  rejectRegistration: (id: string, rid: string) => api.post<{ ok: true }>(`/events/${id}/registrations/${rid}/reject`, {}),
   /** One photo, sent as the raw image. The backend keeps it separate from the roster so the roster stays small. */
   async putPhoto(id: string, personId: string, blob: Blob) {
     const res = await fetch(`${API_BASE}/events/${id}/photos/${encodeURIComponent(personId)}`, { method: "PUT", headers: { "content-type": blob.type, authorization: `Bearer ${session?.token ?? ""}` }, body: blob });
@@ -93,6 +102,8 @@ export const events = {
 
 // ---- public, no sign-in ----
 export const pub = {
+  registration: (token: string) => api.get<PublicReg>(`/public/registration/${encodeURIComponent(token)}`, { ttl: 20000 }),
+  register: (token: string, b: { teamName: string; captainName: string; captainContact: string; players: RegPlayer[]; notes?: string }) => api.post<{ ok: true }>(`/public/registration/${encodeURIComponent(token)}/submit`, b),
   pass: (token: string) => api.get<PassData>(`/public/pass/${encodeURIComponent(token)}`, { ttl: 60000, swr: 600000 }),
   invite: (token: string) => api.get<{ event: { name: string; date: string }; team: { name: string } }>(`/public/invite/${encodeURIComponent(token)}`, { ttl: 60000 }),
   submit: (token: string, b: { name: string; role?: string; minor?: boolean; photo?: string }) => api.post<{ ok: true }>(`/public/invite/${encodeURIComponent(token)}/submit`, b),

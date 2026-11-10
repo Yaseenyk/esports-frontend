@@ -3,15 +3,10 @@
 import { AnimatePresence, m as motion } from "framer-motion";
 import { useEffect, useMemo, useState } from "react";
 import { useXp } from "@/components/XpProvider";
+import { seedOrder } from "@/lib/seeding";
 
 const SAMPLE = ["Sample Squad A", "Sample Squad B", "Sample Squad C", "Sample Squad D", "Sample Squad E", "Sample Squad F", "Sample Squad G", "Sample Squad H"].join("\n");
 
-/** Standard seeding: 1 meets the lowest seed first, and the top seeds can only meet late. Size must be a power of two. */
-export function seedOrder(n: number): number[] {
-  let order = [1];
-  while (order.length < n) { const m = order.length * 2 + 1; order = order.flatMap((s) => [s, m - s]); }
-  return order;
-}
 const roundName = (r: number, rounds: number) => (r === rounds - 1 ? "Final" : r === rounds - 2 ? "Semi-finals" : r === rounds - 3 ? "Quarter-finals" : `Round ${r + 1}`);
 
 type Slot = string | null;

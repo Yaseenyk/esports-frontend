@@ -81,14 +81,14 @@ export const GUIDES: Guide[] = [
           "Battle royale games with many teams in one lobby: a points table over several matches. See [the points table guide](/guides/points-table/).",
           "Many teams: groups first, then a knockout stage for the best teams.",
         ] },
-        { t: "p", x: "Count the time honestly. Each match takes longer than its length: add time for players to join, a technical delay and a short break. Build slack into the schedule." },
+        { t: "p", x: "Count the time honestly. Each match takes longer than its length: add time for players to join, a technical delay and a short break. Build slack into the schedule, and use the [match schedule maker](/tools/schedule/) to see when the day will really finish." },
       ] },
       { h2: "5. Write the rules before registration opens", blocks: [
         { t: "p", x: "One page is enough: who can play, team size and substitutes, the schedule, what happens if a team is late or does not show, device rules, cheating and its penalty, how disputes are decided and who has the final say. Publish it with the registration link so nobody can say they did not know. Start from the [tournament rules template](/guides/esports-tournament-rules-template/)." },
       ] },
       { h2: "6. Open registration with a short form", blocks: [
         { t: "p", x: "Ask only what you need: team name, captain's contact, each player's name and in-game ID, and which college or group they belong to. For anyone under 18, get a parent or guardian's consent. Do not collect ID numbers you do not need. Fewer fields means more complete registrations." },
-        { t: "p", x: "Set a closing date and stick to it. Confirm every team in writing, with the schedule and the rules attached." },
+        { t: "p", x: "Set a closing date and stick to it. Confirm every team in writing, with the schedule and the rules attached. You can [copy a ready registration form](/tools/registration/), or use a registration link that collects teams and adds the ones you approve to your roster." },
       ] },
       { h2: "7. Make ID cards and passes", blocks: [
         { t: "p", x: "A card for every player and staff member with name, team, role and a QR code makes the gate quick and stops unapproved substitutions. You can make them free with the [ID card maker](/tools/id-cards/). Print them a few days ahead, not the morning of the event. See [player ID cards and passes](/guides/player-id-cards/) for what to put on them." },
@@ -106,7 +106,7 @@ export const GUIDES: Guide[] = [
         ] },
       ] },
       { h2: "10. After the event", blocks: [
-        { t: "p", x: "Publish results and thank everyone. Keep the roster and attendance list for next time, and ask the captains what went wrong. The second event is always easier if you wrote the first one down." },
+        { t: "p", x: "Publish results and thank everyone, and give winners and participants a certificate: the [certificate maker](/tools/certificates/) makes one page per name. Keep the roster and attendance list for next time, and ask the captains what went wrong. The second event is always easier if you wrote the first one down." },
       ] },
       { h2: "A four-week timeline", blocks: [
         { t: "p", x: "If you have about a month, this order keeps the important things ahead of the pressure. Move the dates to fit your event." },
@@ -307,14 +307,14 @@ export const GUIDES: Guide[] = [
         { t: "p", x: "Seeding places the strongest teams so they cannot meet until late. In a standard bracket seed 1 plays the lowest seed, and seeds 1 and 2 can only meet in the final. If you have no information about strength, draw seeds at random and say so." },
       ] },
       { h2: "Double elimination", blocks: [
-        { t: "p", x: "A team must lose twice to be out. There is a winners' bracket and a losers' bracket. It needs up to 2n − 2 matches, or 2n − 1 if the team from the losers' bracket beats the unbeaten finalist and a second final is needed." },
+        { t: "p", x: "A team must lose twice to be out. There is a winners' bracket and a losers' bracket. It needs up to 2n − 2 matches, or 2n − 1 if the team from the losers' bracket beats the unbeaten finalist and a second final is needed. The free [double elimination bracket maker](/tools/double-elimination/) builds it for you." },
         { t: "ul", items: [
           "Good for: events where fairness matters and you have the time.",
           "Weakness: about twice the matches of single elimination and a more complicated schedule.",
         ] },
       ] },
       { h2: "Round robin", blocks: [
-        { t: "p", x: "Every team plays every other team once. With n teams that is n × (n − 1) ÷ 2 matches: 6 teams play 15 matches, 8 teams play 28. It is the fairest format because no single result decides everything, and it grows fast." },
+        { t: "p", x: "Every team plays every other team once. With n teams that is n × (n − 1) ÷ 2 matches: 6 teams play 15 matches, 8 teams play 28. It is the fairest format because no single result decides everything, and it grows fast. The [round robin generator](/tools/round-robin/) makes the fixtures and the table." },
         { t: "ul", items: [
           "Good for: small groups (up to about 6 or 8 teams) and leagues.",
           "Weakness: too many matches for a large field. You also need tie-breakers for the table.",

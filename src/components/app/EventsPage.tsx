@@ -6,6 +6,7 @@ import { events, explain, type CloudEvent, type CloudRoster, type Live } from "@
 import { useQuery } from "@/lib/api/useQuery";
 import { Waiting } from "@/components/skeleton/Scenes";
 import { Sk } from "@/components/skeleton/Sk";
+import RegistrationPanel from "@/components/cloud/RegistrationPanel";
 
 /** Saved events: a list, and for one event its numbers (people, teams, minors, checked in) with shortcuts to the tools. */
 export default function EventsPage() {
@@ -70,6 +71,7 @@ function Detail({ ev, onBack }: { ev: CloudEvent; onBack: () => void }) {
       {roster.data && teams.length > 0 && (
         <div className="card !p-4"><h3 className="font-display font-bold text-white">Teams</h3><ul className="mt-2 grid gap-1.5 text-sm sm:grid-cols-2">{teams.map((t) => <li key={t.id} className="flex justify-between gap-2 rounded-lg border border-white/10 px-3 py-2"><span className="truncate text-zinc-200">{t.name}</span><span className="text-zinc-400">{people.filter((p) => p.teamId === t.id).length} people</span></li>)}</ul></div>
       )}
+      <RegistrationPanel eventId={ev.id} onApproved={() => { roster.refetch(); }} />
       <div className="flex flex-wrap gap-2"><Link href={`/app/id-cards/?open=${encodeURIComponent(ev.id)}`} className="btn !min-h-10 px-4 text-sm">Open the cards</Link><Link href="/app/check-in/" className="btn-ghost !min-h-10 px-4 text-sm">Gate check-in</Link><Link href="/tools/points-table/" className="btn-ghost !min-h-10 px-4 text-sm">Points table</Link><Link href="/tools/certificates/" className="btn-ghost !min-h-10 px-4 text-sm">Certificates</Link></div>
     </section>
   );

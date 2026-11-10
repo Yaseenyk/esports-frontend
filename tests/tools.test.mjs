@@ -81,3 +81,87 @@ test("schedule matches the worked example in the formats guide: 19 matches, 4 lo
   const input = { start: "10:00", matches: 19, duration: 40, gap: 0, lobbies: 4, breakEvery: 0, breakLength: 0 };
   assert.equal(summary(input, buildSchedule(input)).slots, 5);
 });
+
+// ---- double elimination ----
+import { build, resolve, slots, isPlayable } from "../src/lib/doubleelim.ts";
+
+/** Plays the whole bracket with the better seed (lower number) always winning. Returns the picks and how many real matches were played. */
+function playOut(teams) {
+  const b = build(teams);
+  const picks = {};
+  let played = 0;
+  for (let pass = 0; pass < 200; pass++) {
+    let moved = false;
+    for (const m of b.matches) {
+      if (m.id === "GF2" || picks[m.id] !== undefined) continue;
+      const s = slots(b, m, picks);
+      if (isPlayable(s)) { picks[m.id] = s[0].seed < s[1].seed ? 0 : 1; played++; moved = true; }
+    }
+    if (!moved) break;
+  }
+  return { b, picks, played };
+}
+
+test("double elimination: match counts follow 2n - 2 for powers of two, with the final", () => {
+  for (const [n, size] of [[4, 4], [8, 8], [16, 16]]) {
+    const b = build(Array.from({ length: n }, (_, i) => `T${i + 1}`));
+    assert.equal(b.size, size);
+    const ids = b.matches.map((m) => m.id);
+    assert.equal(new Set(ids).size, ids.length, "match ids are unique");
+    assert.equal(b.matches.filter((m) => m.bracket === "W").length, n - 1);
+    assert.equal(b.matches.filter((m) => m.bracket === "L").length, n - 2);
+    assert.equal(b.matches.filter((m) => m.bracket !== "F").length + 1, 2 * n - 2); // winners + losers + the first final; a reset final adds one more only if needed
+  }
+});
+
+test("double elimination: every reference points at a real match, for any number of teams", () => {
+  for (let n = 3; n <= 33; n++) {
+    const b = build(Array.from({ length: n }, (_, i) => `T${i + 1}`));
+    const ids = new Set(b.matches.map((m) => m.id));
+    for (const m of b.matches) for (const r of [m.a, m.b]) if (r.t === "winner" || r.t === "loser") assert.ok(ids.has(r.of), `n=${n} ${m.id} refers to missing ${r.of}`);
+  }
+  assert.equal(build(["a", "b"]), null);
+  assert.equal(build(Array.from({ length: 65 }, (_, i) => `T${i}`)), null);
+});
+
+test("double elimination: with the better seed always winning, exactly 2n - 2 matches are played and seed 1 wins", () => {
+  for (let n = 3; n <= 20; n++) {
+    const { b, picks, played } = playOut(Array.from({ length: n }, (_, i) => `T${i + 1}`));
+    assert.equal(played, 2 * n - 2, `n=${n} should need ${2 * n - 2} matches, played ${played}`);
+    const gf = b.matches.find((m) => m.id === "GF");
+    assert.equal(picks.GF, 0, `n=${n}: the unbeaten team wins the first final`);
+    const champ = resolve(b, { t: "winner", of: "GF" }, picks);
+    assert.deepEqual([champ.kind, champ.seed], ["team", 1]);
+    assert.ok(gf);
+  }
+});
+
+test("double elimination: a team that loses once drops to the losers bracket, and a second loss ends its run", () => {
+  const { b, picks } = playOut(["A", "B", "C", "D"]);
+  // W1-1: A v D, W1-2: B v C. Losers D and C meet in L1-1.
+  const l11 = slots(b, b.matches.find((m) => m.id === "L1-1"), picks);
+  assert.deepEqual(l11.map((s) => s.name).sort(), ["C", "D"]);
+  // The grand final is between the winners-bracket champion and the losers-bracket champion.
+  const gf = slots(b, b.matches.find((m) => m.id === "GF"), picks);
+  assert.equal(gf[0].name, "A");
+  assert.equal(gf[1].name, "B"); // B lost once (to A in the winners final) and then won the losers bracket
+});
+
+test("double elimination: a bye leaves no phantom team and advances the other team", () => {
+  const b = build(["A", "B", "C"]); // size 4, seed 4 is a bye
+  const w11 = b.matches.find((m) => m.id === "W1-1");
+  assert.deepEqual(slots(b, w11, {}).map((s) => s.kind), ["team", "bye"]);
+  const w21 = slots(b, b.matches.find((m) => m.id === "W2-1"), {});
+  assert.equal(w21[0].name, "A"); // seed 1 advances without playing
+  assert.equal(slots(b, b.matches.find((m) => m.id === "L1-1"), {})[0].kind, "bye"); // nobody dropped from the bye match
+});
+
+test("double elimination: the reset final is needed only when the losers-bracket team wins the first final", () => {
+  const { b, picks } = playOut(["A", "B", "C", "D"]);
+  assert.equal(picks.GF, 0);
+  const upset = { ...picks, GF: 1 };
+  const gf2 = slots(b, b.matches.find((m) => m.id === "GF2"), upset);
+  assert.ok(isPlayable(gf2));
+  assert.equal(resolve(b, { t: "winner", of: "GF2" }, upset).kind, "tbd");
+  assert.equal(resolve(b, { t: "winner", of: "GF2" }, { ...upset, GF2: 0 }).name, "A");
+});
