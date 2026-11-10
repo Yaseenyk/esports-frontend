@@ -1,6 +1,6 @@
 /**
- * SAMPLE DATA for the interface prototype. Nothing here is a real event, community or result: the names are made up and the
- * dates are blank on purpose. Games are listed with generic facts only (platform and the usual team size). When the app is
+ * DEMO DATA for the interface prototype. Nothing here is a real event, community or result: the names, dates, fees and prizes are
+ * invented to show how the site will look when it is full. Games are listed with generic facts only (platform and the usual team size). When the app is
  * built, this file is replaced by the database. The site is marked noindex until it carries real content.
  */
 export interface Game {
@@ -57,24 +57,29 @@ export interface EventItem {
   mode: "Online" | "Offline" | "Hybrid";
   level: "Open" | "College" | "Community" | "Pro qualifier";
   slots: string;
+  date: string;
+  venue: string;
+  fee: string;
+  prize: string;
   blurb: string;
 }
+/** Demo events. The names, organisers, dates and prizes are invented for this prototype. */
 export const EVENTS: EventItem[] = [
-  { slug: "sample-campus-cup-bgmi", name: "Sample Campus Cup", game: "bgmi", organiser: "Sample College Esports Club", format: "Squads, 3 lobbies, points table", mode: "Online", level: "College", slots: "100 squads", blurb: "A placeholder event to show how a listing, its rules and its registration button will look." },
-  { slug: "sample-open-qualifier-valorant", name: "Sample Open Qualifier", game: "valorant", organiser: "Sample City Gaming Community", format: "Single elimination, best of 1", mode: "Online", level: "Open", slots: "64 teams", blurb: "Placeholder for an open qualifier. Brackets and match times will appear here." },
-  { slug: "sample-lan-night-cs2", name: "Sample LAN Night", game: "cs2", organiser: "Sample Gaming Cafe", format: "Group stage then playoffs", mode: "Offline", level: "Community", slots: "16 teams", blurb: "Placeholder for a venue event: check-in, player passes and a printable schedule." },
-  { slug: "sample-freefire-showdown", name: "Sample Showdown", game: "free-fire-max", organiser: "Sample Streamers Collective", format: "Squads, 6 matches", mode: "Online", level: "Community", slots: "48 squads", blurb: "Placeholder for a streamer-run custom-room event." },
-  { slug: "sample-codm-league", name: "Sample Inter-College League", game: "cod-mobile", organiser: "Sample Esports Federation", format: "Round robin then finals", mode: "Hybrid", level: "College", slots: "24 teams", blurb: "Placeholder for a multi-week league with a points table and a finals day." },
-  { slug: "sample-fc-knockout", name: "Sample 1v1 Knockout", game: "ea-fc", organiser: "Sample Campus Fest", format: "Single elimination", mode: "Offline", level: "College", slots: "64 players", blurb: "Placeholder for a one-day fest bracket." },
-  { slug: "sample-mlbb-cup", name: "Sample Regional Cup", game: "mobile-legends", organiser: "Sample Regional Community", format: "Double elimination", mode: "Online", level: "Open", slots: "32 teams", blurb: "Placeholder for a regional open cup." },
-  { slug: "sample-multi-game-fest", name: "Sample Multi-Game Fest", game: "valorant", organiser: "Sample University", format: "Several games, one fest, one ID system", mode: "Offline", level: "College", slots: "Many", blurb: "Placeholder for a fest that runs several games and needs one set of passes and a shared schedule." },
-  { slug: "sample-minecraft-build-battle", name: "Sample Build Battle", game: "minecraft", organiser: "Sample Streamers Collective", format: "Timed theme, judged by the community", mode: "Online", level: "Community", slots: "40 builders", blurb: "Placeholder for a build-off with a theme, a timer and community voting." },
-  { slug: "sample-roblox-obby-night", name: "Sample Obby Night", game: "roblox", organiser: "Sample College Esports Club", format: "Rounds on a shared course", mode: "Online", level: "College", slots: "Open", blurb: "Placeholder for a casual creator night inside a player-made game." },
-  { slug: "sample-apex-trios", name: "Sample Trios Cup", game: "apex-legends", organiser: "Sample Tournament Organiser", format: "Trios, 5 matches, points table", mode: "Online", level: "Open", slots: "20 trios", blurb: "Placeholder for an open trios cup." },
-  { slug: "sample-rocket-league-3v3", name: "Sample 3v3 Weekender", game: "rocket-league", organiser: "Sample Gaming Cafe", format: "Double elimination", mode: "Hybrid", level: "Community", slots: "16 teams", blurb: "Placeholder for a weekend bracket with a venue final." },
-  { slug: "sample-chess-open", name: "Sample Online Chess Open", game: "chess", organiser: "Sample Esports Federation", format: "Swiss rounds then knockout", mode: "Online", level: "Open", slots: "128 players", blurb: "Placeholder for a big open event anyone can enter." },
-  { slug: "sample-sf6-weekly", name: "Sample Fighting Weekly", game: "street-fighter-6", organiser: "Sample Gaming Cafe", format: "Double elimination, best of 3", mode: "Offline", level: "Community", slots: "32 players", blurb: "Placeholder for a local weekly with pools and a top-8 finals." },
-  { slug: "sample-among-us-night", name: "Sample Among Us Night", game: "among-us", organiser: "Sample Streamers Collective", format: "Lobbies of 10, several rounds", mode: "Online", level: "Community", slots: "60 players", blurb: "Placeholder for a social night with streamers and viewers." },
+  { slug: "monsoon-clash-s2", name: "Monsoon Clash Season 2", game: "bgmi", organiser: "Konkan Gamers Guild", format: "Squads, 3 lobbies, points table", mode: "Online", level: "College", slots: "100 squads", date: "12 to 13 Dec 2026", venue: "Online, custom rooms", fee: "Rs 200 per squad", prize: "Rs 25,000", blurb: "Two days of squad battles for college teams. Placement and kill points, with a final lobby for the top 25." },
+  { slug: "pune-valorant-campus-open", name: "Pune Campus Open", game: "valorant", organiser: "Pune Phantoms Esports", format: "Single elimination, best of 1", mode: "Online", level: "Open", slots: "64 teams", date: "20 Dec 2026", venue: "Online", fee: "Free", prize: "Rs 15,000 and merch", blurb: "Open qualifier for the winter campus series. Brackets go live the night before." },
+  { slug: "pixel-arena-lan-night", name: "Pixel Arena LAN Night", game: "cs2", organiser: "Pixel Arena Gaming Cafe", format: "Group stage then playoffs", mode: "Offline", level: "Community", slots: "16 teams", date: "9 Jan 2027", venue: "Pixel Arena, Pune", fee: "Rs 500 per team", prize: "Rs 20,000", blurb: "A full day on the cafe's LAN setup. Check-in with player passes, then groups, playoffs and a live final." },
+  { slug: "streamers-showdown-ff", name: "Streamers Showdown", game: "free-fire-max", organiser: "Mumbai Mavericks Collective", format: "Squads, 6 matches", mode: "Online", level: "Community", slots: "48 squads", date: "17 Jan 2027", venue: "Online, streamed live", fee: "Rs 100 per squad", prize: "Rs 10,000", blurb: "Creators and viewers squad up in custom rooms while the collective streams every match." },
+  { slug: "wice-codm-league", name: "Inter-College CODM League", game: "cod-mobile", organiser: "Western India Collegiate Esports Federation", format: "Round robin then finals", mode: "Hybrid", level: "College", slots: "24 teams", date: "Jan to Feb 2027", venue: "Online, finals in Pune", fee: "Rs 300 per team", prize: "Rs 40,000 and trophies", blurb: "A five-week league with a points table, then a finals day at a host campus." },
+  { slug: "sahyadri-fc-knockout", name: "Fest FC Knockout", game: "ea-fc", organiser: "Sahyadri University Fest Committee", format: "Single elimination", mode: "Offline", level: "College", slots: "64 players", date: "14 Feb 2027", venue: "Sahyadri University, Kolhapur", fee: "Rs 100", prize: "Rs 12,000", blurb: "One-day one-on-one bracket as part of the annual tech fest." },
+  { slug: "konkan-mlbb-cup", name: "Konkan Regional Cup", game: "mobile-legends", organiser: "Konkan Gamers Guild", format: "Double elimination", mode: "Online", level: "Open", slots: "32 teams", date: "27 Feb 2027", venue: "Online", fee: "Rs 250 per team", prize: "Rs 18,000", blurb: "Regional open cup with a lower-bracket second chance." },
+  { slug: "sahyadri-techfest-arena", name: "Techfest Arena", game: "valorant", organiser: "Sahyadri University Fest Committee", format: "Several games, one fest, one ID system", mode: "Offline", level: "College", slots: "Many", date: "13 to 15 Feb 2027", venue: "Sahyadri University, Kolhapur", fee: "Per game", prize: "Rs 1,00,000 pool", blurb: "Three days, five games, one shared schedule and one set of passes for every participant." },
+  { slug: "craft-and-chill-villages", name: "Build Battle: Fantasy Villages", game: "minecraft", organiser: "Craft & Chill Creators", format: "Timed theme, judged by the community", mode: "Online", level: "Community", slots: "40 builders", date: "6 Dec 2026", venue: "Online, creative server", fee: "Free", prize: "Server perks and shoutouts", blurb: "Builders get 90 minutes and a theme. The community votes, and the top builds are featured on the server." },
+  { slug: "obby-night-roblox", name: "Obby Night", game: "roblox", organiser: "Sahyadri University Fest Committee", format: "Rounds on a shared course", mode: "Online", level: "College", slots: "Open", date: "19 Dec 2026", venue: "Online", fee: "Free", prize: "Goodies", blurb: "A relaxed evening of obstacle courses, with spot prizes for the fastest and the funniest falls." },
+  { slug: "winter-drop-apex", name: "Winter Drop Trios Cup", game: "apex-legends", organiser: "Western India Collegiate Esports Federation", format: "Trios, 5 matches, points table", mode: "Online", level: "Open", slots: "20 trios", date: "5 Dec 2026", venue: "Online", fee: "Rs 150 per trio", prize: "Rs 8,000", blurb: "Five matches, ranked by placement and eliminations." },
+  { slug: "rocket-weekender", name: "3v3 Weekender", game: "rocket-league", organiser: "Pixel Arena Gaming Cafe", format: "Double elimination", mode: "Hybrid", level: "Community", slots: "16 teams", date: "23 to 24 Jan 2027", venue: "Pixel Arena, Pune, and online", fee: "Rs 300 per team", prize: "Rs 12,000", blurb: "Weekend bracket with an in-person final at the cafe." },
+  { slug: "rapid-rumble-chess", name: "Rapid Rumble Online Open", game: "chess", organiser: "Western India Collegiate Esports Federation", format: "Swiss rounds then knockout", mode: "Online", level: "Open", slots: "128 players", date: "29 Nov 2026", venue: "Online", fee: "Free", prize: "Rs 5,000", blurb: "Eight rapid rounds, then a top-16 knockout. Anyone can enter." },
+  { slug: "fight-night-weekly-14", name: "Fight Night Weekly #14", game: "street-fighter-6", organiser: "Dojo 91 Fighting Club", format: "Double elimination, best of 3", mode: "Offline", level: "Community", slots: "32 players", date: "Every Saturday", venue: "Dojo 91, Mumbai", fee: "Rs 150", prize: "Pot bonus", blurb: "The weekly local. Pools in the afternoon, top eight on the big screen." },
+  { slug: "impostor-night", name: "Impostor Night", game: "among-us", organiser: "Mumbai Mavericks Collective", format: "Lobbies of 10, several rounds", mode: "Online", level: "Community", slots: "60 players", date: "10 Jan 2027", venue: "Online, streamed live", fee: "Free", prize: "Shoutouts", blurb: "A social night where viewers play with the streamers." },
 ];
 
 export interface Community {
@@ -85,15 +90,16 @@ export interface Community {
   city: string;
   blurb: string;
 }
+/** Demo communities. All invented. */
 export const COMMUNITIES: Community[] = [
-  { slug: "sample-esports-org", name: "Sample Esports Organisation", kind: "Esports organisation", games: ["bgmi", "valorant", "cs2"], city: "Sample city", blurb: "Runs rosters in several games. Placeholder profile: teams, staff, achievements and open trials will live here." },
-  { slug: "sample-college-club", name: "Sample College Esports Club", kind: "College club", games: ["bgmi", "free-fire-max", "ea-fc"], city: "Sample city", blurb: "A campus club that hosts events and fields teams in inter-college leagues." },
-  { slug: "sample-streamers", name: "Sample Streamers Collective", kind: "Streaming community", games: ["free-fire-max", "bgmi", "cod-mobile"], city: "Online", blurb: "Streamers who run custom rooms and community nights together." },
-  { slug: "sample-cafe", name: "Sample Gaming Cafe", kind: "Gaming cafe", games: ["cs2", "valorant", "dota-2"], city: "Sample city", blurb: "A venue that hosts LAN nights and local qualifiers." },
-  { slug: "sample-organiser", name: "Sample Tournament Organiser", kind: "Tournament organiser", games: ["valorant", "mobile-legends", "clash-royale"], city: "Online", blurb: "Runs open cups across games, with sponsors and brackets." },
-  { slug: "sample-federation", name: "Sample Esports Federation", kind: "Tournament organiser", games: ["bgmi", "cod-mobile", "ea-fc"], city: "Sample state", blurb: "A state-level body that runs leagues and publishes rules for them." },
-  { slug: "sample-sandbox-guild", name: "Sample Sandbox Guild", kind: "Tournament organiser", games: ["minecraft", "roblox", "among-us"], city: "Online", blurb: "A creator group that runs build battles, survival seasons and showcase nights." },
-  { slug: "sample-fighting-club", name: "Sample Fighting Game Club", kind: "Tournament organiser", games: ["street-fighter-6", "tekken-8", "rocket-league"], city: "Sample city", blurb: "A club that hosts weekly meetups and a monthly bracket." },
+  { slug: "konkan-gamers-guild", name: "Konkan Gamers Guild", kind: "Esports organisation", games: ["bgmi", "mobile-legends", "free-fire-max"], city: "Ratnagiri", blurb: "A coastal community that fields squads in three mobile games and runs a monthly open cup." },
+  { slug: "pune-phantoms", name: "Pune Phantoms Esports", kind: "Esports organisation", games: ["valorant", "cs2", "bgmi"], city: "Pune", blurb: "A semi-pro organisation with rosters in three games, open trials every quarter and a student academy." },
+  { slug: "mumbai-mavericks", name: "Mumbai Mavericks Collective", kind: "Streaming community", games: ["free-fire-max", "among-us", "cod-mobile"], city: "Mumbai", blurb: "Twelve creators who stream together, run viewer nights and host a monthly showdown." },
+  { slug: "pixel-arena", name: "Pixel Arena Gaming Cafe", kind: "Gaming cafe", games: ["cs2", "valorant", "rocket-league"], city: "Pune", blurb: "A 40-seat LAN cafe that hosts weekend brackets and local qualifiers." },
+  { slug: "wicef", name: "Western India Collegiate Esports Federation", kind: "Tournament organiser", games: ["cod-mobile", "apex-legends", "chess"], city: "Pune", blurb: "Runs inter-college leagues across the region and publishes one rulebook for all of them." },
+  { slug: "sahyadri-fest-committee", name: "Sahyadri University Fest Committee", kind: "College club", games: ["valorant", "ea-fc", "roblox"], city: "Kolhapur", blurb: "The student team behind the annual tech fest, which adds an esports arena every year." },
+  { slug: "craft-and-chill", name: "Craft & Chill Creators", kind: "Streaming community", games: ["minecraft", "roblox", "among-us"], city: "Online", blurb: "Builders and storytellers who run a creative Minecraft server and weekly game nights." },
+  { slug: "dojo-91", name: "Dojo 91 Fighting Club", kind: "Gaming cafe", games: ["street-fighter-6", "tekken-8"], city: "Mumbai", blurb: "A fighting-game club with a weekly local and a monthly ranked ladder." },
 ];
 
 export interface Post {
@@ -104,12 +110,12 @@ export interface Post {
   minutes: number;
 }
 export const POSTS: Post[] = [
-  { slug: "sample-run-a-campus-tournament", title: "How to run a campus tournament, step by step", tag: "Organiser guide", blurb: "Sample article: choosing a game, rules, registration, check-in, results and certificates.", minutes: 8 },
-  { slug: "sample-player-id-cards", title: "Why every event needs player ID cards and passes", tag: "Organiser guide", blurb: "Sample article: stopping duplicates and proxy players, and speeding up check-in.", minutes: 5 },
-  { slug: "sample-points-table", title: "Setting up a fair points table for battle royale events", tag: "Game guide", blurb: "Sample article: placement points, kill points and tie-breakers.", minutes: 6 },
-  { slug: "sample-manage-multiple-games", title: "Managing rosters in more than one game", tag: "Community", blurb: "Sample article: one organisation, several teams, one schedule.", minutes: 7 },
-  { slug: "sample-stream-your-event", title: "Streaming your own event on a small budget", tag: "Streaming", blurb: "Sample article: scenes, overlays, casters and a run-sheet.", minutes: 9 },
-  { slug: "sample-sponsor-pitch", title: "Writing a sponsor pitch for a community event", tag: "Community", blurb: "Sample article: what to include, what to promise, what to report afterwards.", minutes: 6 },
+  { slug: "run-a-campus-tournament", title: "How to run a campus tournament, step by step", tag: "Organiser guide", blurb: "Pick a game, write the rules, open registration, check teams in, publish results and hand out certificates.", minutes: 8 },
+  { slug: "player-id-cards", title: "Why every event needs player ID cards and passes", tag: "Organiser guide", blurb: "How passes stop duplicate entries and stand-ins, and make check-in on the day much faster.", minutes: 5 },
+  { slug: "points-table", title: "Setting up a fair points table for battle royale events", tag: "Game guide", blurb: "Placement points, kill points and tie-breakers, with a worked example for a three-lobby event.", minutes: 6 },
+  { slug: "manage-multiple-games", title: "Managing rosters in more than one game", tag: "Community", blurb: "One organisation, several teams, one calendar: how to keep rosters and substitutes straight.", minutes: 7 },
+  { slug: "stream-your-event", title: "Streaming your own event on a small budget", tag: "Streaming", blurb: "Scenes, overlays, casters and a run-sheet you can follow live.", minutes: 9 },
+  { slug: "sponsor-pitch", title: "Writing a sponsor pitch for a community event", tag: "Community", blurb: "What to include, what to promise and what to report back once the event is over.", minutes: 6 },
 ];
 
 export interface Tool {

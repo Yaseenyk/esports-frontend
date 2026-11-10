@@ -25,7 +25,7 @@ export default function EventsBrowser() {
             <div className="flex items-center gap-3"><GameBadge game={gameBySlug(e.game)!} /><div className="flex flex-wrap gap-2"><span className="tag">{e.mode}</span><span className="tag">{e.level}</span></div></div>
             <h2 className="mt-4 text-lg font-bold text-white">{e.name}</h2>
             <p className="mt-1 text-sm text-zinc-400">{e.format}</p>
-            <p className="mt-4 text-xs text-zinc-500">{e.organiser} · {e.slots}</p>
+            <p className="mt-4 flex flex-wrap justify-between gap-x-3 text-xs text-zinc-500"><span>{e.organiser}</span><span className="text-zinc-300">{e.date}</span></p>
           </TiltLink>
         ))}
         {list.length === 0 && <p className="card text-zinc-400 md:col-span-2">No events match. Clear a filter.</p>}

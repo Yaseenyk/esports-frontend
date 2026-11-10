@@ -9,6 +9,8 @@ export interface AadhaarRead {
   yob?: string;
   gender?: "Male" | "Female" | "Transgender";
   last4?: string;
+  /** Where the details came from: the QR code on the card (exact) or OCR of the printed text (check it). */
+  source?: "qr" | "ocr";
 }
 
 const NOISE = /(government|india|aadhaar|aadhar|unique|identification|authority|uidai|enrol|vid|address|download|issue|male|female|dob|birth|year|year of birth|signature|digitally|help|www|\.gov|\.in\b|mera|आधार|भारत)/i;

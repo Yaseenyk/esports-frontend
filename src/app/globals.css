@@ -64,3 +64,19 @@ a.tilt:hover { transform: perspective(700px) rotateX(var(--rx, 0deg)) rotateY(va
 html[data-overdrive] .aurora, html[data-overdrive] .hexfield { filter: hue-rotate(150deg) saturate(1.5); }
 @media (hover: none) { a.tilt, a.tilt:hover { transform: none; } a.tilt::after { display: none; } }
 @media (prefers-reduced-motion: reduce) { a.tilt, a.tilt:hover { transform: none; } a.tilt::after { display: none; } }
+
+/* Slim themed scrollbars everywhere (dropdowns, panels, the page). Firefox uses the two standard properties, Chrome/Edge/Safari the webkit ones. */
+/* Chrome 121+ ignores the webkit rules below if these standard properties are set, so only Firefox gets them. */
+@supports (-moz-appearance: none) { * { scrollbar-width: thin; scrollbar-color: rgba(148, 163, 184, .45) transparent; } }
+*::-webkit-scrollbar { width: 12px; height: 12px; }
+*::-webkit-scrollbar-track { background: transparent; }
+*::-webkit-scrollbar-corner { background: transparent; }
+*::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, .42); border: 4px solid transparent; background-clip: content-box; border-radius: 999px; transition: background-color .2s; }
+*::-webkit-scrollbar-thumb:hover { background: linear-gradient(180deg, #22D3EE, #A855F7); background-clip: content-box; }
+*::-webkit-scrollbar-thumb:active { background: #22D3EE; background-clip: content-box; }
+/* Lists fade out at an edge when there is more to scroll in that direction (--ft / --fb are set to 1 by the component). */
+.hub-list { -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 calc(var(--ft, 0) * 18px), #000 calc(100% - var(--fb, 0) * 18px), transparent 100%); mask-image: linear-gradient(to bottom, transparent 0, #000 calc(var(--ft, 0) * 18px), #000 calc(100% - var(--fb, 0) * 18px), transparent 100%); }
+
+/* Dropdown lists draw their own scrollbar (see Select.tsx), so the native one is hidden there. */
+.no-native-scroll { scrollbar-width: none; }
+.no-native-scroll::-webkit-scrollbar { display: none; width: 0; height: 0; }

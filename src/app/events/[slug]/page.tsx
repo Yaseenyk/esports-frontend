@@ -15,7 +15,7 @@ export default function EventPage({ params }: { params: { slug: string } }) {
   if (!e) notFound();
   const g = gameBySlug(e.game)!;
   const org = COMMUNITIES.find((c) => c.name === e.organiser);
-  const rows: [string, string][] = [["Game", g.name], ["Format", e.format], ["Mode", e.mode], ["Level", e.level], ["Slots", e.slots], ["Date", "To be announced (sample)"]];
+  const rows: [string, string][] = [["Game", g.name], ["Date", e.date], ["Venue", e.venue], ["Format", e.format], ["Mode", e.mode], ["Level", e.level], ["Slots", e.slots], ["Entry fee", e.fee], ["Prize pool", e.prize]];
   return (
     <div className="space-y-8">
       <nav aria-label="Breadcrumb" className="text-sm text-zinc-500"><Link href="/events/" className="hover:text-zinc-300">Events</Link> / {e.name}</nav>

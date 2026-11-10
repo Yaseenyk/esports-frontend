@@ -15,13 +15,26 @@ import Editor from "./Editor";
 
 const STORE = "eh-idstudio-v2"; // designs and team names only; people and photos are never saved
 const STEPS = ["Event & teams", "People", "Design", "Print"];
-const SAMPLE_TEAMS: Team[] = [{ id: "t1", name: "Sample Squad A" }, { id: "t2", name: "Sample Squad B" }];
+const SAMPLE_TEAMS: Team[] = [{ id: "t1", name: "Konkan Kings" }, { id: "t2", name: "Deadly Duos" }, { id: "t3", name: "Pune Phantoms" }];
+/** Demo roster: invented names, dates and card numbers. */
 const SAMPLE_PEOPLE: Person[] = [
-  { id: "SSA-001", name: "Sample Player One", teamId: "t1", role: "Player" },
-  { id: "SSA-002", name: "Sample Player Two", teamId: "t1", role: "Player" },
-  { id: "SSA-003", name: "Sample Coach", teamId: "t1", role: "Coach" },
-  { id: "SSB-001", name: "Sample Player Three", teamId: "t2", role: "Player" },
-  { id: "SSB-002", name: "Sample Player Four", teamId: "t2", role: "Substitute" },
+  { id: "KON-001", name: "Aarav Mehta", teamId: "t1", role: "Player", dob: "12/05/2003", gender: "Male", last4: "4471" },
+  { id: "KON-002", name: "Diya Kulkarni", teamId: "t1", role: "Player", dob: "23/09/2004", gender: "Female", last4: "8802" },
+  { id: "KON-003", name: "Rohan Deshmukh", teamId: "t1", role: "Player", dob: "02/11/2002", gender: "Male", last4: "1936" },
+  { id: "KON-004", name: "Sneha Iyer", teamId: "t1", role: "Substitute", dob: "14/01/2005", gender: "Female", last4: "5520" },
+  { id: "KON-005", name: "Kabir Sheikh", teamId: "t1", role: "Coach", dob: "30/07/1995", gender: "Male", last4: "7714" },
+  { id: "DEA-001", name: "Vihaan Patil", teamId: "t2", role: "Player", dob: "08/03/2003", gender: "Male", last4: "3068" },
+  { id: "DEA-002", name: "Ananya Nair", teamId: "t2", role: "Player", dob: "19/12/2003", gender: "Female", last4: "9245" },
+  { id: "DEA-003", name: "Ishita Joshi", teamId: "t2", role: "Substitute", dob: "27/06/2004", gender: "Female", last4: "6183" },
+  { id: "DEA-004", name: "Arjun Reddy", teamId: "t2", role: "Manager", dob: "11/10/1992", gender: "Male", last4: "2857" },
+  { id: "PUN-001", name: "Meera Pawar", teamId: "t3", role: "Player", dob: "05/04/2002", gender: "Female", last4: "4096" },
+  { id: "PUN-002", name: "Zoya Khan", teamId: "t3", role: "Player", dob: "21/08/2003", gender: "Female", last4: "7731" },
+  { id: "PUN-003", name: "Aditya Chavan", teamId: "t3", role: "Coach", dob: "16/02/1994", gender: "Male", last4: "1259" },
+];
+const DEMO_CARDS = [
+  { file: "aarav-mehta", label: "Aarav Mehta" },
+  { file: "diya-kulkarni", label: "Diya Kulkarni" },
+  { file: "rohan-deshmukh", label: "Rohan Deshmukh" },
 ];
 const uidT = () => `t${Date.now().toString(36)}${Math.floor(Math.random() * 1e3).toString(36)}`;
 const prefix = (name: string) => (name.replace(/[^A-Za-z0-9]/g, "").slice(0, 3) || "ID").toUpperCase();
@@ -40,9 +53,9 @@ interface Job { key: number; file: string; state: "queued" | "reading" | "done" 
 export default function IdCardStudio() {
   const { award, addXp } = useXp();
   const [step, setStep] = useState(0);
-  const [event, setEvent] = useState("Sample Campus Cup");
+  const [event, setEvent] = useState("Monsoon Clash Season 2");
   const [game, setGame] = useState("BGMI");
-  const [organiser, setOrganiser] = useState("Sample College Esports Club");
+  const [organiser, setOrganiser] = useState("Konkan Gamers Guild");
   const [fmt, setFmt] = useState<Fmt>("wallet");
   const [teams, setTeams] = useState<Team[]>(SAMPLE_TEAMS);
   const [templates, setTemplates] = useState<Record<string, Template>>({});
@@ -82,10 +95,10 @@ export default function IdCardStudio() {
   const addPerson = (teamId = teams[0].id, o: Partial<Person> = {}) => setPeople((l) => [...l, { id: nextId(teamId), name: "", teamId, role: "Player", ...o }]);
 
   // Aadhaar scanning: strictly one at a time, in the browser.
-  const scan = async (files: FileList | null) => {
+  const scan = async (files: FileList | File[] | null) => {
     if (!files || !consent) return;
     const target = valid(scanTeam);
-    const list = Array.from(files).map((f) => ({ f, key: ++jobKey.current }));
+    const list = Array.from(files as ArrayLike<File>).map((f) => ({ f, key: ++jobKey.current }));
     setJobs((j) => [...j, ...list.map(({ f, key }) => ({ key, file: f.name, state: "queued" as const, pct: 0 }))]);
     for (const { f, key } of list) {
       const upd = (p: Partial<Job>) => setJobs((j) => j.map((x) => (x.key === key ? { ...x, ...p } : x)));
@@ -93,12 +106,13 @@ export default function IdCardStudio() {
       try {
         const r = await scanAadhaar(f, (pct) => upd({ pct: Math.round(pct * 100) }));
         if (!r.name && !r.dob && !r.last4) { upd({ state: "error", note: "Could not read this card. Try a sharper, straight-on photo." }); continue; }
-        setPeople((l) => [...l, { id: nextId(target, l.filter((p) => p.teamId === target).length - peopleRef.current.filter((p) => p.teamId === target).length), name: r.name ?? "", teamId: target, role: "Player", dob: r.dob ?? (r.yob ? `Year ${r.yob}` : undefined), gender: r.gender, last4: r.last4, review: true }]);
-        upd({ state: "done", pct: 100 });
-        addXp(5, "Card read");
+        setPeople((l) => [...l, { id: nextId(target, l.filter((p) => p.teamId === target).length - peopleRef.current.filter((p) => p.teamId === target).length), name: r.name ?? "", teamId: target, role: "Player", dob: r.dob ?? (r.yob ? `Year ${r.yob}` : undefined), gender: r.gender, last4: r.last4, source: r.source, review: r.source !== "qr" }]);
+        upd({ state: "done", pct: 100, note: r.source === "qr" ? "Read from the QR code: exact." : "Read by OCR: please check the details." });
+        addXp(5, r.source === "qr" ? "Card read from QR" : "Card read");
       } catch (e) { upd({ state: "error", note: "Reading failed. Check your connection for the first scan, then try again." }); }
     }
   };
+  const trySample = async (file: string) => { const r = await fetch(`/samples/sample-card-${file}.png`); const b = await r.blob(); await scan([new File([b], `sample-card-${file}.png`, { type: "image/png" })]); };
   const photo = async (id: string, f?: File) => { if (f) setPerson(id, { photo: await shrink(f) }); };
 
   const printable = useMemo(() => people.filter((p) => printTeam === "all" || p.teamId === printTeam), [people, printTeam]);
@@ -181,6 +195,10 @@ export default function IdCardStudio() {
                     <input type="file" accept="image/*" multiple disabled={!consent} className="sr-only" onChange={(e) => { scan(e.target.files); e.target.value = ""; }} />
                   </label>
                 </div>
+                <div className="flex flex-wrap items-center gap-2 text-sm">
+                  <span className="text-zinc-400">No card handy? Try a dummy sample card:</span>
+                  {DEMO_CARDS.map((c) => (<button key={c.file} type="button" disabled={!consent} className="chip disabled:cursor-not-allowed disabled:opacity-40" onClick={() => trySample(c.file)}>{c.label}</button>))}
+                </div>
                 {jobs.length > 0 && (
                   <ul className="space-y-2" aria-live="polite">
                     {jobs.slice(-6).map((j) => (
@@ -196,7 +214,7 @@ export default function IdCardStudio() {
 
               <section className="card space-y-3">
                 <div className="flex flex-wrap items-center justify-between gap-2"><h2 className="font-display text-xl font-bold text-white">People ({people.length})</h2><button type="button" className="btn-ghost !min-h-9 px-3 text-sm" onClick={() => addPerson(valid(scanTeam))}>+ Add manually</button></div>
-                {needReview > 0 && <p className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm text-amber-200">{needReview} {needReview === 1 ? "person was" : "people were"} read by scan. Check the details, then tap <strong>Looks right</strong>. Scans of photocopies can misread a letter.</p>}
+                {needReview > 0 && <p className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm text-amber-200">{needReview} {needReview === 1 ? "person was" : "people were"} read from printed text (OCR). Check the details, then tap <strong>Looks right</strong>. Cards read from their QR code are exact and need no check.</p>}
                 <ul className="space-y-3">
                   {people.map((p) => (
                     <li key={p.id} className={`grid gap-2 rounded-xl border p-3 sm:grid-cols-6 ${p.review ? "border-amber-500/40" : "border-white/10"}`}>
@@ -207,7 +225,7 @@ export default function IdCardStudio() {
                       <input className="field" aria-label="Date of birth" placeholder="Date of birth" value={p.dob ?? ""} onChange={(e) => setPerson(p.id, { dob: e.target.value })} />
                       <Select ariaLabel="Gender" value={p.gender ?? ""} onChange={(v) => setPerson(p.id, { gender: v || undefined })} options={[{ value: "", label: "Gender" }, { value: "Male", label: "Male" }, { value: "Female", label: "Female" }, { value: "Transgender", label: "Transgender" }]} searchable={false} />
                       <input className="field" aria-label="ID number" placeholder="ID" value={p.id} onChange={(e) => { const v = e.target.value; setPeople((l) => l.map((x) => (x === p ? { ...x, id: v } : x))); }} />
-                      <span className="flex min-h-11 items-center rounded-lg border border-white/10 px-3 font-mono text-sm text-zinc-400" title="Only the last 4 digits are kept">{p.last4 ? maskAadhaar(p.last4) : "No Aadhaar"}</span>
+                      <span className="flex min-h-11 items-center justify-between gap-2 rounded-lg border border-white/10 px-3 font-mono text-sm text-zinc-400" title="Only the last 4 digits are kept">{p.last4 ? maskAadhaar(p.last4) : "No Aadhaar"}{p.source && <span className={`rounded px-1.5 font-sans text-[10px] font-bold ${p.source === "qr" ? "bg-emerald-500/20 text-emerald-300" : "bg-amber-500/20 text-amber-200"}`}>{p.source === "qr" ? "QR" : "OCR"}</span>}</span>
                       <label className="field flex cursor-pointer items-center text-sm text-zinc-400">{p.photo ? "Photo ✓ (change)" : "Add photo"}<input type="file" accept="image/*" className="sr-only" onChange={(e) => photo(p.id, e.target.files?.[0])} /></label>
                       {p.review ? <button type="button" className="btn !min-h-11 text-sm" onClick={() => setPerson(p.id, { review: false })}>Looks right</button> : <span />}
                     </li>

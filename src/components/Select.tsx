@@ -37,6 +37,34 @@ export default function Select({ value, onChange, options, label, ariaLabel, pla
   const list = useRef<HTMLUListElement>(null);
   const search = useRef<HTMLInputElement>(null);
   const typed = useRef({ s: "", t: 0 });
+  const [fade, setFade] = useState({ t: false, b: false });
+  const [bar, setBar] = useState({ show: false, h: 0, top: 0 });
+  const [dragging, setDragging] = useState(false);
+  const measure = useCallback(() => {
+    const el = list.current;
+    if (!el) return;
+    setFade({ t: el.scrollTop > 2, b: el.scrollTop + el.clientHeight < el.scrollHeight - 2 });
+    const track = el.clientHeight - 12; // 6px inset at both ends
+    if (el.scrollHeight <= el.clientHeight + 1 || track <= 0) { setBar((b) => (b.show ? { show: false, h: 0, top: 0 } : b)); return; }
+    const h = Math.max(32, (el.clientHeight / el.scrollHeight) * track);
+    const top = (el.scrollTop / (el.scrollHeight - el.clientHeight)) * (track - h);
+    setBar({ show: true, h, top });
+  }, []);
+  // Drag the thumb, or click the track to jump there.
+  const dragThumb = (e: React.PointerEvent) => {
+    e.preventDefault(); e.stopPropagation();
+    const el = list.current; if (!el) return;
+    const startY = e.clientY, startTop = el.scrollTop, track = el.clientHeight - 12, h = Math.max(32, (el.clientHeight / el.scrollHeight) * track);
+    setDragging(true);
+    const move = (m: PointerEvent) => { el.scrollTop = startTop + ((m.clientY - startY) * (el.scrollHeight - el.clientHeight)) / Math.max(1, track - h); };
+    const up = () => { setDragging(false); window.removeEventListener("pointermove", move); window.removeEventListener("pointerup", up); };
+    window.addEventListener("pointermove", move); window.addEventListener("pointerup", up);
+  };
+  const jumpTrack = (e: React.PointerEvent) => {
+    const el = list.current; if (!el) return;
+    const r = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    el.scrollTo({ top: ((e.clientY - r.top) / r.height) * (el.scrollHeight - el.clientHeight) - el.clientHeight / 2, behavior: "smooth" });
+  };
   const showSearch = searchable ?? options.length > 8;
 
   const shown = useMemo(() => {
@@ -65,6 +93,8 @@ export default function Select({ value, onChange, options, label, ariaLabel, pla
     const t = setTimeout(() => (showSearch && !sheet ? search.current : list.current)?.focus({ preventScroll: true }), 30);
     return () => { document.removeEventListener("pointerdown", away); document.body.style.overflow = prev; clearTimeout(t); };
   }, [open, sheet, showSearch, close]);
+
+  useEffect(() => { if (open) { const t = setTimeout(measure, 40); return () => clearTimeout(t); } }, [open, q, measure]);
 
   // Keep the highlighted row in view.
   useEffect(() => { if (open) list.current?.querySelector<HTMLElement>(`[data-i="${active}"]`)?.scrollIntoView({ block: "nearest" }); }, [active, open]);
@@ -99,8 +129,10 @@ export default function Select({ value, onChange, options, label, ariaLabel, pla
           <input ref={search} value={q} onChange={(e) => setQ(e.target.value)} onKeyDown={onKey} placeholder="Search…" aria-label="Search options" aria-controls={`${id}-list`} className="field !min-h-10" />
         </div>
       )}
-      <ul ref={list} id={`${id}-list`} role="listbox" tabIndex={-1} aria-label={label ?? ariaLabel} aria-activedescendant={shown[active] ? `${id}-${active}` : undefined} onKeyDown={onKey}
-        className="max-h-64 overflow-y-auto overscroll-contain p-1.5 outline-none sm:max-h-72">
+      <div className="relative">
+      <ul ref={list} id={`${id}-list`} role="listbox" tabIndex={-1} aria-label={label ?? ariaLabel} aria-activedescendant={shown[active] ? `${id}-${active}` : undefined} onKeyDown={onKey} onScroll={measure}
+        style={{ ["--ft" as string]: fade.t ? 1 : 0, ["--fb" as string]: fade.b ? 1 : 0 }}
+        className="hub-list no-native-scroll max-h-64 overflow-y-auto overscroll-contain p-1.5 pr-3 outline-none sm:max-h-72">
         {shown.length === 0 && <li className="px-3 py-3 text-sm text-zinc-500">No matches</li>}
         {shown.map((o, i) => {
           const sel = o.value === value;
@@ -115,6 +147,13 @@ export default function Select({ value, onChange, options, label, ariaLabel, pla
           );
         })}
       </ul>
+      {bar.show && (
+        <div aria-hidden="true" onPointerDown={jumpTrack} className="group absolute inset-y-1.5 right-1 w-3 cursor-pointer">
+          <div className={`absolute right-[3px] w-1.5 rounded-full bg-white/[0.06] transition-all group-hover:right-[2px] group-hover:w-2 inset-y-0 ${dragging ? "!w-2" : ""}`} />
+          <div onPointerDown={dragThumb} className={`absolute right-[3px] w-1.5 cursor-grab touch-none rounded-full bg-gradient-to-b from-cyan to-purple opacity-60 shadow-[0_0_8px_rgba(34,211,238,.35)] transition-[width,opacity,right] group-hover:right-[2px] group-hover:w-2 group-hover:opacity-100 ${dragging ? "!right-[2px] !w-2 cursor-grabbing !opacity-100" : ""}`} style={{ top: bar.top, height: bar.h }} />
+        </div>
+      )}
+      </div>
     </>
   );
 

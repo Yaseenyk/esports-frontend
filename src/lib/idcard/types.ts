@@ -69,8 +69,10 @@ export interface Person {
   /** Only the last four digits of an Aadhaar number are ever kept. */
   last4?: string;
   photo?: string;
-  /** True when the details came from a scan and nobody has checked them yet. */
+  /** True when the details came from OCR and nobody has checked them yet. */
   review?: boolean;
+  /** How a scanned person was read: the card's QR code (exact) or OCR (needs a check). */
+  source?: "qr" | "ocr";
 }
 
 export const FONTS = {
