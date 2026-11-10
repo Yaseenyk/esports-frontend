@@ -1,42 +1,33 @@
 const openMenu = async (page: import("@playwright/test").Page) => { const t = page.getByRole("button", { name: /Save, open or share/ }); if (await t.isVisible() && (await t.getAttribute("aria-expanded")) !== "true") await t.click(); }; // phones keep Save / Open / Online in a menu
 // The online features with the server mocked, so they run anywhere and never touch real data.
 import AxeBuilder from "@axe-core/playwright";
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test } from "@playwright/test";
+import { json, preflight, signedIn } from "./helpers";
 
-const API = "**/esports-api.yaseenyk.workers.dev/**";
-const json = (body: unknown, status = 200) => ({ status, contentType: "application/json", headers: { "access-control-allow-origin": "*" }, body: JSON.stringify(body) });
-const preflight = (page: Page) => page.route(API, (r) => (r.request().method() === "OPTIONS" ? r.fulfill({ status: 204, headers: { "access-control-allow-origin": "*", "access-control-allow-headers": "*", "access-control-allow-methods": "*" } }) : r.fallback()));
-
-test("the Online panel asks for sign-in and explains a wrong password plainly", async ({ page }) => {
+test("the sign-in page explains a wrong password plainly and passes the accessibility check", async ({ page }) => {
   await preflight(page);
   await page.route("**/auth/login", (r) => r.fulfill(json({ error: "Invalid email or password" }, 401)));
-  await page.goto("/tools/id-cards/");
-  await openMenu(page);
-  await page.getByRole("button", { name: /^Online/ }).click();
-  const dlg = page.getByRole("dialog", { name: "Cloud" });
-  await expect(dlg.getByText(/Optional: sign in/)).toBeVisible();
-  await dlg.getByLabel("Email").fill("a@example.com");
-  await dlg.getByLabel("Password").fill("wrong-password");
-  await dlg.getByRole("button", { name: "Sign in", exact: true }).last().click();
-  await expect(dlg.getByRole("alert")).toContainText(/sign-in has expired or the details are wrong/i);
-  const bad = (await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa"]).exclude(".idcard-box").analyze()).violations.filter((v) => v.impact === "serious" || v.impact === "critical");
+  await page.goto("/login/");
+  await page.getByLabel("Email").fill("a@example.com");
+  await page.getByLabel("Password").fill("wrong-password");
+  await page.getByRole("button", { name: "Sign in", exact: true }).last().click();
+  await expect(page.getByRole("alert").filter({ hasText: /sign-in has expired or the details are wrong/i })).toBeVisible();
+  const bad = (await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze()).violations.filter((v) => v.impact === "serious" || v.impact === "critical");
   expect(bad.map((v) => v.id)).toEqual([]);
-  await page.keyboard.press("Escape");
-  await expect(dlg).toHaveCount(0);
 });
 
 test("a signed-in organiser sees their events and the sign-out button", async ({ page }) => {
   await preflight(page);
   await page.addInitScript(() => localStorage.setItem("eh-session-v1", JSON.stringify({ token: "t", user: { id: "u", email: "o@example.com", name: "Olivia" } })));
   await page.route("**/events", (r) => r.fulfill(json([{ id: "e1", key: "cup", name: "Spring Cup", game: "BGMI", organiser: "", date: "2026-12-01", venue: "", emergency: "", rules: "", settings: {}, updatedAt: "" }])));
-  await page.goto("/tools/id-cards/");
+  await page.goto("/app/id-cards/");
   await openMenu(page);
   await page.getByRole("button", { name: /^Online/ }).click();
   const dlg = page.getByRole("dialog", { name: "Cloud" });
   await expect(dlg.getByText("Olivia")).toBeVisible();
   await expect(dlg.getByText("Spring Cup")).toBeVisible();
   await dlg.getByRole("button", { name: "Sign out" }).click();
-  await expect(dlg.getByText(/Optional: sign in/)).toBeVisible();
+  await expect(page).toHaveURL(/\/login\//); // signing out leaves the app
 });
 
 test("a pass link that is switched off says so instead of showing an error page", async ({ page }) => {
@@ -80,7 +71,8 @@ test("the invite page can be read in Hindi and Marathi, and the choice is rememb
 });
 
 test("the ID card steps speak the chosen language", async ({ page }) => {
-  await page.goto("/tools/id-cards/");
+  await signedIn(page);
+  await page.goto("/app/id-cards/");
   await page.getByRole("button", { name: "हिन्दी" }).click();
   await expect(page.getByText(/चरण 1 \/ 4/)).toBeVisible();
   await expect(page.getByRole("button", { name: /आगे: लोग/ })).toBeVisible();
@@ -92,7 +84,7 @@ test("the Account tab changes a password and explains a wrong current one", asyn
   await page.route("**/events", (r) => r.fulfill(json([])));
   let n = 0;
   await page.route("**/auth/change-password", (r) => r.fulfill(n++ === 0 ? json({ error: "Current password is wrong" }, 401) : json({ ok: true })));
-  await page.goto("/tools/id-cards/");
+  await page.goto("/app/id-cards/");
   await openMenu(page);
   await page.getByRole("button", { name: /^Online/ }).click();
   const dlg = page.getByRole("dialog", { name: "Cloud" });

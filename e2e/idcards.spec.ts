@@ -1,9 +1,10 @@
 import { expect, test, type Page } from "@playwright/test";
 import fs from "node:fs";
+import { signedIn } from "./helpers";
 
 const step = (page: Page, name: string) => page.locator("ol button").filter({ hasText: name }).first().click();
 const openMenu = async (page: import("@playwright/test").Page) => { const t = page.getByRole("button", { name: /Save, open or share/ }); if (await t.isVisible() && (await t.getAttribute("aria-expanded")) !== "true") await t.click(); }; // phones keep Save / Open / Online in a menu
-const open = async (page: Page) => { await page.goto("/tools/id-cards/"); await expect(page.getByRole("heading", { level: 1 })).toContainText(/ID cards/i); };
+const open = async (page: Page) => { await signedIn(page); await page.goto("/app/id-cards/"); await expect(page.getByRole("heading", { level: 1 })).toContainText(/ID cards/i); };
 
 test("demo event: teams, people and cards are all there", async ({ page }) => {
   await open(page);
@@ -97,7 +98,7 @@ test("steps load on demand and show a skeleton on a slow connection", async ({ p
 });
 
 test("the gate page accepts a pass code and rejects a forged one", async ({ page }) => {
-  await page.goto("/tools/check-in/");
+  await page.goto("/gate/");
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   await expect(page.getByText(/check-in pack|load.*pack/i).first()).toBeVisible();
 });

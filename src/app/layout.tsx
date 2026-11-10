@@ -1,23 +1,29 @@
-﻿import type { Metadata, Viewport } from "next";
+import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import HexField from "@/components/HexField";
-import HubNav from "@/components/HubNav";
 import MotionProvider from "@/components/MotionProvider";
 import PwaRegister from "@/components/PwaRegister";
+import { SITE_URL } from "@/lib/site";
 import XpProvider from "@/components/XpProvider";
 
 // Fonts are files in src/fonts (see scripts/fetch-fonts.py), so a build never needs Google.
 const body = localFont({ src: [{ path: "../fonts/inter-100-900-normal.woff2", weight: "100 900", style: "normal" }], variable: "--font-body", display: "swap" });
 const display = localFont({ src: [{ path: "../fonts/space-grotesk-300-700-normal.woff2", weight: "300 700", style: "normal" }], variable: "--font-display", display: "swap" });
 
+// The public website is indexed only when NEXT_PUBLIC_INDEXABLE=1 is set at build time. It stays off while the pages show made-up sample data,
+// so search engines never index placeholders. The web app under /app is never indexed.
+const INDEXABLE = process.env.NEXT_PUBLIC_INDEXABLE === "1";
+
 export const metadata: Metadata = {
-  title: { default: "Esports Hub (interface prototype)", template: "%s · Esports Hub" },
+  metadataBase: new URL(SITE_URL),
+  title: { default: "Esports Hub: run gaming events, ID cards and gate check-in", template: "%s · Esports Hub" },
   description: "One place for gaming and esports communities that run several games: find games and events, and use organiser tools such as player ID cards.",
   manifest: "/manifest.webmanifest",
   icons: { icon: "/icon.svg", apple: "/icon-192.png" },
   appleWebApp: { capable: true, title: "Esports Hub", statusBarStyle: "black-translucent" },
-  robots: { index: false, follow: false }, // sample data only: not indexed until it carries real content
+  robots: INDEXABLE ? { index: true, follow: true } : { index: false, follow: false },
+  openGraph: { type: "website", siteName: "Esports Hub", url: SITE_URL },
 };
 export const viewport: Viewport = { themeColor: "#05070A", width: "device-width", initialScale: 1, viewportFit: "cover", colorScheme: "dark" }; // cover + safe-area padding keeps iPhone's home bar clear; colorScheme stops Samsung Internet and Chrome from re-darkening the page
 
@@ -30,14 +36,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <XpProvider>
         <HexField />
         <div aria-hidden="true" className="aurora no-print" />
-        <div className="no-print border-b border-amber-500/30 bg-amber-500/10 px-4 py-2 text-center text-sm text-amber-200">
-          <span className="sm:hidden">Prototype: all data is made up.</span><span className="hidden sm:inline">Interface prototype. Every name, event and community here is made-up sample data.</span>
-        </div>
-        <HubNav />
-        <main className="mx-auto max-w-6xl px-4 pb-12 pt-8 sm:py-12">{children}</main>
-        <footer className="no-print mt-16 border-t border-white/10 px-4 py-8 text-center text-sm text-zinc-400">
-          Esports Hub is an independent project and is not affiliated with any game publisher. Game names and logos are trademarks of their owners and are used only to identify the games.
-        </footer>
+        {children}
         </XpProvider>
         </MotionProvider>
       </body>

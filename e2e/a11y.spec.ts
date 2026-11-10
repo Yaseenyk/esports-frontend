@@ -1,9 +1,11 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
+import { signedIn } from "./helpers";
 
 test.setTimeout(120_000); // axe on a busy page is slow when several browsers run at once
 
-const PAGES = ["/", "/games/", "/events/", "/communities/", "/arcade/", "/tools/", "/tools/id-cards/", "/tools/check-in/", "/tools/brackets/"];
+const PAGES = ["/", "/games/", "/events/", "/communities/", "/arcade/", "/tools/", "/tools/id-cards/", "/tools/check-in/", "/tools/brackets/", "/login/", "/signup/", "/gate/"];
+const APP_PAGES = ["/app/", "/app/check-in/", "/app/brackets/", "/app/account/"];
 
 for (const path of PAGES) {
   test(`${path} has no serious accessibility problems`, async ({ page }) => {
@@ -18,10 +20,24 @@ for (const path of PAGES) {
 
 for (const stepName of ["People", "Design", "Print"]) {
   test(`ID card maker, ${stepName} step, has no serious accessibility problems`, async ({ page }) => {
-    await page.goto("/tools/id-cards/");
+    await signedIn(page);
+    await page.goto("/app/id-cards/");
     await page.locator("ol button").filter({ hasText: stepName }).first().click();
     await page.waitForLoadState("networkidle");
     await page.waitForTimeout(600);
+    const r = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa"]).exclude(".idcard-box").analyze();
+    const bad = r.violations.filter((v) => v.impact === "serious" || v.impact === "critical");
+    expect(bad.map((v) => `${v.id}: ${v.nodes.slice(0, 3).map((n) => n.target.join(" ")).join(" | ")}`)).toEqual([]);
+  });
+}
+
+for (const path of APP_PAGES) {
+  test(`app page ${path} has no serious accessibility problems`, async ({ page }) => {
+    await signedIn(page);
+    await page.goto(path);
+    await expect(page.getByRole("navigation", { name: "App" })).toBeVisible();
+    await page.waitForLoadState("networkidle");
+    await page.waitForTimeout(900);
     const r = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa"]).exclude(".idcard-box").analyze();
     const bad = r.violations.filter((v) => v.impact === "serious" || v.impact === "critical");
     expect(bad.map((v) => `${v.id}: ${v.nodes.slice(0, 3).map((n) => n.target.join(" ")).join(" | ")}`)).toEqual([]);

@@ -26,7 +26,7 @@ self.addEventListener("fetch", (e) => {
         if (res.ok) (await caches.open(PAGES)).put(req, res.clone());
         return res;
       } catch {
-        return (await caches.match(req)) || (await caches.match("/tools/check-in/")) || new Response("You are offline and this page has not been opened before.", { status: 503, headers: { "content-type": "text/plain" } });
+        return (await caches.match(req)) || (await caches.match("/gate/")) || new Response("You are offline and this page has not been opened before.", { status: 503, headers: { "content-type": "text/plain" } });
       }
     })());
     return;

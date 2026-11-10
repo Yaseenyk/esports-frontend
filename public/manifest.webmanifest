@@ -2,7 +2,7 @@
   "name": "Esports Hub",
   "short_name": "Esports Hub",
   "description": "Player ID cards, passes and gate check-in for gaming events.",
-  "start_url": "/tools/check-in/",
+  "start_url": "/gate/",
   "scope": "/",
   "display": "standalone",
   "background_color": "#05070A",
@@ -13,7 +13,7 @@
     { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ],
   "shortcuts": [
-    { "name": "Gate check-in", "url": "/tools/check-in/" },
-    { "name": "ID card maker", "url": "/tools/id-cards/" }
+    { "name": "Gate scanner", "url": "/gate/" },
+    { "name": "Open the app", "url": "/app/" }
   ]
 }

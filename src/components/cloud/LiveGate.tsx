@@ -8,7 +8,7 @@ import { ROLE_COLOURS, type Role } from "@/lib/idcard/types";
 import { Waiting } from "@/components/skeleton/Scenes";
 import { Sk } from "@/components/skeleton/Sk";
 import { useQrCamera } from "./useQrCamera";
-import { LangSwitch, useLang } from "@/components/useLang";
+import { useLang } from "@/components/useLang";
 
 type GP = { id: string; name: string; team: string | null; role: string; zones: unknown; minor: boolean; guardian: boolean; photoUrl: string | null; checkedInAt: string | null };
 interface Shown { kind: "ok" | "again" | "bad" | "queued"; title: string; sub: string; person?: GP | CheckResult["person"]; photo?: string | null }
@@ -99,7 +99,6 @@ export default function LiveGate() {
     <div className="mt-8 grid gap-6 lg:grid-cols-[22rem_1fr]">
       <div className="space-y-4">
         <section className="card space-y-2">
-          <LangSwitch className="mb-2" />
           <h2 className="font-display text-lg font-bold text-white">{event?.name}</h2>
           <p className="text-sm text-zinc-300">{[event?.date, event?.venue].filter(Boolean).join(" · ")}</p>
           <p className="text-sm text-emerald-300">{t("gate_connected")}. {done} of {people.length} checked in across all doors.</p>

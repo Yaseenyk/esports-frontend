@@ -5,6 +5,8 @@ import { auth, events, explain, type CloudEvent } from "@/lib/api/cloud";
 import { hasBackend } from "@/lib/api";
 import { loadFromCloud, readLink, saveToCloud, writeLink, type Loaded, type Snapshot } from "@/lib/cloud/sync";
 import type { Person } from "@/lib/idcard/types";
+import AccountPanel from "./AccountPanel";
+import AuthForm from "@/components/auth/AuthForm";
 import InvitesPanel from "./InvitesPanel";
 import LivePanel from "./LivePanel";
 import { useSession } from "./useSession";
@@ -16,62 +18,11 @@ export interface CloudProps {
   onLoaded: (l: Loaded) => void;
   onPeople: (add: Person[]) => void;
   onClose: () => void;
+  /** Open this saved event as soon as the list has loaded (used by the dashboard's "Open cards" link). */
+  autoOpenId?: string | null;
 }
 
 const TABS = ["Save & sync", "Live check-in", "Player invites", "Account"] as const;
-
-function AccountPanel({ onDone }: { onDone: () => void }) {
-  const [cur, setCur] = useState(""), [next, setNext] = useState(""), [del, setDel] = useState("");
-  const [msg, setMsg] = useState(""), [err, setErr] = useState(""), [busy, setBusy] = useState(false);
-  const change = async (e: React.FormEvent) => { e.preventDefault(); setBusy(true); setErr(""); setMsg(""); try { await auth.changePassword(cur, next); setMsg("Password changed."); setCur(""); setNext(""); } catch (x) { setErr((x as { status?: number }).status === 401 ? "The current password is wrong." : explain(x)); } finally { setBusy(false); } };
-  const remove = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!confirm("Delete your account and every event, roster, photo and check-in saved online? This cannot be undone. Your copies in this browser stay.")) return;
-    setBusy(true); setErr("");
-    try { await auth.deleteAccount(del); onDone(); } catch (x) { setErr((x as { status?: number }).status === 401 ? "That password is wrong." : explain(x)); } finally { setBusy(false); }
-  };
-  return (
-    <div className="space-y-5">
-      <form onSubmit={change} className="space-y-3 rounded-xl border border-white/10 p-3">
-        <h3 className="font-display font-bold text-white">Change password</h3>
-        <label className="block text-sm text-zinc-300">Current password<input className="field mt-1" type="password" autoComplete="current-password" value={cur} onChange={(e) => setCur(e.target.value)} required /></label>
-        <label className="block text-sm text-zinc-300">New password<input className="field mt-1" type="password" autoComplete="new-password" minLength={8} value={next} onChange={(e) => setNext(e.target.value)} required /><span className="mt-1 block text-xs text-zinc-400">At least 8 characters.</span></label>
-        <button className="btn !min-h-10 px-4 text-sm" disabled={busy}>Change password</button>
-      </form>
-      <form onSubmit={remove} className="space-y-3 rounded-xl border border-red-400/30 p-3">
-        <h3 className="font-display font-bold text-white">Delete my account</h3>
-        <p className="text-sm text-zinc-300">Removes everything saved online: events, rosters, photos, check-ins, invite and pass links. Cards you made in this browser are not touched.</p>
-        <label className="block text-sm text-zinc-300">Password to confirm<input className="field mt-1" type="password" autoComplete="current-password" value={del} onChange={(e) => setDel(e.target.value)} required /></label>
-        <button className="btn-ghost !min-h-10 px-4 text-sm !border-red-400/50 text-red-200" disabled={busy || !del}>Delete account</button>
-      </form>
-      <div aria-live="polite">{msg && <p className="text-sm text-emerald-300">{msg}</p>}{err && <p role="alert" className="text-sm text-red-300">{err}</p>}</div>
-      <p className="text-xs text-zinc-400">Forgot your password? Password reset by email is not set up yet. Until it is, keep your password somewhere safe.</p>
-    </div>
-  );
-}
-
-function SignIn() {
-  const [mode, setMode] = useState<"login" | "register">("login");
-  const [email, setEmail] = useState(""), [name, setName] = useState(""), [pw, setPw] = useState("");
-  const [busy, setBusy] = useState(false), [err, setErr] = useState("");
-  const go = async (e: React.FormEvent) => {
-    e.preventDefault(); setBusy(true); setErr("");
-    try { if (mode === "login") await auth.login(email.trim(), pw); else await auth.register(email.trim(), name.trim() || "Organiser", pw); } catch (x) { setErr(explain(x)); } finally { setBusy(false); }
-  };
-  return (
-    <form onSubmit={go} className="mx-auto w-full max-w-sm space-y-3">
-      <p className="text-sm text-zinc-300">An account lets you save an event online, check guests in live from several phones, and send players a link to add themselves. Everything else still works without one.</p>
-      <div className="flex gap-2" role="tablist" aria-label="Account">
-        {(["login", "register"] as const).map((m) => <button key={m} type="button" role="tab" aria-selected={mode === m} onClick={() => setMode(m)} className={`chip ${mode === m ? "!border-cyan !text-cyan" : ""}`}>{m === "login" ? "Sign in" : "Create account"}</button>)}
-      </div>
-      {mode === "register" && <label className="block text-sm text-zinc-300">Your name<input className="field mt-1" value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" required /></label>}
-      <label className="block text-sm text-zinc-300">Email<input className="field mt-1" type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" required /></label>
-      <label className="block text-sm text-zinc-300">Password<input className="field mt-1" type="password" value={pw} onChange={(e) => setPw(e.target.value)} autoComplete={mode === "login" ? "current-password" : "new-password"} minLength={mode === "register" ? 8 : undefined} required />{mode === "register" && <span className="mt-1 block text-xs text-zinc-400">At least 8 characters.</span>}</label>
-      {err && <p role="alert" className="text-sm text-red-300">{err}</p>}
-      <button className="btn w-full" disabled={busy}>{busy ? "Please wait…" : mode === "login" ? "Sign in" : "Create account"}</button>
-    </form>
-  );
-}
 
 export default function CloudPanel(p: CloudProps) {
   const session = useSession();
@@ -85,6 +36,8 @@ export default function CloudPanel(p: CloudProps) {
   useEffect(() => { const k = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); }; window.addEventListener("keydown", k); return () => window.removeEventListener("keydown", k); }, [onClose]);
   const refresh = useCallback(() => { events.list().then(setList).catch((e) => setErr(explain(e))); }, []);
   useEffect(() => { if (session) refresh(); }, [session, refresh]);
+  const autoDone = useState({ v: false })[0];
+  useEffect(() => { if (p.autoOpenId && list && !autoDone.v) { const ev = list.find((x) => x.id === p.autoOpenId); autoDone.v = true; if (ev) void open(ev); } }, [list]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const save = async () => {
     setBusy(true); setErr(""); setMsg("");
@@ -112,7 +65,7 @@ export default function CloudPanel(p: CloudProps) {
         </div>
 
         {!hasBackend ? <p className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-100">The online service is not connected in this build. Everything else works in your browser.</p>
-          : !session ? <SignIn /> : (
+          : !session ? <AuthForm /> : (
           <>
             <div className="mb-4 flex flex-wrap gap-2" role="tablist" aria-label="Online features">
               {TABS.map((t) => <button key={t} type="button" role="tab" aria-selected={tab === t} onClick={() => setTab(t)} className={`chip ${tab === t ? "!border-cyan !text-cyan" : ""}`}>{t}</button>)}

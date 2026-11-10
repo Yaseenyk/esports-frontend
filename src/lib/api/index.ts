@@ -8,7 +8,11 @@ let token: string | null = null;
 export const setToken = (t: string | null) => { token = t; };
 
 /** One shared client for the whole app, so every screen shares one cache and one set of in-flight requests. */
-export const api = createClient({ base: API_BASE, token: () => token });
+let onAuthFail: () => void = () => undefined;
+/** Lets the session code say what to do when the server rejects the token (sign out and go to the sign-in page). */
+export const setAuthFailHandler = (f: () => void) => { onAuthFail = f; };
+
+export const api = createClient({ base: API_BASE, token: () => token, onUnauthorized: () => onAuthFail() });
 
 export { ApiError } from "./client";
 export { createBatchQueue } from "./queue";

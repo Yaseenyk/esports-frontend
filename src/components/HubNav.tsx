@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Mark } from "./Logo";
+import { useSession } from "@/components/cloud/useSession";
 import { useXp } from "./XpProvider";
 import SearchBox from "./SearchBox";
 
@@ -63,6 +64,7 @@ function Comb({ pattern, className, current, reduce }: { pattern: number[]; clas
 }
 
 export default function HubNav() {
+  const signedIn = !!useSession();
   const path = usePathname() ?? "/";
   const router = useRouter();
   const reduce = useReducedMotion();
@@ -138,9 +140,9 @@ export default function HubNav() {
           <button type="button" onClick={(e) => show(e.currentTarget)} aria-haspopup="dialog" className="flex h-11 items-center gap-2 rounded-full bg-cyan px-4 text-sm font-semibold text-ink outline-none transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-white/70 sm:hidden">
             <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4 fill-none stroke-current" strokeWidth="2.4" strokeLinecap="round"><path d="M4 7h16M4 12h16M4 17h16" /></svg>Menu
           </button>
-          <Link href="/tools/id-cards/" className="hidden h-11 items-center rounded-full bg-cyan px-4 text-sm font-semibold text-ink outline-none transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-white/70">
-            ID cards
-          </Link>
+          {signedIn
+            ? <Link href="/app/" className="hidden h-11 items-center rounded-full bg-cyan px-4 text-sm font-semibold text-ink outline-none transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-white/70 sm:inline-flex">Open app</Link>
+            : <><Link href="/login/" className="hidden h-11 items-center rounded-full px-3 text-sm font-medium text-zinc-200 outline-none hover:text-white focus-visible:ring-2 focus-visible:ring-cyan sm:inline-flex">Log in</Link><Link href="/signup/" className="hidden h-11 items-center rounded-full bg-cyan px-4 text-sm font-semibold text-ink outline-none transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-white/70 sm:inline-flex">Sign up</Link></>}
         </motion.nav>
       </div>
 
@@ -164,6 +166,11 @@ export default function HubNav() {
               <div className="mt-8 w-full [--h:7.3rem] sm:mt-10 sm:[--h:10.4rem]">
                 <Comb pattern={[2, 3, 2]} className="sm:hidden" current={current?.href} reduce={!!reduce} />
                 <Comb pattern={[3, 4]} className="hidden sm:block" current={current?.href} reduce={!!reduce} />
+              </div>
+              <div className="mt-6 flex flex-wrap items-center justify-center gap-3 sm:hidden">
+                {signedIn
+                  ? <Link href="/app/" onClick={hide} className="btn !min-h-11 px-6">Open the app</Link>
+                  : <><Link href="/login/" onClick={hide} className="btn-ghost !min-h-11 px-6">Log in</Link><Link href="/signup/" onClick={hide} className="btn !min-h-11 px-6">Sign up</Link></>}
               </div>
               <p className="mt-6 hidden text-center text-xs text-zinc-400 sm:block">Press <kbd className="rounded border border-white/15 px-1.5">1</kbd>–<kbd className="rounded border border-white/15 px-1.5">7</kbd> to jump, <kbd className="rounded border border-white/15 px-1.5">Esc</kbd> to close</p>
             </div>

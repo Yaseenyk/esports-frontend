@@ -1,5 +1,5 @@
 /** Typed calls to the Esports Hub backend (Cloudflare Worker). Every call goes through the shared client, so it is cached, de-duplicated and batched where it can be. */
-import { api, API_BASE, setToken } from "./index";
+import { api, API_BASE, setAuthFailHandler, setToken } from "./index";
 import { createBatchQueue } from "./queue";
 
 export interface User { id: string; email: string; name: string }
@@ -31,6 +31,9 @@ function setSession(s: typeof session) {
   try { if (s) localStorage.setItem(TOKEN_KEY, JSON.stringify(s)); else localStorage.removeItem(TOKEN_KEY); } catch { /* private mode: stay signed in for this tab only */ }
   emit();
 }
+
+// An expired or revoked sign-in on any request signs the person out; the app shell then sends them to the sign-in page.
+setAuthFailHandler(() => setSession(null));
 
 export const auth = {
   async register(email: string, name: string, password: string) { const r = await api.post<{ token: string; user: User }>("/auth/register", { email, name, password }); setSession(r); return r.user; },

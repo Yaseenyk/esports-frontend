@@ -18,6 +18,8 @@ export interface ClientOptions {
   isOnline?: () => boolean;
   /** Receives how long each endpoint took. Defaults to the shared tracker the loading screens read. */
   onLatency?: (key: string, ms: number) => void;
+  /** Called when the server says the sign-in is no longer valid (401) on a request that carried a token. */
+  onUnauthorized?: () => void;
 }
 
 export interface GetOptions {
@@ -64,6 +66,7 @@ export function createClient(o: ClientOptions) {
       const res = await f(url(path), { headers: headers(etag ? { "if-none-match": etag } : undefined), signal: ctl.signal });
       (o.onLatency ?? recordLatency)(path.split("?")[0], now() - t0);
       if (res.status === 304) { stats.notModified++; return { notModified: true }; }
+      if (res.status === 401 && o.token?.() && !path.startsWith("/auth/")) o.onUnauthorized?.();
       if (!res.ok) {
         const ra = Number(res.headers.get("retry-after"));
         throw new ApiError(res.status, `Request failed (${res.status})`, ra > 0 ? ra * 1000 : undefined);
@@ -115,6 +118,7 @@ export function createClient(o: ClientOptions) {
     try {
       stats.network++;
       const res = await f(url(path), { method, headers: headers(body === undefined ? undefined : { "content-type": "application/json" }), body: body === undefined ? undefined : JSON.stringify(body), signal: ctl.signal, keepalive: extra?.keepalive });
+      if (res.status === 401 && o.token?.() && !path.startsWith("/auth/")) o.onUnauthorized?.();
       if (!res.ok) throw new ApiError(res.status, `Request failed (${res.status})`);
       invalidateRelated(path);
       return (res.status === 204 ? undefined : await res.json()) as T;

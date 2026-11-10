@@ -12,16 +12,18 @@ const password = `Live-${Math.random().toString(36).slice(2)}-A1`;
 const API = "https://esports-api.yaseenyk.workers.dev";
 
 test("sign up, save online, live check-in on a second page, pass link, invite and approval", async ({ page, context }) => {
-  await page.goto("/tools/id-cards/");
+  // Create the account on the real sign-up page, land in the app, open the ID card maker.
+  await page.goto("/signup/");
+  await page.getByLabel("Your name").fill("Live Test");
+  await page.getByLabel("Email").fill(email);
+  await page.getByLabel("Password").fill(password);
+  await page.getByRole("button", { name: "Create account" }).last().click();
+  await expect(page).toHaveURL(/\/app\/$/, { timeout: 20_000 });
+  await expect(page.getByRole("heading", { name: /Welcome, Live/ })).toBeVisible();
+  await page.getByRole("navigation", { name: "App" }).getByRole("link", { name: "ID cards" }).click();
   await openMenu(page);
   await page.getByRole("button", { name: /^Online/ }).click();
   const dlg = page.getByRole("dialog", { name: "Cloud" });
-  await dlg.getByRole("tab", { name: "Create account" }).click();
-  await dlg.getByLabel("Your name").fill("Live Test");
-  await dlg.getByLabel("Email").fill(email);
-  await dlg.getByLabel("Password").fill(password);
-  await dlg.getByRole("button", { name: "Create account" }).click();
-
   await expect(dlg.getByText(/Signed in as/)).toBeVisible({ timeout: 20_000 });
   await dlg.getByRole("button", { name: /Save this event online/ }).click();
   await expect(dlg.getByText(/Saved\./)).toBeVisible({ timeout: 90_000 });
@@ -45,7 +47,7 @@ test("sign up, save online, live check-in on a second page, pass link, invite an
 
   // The gate phone.
   const gate = await context.newPage();
-  await gate.goto("/tools/check-in/");
+  await gate.goto("/gate/");
   await gate.getByRole("tab", { name: /Live/ }).click();
   await gate.getByLabel("Gate key").fill(key);
   await gate.getByRole("button", { name: "Connect" }).click();

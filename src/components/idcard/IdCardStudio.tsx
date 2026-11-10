@@ -104,6 +104,9 @@ export default function IdCardStudio() {
   const [cloudCodes, setCloudCodes] = useState<Record<string, { code: string; role: Role }>>({});
   const [cloudOpen, setCloudOpen] = useState(false);
   const [projMenu, setProjMenu] = useState(false);
+  const [openId, setOpenId] = useState<string | null>(null);
+  // The dashboard links here with ?open=<event id>: open the Online panel and load that event.
+  useEffect(() => { const id = new URLSearchParams(location.search).get("open"); if (id) { setOpenId(id); setCloudOpen(true); } }, []);
   const staleCodes = people.filter((p) => cloudCodes[p.id] && cloudCodes[p.id]!.role !== p.role).length;
   const [side, setSide] = useState<"front" | "back">("front");
   const [pdfAsk, setPdfAsk] = useState<{ file: File; wrong: boolean } | null>(null);
@@ -282,7 +285,7 @@ export default function IdCardStudio() {
         <p className="text-sm text-zinc-400"><span className="sm:hidden">Teams, people, design, print. Runs in your browser; demo data is loaded.</span><span className="hidden sm:inline">Set up your teams, add people (scan Aadhaar cards or import a sheet), design a card for each team, then print or download. Everything stays in your browser. Demo data is loaded so you can try it.</span></p>
         </div>
         <div className="w-full sm:w-auto">
-          <LangSwitch className="mb-2 sm:justify-end" />
+          <LangSwitch className="mb-2 sm:hidden" />
           <button type="button" aria-expanded={projMenu} aria-controls="project-menu" className="btn-ghost !min-h-10 w-full justify-between px-4 text-sm sm:hidden" onClick={() => setProjMenu((v) => !v)}>
             <span>Save, open or share</span><span aria-hidden="true">{projMenu ? "▴" : "▾"}</span>
           </button>
@@ -332,6 +335,7 @@ export default function IdCardStudio() {
       </nav>
       {cloudOpen && (
         <CloudPanel
+          autoOpenId={openId}
           snapshot={{ event, game, organiser, info, teams, people }}
           minorOf={minorOf}
           onClose={() => setCloudOpen(false)}
