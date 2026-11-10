@@ -112,17 +112,17 @@ export default function HubNav() {
       {/* The pill: hex button, wordmark, where you are, and a one-tap shortcut. */}
       <div className="no-print sticky top-3 z-40 flex justify-center px-3 pt-3">
         <motion.nav aria-label="Main" initial={false} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.6, ease: EASE }}
-          className="flex w-full max-w-xl items-center gap-1 rounded-full border border-white/[0.14] bg-[#0a0b0d] p-1.5">
+          className="flex w-full max-w-xl items-center gap-1 rounded-full bg-[#0a0b0d] p-1.5 sm:max-w-3xl">
           <button type="button" onClick={(e) => show(e.currentTarget)} aria-label="Open the hub menu" aria-expanded={open} aria-haspopup="dialog"
             className="group relative grid h-11 w-11 shrink-0 place-items-center rounded-full outline-none ring-cyan/60 focus-visible:ring-2">
             <span aria-hidden="true" className="absolute inset-0 rounded-full bg-white/5 transition-colors group-hover:bg-white/10" />
             <motion.span whileHover={reduce ? undefined : { rotate: 60 }} transition={{ type: "spring", stiffness: 200, damping: 12 }} className="relative"><Mark className="h-8 w-8" /></motion.span>
           </button>
-          <Link href="/" className="rounded-full px-2 font-display text-[15px] font-bold tracking-tight text-white outline-none focus-visible:ring-2 focus-visible:ring-cyan/60" aria-label="Esports Hub home">
+          <Link href="/" className="shrink-0 rounded-full px-2 font-display text-[15px] font-bold tracking-tight text-white outline-none focus-visible:bg-white/10" aria-label="Esports Hub home">
             Esports<span className="bg-gradient-to-r from-cyan to-purple bg-clip-text text-transparent">Hub</span>
           </Link>
           <span aria-hidden="true" className="mx-1 hidden h-5 w-px bg-white/10 sm:block" />
-          <div className="relative hidden h-9 min-w-0 flex-1 items-center overflow-hidden sm:flex" aria-live="polite">
+          <div className="relative hidden h-9 min-w-[5.5rem] flex-1 items-center overflow-hidden sm:flex" aria-live="polite">
             <AnimatePresence mode="wait" initial={false}>
               <motion.span key={current?.label ?? "Home"} initial={reduce ? false : { y: 16, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={reduce ? undefined : { y: -16, opacity: 0 }} transition={{ duration: 0.22 }} className="flex items-center gap-2 truncate text-sm text-zinc-300">
                 {current ? <><Icon d={current.icon} className="h-4 w-4 text-cyan" />{current.label}</> : <span className="text-zinc-400">Home</span>}
