@@ -17,6 +17,7 @@ import { type Ctx } from "./CardView";
 import type { Job } from "./PeopleStep";
 import SetupStep from "./SetupStep";
 import { StepSkeleton } from "@/components/skeleton/Scenes";
+import { LangSwitch, useLang } from "@/components/useLang";
 
 // Only the first step ships with the page. The others download when a step is opened (or when the browser is idle / the button is touched), each behind a skeleton shaped like the step.
 const loadPeople = () => import("./PeopleStep");
@@ -70,6 +71,8 @@ async function shrink(file: File, max = 800): Promise<{ url: string; cutout: boo
 }
 
 export default function IdCardStudio() {
+  const { t, lang } = useLang();
+  const stepName = (i: number) => (lang === "en" ? STEPS[i]! : t((["step_event", "step_people", "step_design", "step_print"] as const)[i]!));
   const { award, addXp } = useXp();
   const [step, setStep] = useState(0);
   // Quietly fetch the next step while the person is still filling in this one, but never on a slow or data-saving connection.
@@ -279,6 +282,7 @@ export default function IdCardStudio() {
         <p className="text-sm text-zinc-400"><span className="sm:hidden">Teams, people, design, print. Runs in your browser; demo data is loaded.</span><span className="hidden sm:inline">Set up your teams, add people (scan Aadhaar cards or import a sheet), design a card for each team, then print or download. Everything stays in your browser. Demo data is loaded so you can try it.</span></p>
         </div>
         <div className="w-full sm:w-auto">
+          <LangSwitch className="mb-2 sm:justify-end" />
           <button type="button" aria-expanded={projMenu} aria-controls="project-menu" className="btn-ghost !min-h-10 w-full justify-between px-4 text-sm sm:hidden" onClick={() => setProjMenu((v) => !v)}>
             <span>Save, open or share</span><span aria-hidden="true">{projMenu ? "▴" : "▾"}</span>
           </button>
@@ -308,7 +312,7 @@ export default function IdCardStudio() {
         ))}
       </ol>
 
-      <p className="no-print mb-4 rounded-xl border border-white/[0.14] bg-[#0a0b0d] px-3 py-2.5 text-sm text-zinc-300"><strong className="text-white">Step {step + 1} of 4: {STEPS[step]}.</strong> {GUIDE[step]}</p>
+      <p className="no-print mb-4 rounded-xl border border-white/[0.14] bg-[#0a0b0d] px-3 py-2.5 text-sm text-zinc-300"><strong className="text-white">{t("step_of", { n: step + 1 })}: {lang === "en" ? STEPS[step] : stepName(step)}.</strong> {lang === "en" ? GUIDE[step] : t((["guide0", "guide1", "guide2", "guide3"] as const)[step]!)}</p>
 
       <AnimatePresence mode="wait" initial={false}>
         <motion.div key={step} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.18 }}>
@@ -322,9 +326,9 @@ export default function IdCardStudio() {
       </AnimatePresence>
 
       <nav aria-label="Step navigation" className="no-print sticky z-30 mt-6 grid grid-cols-2 items-center gap-3 rounded-2xl border border-white/[0.14] bg-[#0a0b0d] px-3 py-2.5 sm:flex sm:justify-between" style={{ bottom: "max(0.75rem, env(safe-area-inset-bottom))" }}>
-        <button type="button" className="btn-ghost !min-h-11 px-4 text-sm" disabled={step === 0} onClick={() => setStep((s) => s - 1)}>← Back</button>
+        <button type="button" className="btn-ghost !min-h-11 px-4 text-sm" disabled={step === 0} onClick={() => setStep((s) => s - 1)}>{t("back")}</button>
         <p className="hidden min-w-0 truncate text-sm text-zinc-400 sm:block">{hint}</p>
-        {step < 3 ? <button type="button" className="btn !min-h-11 px-4 text-sm sm:px-5" onClick={() => setStep((s) => s + 1)}>Next: {STEPS[step + 1]} →</button> : <button type="button" className="btn !min-h-11 px-4 text-sm sm:px-5" onClick={() => document.getElementById("pdf-button")?.click()}>Download PDF</button>}
+        {step < 3 ? <button type="button" className="btn !min-h-11 px-4 text-sm sm:px-5" onClick={() => setStep((s) => s + 1)}>{t("next", { step: stepName(step + 1) })}</button> : <button type="button" className="btn !min-h-11 px-4 text-sm sm:px-5" onClick={() => document.getElementById("pdf-button")?.click()}>{t("download_pdf")}</button>}
       </nav>
       {cloudOpen && (
         <CloudPanel

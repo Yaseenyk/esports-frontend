@@ -7,7 +7,7 @@ export interface CloudEvent { id: string; key: string; name: string; game: strin
 export interface CloudTeam { id: string; name: string; logo?: string | null }
 export interface CloudPerson { id: string; name: string; teamId: string; role: string; zones?: string | string[]; minor: boolean; guardian: boolean; photoUrl: string | null }
 export interface CloudRoster { teams: CloudTeam[]; people: CloudPerson[] }
-export interface Checkin { personId: string; name: string; team: string | null; role: string; at: string }
+export interface Checkin { personId: string; name: string; team: string | null; role: string; at: string; door?: string | null }
 export interface Live { checkins: Checkin[]; total: number; checkedIn: number }
 export interface GateKey { id: string; label: string; expiresAt: string | null; revoked: boolean; createdAt: string }
 export interface Invite { id: string; teamId: string; token: string; label: string; maxUses: number | null; uses: number; expiresAt: string | null; revoked: boolean; createdAt: string }
@@ -36,6 +36,8 @@ export const auth = {
   async register(email: string, name: string, password: string) { const r = await api.post<{ token: string; user: User }>("/auth/register", { email, name, password }); setSession(r); return r.user; },
   async login(email: string, password: string) { const r = await api.post<{ token: string; user: User }>("/auth/login", { email, password }); setSession(r); return r.user; },
   logout() { setSession(null); },
+  changePassword: (current: string, next: string) => api.post<{ ok: true }>("/auth/change-password", { current, next }),
+  async deleteAccount(password: string) { await api.post<{ ok: true }>("/auth/delete-account", { password }); setSession(null); },
 };
 
 /** What the backend says when something is wrong, in words a person can act on. */

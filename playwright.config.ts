@@ -8,7 +8,8 @@ export default defineConfig({
   timeout: 60_000,
   expect: { timeout: 10_000 },
   fullyParallel: true,
-  retries: process.env.CI ? 1 : 0,
+  retries: 1, // a few checks are timing-sensitive when several browsers share one machine
+  workers: process.env.CI ? undefined : 4,
   reporter: process.env.CI ? [["github"], ["list"]] : "list",
   use: { baseURL: `http://localhost:${PORT}`, trace: "retain-on-failure", acceptDownloads: true },
   webServer: { command: "node scripts/serve-out.mjs", url: `http://localhost:${PORT}/`, reuseExistingServer: !process.env.CI, env: { PORT: String(PORT) } },

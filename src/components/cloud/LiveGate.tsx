@@ -8,6 +8,7 @@ import { ROLE_COLOURS, type Role } from "@/lib/idcard/types";
 import { Waiting } from "@/components/skeleton/Scenes";
 import { Sk } from "@/components/skeleton/Sk";
 import { useQrCamera } from "./useQrCamera";
+import { LangSwitch, useLang } from "@/components/useLang";
 
 type GP = { id: string; name: string; team: string | null; role: string; zones: unknown; minor: boolean; guardian: boolean; photoUrl: string | null; checkedInAt: string | null };
 interface Shown { kind: "ok" | "again" | "bad" | "queued"; title: string; sub: string; person?: GP | CheckResult["person"]; photo?: string | null }
@@ -18,6 +19,7 @@ const roleColour = (r: string) => ROLE_COLOURS[r as Role] ?? "#22d3ee";
 
 /** Gate check-in against the server: every phone on every door shares one list, so nobody gets in twice. Scans made without signal are kept and sent together once it returns. */
 export default function LiveGate() {
+  const { t } = useLang();
   const [key, setKey] = useState(""), [typed, setTyped] = useState("");
   const [event, setEvent] = useState<{ name: string; date: string; venue: string } | null>(null);
   const [people, setPeople] = useState<GP[]>([]);
@@ -58,12 +60,12 @@ export default function LiveGate() {
     if (!key) return;
     try {
       const r = await gateClient(key).checkin(code);
-      if (r.status === "bad") { setShown({ kind: "bad", title: "Not a valid pass", sub: r.reason ?? "Check the code and try again." }); try { navigator.vibrate?.([60, 40, 60]); } catch { /* ignore */ } return; }
+      if (r.status === "bad") { setShown({ kind: "bad", title: t("gate_bad"), sub: r.reason ?? "Check the code and try again." }); try { navigator.vibrate?.([60, 40, 60]); } catch { /* ignore */ } return; }
       const p = r.person!;
       setPeople((l) => l.map((x) => (x.id === p.id && !x.checkedInAt ? { ...x, checkedInAt: r.at ?? new Date().toISOString() } : x)));
       const known = peopleRef.current.find((x) => x.id === p.id);
       let photo: string | null | undefined = photos.current.get(p.id);
-      setShown({ kind: r.status === "ok" ? "ok" : "again", title: r.status === "ok" ? "Genuine pass: let them in" : "Already checked in", sub: r.status === "ok" ? `Checked in at ${time(r.at!)}` : `First checked in at ${time(r.at!)}`, person: p, photo });
+      setShown({ kind: r.status === "ok" ? "ok" : "again", title: r.status === "ok" ? t("gate_ok") : t("gate_again"), sub: r.status === "ok" ? `Checked in at ${time(r.at!)}` : `First checked in at ${time(r.at!)}`, person: p, photo });
       try { navigator.vibrate?.(r.status === "ok" ? 40 : 80); } catch { /* ignore */ }
       if (!photo && known?.photoUrl) { photo = await gateClient(key).photo(known.photoUrl); if (photo) { photos.current.set(p.id, photo); setShown((s) => (s?.person && "id" in s.person && s.person.id === p.id ? { ...s, photo } : s)); } }
     } catch (e) {
@@ -72,9 +74,9 @@ export default function LiveGate() {
       queue.current?.add(code); setPending(queue.current?.size ?? 0);
       const id = code.split(".").slice(2, -1).join(".");
       const p = peopleRef.current.find((x) => x.id === id);
-      setShown({ kind: "queued", title: "No signal: not verified yet", sub: p ? `Saved. It will be checked and counted when the connection returns. Match ${p.name} against the card by sight.` : "Saved. It will be checked when the connection returns.", person: p });
+      setShown({ kind: "queued", title: t("gate_queued"), sub: p ? `Saved. It will be checked and counted when the connection returns. Match ${p.name} against the card by sight.` : "Saved. It will be checked when the connection returns.", person: p });
     }
-  }, [key]);
+  }, [key, t]);
 
   const cam = useQrCamera(check);
   const scanPhoto = async (f?: File) => { if (!f) return; const c = await findQr(f); if (c) check(c); else setShown({ kind: "bad", title: "No QR code found", sub: "Try a sharper, closer photo." }); };
@@ -97,9 +99,10 @@ export default function LiveGate() {
     <div className="mt-8 grid gap-6 lg:grid-cols-[22rem_1fr]">
       <div className="space-y-4">
         <section className="card space-y-2">
+          <LangSwitch className="mb-2" />
           <h2 className="font-display text-lg font-bold text-white">{event?.name}</h2>
           <p className="text-sm text-zinc-300">{[event?.date, event?.venue].filter(Boolean).join(" · ")}</p>
-          <p className="text-sm text-emerald-300">Connected. {done} of {people.length} checked in across all doors.</p>
+          <p className="text-sm text-emerald-300">{t("gate_connected")}. {done} of {people.length} checked in across all doors.</p>
           {pending > 0 && <p role="status" className="text-sm text-sky-300">{pending} scan{pending === 1 ? "" : "s"} waiting for signal</p>}
           <button type="button" className="chip" onClick={() => { try { sessionStorage.removeItem(KEY); } catch { /* ignore */ } setKey(""); setPeople([]); }}>Use a different key</button>
         </section>

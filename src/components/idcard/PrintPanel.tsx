@@ -30,6 +30,10 @@ export default function PrintPanel({ people, allPeople, teams, teamOpts, printTe
   const [backs, setBacks] = useState(true);
   const [marks, setMarks] = useState(true);
   const [bleed, setBleed] = useState(false);
+  // Sheet layout, for card stock and print shops: paper size, space between cards, margin. "auto" keeps the roomy default that leaves space for crop marks.
+  const [paper, setPaper] = useState<"a4" | "letter">("a4");
+  const [layout, setLayout] = useState<"auto" | "tight" | "custom">("auto");
+  const [gap, setGap] = useState(2), [margin, setMargin] = useState(8);
   const [status, setStatus] = useState<string | null>(null);
   const [view, setView] = useState<Person | null>(null);
 
@@ -56,7 +60,7 @@ export default function PrintPanel({ people, allPeople, teams, teamOpts, printTe
       const fronts = await gather("front");
       const bk = showBacks ? await gather("back") : [];
       setStatus("Building the PDF…");
-      downloadBlob(buildPdf(fronts, bk, { marks, bleedMm: bleed ? 3 : 0 }), `${eventKey(event)}-cards.pdf`);
+      downloadBlob(buildPdf(fronts, bk, { marks: layout === "tight" ? false : marks, bleedMm: bleed ? 3 : 0, paper, ...(layout === "tight" ? { gapMm: 0, marginMm: 5 } : layout === "custom" ? { gapMm: gap, marginMm: margin } : {}) }), `${eventKey(event)}-cards.pdf`);
       setStatus("PDF downloaded.");
     } catch { setStatus("Could not make the PDF. Try Print, then choose Save as PDF."); }
   };
@@ -120,6 +124,20 @@ export default function PrintPanel({ people, allPeople, teams, teamOpts, printTe
             <label className="flex items-center gap-2 text-sm text-zinc-300"><input type="checkbox" checked={backs} onChange={(e) => setBacks(e.target.checked)} className="h-5 w-5 accent-cyan" />Include backs (double-sided)</label>
             <label className="flex items-center gap-2 text-sm text-zinc-300"><input type="checkbox" checked={marks} onChange={(e) => setMarks(e.target.checked)} className="h-5 w-5 accent-cyan" />Crop marks in the PDF</label>
             <label className="flex items-center gap-2 text-sm text-zinc-300" title="Adds 3 mm of extra edge around every card so a print shop can trim cleanly. Square corners; the artwork is extended outward from its edges."><input type="checkbox" checked={bleed} onChange={(e) => setBleed(e.target.checked)} className="h-5 w-5 accent-cyan" />3 mm bleed (print shops)</label>
+            <details className="w-full text-sm text-zinc-300">
+              <summary className="cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-cyan">Sheet layout (card stock, print shops)</summary>
+              <div className="mt-2 space-y-3 rounded-xl border border-white/10 p-3">
+                <div className="flex flex-wrap gap-2" role="group" aria-label="Paper size">{([["a4", "A4"], ["letter", "US Letter"]] as const).map(([v, l]) => <button key={v} type="button" aria-pressed={paper === v} className={`chip ${paper === v ? "!border-cyan !text-cyan" : ""}`} onClick={() => setPaper(v)}>{l}</button>)}</div>
+                <div className="flex flex-wrap gap-2" role="group" aria-label="Spacing">{([["auto", "Roomy (room for crop marks)"], ["tight", "Tight, no gaps (pre-cut or perforated stock)"], ["custom", "Custom"]] as const).map(([v, l]) => <button key={v} type="button" aria-pressed={layout === v} className={`chip ${layout === v ? "!border-cyan !text-cyan" : ""}`} onClick={() => setLayout(v)}>{l}</button>)}</div>
+                {layout === "custom" && (
+                  <div className="flex flex-wrap gap-3">
+                    <label className="text-sm">Gap between cards (mm)<input className="field mt-1 w-28" type="number" min={0} max={30} step={0.5} value={gap} onChange={(e) => setGap(Math.max(0, Number(e.target.value) || 0))} /></label>
+                    <label className="text-sm">Page margin (mm)<input className="field mt-1 w-28" type="number" min={0} max={40} step={0.5} value={margin} onChange={(e) => setMargin(Math.max(0, Number(e.target.value) || 0))} /></label>
+                  </div>
+                )}
+                <p className="text-xs text-zinc-400">Measure the card stock and enter its gap and margin, so each card lands inside its cut or perforation. Print at 100% (no “fit to page”). Do a test print on plain paper first.</p>
+              </div>
+            </details>
           </div>
         </div>
         <div className="grid gap-2 sm:flex sm:flex-wrap">

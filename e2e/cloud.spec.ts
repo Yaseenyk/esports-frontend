@@ -63,3 +63,44 @@ test("an invite page shows the team and sends only name, role and photo", async 
   await expect(page.getByText("Sent. Thank you.")).toBeVisible();
   expect(Object.keys(sent ?? {}).sort()).toEqual(["minor", "name", "role"]);
 });
+
+test("the invite page can be read in Hindi and Marathi, and the choice is remembered", async ({ page }) => {
+  await preflight(page);
+  await page.route("**/public/invite/tok", (r) => r.fulfill(json({ event: { name: "Spring Cup", date: "2026-12-01" }, team: { name: "Konkan Kings" } })));
+  await page.goto("/join/?t=tok");
+  await expect(page.getByRole("heading", { name: "Join Konkan Kings" })).toBeVisible();
+  await page.getByRole("button", { name: "हिन्दी" }).click();
+  await expect(page.getByRole("heading", { name: "Konkan Kings में शामिल हों" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "आयोजक को भेजें" })).toBeVisible();
+  await page.reload();
+  await expect(page.getByRole("heading", { name: "Konkan Kings में शामिल हों" })).toBeVisible();
+  await page.getByRole("button", { name: "मराठी" }).click();
+  await expect(page.getByRole("button", { name: "आयोजकांना पाठवा" })).toBeVisible();
+  await expect(page.locator("html")).toHaveAttribute("lang", "mr");
+});
+
+test("the ID card steps speak the chosen language", async ({ page }) => {
+  await page.goto("/tools/id-cards/");
+  await page.getByRole("button", { name: "हिन्दी" }).click();
+  await expect(page.getByText(/चरण 1 \/ 4/)).toBeVisible();
+  await expect(page.getByRole("button", { name: /आगे: लोग/ })).toBeVisible();
+});
+
+test("the Account tab changes a password and explains a wrong current one", async ({ page }) => {
+  await preflight(page);
+  await page.addInitScript(() => localStorage.setItem("eh-session-v1", JSON.stringify({ token: "t", user: { id: "u", email: "o@example.com", name: "Olivia" } })));
+  await page.route("**/events", (r) => r.fulfill(json([])));
+  let n = 0;
+  await page.route("**/auth/change-password", (r) => r.fulfill(n++ === 0 ? json({ error: "Current password is wrong" }, 401) : json({ ok: true })));
+  await page.goto("/tools/id-cards/");
+  await openMenu(page);
+  await page.getByRole("button", { name: /^Online/ }).click();
+  const dlg = page.getByRole("dialog", { name: "Cloud" });
+  await dlg.getByRole("tab", { name: "Account" }).click();
+  await dlg.getByLabel("Current password").first().fill("old-password");
+  await dlg.getByLabel("New password").fill("a-brand-new-pass");
+  await dlg.getByRole("button", { name: "Change password" }).click();
+  await expect(dlg.getByRole("alert")).toContainText(/current password is wrong/i);
+  await dlg.getByRole("button", { name: "Change password" }).click();
+  await expect(dlg.getByText("Password changed.")).toBeVisible();
+});

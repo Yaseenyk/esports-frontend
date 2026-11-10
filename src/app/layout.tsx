@@ -4,6 +4,7 @@ import "./globals.css";
 import HexField from "@/components/HexField";
 import HubNav from "@/components/HubNav";
 import MotionProvider from "@/components/MotionProvider";
+import PwaRegister from "@/components/PwaRegister";
 import XpProvider from "@/components/XpProvider";
 
 // Fonts are files in src/fonts (see scripts/fetch-fonts.py), so a build never needs Google.
@@ -13,6 +14,9 @@ const display = localFont({ src: [{ path: "../fonts/space-grotesk-300-700-normal
 export const metadata: Metadata = {
   title: { default: "Esports Hub (interface prototype)", template: "%s · Esports Hub" },
   description: "One place for gaming and esports communities that run several games: find games and events, and use organiser tools such as player ID cards.",
+  manifest: "/manifest.webmanifest",
+  icons: { icon: "/icon.svg", apple: "/icon-192.png" },
+  appleWebApp: { capable: true, title: "Esports Hub", statusBarStyle: "black-translucent" },
   robots: { index: false, follow: false }, // sample data only: not indexed until it carries real content
 };
 export const viewport: Viewport = { themeColor: "#05070A", width: "device-width", initialScale: 1, viewportFit: "cover", colorScheme: "dark" }; // cover + safe-area padding keeps iPhone's home bar clear; colorScheme stops Samsung Internet and Chrome from re-darkening the page
@@ -22,6 +26,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className={`${body.variable} ${display.variable}`}>
       <body className="min-h-[100svh] font-sans">
         <MotionProvider>
+        <PwaRegister />
         <XpProvider>
         <HexField />
         <div aria-hidden="true" className="aurora no-print" />

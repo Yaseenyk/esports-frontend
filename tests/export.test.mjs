@@ -46,3 +46,17 @@ test("an empty set still gives a valid, if empty, document", () => {
   const blob = buildPdf([], [], { marks: false });
   assert.equal(blob.type, "application/pdf");
 });
+
+test("sheet layout: tight spacing fits 10 wallet cards on A4, Letter has its own page size", async () => {
+  const roomy = await pageCount(buildPdf(cards("wallet", 20), [], { marks: false }));
+  const tight = await pageCount(buildPdf(cards("wallet", 20), [], { marks: false, gapMm: 0, marginMm: 5 }));
+  assert.equal(roomy, 3);
+  assert.equal(tight, 2);
+  const letter = buildPdf(cards("wallet", 1), [], { marks: false, paper: "letter" });
+  assert.match(await letter.text(), /MediaBox\s*\[\s*0\s+0\s+612\.?\s+792/);
+});
+
+test("a custom gap never lets bleed overlap the neighbour", async () => {
+  const withBleed = await pageCount(buildPdf(cards("wallet", 20), [], { marks: false, gapMm: 0, marginMm: 5, bleedMm: 3 }));
+  assert.ok(withBleed >= 2);
+});

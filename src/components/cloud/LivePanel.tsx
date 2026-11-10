@@ -56,7 +56,7 @@ export default function LivePanel({ eventId }: { eventId: string }) {
         <p className="text-2xl font-bold text-white" aria-live="polite">{count.checkedIn} <span className="text-base font-normal text-zinc-400">of {count.total} checked in ({pct}%)</span></p>
         <div className="h-2 overflow-hidden rounded-full bg-white/10"><div className="h-full bg-gradient-to-r from-cyan to-purple transition-[width]" style={{ width: `${pct}%` }} /></div>
         <p className="text-xs text-zinc-400">Updates about every {every} seconds, and pauses while this tab is in the background.</p>
-        {rows.length > 0 && <ul className="max-h-48 space-y-1 overflow-y-auto text-sm" aria-label="Recent arrivals">{rows.map((r) => <li key={r.personId + r.at} className="flex justify-between gap-2 rounded-lg border border-white/10 px-3 py-1.5"><span className="truncate text-zinc-200">{r.name} <span className="text-zinc-400">· {r.team ?? "No team"} · {r.role}</span></span><span className="shrink-0 text-emerald-300">{time(r.at)}</span></li>)}</ul>}
+        {rows.length > 0 && <ul className="max-h-48 space-y-1 overflow-y-auto text-sm" aria-label="Recent arrivals">{rows.map((r) => <li key={r.personId + r.at} className="flex justify-between gap-2 rounded-lg border border-white/10 px-3 py-1.5"><span className="truncate text-zinc-200">{r.name} <span className="text-zinc-400">· {r.team ?? "No team"} · {r.role}{r.door ? ` · ${r.door}` : ""}</span></span><span className="shrink-0 text-emerald-300">{time(r.at)}</span></li>)}</ul>}
         <button type="button" className="chip" onClick={reset}>Reset all check-ins</button>
       </section>
 

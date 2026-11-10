@@ -45,9 +45,14 @@ export interface PdfCard { png: string; fmt: Fmt }
  * Lays the cards out on A4 pages at their real size (millimetres), with optional crop marks at each corner.
  * Backs go on their own pages with each row mirrored, so the pages line up when printed double-sided and flipped on the long edge.
  */
-export function buildPdf(fronts: PdfCard[], backs: PdfCard[], opts: { marks: boolean; bleedMm?: number }): Blob {
-  const doc = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
-  const PW = 210, PH = 297, M = 10, bleed = opts.bleedMm ?? 0, GAP = Math.max(opts.marks ? 7 : 4, 2 * bleed + 3);
+export interface SheetOptions { marks: boolean; bleedMm?: number; /** Space between cards (mm). Default fits crop marks. */ gapMm?: number; /** Margin on every page edge (mm). Default 10. */ marginMm?: number; paper?: "a4" | "letter" }
+export const PAPER = { a4: { w: 210, h: 297 }, letter: { w: 215.9, h: 279.4 } } as const;
+
+export function buildPdf(fronts: PdfCard[], backs: PdfCard[], opts: SheetOptions): Blob {
+  const paper = PAPER[opts.paper ?? "a4"];
+  const doc = new jsPDF({ unit: "mm", format: opts.paper === "letter" ? "letter" : "a4", orientation: "portrait" });
+  const PW = paper.w, PH = paper.h, M = Math.max(0, opts.marginMm ?? 10), bleed = opts.bleedMm ?? 0;
+  const GAP = Math.max(opts.gapMm !== undefined ? Math.max(0, opts.gapMm) : opts.marks ? 7 : 4, 2 * bleed + (opts.gapMm !== undefined ? 0 : 3));
   let first = true;
 
   const place = (cards: PdfCard[], mirror: boolean) => {
