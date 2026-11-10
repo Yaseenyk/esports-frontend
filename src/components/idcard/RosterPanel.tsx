@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { csvTemplate, parseRoster, toCsv } from "@/lib/idcard/roster";
-import { downloadBlob } from "@/lib/idcard/export";
+import { downloadBlob } from "@/lib/idcard/download";
 import type { Person, Team } from "@/lib/idcard/types";
 
 const uidT = () => `t${Date.now().toString(36)}${Math.floor(Math.random() * 1e3).toString(36)}`;

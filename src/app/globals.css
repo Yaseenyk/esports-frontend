@@ -84,3 +84,33 @@ html[data-overdrive] .aurora, html[data-overdrive] .hexfield { filter: hue-rotat
 /* The ID card studio is a dense tool: tighter card padding than the reading pages. */
 .studio .card { padding: 1rem; }
 .studio details > summary::-webkit-details-marker { display: none; }
+
+/* ---- Skeleton screens: transform/opacity only, so they cost almost nothing to paint ---- */
+.sk { position: relative; overflow: hidden; background: #16202b; border-radius: 0.5rem; isolation: isolate; }
+.sk::after {
+  content: ""; position: absolute; inset: 0; z-index: 1;
+  background: linear-gradient(105deg, transparent 20%, rgba(34, 211, 238, 0.2) 45%, rgba(167, 139, 250, 0.24) 55%, transparent 80%);
+  transform: translateX(-100%); animation: sk-sweep 1.7s cubic-bezier(0.4, 0, 0.2, 1) infinite; animation-delay: var(--sk-d, 0s);
+}
+.sk-line { height: 0.7rem; }
+.sk-round { border-radius: 9999px; }
+.sk-stage { position: relative; }
+.sk-stage[data-phase="hidden"] { visibility: hidden; }
+.sk-pop { animation: sk-in 0.35s ease-out both; }
+/* ID-card skeleton: a laser reads the card while its QR cells flicker into place. */
+.sk-card { position: relative; overflow: hidden; border-radius: 0.9rem; border: 1px solid rgba(255, 255, 255, 0.08); background: linear-gradient(160deg, #0f1620, #0a0f16); }
+.sk-laser { position: absolute; left: 0; right: 0; top: 0; height: 2px; z-index: 2; background: linear-gradient(90deg, transparent, #22d3ee, #a78bfa, transparent); box-shadow: 0 0 14px 2px rgba(34, 211, 238, 0.45); animation: sk-scan 2.4s ease-in-out infinite; }
+.sk-qr { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+.sk-qr i { display: block; aspect-ratio: 1; border-radius: 1px; background: rgba(34, 211, 238, 0.55); animation: sk-cell 1.6s ease-in-out infinite; animation-delay: calc(var(--i) * 0.11s); }
+.sk-qr i:nth-child(3n) { background: rgba(167, 139, 250, 0.6); }
+.sk-hex { position: absolute; width: 1.1rem; height: 1.1rem; clip-path: polygon(25% 5%, 75% 5%, 100% 50%, 75% 95%, 25% 95%, 0 50%); background: rgba(34, 211, 238, 0.5); animation: sk-pulse 1.8s ease-in-out infinite; }
+@keyframes sk-sweep { to { transform: translateX(100%); } }
+@keyframes sk-scan { 0%, 100% { transform: translateY(0); opacity: 0; } 12%, 88% { opacity: 1; } 50% { transform: translateY(var(--sk-h, 160px)); } }
+@keyframes sk-cell { 0%, 100% { opacity: 0.12; } 50% { opacity: 0.95; } }
+@keyframes sk-pulse { 0%, 100% { transform: scale(0.8); opacity: 0.35; } 50% { transform: scale(1.15); opacity: 1; } }
+@keyframes sk-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .sk::after, .sk-laser, .sk-qr i, .sk-hex, .sk-pop { animation: none; }
+  .sk::after { display: none; }
+  .sk-qr i { opacity: 0.5; }
+}

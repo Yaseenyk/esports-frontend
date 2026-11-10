@@ -1,10 +1,10 @@
 "use client";
 
 import jsQR from "jsqr";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, m as motion } from "framer-motion";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useXp } from "@/components/XpProvider";
-import { downloadBlob } from "@/lib/idcard/export";
+import { downloadBlob } from "@/lib/idcard/download";
 import { findQr } from "@/lib/idcard/qr";
 import { parsePass, verifyPass } from "@/lib/idcard/sign";
 import { ROLE_COLOURS } from "@/lib/idcard/types";

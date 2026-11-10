@@ -1,6 +1,6 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, m as motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { cardToPng, download } from "@/lib/idcard/export";
 import { FORMATS, fmtOf, type Template } from "@/lib/idcard/types";

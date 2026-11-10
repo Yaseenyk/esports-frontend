@@ -1,5 +1,7 @@
 import { toJpeg, toPng } from "html-to-image";
 import { jsPDF } from "jspdf";
+import { download, downloadBlob } from "./download";
+export { download, downloadBlob };
 import { FORMATS, type Fmt } from "./types";
 
 /** Draws one finished card (the .idcard-box element) to a sharp PNG. targetPx is the wanted width in pixels; 1100 is about 330 dpi on a wallet card. */
@@ -36,8 +38,6 @@ export async function cardToBleedJpeg(node: HTMLElement, fmt: Fmt, bleedMm: numb
   return cv.toDataURL("image/jpeg", 0.92);
 }
 
-export const download = (href: string, name: string) => { const a = document.createElement("a"); a.href = href; a.download = name; document.body.appendChild(a); a.click(); a.remove(); };
-export const downloadBlob = (blob: Blob, name: string) => { const u = URL.createObjectURL(blob); download(u, name); setTimeout(() => URL.revokeObjectURL(u), 4000); };
 
 export interface PdfCard { png: string; fmt: Fmt }
 

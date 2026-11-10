@@ -1,25 +1,31 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
+import dynamic from "next/dynamic";
+import { AnimatePresence, m as motion } from "framer-motion";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useXp } from "@/components/XpProvider";
 import { maskAadhaar, type AadhaarRead } from "@/lib/idcard/aadhaar";
 import { buildBack } from "@/lib/idcard/back";
-import { removeBackground } from "@/lib/idcard/bgremove";
-import { pdfToImages } from "@/lib/idcard/pdf";
-import { downloadBlob } from "@/lib/idcard/export";
+import { downloadBlob } from "@/lib/idcard/download";
 import { buildProject, designToJson, parseDesign, parseProject } from "@/lib/idcard/project";
 import { dominantColour, recolour } from "@/lib/idcard/recolor";
 import { findDuplicates, isMinor } from "@/lib/idcard/roster";
 import { eventKey, signPass } from "@/lib/idcard/sign";
-import { scanAadhaar, stopOcr } from "@/lib/idcard/ocr";
 import { suggest, themeById } from "@/lib/idcard/themes";
 import { DEFAULT_INFO, FORMATS, ROLES, fmtOf, prettyDate, randomPassphrase, uid, type EventInfo, type Fmt, type Person, type Role, type Team, type Template } from "@/lib/idcard/types";
 import { type Ctx } from "./CardView";
-import PrintPanel from "./PrintPanel";
-import DesignStep from "./DesignStep";
-import PeopleStep, { type Job } from "./PeopleStep";
+import type { Job } from "./PeopleStep";
 import SetupStep from "./SetupStep";
+import { StepSkeleton } from "@/components/skeleton/Scenes";
+
+// Only the first step ships with the page. The others download when a step is opened (or when the browser is idle / the button is touched), each behind a skeleton shaped like the step.
+const loadPeople = () => import("./PeopleStep");
+const loadDesign = () => import("./DesignStep");
+const loadPrint = () => import("./PrintPanel");
+const PeopleStep = dynamic(loadPeople, { loading: () => <StepSkeleton kind="people" /> });
+const DesignStep = dynamic(loadDesign, { loading: () => <StepSkeleton kind="design" /> });
+const PrintPanel = dynamic(loadPrint, { loading: () => <StepSkeleton kind="print" /> });
+const PRELOAD = [() => undefined, loadPeople, loadDesign, loadPrint];
 
 const STORE = "eh-idstudio-v3"; // designs and team names only; people and photos are never saved
 const STEPS = ["Event & teams", "People", "Design", "Print"];
@@ -59,6 +65,14 @@ async function shrink(file: File, max = 800): Promise<{ url: string; cutout: boo
 export default function IdCardStudio() {
   const { award, addXp } = useXp();
   const [step, setStep] = useState(0);
+  // Quietly fetch the next step while the person is still filling in this one, but never on a slow or data-saving connection.
+  useEffect(() => {
+    const c = (navigator as Navigator & { connection?: { saveData?: boolean; effectiveType?: string } }).connection;
+    if (c?.saveData || /^(slow-2g|2g)$/.test(c?.effectiveType ?? "")) return;
+    const next = PRELOAD[step + 1]; if (!next) return;
+    const id = window.setTimeout(() => void next(), 1200);
+    return () => window.clearTimeout(id);
+  }, [step]);
   const [event, setEvent] = useState("Monsoon Clash Season 2");
   const [game, setGame] = useState("BGMI");
   const [organiser, setOrganiser] = useState("Konkan Gamers Guild");
@@ -96,7 +110,7 @@ export default function IdCardStudio() {
       if (s) { if (s.fmt in FORMATS) setFmt(s.fmt); setEvent(s.event ?? event); setGame(s.game ?? game); setOrganiser(s.organiser ?? organiser); if (Array.isArray(s.teams) && s.teams.length) { setTeams(s.teams); setDesignTeam(s.teams[0].id); setScanTeam(s.teams[0].id); } if (s.templates) setTemplates(s.templates); if (s.info) setInfo({ ...DEFAULT_INFO, ...s.info }); }
     } catch {}
     setReady(true);
-    return () => { stopOcr(); };
+    return () => { void import("@/lib/idcard/ocr").then((m) => m.stopOcr()); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   useEffect(() => { if (ready) try { localStorage.setItem(STORE, JSON.stringify({ event, game, organiser, fmt, teams, templates, info })); } catch {} }, [ready, event, game, organiser, fmt, teams, templates, info]);
@@ -128,7 +142,9 @@ export default function IdCardStudio() {
 
   // Aadhaar scanning: strictly one at a time, in the browser. A PDF is drawn to pictures first.
   const readFile = async (f: File, upd: (p: Partial<Job>) => void, password?: string): Promise<AadhaarRead> => {
+    const { scanAadhaar } = await import("@/lib/idcard/ocr"); // OCR, QR and PDF readers load only when someone scans
     if (!(f.type === "application/pdf" || /\.pdf$/i.test(f.name))) return scanAadhaar(f, (pct) => upd({ pct: Math.round(pct * 100) }), ocrLang);
+    const { pdfToImages } = await import("@/lib/idcard/pdf");
     const res = await pdfToImages(f, password);
     if ("needPassword" in res) throw Object.assign(new Error("password"), { needPassword: true, wrong: res.wrong });
     let best: AadhaarRead = {};
@@ -165,6 +181,7 @@ export default function IdCardStudio() {
   const cutOut = async (id: string, blob: Blob) => {
     setBgBusy(id); setBgNote("Starting…");
     try {
+      const { removeBackground } = await import("@/lib/idcard/bgremove");
       const out = await removeBackground(blob, setBgNote);
       const r = await shrink(new File([out], "cutout.png", { type: "image/png" }), 900);
       setPerson(id, { photo: r.url, cutout: true });
@@ -259,7 +276,7 @@ export default function IdCardStudio() {
       <ol className="no-print mb-5 grid grid-cols-4 gap-1.5 sm:gap-2" aria-label="Steps">
         {STEPS.map((s, i) => (
           <li key={s}>
-            <button type="button" onClick={() => setStep(i)} aria-current={step === i ? "step" : undefined} aria-label={`${s}, ${stepMeta[i]}`} className={`flex w-full flex-col items-center gap-1 rounded-xl border px-1.5 py-2 text-center outline-none transition-colors focus-visible:ring-2 focus-visible:ring-cyan sm:flex-row sm:gap-3 sm:px-3 sm:text-left ${step === i ? "border-cyan/60 bg-cyan/10" : "border-white/10 hover:border-white/25"}`}>
+            <button type="button" onClick={() => setStep(i)} onPointerEnter={() => void PRELOAD[i]()} onFocus={() => void PRELOAD[i]()} onTouchStart={() => void PRELOAD[i]()} aria-current={step === i ? "step" : undefined} aria-label={`${s}, ${stepMeta[i]}`} className={`flex w-full flex-col items-center gap-1 rounded-xl border px-1.5 py-2 text-center outline-none transition-colors focus-visible:ring-2 focus-visible:ring-cyan sm:flex-row sm:gap-3 sm:px-3 sm:text-left ${step === i ? "border-cyan/60 bg-cyan/10" : "border-white/10 hover:border-white/25"}`}>
               <span className={`grid h-6 w-6 shrink-0 place-items-center rounded-full text-xs font-bold sm:h-7 sm:w-7 ${step === i ? "bg-cyan text-ink" : i < step ? "bg-emerald-500/20 text-emerald-300" : "bg-white/10 text-zinc-300"}`}>{i < step ? "✓" : i + 1}</span>
               <span className="min-w-0"><span className={`block truncate text-xs font-semibold sm:text-sm ${step === i ? "text-white" : "text-zinc-200"}`}><span className="sm:hidden">{s.split(" ")[0]}</span><span className="hidden sm:inline">{s}</span></span><span className="hidden truncate text-[11px] text-zinc-500 sm:block">{stepMeta[i]}</span></span>
             </button>

@@ -3,6 +3,7 @@ import localFont from "next/font/local";
 import "./globals.css";
 import HexField from "@/components/HexField";
 import HubNav from "@/components/HubNav";
+import MotionProvider from "@/components/MotionProvider";
 import XpProvider from "@/components/XpProvider";
 
 // Fonts are files in src/fonts (see scripts/fetch-fonts.py), so a build never needs Google.
@@ -20,6 +21,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`${body.variable} ${display.variable}`}>
       <body className="min-h-screen font-sans">
+        <MotionProvider>
         <XpProvider>
         <HexField />
         <div aria-hidden="true" className="aurora no-print" />
@@ -32,6 +34,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           Esports Hub is an independent project and is not affiliated with any game publisher. Game names and logos are trademarks of their owners and are used only to identify the games.
         </footer>
         </XpProvider>
+        </MotionProvider>
       </body>
     </html>
   );

@@ -1,6 +1,6 @@
 "use client";
 
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { AnimatePresence, m as motion, useReducedMotion } from "framer-motion";
 import { useCallback, useEffect, useId, useMemo, useRef, useState, type ReactNode } from "react";
 
 export interface Option { value: string; label: string; /** Small visual on the left, for example a game logo. */ icon?: ReactNode; /** Muted text on the right. */ hint?: string }
