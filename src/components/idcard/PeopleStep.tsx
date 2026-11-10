@@ -117,9 +117,9 @@ export default function PeopleStep(p: Props) {
           <h2 className="font-display text-lg font-bold text-white">People <span className="text-sm font-normal text-zinc-500">· {p.people.length}</span></h2>
           {needReview > 0 && <Pill tone="amber" title="Read by OCR. Open the row, check the details, then confirm.">{needReview} to check</Pill>}
           {minors > 0 && <Pill tone="red" title="Under 18 on the event date">{minors} under 18</Pill>}
-          <div className="ms-auto flex flex-wrap items-center gap-2">
-            <input type="search" className="field !min-h-10 w-44" placeholder="Search…" aria-label="Search people" value={q} onChange={(e) => setQ(e.target.value)} />
-            <div className="w-44"><Select ariaLabel="Filter by team" value={teamFilter} onChange={setTeamFilter} options={[{ value: "all", label: "All teams" }, ...p.teamOpts]} searchable={false} /></div>
+          <div className="ms-auto grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:flex-wrap sm:items-center">
+            <input type="search" className="field !min-h-10 w-full sm:w-44" placeholder="Search…" aria-label="Search people" value={q} onChange={(e) => setQ(e.target.value)} />
+            <div className="w-full sm:w-44"><Select ariaLabel="Filter by team" value={teamFilter} onChange={setTeamFilter} options={[{ value: "all", label: "All teams" }, ...p.teamOpts]} searchable={false} /></div>
           </div>
         </div>
         {p.bgNote && <p className="border-b border-white/10 px-4 py-2 text-xs text-zinc-400" role="status">{p.bgNote}{p.bgBusy ? " (the first time downloads a small model, then it works offline)" : ""}</p>}
@@ -145,6 +145,13 @@ export default function PeopleStep(p: Props) {
                   <button type="button" aria-expanded={isOpen} aria-label={isOpen ? `Close details for ${x.name || "person"}` : `Open details for ${x.name || "person"}`} title="Birth date, ID, zones, photo and more" onClick={() => setOpen(isOpen ? null : x.id)} className="grid h-10 w-10 place-items-center rounded-lg border border-white/10 text-zinc-300 transition-colors hover:border-white/30">
                     <svg aria-hidden="true" viewBox="0 0 24 24" className={`h-4 w-4 fill-none stroke-current transition-transform ${isOpen ? "rotate-180" : ""}`} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9l6 6 6-6" /></svg>
                   </button>
+                </div>
+                <div className="flex flex-wrap items-center gap-1.5 px-3 pb-2 pl-[3.75rem] md:hidden">
+                  <span className="text-xs text-zinc-400">{p.teams.find((t) => t.id === p.valid(x.teamId))?.name} · {x.role}</span>
+                  {x.review && <button type="button" className="rounded-full bg-amber-400 px-2.5 py-0.5 text-[11px] font-bold text-ink" onClick={() => p.setPerson(x.id, { review: false })}>Confirm</button>}
+                  {minor && <Pill tone={x.guardian ? "green" : "red"}>{x.guardian ? "Under 18 ✓" : "Under 18"}</Pill>}
+                  {dup && <Pill tone="amber">Duplicate?</Pill>}
+                  {!x.photo && <Pill tone="grey">No photo</Pill>}
                 </div>
 
                 {isOpen && (

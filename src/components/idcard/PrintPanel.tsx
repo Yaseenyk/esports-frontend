@@ -80,7 +80,7 @@ export default function PrintPanel({ people, allPeople, teams, teamOpts, printTe
     return (
       <div key={`${face}-${p.id}-${p.teamId}`} data-pid={p.id} data-face={face} data-fmt={fmt} className="idcard-wrap group relative w-full">
         <CardView tpl={tpl} ctx={ctxFor(p)} side={face} className="shadow-xl shadow-black/50" />
-        <div className="no-print absolute inset-x-2 bottom-2 flex justify-center gap-1.5 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
+        <div className="no-print absolute inset-x-2 bottom-2 flex justify-center gap-1.5 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100 [@media(hover:none)]:opacity-100">
           <button type="button" className="rounded-full bg-black/75 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur hover:bg-black" onClick={() => setView(p)}>View</button>
           <button type="button" className="rounded-full bg-black/75 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur hover:bg-black" onClick={() => png(p, face)}>PNG</button>
         </div>
@@ -104,7 +104,7 @@ export default function PrintPanel({ people, allPeople, teams, teamOpts, printTe
           <button type="button" className="btn-ghost" onClick={pack}>Check-in pack for the gate</button>
         </div>
         {status && <p className="text-sm text-zinc-300" role="status">{status}</p>}
-        <p className="text-xs text-zinc-500">The PDF puts every card at its real size on A4 pages. Backs go on their own pages, mirrored so a double-sided print lines up. Hover a card to view it in your hand or save it as a PNG. In the print window, turn on background graphics if your browser asks.</p>
+        <p className="text-xs text-zinc-500">The PDF puts every card at its real size on A4 pages. Backs go on their own pages, mirrored so a double-sided print lines up. Hover or tap a card to view it in your hand or save it as a PNG. In the print window, turn on background graphics if your browser asks.</p>
 
         {(unconsented.length > 0 || dupCount > 0 || needReview > 0 || noPhoto > 0) && (
           <ul className="space-y-1.5 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-100" aria-label="Things to check before printing">

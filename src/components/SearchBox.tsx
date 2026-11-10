@@ -13,7 +13,7 @@ const KIND_STYLE: Record<Hit["kind"], string> = {
 };
 
 /** One box that searches games, events, communities, guides and tools. Press / to focus it from anywhere. */
-export default function SearchBox({ large = false, placeholder = "Search games, events, communities, tools…" }: { large?: boolean; placeholder?: string }) {
+export default function SearchBox({ large = false, placeholder = "Search games, events…" }: { large?: boolean; placeholder?: string }) {
   const [q, setQ] = useState("");
   const [open, setOpen] = useState(false);
   const [i, setI] = useState(0);

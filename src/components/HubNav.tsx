@@ -135,21 +135,14 @@ export default function HubNav() {
             <span className="font-display text-xs font-bold text-white">LV {xp.level}</span>
             <span aria-hidden="true" className="hidden h-1.5 w-10 overflow-hidden rounded-full bg-white/10 min-[420px]:block"><span className="block h-full rounded-full bg-gradient-to-r from-cyan to-purple transition-[width] duration-700" style={{ width: `${Math.min(100, (xp.into / xp.span) * 100)}%` }} /></span>
           </Link>
-          <Link href="/tools/id-cards/" className="flex h-11 items-center rounded-full bg-cyan px-4 text-sm font-semibold text-ink outline-none transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-white/70">
+          <button type="button" onClick={(e) => show(e.currentTarget)} aria-haspopup="dialog" className="flex h-11 items-center gap-2 rounded-full bg-cyan px-4 text-sm font-semibold text-ink outline-none transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-white/70 sm:hidden">
+            <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4 fill-none stroke-current" strokeWidth="2.4" strokeLinecap="round"><path d="M4 7h16M4 12h16M4 17h16" /></svg>Menu
+          </button>
+          <Link href="/tools/id-cards/" className="hidden h-11 items-center rounded-full bg-cyan px-4 text-sm font-semibold text-ink outline-none transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-white/70">
             ID cards
           </Link>
         </motion.nav>
       </div>
-
-      {/* Phones: a hex button within thumb reach. */}
-      <motion.button type="button" onClick={(e) => show(e.currentTarget)} aria-label="Open the hub menu" aria-haspopup="dialog"
-        initial={reduce ? false : { scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring", delay: 0.5, stiffness: 260, damping: 18 }}
-        className="no-print fixed bottom-5 left-1/2 z-40 -ml-8 grid h-16 w-16 place-items-center sm:hidden">
-        <span aria-hidden="true" className="absolute inset-0 animate-ping rounded-full bg-cyan/20 [animation-duration:2.6s]" />
-        <span aria-hidden="true" className="absolute inset-0 bg-gradient-to-br from-cyan to-purple" style={{ clipPath: HEX }} />
-        <span aria-hidden="true" className="absolute inset-[3px] bg-ink" style={{ clipPath: HEX }} />
-        <Mark className="relative h-9 w-9" />
-      </motion.button>
 
       <AnimatePresence>
         {open && (
@@ -159,7 +152,7 @@ export default function HubNav() {
             <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
               <div className="absolute left-1/2 top-1/2 h-[42rem] w-[42rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-gradient-to-br from-cyan/15 to-purple/15 blur-3xl" />
             </div>
-            <div className="relative mx-auto flex min-h-full max-w-3xl flex-col items-center px-4 pb-10 pt-6 sm:justify-center" onClick={(e) => { if (e.target === e.currentTarget) hide(); }}>
+            <div className="relative mx-auto flex min-h-full max-w-3xl flex-col items-center justify-center px-4 pb-10 pt-20 sm:pt-6" onClick={(e) => { if (e.target === e.currentTarget) hide(); }}>
               <button type="button" onClick={hide} aria-label="Close menu" className="absolute right-4 top-4 grid h-11 w-11 place-items-center rounded-full border border-white/10 bg-white/5 text-zinc-200 outline-none transition-colors hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-cyan/60">
                 <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5 fill-none stroke-current" strokeWidth="2" strokeLinecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg>
               </button>
@@ -172,7 +165,7 @@ export default function HubNav() {
                 <Comb pattern={[2, 3, 2]} className="sm:hidden" current={current?.href} reduce={!!reduce} />
                 <Comb pattern={[3, 4]} className="hidden sm:block" current={current?.href} reduce={!!reduce} />
               </div>
-              <p className="mt-6 text-center text-xs text-zinc-500">Press <kbd className="rounded border border-white/15 px-1.5">1</kbd>–<kbd className="rounded border border-white/15 px-1.5">7</kbd> to jump, <kbd className="rounded border border-white/15 px-1.5">Esc</kbd> to close</p>
+              <p className="mt-6 hidden text-center text-xs text-zinc-500 sm:block">Press <kbd className="rounded border border-white/15 px-1.5">1</kbd>–<kbd className="rounded border border-white/15 px-1.5">7</kbd> to jump, <kbd className="rounded border border-white/15 px-1.5">Esc</kbd> to close</p>
             </div>
           </motion.div>
         )}
