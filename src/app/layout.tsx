@@ -12,7 +12,7 @@ const display = Space_Grotesk({ subsets: ["latin"], variable: "--font-display", 
 
 export const metadata: Metadata = {
   title: { default: "Esports Hub (interface prototype)", template: "%s · Esports Hub" },
-  description: "One place for esports communities that run several games: find games and events, and use organiser tools such as player ID cards.",
+  description: "One place for gaming and esports communities that run several games: find games and events, and use organiser tools such as player ID cards.",
   robots: { index: false, follow: false }, // sample data only: not indexed until it carries real content
 };
 export const viewport: Viewport = { themeColor: "#05070A", width: "device-width", initialScale: 1 };

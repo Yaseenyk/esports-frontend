@@ -7,7 +7,7 @@ export interface Game {
   slug: string;
   name: string;
   short: string;
-  platform: "Mobile" | "PC" | "Console";
+  platform: "Mobile" | "PC" | "Console" | "Cross-platform";
   genre: string;
   /** Usual team size in organised play. */
   team: string;
@@ -16,7 +16,7 @@ export interface Game {
   blurb: string;
 }
 /** Games whose official store icon is in public/games/<slug>.png. Drop a file there and add the slug to use another. */
-export const LOGOS = new Set(["bgmi", "free-fire-max", "valorant", "cs2", "cod-mobile", "mobile-legends", "dota-2", "ea-fc", "clash-royale", "fortnite"]);
+export const LOGOS = new Set(["bgmi", "free-fire-max", "valorant", "cs2", "cod-mobile", "mobile-legends", "dota-2", "ea-fc", "clash-royale", "fortnite", "minecraft", "roblox", "gta-v", "among-us", "fall-guys", "apex-legends", "pubg", "overwatch-2", "rainbow-six-siege", "rocket-league", "tekken-8", "street-fighter-6", "brawl-stars", "clash-of-clans", "pokemon-unite", "genshin-impact", "wild-rift", "chess"]);
 export const GAMES: Game[] = [
   { slug: "bgmi", name: "Battlegrounds Mobile India", short: "BGMI", platform: "Mobile", genre: "Battle royale", team: "Squads of 4", hue: "from-amber-400 to-orange-600", blurb: "Squad battle royale on phones. The biggest grassroots circuit for mobile in India." },
   { slug: "free-fire-max", name: "Free Fire MAX", short: "FF MAX", platform: "Mobile", genre: "Battle royale", team: "Squads of 4", hue: "from-rose-400 to-red-600", blurb: "Fast battle royale that runs on modest phones, with a large community-run scene." },
@@ -25,9 +25,27 @@ export const GAMES: Game[] = [
   { slug: "cod-mobile", name: "Call of Duty: Mobile", short: "CODM", platform: "Mobile", genre: "Shooter", team: "5 v 5", hue: "from-lime-400 to-green-600", blurb: "Console-style shooter on mobile, with ranked and tournament play." },
   { slug: "mobile-legends", name: "Mobile Legends: Bang Bang", short: "MLBB", platform: "Mobile", genre: "MOBA", team: "5 v 5", hue: "from-violet-400 to-purple-600", blurb: "Mobile MOBA with a big organised-play scene across South and South-East Asia." },
   { slug: "dota-2", name: "Dota 2", short: "DOTA", platform: "PC", genre: "MOBA", team: "5 v 5", hue: "from-red-500 to-rose-700", blurb: "Deep PC MOBA with long-standing open qualifiers and community leagues." },
-  { slug: "ea-fc", name: "EA Sports FC", short: "FC", platform: "Console", genre: "Sports", team: "1 v 1", hue: "from-emerald-400 to-teal-600", blurb: "Football on console and PC. Knockout brackets suit one-day college events." },
+  { slug: "ea-fc", name: "EA Sports FC", short: "FC", platform: "Cross-platform", genre: "Sports", team: "1 v 1", hue: "from-emerald-400 to-teal-600", blurb: "Football on console and PC. Knockout brackets suit one-day college events." },
   { slug: "clash-royale", name: "Clash Royale", short: "CR", platform: "Mobile", genre: "Strategy", team: "1 v 1", hue: "from-cyan-400 to-indigo-600", blurb: "Quick one-on-one card battles: easy to run as an open bracket." },
-  { slug: "fortnite", name: "Fortnite", short: "FN", platform: "Console", genre: "Battle royale", team: "Solo, duos or trios", hue: "from-fuchsia-400 to-violet-600", blurb: "Battle royale with creative modes that communities use for custom events." },
+  { slug: "fortnite", name: "Fortnite", short: "FN", platform: "Cross-platform", genre: "Battle royale", team: "Solo, duos or trios", hue: "from-fuchsia-400 to-violet-600", blurb: "Battle royale with creative modes that communities use for custom events." },
+  { slug: "minecraft", name: "Minecraft", short: "Minecraft", platform: "Cross-platform", genre: "Sandbox", team: "Any size", hue: "from-green-400 to-emerald-700", blurb: "Build, survive and compete on servers. Communities run build battles, survival games and mini-game nights." },
+  { slug: "roblox", name: "Roblox", short: "Roblox", platform: "Cross-platform", genre: "Sandbox", team: "Any size", hue: "from-sky-400 to-blue-700", blurb: "Millions of player-made games in one app, popular for community events and creator showcases." },
+  { slug: "gta-v", name: "Grand Theft Auto V", short: "GTA V", platform: "PC", genre: "Open world", team: "Crews of any size", hue: "from-lime-400 to-green-700", blurb: "Open-world game with large roleplay and racing communities that run organised sessions." },
+  { slug: "among-us", name: "Among Us", short: "AMONG", platform: "Cross-platform", genre: "Party", team: "4 to 15 players", hue: "from-red-400 to-rose-700", blurb: "Social deduction party game, easy to run as a fun community night or fest side event." },
+  { slug: "fall-guys", name: "Fall Guys", short: "FALL", platform: "Cross-platform", genre: "Party", team: "Solo or squads", hue: "from-pink-400 to-fuchsia-600", blurb: "Colourful party battle royale that works well for relaxed creator and community events." },
+  { slug: "apex-legends", name: "Apex Legends", short: "APEX", platform: "Cross-platform", genre: "Battle royale", team: "Trios", hue: "from-red-500 to-orange-600", blurb: "Fast hero battle royale played in trios, with an active competitive scene." },
+  { slug: "pubg", name: "PUBG: Battlegrounds", short: "PUBG", platform: "PC", genre: "Battle royale", team: "Squads of 4", hue: "from-amber-500 to-yellow-700", blurb: "The original PC battle royale, with squad and solo custom lobbies for events." },
+  { slug: "overwatch-2", name: "Overwatch 2", short: "OW2", platform: "Cross-platform", genre: "Hero shooter", team: "5 v 5", hue: "from-orange-400 to-amber-600", blurb: "Team hero shooter with organised open cups and community leagues." },
+  { slug: "rainbow-six-siege", name: "Rainbow Six Siege", short: "R6", platform: "Cross-platform", genre: "Tactical shooter", team: "5 v 5", hue: "from-yellow-400 to-amber-700", blurb: "Tactical attacker-versus-defender shooter with a long-running competitive scene." },
+  { slug: "rocket-league", name: "Rocket League", short: "RL", platform: "Cross-platform", genre: "Sports", team: "3 v 3", hue: "from-blue-400 to-indigo-600", blurb: "Rocket-powered football: quick matches that suit knockout brackets." },
+  { slug: "tekken-8", name: "Tekken 8", short: "TK8", platform: "Console", genre: "Fighting", team: "1 v 1", hue: "from-red-600 to-zinc-800", blurb: "3D fighting game: brackets and side events at community meetups." },
+  { slug: "street-fighter-6", name: "Street Fighter 6", short: "SF6", platform: "Cross-platform", genre: "Fighting", team: "1 v 1", hue: "from-orange-500 to-red-700", blurb: "Classic fighting game with a big community of local weekly events." },
+  { slug: "brawl-stars", name: "Brawl Stars", short: "BRAWL", platform: "Mobile", genre: "Brawler", team: "3 v 3", hue: "from-yellow-300 to-orange-500", blurb: "Fast 3v3 brawler on phones, popular in school and college events." },
+  { slug: "clash-of-clans", name: "Clash of Clans", short: "COC", platform: "Mobile", genre: "Strategy", team: "Clans of up to 50", hue: "from-amber-400 to-yellow-700", blurb: "Clan-based village strategy game with clan wars and friendly community matches." },
+  { slug: "pokemon-unite", name: "Pokémon UNITE", short: "UNITE", platform: "Mobile", genre: "MOBA", team: "5 v 5", hue: "from-yellow-300 to-purple-600", blurb: "Team battle game with Pokémon, with an organised scene on mobile and Switch." },
+  { slug: "genshin-impact", name: "Genshin Impact", short: "GI", platform: "Cross-platform", genre: "Action RPG", team: "Co-op, up to 4", hue: "from-sky-300 to-indigo-500", blurb: "Open-world action RPG with large fan communities and creator events." },
+  { slug: "wild-rift", name: "League of Legends: Wild Rift", short: "WR", platform: "Mobile", genre: "MOBA", team: "5 v 5", hue: "from-cyan-400 to-blue-700", blurb: "Mobile version of the LoL-style MOBA with growing organised play." },
+  { slug: "chess", name: "Chess", short: "CHESS", platform: "Cross-platform", genre: "Board", team: "1 v 1", hue: "from-lime-500 to-green-800", blurb: "Online chess: the easiest game to run as an open knockout for any community." },
 ];
 
 export interface EventItem {

@@ -28,7 +28,7 @@ export default function Home() {
             Run every game, every event, <span className="text-sheen">one hub</span>
           </h1>
           <p className="mt-6 max-w-xl text-lg leading-relaxed text-zinc-400">
-            Esports communities play several games and run several events. Search them all, manage teams together and print the passes on the day.
+            Gaming communities play several games, from BGMI and Valorant to Minecraft and Roblox, and run several events. Search them all, manage teams together and print the passes on the day.
           </p>
           <div className="mt-8 max-w-xl"><SearchBox large /></div>
           <div className="mt-6 flex flex-wrap gap-3">
@@ -80,7 +80,7 @@ export default function Home() {
       <section aria-labelledby="games">
         <Reveal className="mb-6 flex items-end justify-between"><h2 id="games" className="text-3xl font-bold text-white">Browse by game</h2><Link href="/games/" className="text-sm font-medium text-cyan hover:underline">All games →</Link></Reveal>
         <Stagger className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5" step={0.04}>
-          {GAMES.map((g) => (
+          {GAMES.slice(0, 15).map((g) => (
             <Item key={g.slug}>
               <Link href={`/games/${g.slug}/`} className="card flex items-center gap-3 !p-3">
                 <GameBadge game={g} />
