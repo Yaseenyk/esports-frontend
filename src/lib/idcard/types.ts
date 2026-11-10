@@ -14,10 +14,17 @@ export const FIELDS = {
   dob: "Date of birth",
   gender: "Gender",
   aadhaar: "Aadhaar (last 4 only)",
+  zones: "Access zones",
+  flag: "Minor flag",
+  organiser: "Organiser",
+  date: "Event date",
+  venue: "Venue",
+  emergency: "Emergency contact",
+  rules: "Rules (one per line)",
 } as const;
 export type Field = keyof typeof FIELDS;
 
-export const ROLES = ["Player", "Substitute", "Coach", "Manager", "Staff", "Guest", "Caster"] as const;
+export const ROLES = ["Player", "Substitute", "Coach", "Manager", "Staff", "Guest", "Caster", "Media", "VIP", "Organiser", "Volunteer"] as const;
 export type Role = (typeof ROLES)[number];
 
 export type Kind = "text" | "field" | "photo" | "rect" | "ellipse" | "image" | "qr";
@@ -63,6 +70,12 @@ export interface El {
   sticker?: string;
   /** photo cut-out: soft drop shadow */
   shadow?: boolean;
+  /** image: show the team's logo or the event sponsor's logo instead of a fixed picture */
+  bind?: "team" | "sponsor";
+  /** shapes and text boxes: take the colour of the person's role */
+  roleColor?: boolean;
+  /** text: show each line of a multi-line value on its own line */
+  lines?: boolean;
   /** photo cut-out with a normal (not transparent) photo: set false to show it as a plain rounded picture instead of fading at the bottom */
   fade?: boolean;
 }
@@ -79,9 +92,17 @@ export interface Template {
   theme?: string;
   bg: { a: string; b: string; angle: number; pattern?: Pattern };
   els: El[];
+  /** The other side of the card, for double-sided printing. */
+  back?: { bg: { a: string; b: string; angle: number; pattern?: Pattern }; els: El[] };
 }
 
-export interface Team { id: string; name: string }
+/** One colour per role, so a guard can tell a Player from Media or a VIP from across the room. */
+export const ROLE_COLOURS: Record<(typeof ROLES)[number], string> = {
+  Player: "#22d3ee", Substitute: "#38bdf8", Coach: "#a855f7", Manager: "#f59e0b", Staff: "#f472b6", Guest: "#a1a1aa",
+  Caster: "#34d399", Media: "#f97316", VIP: "#eab308", Organiser: "#ef4444", Volunteer: "#84cc16",
+};
+
+export interface Team { id: string; name: string; /** A logo the card designs can show. */ logo?: string }
 export interface Person {
   id: string;
   name: string;
@@ -98,6 +119,10 @@ export interface Person {
   source?: "qr" | "ocr";
   /** The photo is a cut-out with a transparent background. */
   cutout?: boolean;
+  /** Access zones, for example "Main hall, Backstage". */
+  zones?: string;
+  /** A parent or guardian has agreed to a minor taking part. */
+  guardian?: boolean;
 }
 
 /** k is the typical width of a letter as a share of the font size, so text can be shrunk to fit its box. */
@@ -130,3 +155,20 @@ export const FORMATS = {
 } as const;
 export type Fmt = keyof typeof FORMATS;
 export const fmtOf = (t: { fmt?: Fmt }): Fmt => t.fmt ?? "wallet";
+
+/** Event details used by the back of the card, the age check and signed passes. Kept in this browser only. */
+export interface EventInfo {
+  date: string; // yyyy-mm-dd
+  venue: string;
+  emergency: string;
+  rules: string; // one rule per line
+  sign: boolean;
+  passphrase: string;
+  sponsorLogo?: string;
+}
+export const randomPassphrase = () => Array.from(crypto.getRandomValues(new Uint8Array(10)), (b) => b.toString(16).padStart(2, "0")).join("");
+export const DEFAULT_INFO: EventInfo = {
+  date: "2026-12-12", venue: "Online, custom rooms", emergency: "Organiser desk: +91 00000 00000",
+  rules: "Carry or wear this card at all times\nPasses cannot be shared or copied\nFollow the organisers' instructions", sign: true, passphrase: "",
+};
+export const prettyDate = (iso: string) => { const d = new Date(iso + "T00:00:00"); return Number.isNaN(d.getTime()) ? iso : d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }); };

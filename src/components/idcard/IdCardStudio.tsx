@@ -5,15 +5,24 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import GameBadge from "@/components/GameBadge";
 import Select from "@/components/Select";
 import { useXp } from "@/components/XpProvider";
-import { maskAadhaar } from "@/lib/idcard/aadhaar";
+import { maskAadhaar, type AadhaarRead } from "@/lib/idcard/aadhaar";
+import { buildBack } from "@/lib/idcard/back";
+import { removeBackground } from "@/lib/idcard/bgremove";
+import { pdfToImages } from "@/lib/idcard/pdf";
+import { dominantColour, recolour } from "@/lib/idcard/recolor";
+import { findDuplicates, isMinor } from "@/lib/idcard/roster";
+import { eventKey, signPass } from "@/lib/idcard/sign";
 import { scanAadhaar, stopOcr } from "@/lib/idcard/ocr";
 import { posterFmt, suggest, themeById, THEMES, VIBES, type ThemeEntry } from "@/lib/idcard/themes";
-import { FORMATS, ROLES, fmtOf, type Fmt, type Person, type Role, type Team, type Template } from "@/lib/idcard/types";
+import { DEFAULT_INFO, FORMATS, ROLES, fmtOf, prettyDate, randomPassphrase, uid, type EventInfo, type Fmt, type Person, type Role, type Team, type Template } from "@/lib/idcard/types";
 import { GAMES } from "@/lib/data";
 import CardView, { type Ctx } from "./CardView";
 import Editor from "./Editor";
+import PrintPanel from "./PrintPanel";
+import RosterPanel from "./RosterPanel";
+import SetupExtras, { TeamLogoButton } from "./SetupExtras";
 
-const STORE = "eh-idstudio-v2"; // designs and team names only; people and photos are never saved
+const STORE = "eh-idstudio-v3"; // designs and team names only; people and photos are never saved
 const STEPS = ["Event & teams", "People", "Design", "Print"];
 const SAMPLE_TEAMS: Team[] = [{ id: "t1", name: "Konkan Kings" }, { id: "t2", name: "Deadly Duos" }, { id: "t3", name: "Pune Phantoms" }];
 /** Demo roster: invented names, dates and card numbers. */
@@ -74,6 +83,14 @@ export default function IdCardStudio() {
   const [scanTeam, setScanTeam] = useState("t1");
   const [jobs, setJobs] = useState<Job[]>([]);
   const [ready, setReady] = useState(false);
+  const [info, setInfo] = useState<EventInfo>(DEFAULT_INFO);
+  const [qrMap, setQrMap] = useState<Record<string, string>>({});
+  const [side, setSide] = useState<"front" | "back">("front");
+  const [pdfAsk, setPdfAsk] = useState<{ file: File; wrong: boolean } | null>(null);
+  const [pdfPass, setPdfPass] = useState("");
+  const [bgBusy, setBgBusy] = useState<string | null>(null);
+  const [bgNote, setBgNote] = useState<string | null>(null);
+  const [autoBg, setAutoBg] = useState(false);
   const jobKey = useRef(0);
   const peopleRef = useRef(people); peopleRef.current = people;
   // A saved or removed team can leave a stale id behind; fall back to the first team so no dropdown is ever empty.
@@ -83,26 +100,54 @@ export default function IdCardStudio() {
   useEffect(() => {
     try {
       const s = JSON.parse(localStorage.getItem(STORE) || "null");
-      if (s) { if (s.fmt in FORMATS) setFmt(s.fmt); setEvent(s.event ?? event); setGame(s.game ?? game); setOrganiser(s.organiser ?? organiser); if (Array.isArray(s.teams) && s.teams.length) { setTeams(s.teams); setDesignTeam(s.teams[0].id); setScanTeam(s.teams[0].id); } if (s.templates) setTemplates(s.templates); }
+      if (s) { if (s.fmt in FORMATS) setFmt(s.fmt); setEvent(s.event ?? event); setGame(s.game ?? game); setOrganiser(s.organiser ?? organiser); if (Array.isArray(s.teams) && s.teams.length) { setTeams(s.teams); setDesignTeam(s.teams[0].id); setScanTeam(s.teams[0].id); } if (s.templates) setTemplates(s.templates); if (s.info) setInfo({ ...DEFAULT_INFO, ...s.info }); }
     } catch {}
     setReady(true);
     return () => { stopOcr(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  useEffect(() => { if (ready) try { localStorage.setItem(STORE, JSON.stringify({ event, game, organiser, fmt, teams, templates })); } catch {} }, [ready, event, game, organiser, fmt, teams, templates]);
+  useEffect(() => { if (ready) try { localStorage.setItem(STORE, JSON.stringify({ event, game, organiser, fmt, teams, templates, info })); } catch {} }, [ready, event, game, organiser, fmt, teams, templates, info]);
+  // Signed passes need a passphrase; make one the first time.
+  useEffect(() => { if (ready && info.sign && !info.passphrase) setInfo((i) => ({ ...i, passphrase: randomPassphrase() })); }, [ready, info.sign, info.passphrase]);
 
   // Every team always has a design: new teams get a theme chosen from their name.
-  const tplFor = useCallback((t: Team): Template => templates[t.id] ?? { ...themeById(suggest(null, t.name, fmt))!.make(fmt), id: t.id }, [templates, fmt]);
+  const withBack = (t: Template): Template => (t.back || fmtOf(t) === "strip" ? t : { ...t, back: buildBack(t) });
+  const tplFor = useCallback((t: Team): Template => templates[t.id] ?? withBack({ ...themeById(suggest(null, t.name, fmt))!.make(fmt), id: t.id }), [templates, fmt]); // eslint-disable-line react-hooks/exhaustive-deps
   const teamById = (id: string) => teams.find((t) => t.id === id) ?? teams[0];
   const gameObj = GAMES.find((g) => g.short === game);
 
-  const ctxFor = (p: Person): Ctx => ({ event, game, teamName: teamById(p.teamId)?.name ?? "", person: p });
+  const eventDay = useMemo(() => { const d = new Date(info.date + "T00:00:00"); return Number.isNaN(d.getTime()) ? new Date() : d; }, [info.date]);
+  const minorOf = useCallback((p: Person) => isMinor(p.dob, eventDay), [eventDay]);
+  const duplicates = useMemo(() => findDuplicates(people), [people]);
+  const ctxFor = (p: Person): Ctx => ({ event, game, teamName: teamById(p.teamId)?.name ?? "", person: p, info: { organiser, date: prettyDate(info.date), venue: info.venue, emergency: info.emergency, rules: info.rules }, teamLogo: teamById(p.teamId)?.logo, sponsorLogo: info.sponsorLogo, qr: qrMap[p.id], minor: minorOf(p) });
+  useEffect(() => {
+    let off = false;
+    (async () => {
+      if (!info.sign || !info.passphrase) { setQrMap({}); return; }
+      const ek = eventKey(event), m: Record<string, string> = {};
+      for (const p of people) m[p.id] = await signPass(info.passphrase, ek, p.id, p.role);
+      if (!off) setQrMap(m);
+    })();
+    return () => { off = true; };
+  }, [people, event, info.sign, info.passphrase]);
   const nextId = (teamId: string, extra = 0) => `${prefix(teamById(teamId)?.name ?? "")}-${String(peopleRef.current.filter((p) => p.teamId === teamId).length + 1 + extra).padStart(3, "0")}`;
   const setPerson = (id: string, patch: Partial<Person>) => setPeople((l) => l.map((p) => (p.id === id ? { ...p, ...patch } : p)));
   const addPerson = (teamId = teams[0].id, o: Partial<Person> = {}) => setPeople((l) => [...l, { id: nextId(teamId), name: "", teamId, role: "Player", ...o }]);
 
-  // Aadhaar scanning: strictly one at a time, in the browser.
-  const scan = async (files: FileList | File[] | null) => {
+  // Aadhaar scanning: strictly one at a time, in the browser. A PDF is drawn to pictures first.
+  const readFile = async (f: File, upd: (p: Partial<Job>) => void, password?: string): Promise<AadhaarRead> => {
+    if (!(f.type === "application/pdf" || /\.pdf$/i.test(f.name))) return scanAadhaar(f, (pct) => upd({ pct: Math.round(pct * 100) }));
+    const res = await pdfToImages(f, password);
+    if ("needPassword" in res) throw Object.assign(new Error("password"), { needPassword: true, wrong: res.wrong });
+    let best: AadhaarRead = {};
+    for (const [i, img] of res.images.entries()) {
+      const r = await scanAadhaar(new File([img], `${f.name}-page${i + 1}.png`, { type: "image/png" }), (pct) => upd({ pct: Math.round(pct * 100) }));
+      if (r.name) return r;
+      if (!best.name && (r.dob || r.last4)) best = r;
+    }
+    return best;
+  };
+  const scan = async (files: FileList | File[] | null, password?: string) => {
     if (!files || !consent) return;
     const target = valid(scanTeam);
     const list = Array.from(files as ArrayLike<File>).map((f) => ({ f, key: ++jobKey.current }));
@@ -111,25 +156,65 @@ export default function IdCardStudio() {
       const upd = (p: Partial<Job>) => setJobs((j) => j.map((x) => (x.key === key ? { ...x, ...p } : x)));
       upd({ state: "reading" });
       try {
-        const r = await scanAadhaar(f, (pct) => upd({ pct: Math.round(pct * 100) }));
+        const r = await readFile(f, upd, password);
         if (!r.name && !r.dob && !r.last4) { upd({ state: "error", note: "Could not read this card. Try a sharper, straight-on photo." }); continue; }
         setPeople((l) => [...l, { id: nextId(target, l.filter((p) => p.teamId === target).length - peopleRef.current.filter((p) => p.teamId === target).length), name: r.name ?? "", teamId: target, role: "Player", dob: r.dob ?? (r.yob ? `Year ${r.yob}` : undefined), gender: r.gender, last4: r.last4, source: r.source, review: r.source !== "qr" }]);
         upd({ state: "done", pct: 100, note: r.source === "qr" ? "Read from the QR code: exact." : "Read by OCR: please check the details." });
+        setPdfAsk(null); setPdfPass("");
         addXp(5, r.source === "qr" ? "Card read from QR" : "Card read");
-      } catch (e) { upd({ state: "error", note: "Reading failed. Check your connection for the first scan, then try again." }); }
+      } catch (e) {
+        const err = e as { needPassword?: boolean; wrong?: boolean };
+        if (err?.needPassword) { upd({ state: "error", note: err.wrong ? "That password did not open the PDF." : "This PDF is protected. Enter its password below." }); setPdfAsk({ file: f, wrong: !!err.wrong }); }
+        else upd({ state: "error", note: "Reading failed. Check your connection for the first scan, then try again." });
+      }
     }
   };
   const trySample = async (file: string) => { const r = await fetch(`/samples/sample-card-${file}.png`); const b = await r.blob(); await scan([new File([b], `sample-card-${file}.png`, { type: "image/png" })]); };
-  const photo = async (id: string, f?: File) => { if (!f) return; const r = await shrink(f); setPerson(id, { photo: r.url, cutout: r.cutout }); };
+  const cutOut = async (id: string, blob: Blob) => {
+    setBgBusy(id); setBgNote("Starting…");
+    try {
+      const out = await removeBackground(blob, setBgNote);
+      const r = await shrink(new File([out], "cutout.png", { type: "image/png" }), 900);
+      setPerson(id, { photo: r.url, cutout: true });
+      setBgNote("Background removed.");
+    } catch { setBgNote("Could not remove the background here. Upload a transparent PNG instead."); }
+    finally { setBgBusy(null); }
+  };
+  const photo = async (id: string, f?: File) => {
+    if (!f) return;
+    const r = await shrink(f); setPerson(id, { photo: r.url, cutout: r.cutout });
+    if (autoBg && !r.cutout) await cutOut(id, f);
+  };
+  const cutOutExisting = async (p: Person) => { if (!p.photo) return; const blob = await (await fetch(p.photo)).blob(); await cutOut(p.id, blob); };
 
   const printable = useMemo(() => people.filter((p) => printTeam === "all" || p.teamId === printTeam), [people, printTeam]);
   const teamOpts = teams.map((t) => ({ value: t.id, label: t.name || "Untitled team" }));
   const dTeam = teamById(valid(designTeam));
+  useEffect(() => { setSide("front"); }, [designTeam]);
   const teamPeople = people.filter((p) => p.teamId === dTeam?.id);
   const sample: Person = teamPeople.find((p) => p.id === previewId) ?? teamPeople[0] ?? { id: "ID-001", name: "Player Name", teamId: dTeam?.id ?? "", role: "Player" };
   const needReview = people.filter((p) => p.review).length;
 
-  const applyTheme = (themeId: string, teamIds: string[]) => setTemplates((t) => { const n = { ...t }; for (const id of teamIds) { const cur = n[id] ?? tplFor(teamById(id)); n[id] = { ...themeById(themeId)!.make(fmtOf(cur)), id }; } return n; });
+  const applyTheme = (themeId: string, teamIds: string[]) => setTemplates((t) => { const n = { ...t }; for (const id of teamIds) { const cur = n[id] ?? tplFor(teamById(id)); n[id] = withBack({ ...themeById(themeId)!.make(fmtOf(cur)), id }); } return n; });
+
+  const curTpl = dTeam ? tplFor(dTeam) : (undefined as unknown as Template);
+  const editView: Template = side === "back" && curTpl?.back ? { ...curTpl, id: `${curTpl.id}:back`, bg: curTpl.back.bg, els: curTpl.back.els, back: undefined } : curTpl;
+  const onEdit = (t: Template) => setTemplates((s) => {
+    const base = s[dTeam.id] ?? tplFor(dTeam);
+    return { ...s, [dTeam.id]: side === "back" && base.back ? { ...base, back: { bg: t.bg, els: t.els } } : { ...t, id: dTeam.id, back: base.back } };
+  });
+  const toggleRoleBar = () => setTemplates((s) => {
+    const base = s[dTeam.id] ?? tplFor(dTeam);
+    const has = base.els.some((e) => e.id.startsWith("rolebar"));
+    const els = has ? base.els.filter((e) => !e.id.startsWith("rolebar")) : [...base.els, { id: `rolebar${uid()}`, kind: "rect" as const, x: 0, y: fmtOf(base) === "strip" ? 86 : 97.6, w: 100, h: fmtOf(base) === "strip" ? 14 : 2.4, rot: 0, opacity: 1, fill: "#22d3ee", roleColor: true }];
+    return { ...s, [dTeam.id]: { ...base, els } };
+  });
+  const recolourFromLogo = async () => {
+    if (!dTeam.logo) return;
+    const c = await dominantColour(dTeam.logo);
+    if (!c) return;
+    setTemplates((s) => { const base = s[dTeam.id] ?? tplFor(dTeam); const next = recolour(base, c); return { ...s, [dTeam.id]: next.back ? { ...next, back: buildBack(next) } : next }; });
+  };
 
   const themeGrid = (list: ThemeEntry[], title: string) => {
     if (!dTeam) return null;
@@ -141,7 +226,7 @@ export default function IdCardStudio() {
           {list.map((th) => (
             <li key={th.id} className={vibe && !th.tags.includes(vibe) ? "opacity-35" : ""}>
               <button type="button" onClick={() => applyTheme(th.id, [dTeam.id])} className={`group w-full rounded-xl border p-2 text-left outline-none transition-colors focus-visible:ring-2 focus-visible:ring-cyan ${tplFor(dTeam).theme === th.id ? "border-cyan" : "border-white/10 hover:border-white/30"}`} aria-label={`Use the ${th.name} theme`}>
-                <CardView tpl={th.make(f)} ctx={{ event, game, teamName: dTeam.name, person: sample }} />
+                <CardView tpl={th.make(f)} ctx={ctxFor(sample)} />
                 <span className="mt-2 block text-center text-xs font-semibold text-zinc-300">{th.name}</span>
               </button>
             </li>
@@ -194,13 +279,17 @@ export default function IdCardStudio() {
                 <p className="text-sm text-zinc-400">Each team gets its own card design. People are assigned to a team from a dropdown in the next step.</p>
                 <ul className="space-y-2">
                   {teams.map((t) => (
-                    <li key={t.id} className="flex gap-2">
-                      <input className="field" aria-label="Team name" value={t.name} onChange={(e) => setTeams((l) => l.map((x) => (x.id === t.id ? { ...x, name: e.target.value } : x)))} />
-                      <button type="button" disabled={teams.length < 2} className="btn-ghost px-3 text-sm text-red-300 disabled:opacity-40" aria-label={`Remove ${t.name}`} onClick={() => { setTeams((l) => l.filter((x) => x.id !== t.id)); setPeople((l) => l.map((p) => (p.teamId === t.id ? { ...p, teamId: teams.find((x) => x.id !== t.id)!.id } : p))); }}>Remove</button>
+                    <li key={t.id} className="space-y-2 rounded-xl border border-white/10 p-2">
+                      <div className="flex gap-2">
+                        <input className="field" aria-label="Team name" value={t.name} onChange={(e) => setTeams((l) => l.map((x) => (x.id === t.id ? { ...x, name: e.target.value } : x)))} />
+                        <button type="button" disabled={teams.length < 2} className="btn-ghost px-3 text-sm text-red-300 disabled:opacity-40" aria-label={`Remove ${t.name}`} onClick={() => { setTeams((l) => l.filter((x) => x.id !== t.id)); setPeople((l) => l.map((p) => (p.teamId === t.id ? { ...p, teamId: teams.find((x) => x.id !== t.id)!.id } : p))); }}>Remove</button>
+                      </div>
+                      <TeamLogoButton team={t} onLogo={(logo) => setTeams((l) => l.map((x) => (x.id === t.id ? { ...x, logo } : x)))} />
                     </li>
                   ))}
                 </ul>
               </section>
+              <SetupExtras info={info} setInfo={setInfo} />
             </div>
           )}
 
@@ -219,8 +308,8 @@ export default function IdCardStudio() {
                   <Select label="Add scanned people to" value={valid(scanTeam)} onChange={setScanTeam} options={teamOpts} searchable={false} />
                   <label className={`flex min-h-24 cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed px-4 py-4 text-center transition-colors ${consent ? "border-cyan/50 hover:bg-cyan/5" : "cursor-not-allowed border-white/10 opacity-50"}`}>
                     <span className="font-semibold text-white">{consent ? "Choose card images (you can pick many)" : "Tick the permission box first"}</span>
-                    <span className="text-xs text-zinc-500">JPG, PNG or a phone photo. Front side with the name and date of birth.</span>
-                    <input type="file" accept="image/*" multiple disabled={!consent} className="sr-only" onChange={(e) => { scan(e.target.files); e.target.value = ""; }} />
+                    <span className="text-xs text-zinc-500">JPG, PNG, a phone photo or an e-Aadhaar PDF. The side with the QR code or the name and date of birth.</span>
+                    <input type="file" accept="image/*,application/pdf" multiple disabled={!consent} className="sr-only" onChange={(e) => { scan(e.target.files); e.target.value = ""; }} />
                   </label>
                 </div>
                 <div className="flex flex-wrap items-center gap-2 text-sm">
@@ -238,10 +327,20 @@ export default function IdCardStudio() {
                     ))}
                   </ul>
                 )}
+                {pdfAsk && (
+                  <form className="flex flex-wrap items-end gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3" onSubmit={(e) => { e.preventDefault(); if (pdfPass) scan([pdfAsk.file], pdfPass); }}>
+                    <label className="block flex-1 text-sm text-amber-100">Password for {pdfAsk.file.name}<input type="password" autoComplete="off" className="field mt-1 min-w-48" value={pdfPass} onChange={(e) => setPdfPass(e.target.value)} placeholder="For example RAVI1998" /></label>
+                    <button type="submit" className="btn !min-h-11 text-sm" disabled={!pdfPass}>Open PDF</button>
+                    <p className="w-full text-xs text-amber-100/80">An e-Aadhaar PDF is usually protected with the first 4 letters of the name in capitals followed by the year of birth. The password is only used on this device.</p>
+                  </form>
+                )}
               </section>
 
+              <RosterPanel teams={teams} people={people} setTeams={setTeams} setPeople={setPeople} minorOf={minorOf} />
+
               <section className="card space-y-3">
-                <div className="flex flex-wrap items-center justify-between gap-2"><h2 className="font-display text-xl font-bold text-white">People ({people.length})</h2><button type="button" className="btn-ghost !min-h-9 px-3 text-sm" onClick={() => addPerson(valid(scanTeam))}>+ Add manually</button></div>
+                <div className="flex flex-wrap items-center justify-between gap-2"><h2 className="font-display text-xl font-bold text-white">People ({people.length})</h2><div className="flex flex-wrap items-center gap-3"><label className="flex items-center gap-2 text-xs text-zinc-400"><input type="checkbox" checked={autoBg} onChange={(e) => setAutoBg(e.target.checked)} className="h-4 w-4 accent-cyan" />Remove photo backgrounds automatically</label><button type="button" className="btn-ghost !min-h-9 px-3 text-sm" onClick={() => addPerson(valid(scanTeam))}>+ Add manually</button></div></div>
+                {bgNote && <p className="text-xs text-zinc-400" role="status">{bgNote}{bgBusy ? " (the first time downloads a small model, then it works offline)" : ""}</p>}
                 {needReview > 0 && <p className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm text-amber-200">{needReview} {needReview === 1 ? "person was" : "people were"} read from printed text (OCR). Check the details, then tap <strong>Looks right</strong>. Cards read from their QR code are exact and need no check.</p>}
                 <ul className="space-y-3">
                   {people.map((p) => (
@@ -256,6 +355,13 @@ export default function IdCardStudio() {
                       <span className="flex min-h-11 items-center justify-between gap-2 rounded-lg border border-white/10 px-3 font-mono text-sm text-zinc-400" title="Only the last 4 digits are kept">{p.last4 ? maskAadhaar(p.last4) : "No Aadhaar"}{p.source && <span className={`rounded px-1.5 font-sans text-[10px] font-bold ${p.source === "qr" ? "bg-emerald-500/20 text-emerald-300" : "bg-amber-500/20 text-amber-200"}`}>{p.source === "qr" ? "QR" : "OCR"}</span>}</span>
                       <label className="field flex cursor-pointer items-center text-sm text-zinc-400">{p.photo ? (p.cutout ? "Cut-out ✓ (change)" : "Photo ✓ (change)") : "Add photo"}<input type="file" accept="image/*" className="sr-only" onChange={(e) => photo(p.id, e.target.files?.[0])} /></label>
                       {p.review ? <button type="button" className="btn !min-h-11 text-sm" onClick={() => setPerson(p.id, { review: false })}>Looks right</button> : <span />}
+                      <input className="field sm:col-span-2" aria-label="Access zones" placeholder="Access zones, e.g. Main hall; Backstage" value={p.zones ?? ""} onChange={(e) => setPerson(p.id, { zones: e.target.value })} />
+                      <div className="flex flex-wrap items-center gap-2 sm:col-span-4">
+                        {minorOf(p) && <label className={`inline-flex cursor-pointer items-center gap-2 rounded-full border px-3 py-1.5 text-xs ${p.guardian ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-200" : "border-red-500/40 bg-red-500/10 text-red-200"}`}><input type="checkbox" checked={!!p.guardian} onChange={(e) => setPerson(p.id, { guardian: e.target.checked })} className="h-4 w-4 accent-cyan" />Under 18 on the event date · guardian consent received</label>}
+                        {duplicates.has(p.id) && <span className="rounded-full border border-amber-500/40 bg-amber-500/10 px-3 py-1.5 text-xs text-amber-200">Possible duplicate of {duplicates.get(p.id)!.map((id) => people.find((x) => x.id === id)?.name || id).join(", ")}</span>}
+                        {!p.photo && <span className="rounded-full border border-white/10 px-3 py-1.5 text-xs text-zinc-400">No photo yet</span>}
+                        {p.photo && !p.cutout && <button type="button" className="chip !min-h-8 text-xs" disabled={bgBusy === p.id} onClick={() => cutOutExisting(p)}>{bgBusy === p.id ? "Cutting out…" : "Remove background"}</button>}
+                      </div>
                     </li>
                   ))}
                 </ul>
@@ -269,20 +375,20 @@ export default function IdCardStudio() {
                 <div className="grid gap-3 sm:grid-cols-[16rem_1fr] sm:items-end">
                   <div className="grid gap-3">
                     <Select label="Designing for team" value={dTeam.id} onChange={setDesignTeam} options={teamOpts} searchable={false} />
-                    <Select label="Card type for this team" value={fmtOf(tplFor(dTeam))} onChange={(v) => setTemplates((t) => { const cur = tplFor(dTeam); return { ...t, [dTeam.id]: { ...(themeById(cur.theme ?? "") ?? themeById(suggest(null, dTeam.name, v as Fmt))!).make(v as Fmt), id: dTeam.id } }; })} options={(Object.keys(FORMATS) as Fmt[]).map((k) => ({ value: k, label: FORMATS[k].label, hint: `${FORMATS[k].w} x ${FORMATS[k].h} mm` }))} searchable={false} />
+                    <Select label="Card type for this team" value={fmtOf(tplFor(dTeam))} onChange={(v) => setTemplates((t) => { const cur = tplFor(dTeam); return { ...t, [dTeam.id]: withBack({ ...(themeById(cur.theme ?? "") ?? themeById(suggest(null, dTeam.name, v as Fmt))!).make(v as Fmt), id: dTeam.id }) }; })} options={(Object.keys(FORMATS) as Fmt[]).map((k) => ({ value: k, label: FORMATS[k].label, hint: `${FORMATS[k].w} x ${FORMATS[k].h} mm` }))} searchable={false} />
                     {fmtOf(tplFor(dTeam)) !== fmt && <p className="text-xs text-zinc-500">Changing the card type rebuilds this team&apos;s card from its theme. Your own edits to the layout are replaced.</p>}
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="text-sm text-zinc-400">Style assistant:</span>
                     {VIBES.map((v) => (<button key={v} type="button" className="chip capitalize" aria-pressed={vibe === v} onClick={() => setVibe(vibe === v ? null : v)}>{v}</button>))}
                     <button type="button" className="btn !min-h-9 px-3 text-sm" onClick={() => { applyTheme(suggest(vibe, dTeam.name, fmtOf(tplFor(dTeam))), [dTeam.id]); }}>Suggest for this team</button>
-                    <button type="button" className="btn-ghost !min-h-9 px-3 text-sm" onClick={() => setTemplates((t) => { const n = { ...t }; teams.forEach((x, i) => { const id = suggest(vibe, x.name + i, fmtOf(tplFor(x))); n[x.id] = { ...themeById(id)!.make(fmtOf(tplFor(x))), id: x.id }; }); return n; })}>Different theme for every team</button>
+                    <button type="button" className="btn-ghost !min-h-9 px-3 text-sm" onClick={() => setTemplates((t) => { const n = { ...t }; teams.forEach((x, i) => { const id = suggest(vibe, x.name + i, fmtOf(tplFor(x))); n[x.id] = withBack({ ...themeById(id)!.make(fmtOf(tplFor(x))), id: x.id }); }); return n; })}>Different theme for every team</button>
                   </div>
                 </div>
                 {posterFmt(fmtOf(tplFor(dTeam))) && themeGrid(THEMES.filter((t) => t.group === "poster" && !!t.fmts?.includes(fmtOf(tplFor(dTeam)))), "Themes drawn for this card type")}
                 {!posterFmt(fmtOf(tplFor(dTeam))) && themeGrid(THEMES.filter((t) => t.group === "classic"), "Classic themes")}
                 {!posterFmt(fmtOf(tplFor(dTeam))) && <p className="text-sm text-zinc-500">Want the poster-style cards (cut-out portraits, big type, ribbons)? Change the card type above to Poster card, Story card or Digital pass.</p>}
-                <button type="button" className="btn-ghost text-sm" onClick={() => { const cur = tplFor(dTeam); setTemplates((t) => { const n = { ...t }; teams.forEach((x) => { n[x.id] = { ...cur, id: x.id, els: cur.els.map((e) => ({ ...e })) }; }); return n; }); }}>Copy this team&apos;s design to all teams</button>
+                <button type="button" className="btn-ghost text-sm" onClick={() => { const cur = tplFor(dTeam); setTemplates((t) => { const n = { ...t }; teams.forEach((x) => { n[x.id] = { ...cur, id: x.id, els: cur.els.map((e) => ({ ...e })), back: cur.back ? { bg: cur.back.bg, els: cur.back.els.map((e) => ({ ...e })) } : undefined }; }); return n; }); }}>Copy this team&apos;s design to all teams</button>
               </section>
               <section className="card !p-4 sm:!p-6">
                 <h3 className="mb-4 font-display text-lg font-bold text-white">Customise <span className="text-cyan">{dTeam.name}</span>&apos;s card</h3>
@@ -290,37 +396,25 @@ export default function IdCardStudio() {
                   <Select label="Preview with" value={sample.id} onChange={setPreviewId} options={teamPeople.map((p) => ({ value: p.id, label: p.name || p.id, hint: p.photo ? (p.cutout ? "cut-out" : "photo") : "no photo" }))} searchable={false} />
                   <p className="text-sm text-zinc-500">Uploaded photos appear on the card exactly as they will print. Add one here with &ldquo;Add photo&rdquo; in the toolbar, or in the People step. Transparent PNGs give the full cut-out look. The demo pictures are AI-generated cartoon avatars of invented people.</p>
                 </div>
-                <Editor tpl={tplFor(dTeam)} onChange={(t) => { setTemplates((s) => ({ ...s, [dTeam.id]: { ...t, id: dTeam.id } })); }} ctx={{ event, game, teamName: dTeam.name, person: sample }} onPhotoFile={(f) => photo(sample.id, f)} />
+                <div className="mb-4 flex flex-wrap items-center gap-2">
+                  <div className="flex gap-1" role="group" aria-label="Side of the card">
+                    <button type="button" className="chip" aria-pressed={side === "front"} onClick={() => setSide("front")}>Front</button>
+                    <button type="button" className="chip" aria-pressed={side === "back"} disabled={!curTpl.back} onClick={() => setSide("back")}>Back</button>
+                  </div>
+                  {curTpl.back
+                    ? <button type="button" className="chip" onClick={() => setTemplates((t) => ({ ...t, [dTeam.id]: { ...curTpl, back: buildBack(curTpl) } }))}>Rebuild back from front</button>
+                    : fmtOf(curTpl) === "strip" ? <span className="text-xs text-zinc-500">Wristbands have no back.</span> : <button type="button" className="chip" onClick={() => setTemplates((t) => ({ ...t, [dTeam.id]: withBack(curTpl) }))}>Add a back</button>}
+                  <button type="button" className="chip" aria-pressed={curTpl.els.some((e) => e.id.startsWith("rolebar"))} onClick={toggleRoleBar}>Role colour stripe</button>
+                  <TeamLogoButton team={dTeam} onLogo={(logo) => setTeams((l) => l.map((x) => (x.id === dTeam.id ? { ...x, logo } : x)))} />
+                  <button type="button" className="chip" disabled={!dTeam.logo} onClick={recolourFromLogo} title="Takes the main colour of the team logo and uses it as the card's accent">Recolour from logo</button>
+                </div>
+                <Editor tpl={editView} onChange={onEdit} ctx={ctxFor(sample)} onPhotoFile={(f) => photo(sample.id, f)} />
               </section>
             </div>
           )}
 
           {step === 3 && (
-            <div>
-              <div className="no-print mb-6 grid gap-3 sm:grid-cols-[16rem_auto_1fr] sm:items-end">
-                <Select label="Print" value={printTeam === "all" ? "all" : valid(printTeam)} onChange={setPrintTeam} options={[{ value: "all", label: "All teams" }, ...teamOpts]} searchable={false} />
-                <button type="button" className="btn" onClick={() => { award("card-shark", 20, "Card shark: printed your first ID cards"); window.print(); }}>Print {printable.length} {printable.length === 1 ? "card" : "cards"}</button>
-                <p className="text-sm text-zinc-500">In the print window choose “Save as PDF” to keep a copy. Set margins to default and turn on background graphics if your browser asks.</p>
-              </div>
-              {needReview > 0 && <p className="no-print mb-4 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm text-amber-200">{needReview} scanned {needReview === 1 ? "person has" : "people have"} not been checked yet. Go back to People and tap Looks right.</p>}
-              {(Object.keys(FORMATS) as Fmt[]).map((k) => {
-                const group = printable.filter((p) => fmtOf(tplFor(teamById(p.teamId))) === k);
-                if (!group.length) return null;
-                const F = FORMATS[k];
-                return (
-                  <section key={k} className="mb-8" aria-label={F.label}>
-                    <h2 className="no-print mb-3 font-display text-lg font-bold text-white">{F.label} <span className="text-sm font-normal text-zinc-500">· {F.w} x {F.h} mm · {group.length} {group.length === 1 ? "card" : "cards"}</span></h2>
-                    {F.slot && <p className="no-print mb-3 text-sm text-zinc-500">Punch or cut inside the dashed slot at the top, then thread a lanyard or fit a clip. Print on thick card (250 gsm or more) or put the printout in a badge holder.</p>}
-                    <div className="print-sheet grid gap-4" style={{ ["--w" as string]: `${F.w}mm`, ["--cols" as string]: F.cols, gridTemplateColumns: `repeat(auto-fill, minmax(${k === "strip" ? 260 : k === "wallet" ? 280 : 200}px, 1fr))` }}>
-                      {group.map((p) => (
-                        <div key={p.id + p.teamId} className="idcard-wrap w-full"><CardView tpl={tplFor(teamById(p.teamId))} ctx={ctxFor(p)} className="shadow-xl shadow-black/50" /></div>
-                      ))}
-                    </div>
-                  </section>
-                );
-              })}
-              {printable.length === 0 && <p className="card text-zinc-400">No people yet. Add some in the People step.</p>}
-            </div>
+            <PrintPanel people={printable} allPeople={people} teams={teams} teamOpts={teamOpts} printTeam={printTeam === "all" ? "all" : valid(printTeam)} setPrintTeam={setPrintTeam} tplFor={tplFor} teamById={teamById} ctxFor={ctxFor} event={event} info={info} minorOf={minorOf} duplicates={duplicates} needReview={needReview} onPrinted={() => award("card-shark", 20, "Card shark: printed your first ID cards")} />
           )}
         </motion.div>
       </AnimatePresence>

@@ -2,9 +2,18 @@ import QRCode from "qrcode";
 import { useMemo, type CSSProperties } from "react";
 import { maskAadhaar } from "@/lib/idcard/aadhaar";
 import { bustDataUri } from "@/lib/idcard/bust";
-import { FONTS, FORMATS, fmtOf, type El, type Pattern, type Person, type Template } from "@/lib/idcard/types";
+import { FONTS, FORMATS, ROLE_COLOURS, fmtOf, type El, type Pattern, type Person, type Template } from "@/lib/idcard/types";
 
-export interface Ctx { event: string; game: string; teamName: string; person: Person }
+export interface Ctx {
+  event: string; game: string; teamName: string; person: Person;
+  /** Event details shown by the organiser, date, venue, emergency and rules fields. */
+  info?: { organiser?: string; date?: string; venue?: string; emergency?: string; rules?: string };
+  teamLogo?: string; sponsorLogo?: string;
+  /** What the QR code holds: a signed pass when signing is on, otherwise the ID number. */
+  qr?: string;
+  /** The person is under 18 on the event date. */
+  minor?: boolean;
+}
 
 export function fieldValue(el: El, c: Ctx): string {
   const p = c.person;
@@ -20,6 +29,13 @@ export function fieldValue(el: El, c: Ctx): string {
     case "dob": return p.dob ?? "";
     case "gender": return p.gender ?? "";
     case "aadhaar": return maskAadhaar(p.last4);
+    case "zones": return p.zones ?? "";
+    case "flag": return c.minor ? (p.guardian ? "MINOR · CONSENT" : "MINOR") : "";
+    case "organiser": return c.info?.organiser ?? "";
+    case "date": return c.info?.date ?? "";
+    case "venue": return c.info?.venue ?? "";
+    case "emergency": return c.info?.emergency ?? "";
+    case "rules": return c.info?.rules ?? "";
     default: return "";
   }
 }
@@ -58,14 +74,15 @@ const STICKER_DIRS: [number, number][] = [[1, 0], [-1, 0], [0, 1], [0, -1], [0.7
 /** One element, drawn from percentages so the card is resolution independent. */
 export function ElView({ el, ctx }: { el: El; ctx: Ctx }) {
   const box: CSSProperties = { position: "absolute", left: `${el.x}%`, top: `${el.y}%`, width: `${el.w}%`, height: `${el.h}%`, transform: el.rot ? `rotate(${el.rot}deg)` : undefined, opacity: el.opacity };
-  const fillCss = el.fill2 ? grad(el.fill ?? "#fff", el.fill2, el.ang ?? 90) : el.fill;
+  const roleFill = el.roleColor ? ROLE_COLOURS[ctx.person.role] : undefined;
+  const fillCss = roleFill ?? (el.fill2 ? grad(el.fill ?? "#fff", el.fill2, el.ang ?? 90) : el.fill);
 
   if (el.kind === "rect" || el.kind === "ellipse") {
     return <div style={{ ...box, background: fillCss, borderRadius: el.kind === "ellipse" ? "50%" : `${el.radius ?? 0}cqmin`, border: el.stroke ? `${el.strokeW ?? 0.5}cqw solid ${el.stroke}` : undefined }} />;
   }
 
   if (el.kind === "qr") {
-    return <Qr value={ctx.person.id} fg={el.color ?? "#000000"} bg={el.fill ?? "#ffffff"} style={{ ...box, borderRadius: `${el.radius ?? 0}cqmin` }} />;
+    return <Qr value={ctx.qr ?? ctx.person.id} fg={el.color ?? "#000000"} bg={el.fill ?? "#ffffff"} style={{ ...box, borderRadius: `${el.radius ?? 0}cqmin` }} />;
   }
 
   if (el.kind === "photo") {
@@ -95,8 +112,11 @@ export function ElView({ el, ctx }: { el: El; ctx: Ctx }) {
   }
 
   if (el.kind === "image") {
+    const src = el.bind === "team" ? ctx.teamLogo : el.bind === "sponsor" ? ctx.sponsorLogo : el.src;
+    // A logo slot with no logo yet prints nothing; the editor shows a hint over it instead.
+    if (!src) return el.bind ? null : <div style={{ ...box, border: "0.4cqw dashed #ffffff55" }} />;
     // eslint-disable-next-line @next/next/no-img-element
-    return el.src ? <img src={el.src} alt="" style={{ ...box, objectFit: "contain", borderRadius: `${el.radius ?? 0}cqmin` }} /> : <div style={{ ...box, border: "0.4cqw dashed #ffffff55" }} />;
+    return <img src={src} alt="" style={{ ...box, objectFit: "contain", borderRadius: `${el.radius ?? 0}cqmin` }} />;
   }
 
   // text and detail
@@ -105,8 +125,10 @@ export function ElView({ el, ctx }: { el: El; ctx: Ctx }) {
   // Auto-fit: long names shrink to fit their box instead of being cut off. Wide, heavy or capital letters take more room.
   const k = FONTS[el.font ?? "body"].k * (el.upper ? 1.1 : 1);
   const base = el.size ?? 4;
-  const fit = el.ticker ? base : Math.min(base, (el.w * 0.96) / Math.max(1, text.length * k + (el.spacing ?? 0) * text.length * 0.5));
-  const lines = Math.max(1, Math.min(8, el.repeat ?? 1));
+  const parts = el.lines ? raw.split("\n").filter(Boolean).slice(0, 8) : null;
+  const lines = parts ? Math.max(1, parts.length) : Math.max(1, Math.min(8, el.repeat ?? 1));
+  const longest = parts ? Math.max(1, ...parts.map((x) => x.length)) : text.length;
+  const fit = el.ticker ? base : Math.min(base, (el.w * 0.96) / Math.max(1, longest * k + (el.spacing ?? 0) * longest * 0.5));
   const hasBox = !!el.fill && !el.outline;
   const style: CSSProperties = {
     ...box,
@@ -122,21 +144,22 @@ export function ElView({ el, ctx }: { el: El; ctx: Ctx }) {
   return (
     <div style={style}>
       {Array.from({ length: lines }, (_, i) => (
-        <span key={i} style={{ flex: lines > 1 ? 1 : undefined, display: "flex", alignItems: "center", maxWidth: "100%", overflow: "hidden", textOverflow: el.ticker ? "clip" : "ellipsis", justifyContent: el.align === "center" ? "center" : el.align === "right" ? "flex-end" : "flex-start" }}>{text}</span>
+        <span key={i} style={{ flex: lines > 1 ? 1 : undefined, display: "flex", alignItems: "center", maxWidth: "100%", overflow: "hidden", textOverflow: el.ticker ? "clip" : "ellipsis", justifyContent: el.align === "center" ? "center" : el.align === "right" ? "flex-end" : "flex-start" }}>{parts ? parts[i] : text}</span>
       ))}
     </div>
   );
 }
 
 /** A finished card at any size: it fills the width of its parent and keeps its real shape. */
-export default function CardView({ tpl, ctx, className = "", children }: { tpl: Template; ctx: Ctx; className?: string; children?: React.ReactNode }) {
+export default function CardView({ tpl, ctx, className = "", children, side = "front" }: { tpl: Template; ctx: Ctx; className?: string; children?: React.ReactNode; side?: "front" | "back" }) {
   const fmt = FORMATS[fmtOf(tpl)];
+  const face = side === "back" && tpl.back ? tpl.back : tpl;
   const slot = fmt.slot;
   return (
-    <div className={`idcard-box ${className}`} style={{ position: "relative", width: "100%", aspectRatio: `${fmt.w} / ${fmt.h}`, overflow: "hidden", background: grad(tpl.bg.a, tpl.bg.b, tpl.bg.angle), containerType: "size", borderRadius: fmt.w > 150 ? "1.2% / 10%" : "3.5% / 2.4%", WebkitPrintColorAdjust: "exact", printColorAdjust: "exact" } as CSSProperties}>
-      {tpl.bg.pattern && <div aria-hidden="true" style={{ position: "absolute", inset: 0, opacity: tpl.bg.pattern.opacity, ...patternStyle(tpl.bg.pattern) }} />}
-      {tpl.els.map((el) => <ElView key={el.id} el={el} ctx={ctx} />)}
-      {slot && (
+    <div className={`idcard-box ${className}`} style={{ position: "relative", width: "100%", aspectRatio: `${fmt.w} / ${fmt.h}`, overflow: "hidden", background: grad(face.bg.a, face.bg.b, face.bg.angle), containerType: "size", borderRadius: fmt.w > 150 ? "1.2% / 10%" : "3.5% / 2.4%", WebkitPrintColorAdjust: "exact", printColorAdjust: "exact" } as CSSProperties}>
+      {face.bg.pattern && <div aria-hidden="true" style={{ position: "absolute", inset: 0, opacity: face.bg.pattern.opacity, ...patternStyle(face.bg.pattern) }} />}
+      {face.els.map((el) => <ElView key={el.id} el={el} ctx={ctx} />)}
+      {slot && side === "front" && (
         // Lanyard slot guide: punch or cut inside the dashed outline.
         <div aria-hidden="true" style={{ position: "absolute", left: `${50 - slot.w / (fmt.w / 100) / 2}%`, top: "2.6%", width: `${slot.w / (fmt.w / 100)}%`, height: `${slot.h / (fmt.h / 100)}%`, borderRadius: "999px", background: "rgba(0,0,0,.35)", border: "0.5cqw dashed rgba(255,255,255,.75)", boxShadow: "0 0 0 0.25cqw rgba(0,0,0,.4)" }} />
       )}

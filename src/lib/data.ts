@@ -127,6 +127,7 @@ export interface Tool {
 }
 export const TOOLS: Tool[] = [
   { slug: "id-cards", name: "ID cards and passes", blurb: "Read Aadhaar cards automatically, pick from 10 team themes, redesign the card like a mini Canva, and print. Everything runs in your browser.", status: "Working in this prototype", href: "/tools/id-cards/" },
+  { slug: "check-in", name: "Gate check-in", blurb: "Scan a card's QR at the gate: genuine passes show the person's photo, role and zones; copies and edits are rejected. Works offline.", status: "Working in this prototype", href: "/tools/check-in/" },
   { slug: "brackets", name: "Bracket maker", blurb: "Paste your teams, get a seeded single-elimination bracket, and click winners to advance them to the final.", status: "Working in this prototype", href: "/tools/brackets/" },
   { slug: "schedule", name: "Event schedule", blurb: "A run-sheet and match schedule you can share or print.", status: "Planned" },
   { slug: "rosters", name: "Team and roster manager", blurb: "One organisation, several games: players, substitutes, staff and contracts in one place.", status: "Planned" },
@@ -148,6 +149,7 @@ export const SEARCH_INDEX: Hit[] = [
   ...EVENTS.map((e) => ({ kind: "Event" as const, title: e.name, sub: `${gameBySlug(e.game)?.short} · ${e.level} · ${e.mode}`, href: `/events/${e.slug}/` })),
   ...COMMUNITIES.map((c) => ({ kind: "Community" as const, title: c.name, sub: `${c.kind} · ${c.city}`, href: `/communities/${c.slug}/` })),
   ...POSTS.map((p) => ({ kind: "Guide" as const, title: p.title, sub: `${p.tag} · ${p.minutes} min`, href: `/guides/` })),
+  { kind: "Tool" as const, title: "Gate check-in: scan passes", sub: "Verify cards offline", href: "/tools/check-in/" },
   { kind: "Tool" as const, title: "Arcade: aim trainer and reaction test", sub: "Warm up and earn XP", href: "/arcade/" },
   ...TOOLS.map((t) => ({ kind: "Tool" as const, title: t.name, sub: t.status, href: t.href ?? "/tools/" })),
 ];

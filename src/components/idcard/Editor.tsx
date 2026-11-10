@@ -115,6 +115,9 @@ export default function Editor({ tpl, onChange, ctx, onPhotoFile }: { tpl: Templ
           <button type="button" className="btn-ghost !min-h-9 px-3 text-sm" onClick={() => add({ kind: "photo", cutout: true, w: 60, h: 55, x: 20, y: 30, color: "#334155", shadow: true })}>+ Cut-out</button>
           <button type="button" className="btn-ghost !min-h-9 px-3 text-sm" onClick={() => add({ kind: "qr", w: 24, h: 15, color: "#111111", fill: "#ffffff", radius: 3 })}>+ QR</button>
           {onPhotoFile && <label className="btn !min-h-9 cursor-pointer px-3 text-sm">{ctx.person.photo ? "Change photo" : "Add photo"}<input type="file" accept="image/*" className="sr-only" onChange={(e) => { const f = e.target.files?.[0]; if (f) onPhotoFile(f); e.target.value = ""; }} /></label>}
+          <button type="button" className="btn-ghost !min-h-9 px-3 text-sm" onClick={() => add({ kind: "image", bind: "team", w: 18, h: 11, x: 76, y: 5 })}>+ Team logo</button>
+          <button type="button" className="btn-ghost !min-h-9 px-3 text-sm" onClick={() => add({ kind: "image", bind: "sponsor", w: 30, h: 7, x: 35, y: 91 })}>+ Sponsor logo</button>
+          <button type="button" className="btn-ghost !min-h-9 px-3 text-sm" onClick={() => add({ kind: "rect", fill: "#22d3ee", roleColor: true, w: 100, h: 2.4, x: 0, y: 97.6, radius: 0 })}>+ Role bar</button>
           <label className="btn-ghost !min-h-9 cursor-pointer px-3 text-sm">+ Logo<input type="file" accept="image/*" className="sr-only" onChange={(e) => { logo(e.target.files?.[0]); e.target.value = ""; }} /></label>
         </div>
         <div className="mx-auto w-full select-none" style={{ maxWidth: FORMATS[fmtOf(tpl)].w < FORMATS[fmtOf(tpl)].h ? 330 : 640 }} ref={box} onPointerDown={() => { root.current?.focus({ preventScroll: true }); setSel(null); }}>
@@ -122,6 +125,9 @@ export default function Editor({ tpl, onChange, ctx, onPhotoFile }: { tpl: Templ
             {tpl.els.map((e) => (
               <div key={e.id} data-el={e.id} onPointerDown={(ev) => drag(ev, e, "move")} className={`absolute cursor-move touch-none ${sel === e.id ? "outline outline-2 outline-cyan" : "hover:outline hover:outline-1 hover:outline-white/40"}`}
                 style={{ left: `${e.x}%`, top: `${e.y}%`, width: `${e.w}%`, height: `${e.h}%`, transform: e.rot ? `rotate(${e.rot}deg)` : undefined }}>
+                {e.kind === "image" && e.bind && !(e.bind === "team" ? ctx.teamLogo : ctx.sponsorLogo) && (
+                  <span className="pointer-events-none absolute inset-0 grid place-items-center rounded border border-dashed border-white/60 bg-black/40 text-center text-[10px] font-semibold leading-tight text-white">{e.bind === "team" ? "Team logo" : "Sponsor logo"}</span>
+                )}
                 {e.kind === "photo" && !ctx.person.photo && onPhotoFile && (
                   <label onPointerDown={(ev) => ev.stopPropagation()} className="absolute inset-x-[8%] top-[42%] z-10 flex cursor-pointer items-center justify-center rounded-full border border-dashed border-white/70 bg-black/55 px-2 py-1.5 text-center text-[11px] font-semibold text-white backdrop-blur-sm">
                     Click to add the photo<input type="file" accept="image/*" className="sr-only" onChange={(ev) => { const f = ev.target.files?.[0]; if (f) onPhotoFile(f); ev.target.value = ""; }} />
@@ -183,6 +189,7 @@ export default function Editor({ tpl, onChange, ctx, onPhotoFile }: { tpl: Templ
                 {el.fill && <button type="button" className="chip !min-h-8" onClick={() => patch(el.id, { fill: undefined, fill2: undefined })}>None</button>}
               </div>
               {el.fill && <Range label="Box corner radius" min={0} max={50} value={el.radius ?? 0} onChange={(n) => patch(el.id, { radius: n }, false)} />}
+              {el.fill && <button type="button" className="chip" aria-pressed={!!el.roleColor} onClick={() => patch(el.id, { roleColor: !el.roleColor })}>Box colour follows role</button>}
             </>}
             {el.kind === "photo" && <>
               <button type="button" className="chip" aria-pressed={!!el.cutout} onClick={() => patch(el.id, { cutout: !el.cutout })}>Cut-out person (no frame)</button>
@@ -208,8 +215,10 @@ export default function Editor({ tpl, onChange, ctx, onPhotoFile }: { tpl: Templ
               {el.kind !== "photo" && <Color label="Gradient to" value={el.fill2 ?? el.fill ?? "#ffffff"} onChange={(v) => patch(el.id, { fill2: v })} />}
               {el.kind !== "photo" && el.fill2 && <Range label="Gradient angle" min={0} max={360} value={el.ang ?? 90} onChange={(n) => patch(el.id, { ang: n }, false)} />}
               {el.kind !== "ellipse" && <Range label="Corner radius" min={0} max={50} value={el.radius ?? 0} onChange={(n) => patch(el.id, { radius: n }, false)} />}
+              {el.kind !== "photo" && <button type="button" className="chip" aria-pressed={!!el.roleColor} onClick={() => patch(el.id, { roleColor: !el.roleColor })}>Colour follows role</button>}
               {el.kind === "photo" && !el.cutout && <Color label="Frame" value={el.stroke ?? "#ffffff"} onChange={(v) => patch(el.id, { stroke: v })} />}
             </>}
+            {el.kind === "image" && el.bind && <p className="text-xs text-zinc-500">Shows the {el.bind === "team" ? "team's logo, added in Event & teams or with the logo button above" : "sponsor logo, added in Event & teams"}.</p>}
             {el.kind === "image" && <Range label="Corner radius" min={0} max={50} value={el.radius ?? 0} onChange={(n) => patch(el.id, { radius: n }, false)} />}
             <Range label="Rotation" min={-180} max={180} value={el.rot} onChange={(n) => patch(el.id, { rot: n }, false)} />
             <Range label="Opacity" min={0.05} max={1} step={0.05} value={el.opacity} onChange={(n) => patch(el.id, { opacity: n }, false)} />
