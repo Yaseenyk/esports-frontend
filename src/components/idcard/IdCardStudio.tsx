@@ -300,7 +300,7 @@ export default function IdCardStudio() {
         </motion.div>
       </AnimatePresence>
 
-      <nav aria-label="Step navigation" className="no-print sticky bottom-3 z-30 mt-6 flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-[#070a0f] px-3 py-2.5 shadow-[0_8px_24px_-8px_rgba(0,0,0,.9)] sm:bottom-3">
+      <nav aria-label="Step navigation" className="no-print sticky bottom-3 z-30 mt-6 flex items-center justify-between gap-3 rounded-2xl border border-white/[0.14] bg-[#0a0b0d] px-3 py-2.5 sm:bottom-3">
         <button type="button" className="btn-ghost !min-h-10 px-4 text-sm" disabled={step === 0} onClick={() => setStep((s) => s - 1)}>← Back</button>
         <p className="hidden min-w-0 truncate text-sm text-zinc-400 sm:block">{hint}</p>
         {step < 3 ? <button type="button" className="btn !min-h-10 px-5 text-sm" onClick={() => setStep((s) => s + 1)}>Next: {STEPS[step + 1]} →</button> : <span />}

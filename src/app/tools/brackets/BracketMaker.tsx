@@ -78,7 +78,7 @@ export default function BracketMaker() {
                     const won = picks[`${r}-${m}`];
                     const bye = r === 0 && Boolean((!a && b) || (a && !b));
                     return (
-                      <div key={m} className="overflow-hidden rounded-xl border border-white/10 bg-ink/70">
+                      <div key={m} className="overflow-hidden rounded-xl border border-white/[0.14] bg-[#0a0b0d]">
                         {[a, b].map((t, side) => {
                           const winner = bye ? !!t : won === side;
                           const lost = !bye && won !== undefined && won !== side;

@@ -50,10 +50,10 @@ function AimTrainer({ onBest, best }: { onBest: (n: number) => void; best: numbe
           {[["Time", state === "idle" ? ROUND : Math.max(0, left)], ["Hits", hits], ["Accuracy", `${acc}%`], ["Best", best]].map(([k, v]) => (<div key={k as string}><dd className="font-display text-2xl font-bold text-white">{v}</dd><dt className="text-[11px] uppercase tracking-wider text-zinc-400">{k}</dt></div>))}
         </dl>
       </div>
-      <div className="relative mt-4 aspect-[16/10] w-full touch-none select-none overflow-hidden rounded-2xl border border-white/10 bg-ink/70 sm:aspect-video"
+      <div className="relative mt-4 aspect-[16/10] w-full touch-none select-none overflow-hidden rounded-2xl border border-white/[0.14] bg-[#0a0b0d] sm:aspect-video"
         onPointerDown={() => { if (state === "run") { stats.current.miss++; setMiss(stats.current.miss); } }}>
         {state !== "run" && (
-          <div className="absolute inset-0 z-10 grid place-items-center bg-ink/60 backdrop-blur-sm">
+          <div className="absolute inset-0 z-10 grid place-items-center bg-[#0a0b0d]/90">
             <div className="text-center">
               {state === "done" && <p className="mb-3 font-display text-3xl font-bold text-white">{hits} hits <span className="text-zinc-400">· {acc}% accuracy</span></p>}
               <button type="button" className="btn" onClick={start}>{state === "done" ? "Play again" : "Start"}</button>

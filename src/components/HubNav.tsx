@@ -110,7 +110,7 @@ export default function HubNav() {
       {/* The pill: hex button, wordmark, where you are, and a one-tap shortcut. */}
       <div className="no-print sticky top-3 z-40 flex justify-center px-3 pt-3">
         <motion.nav aria-label="Main" initial={false} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.6, ease: EASE }}
-          className="flex w-full max-w-xl items-center gap-1 rounded-full border border-white/10 bg-[#070a0f] p-1.5 shadow-[0_8px_24px_-8px_rgba(0,0,0,.9)]">
+          className="flex w-full max-w-xl items-center gap-1 rounded-full border border-white/[0.14] bg-[#0a0b0d] p-1.5">
           <button type="button" onClick={(e) => show(e.currentTarget)} aria-label="Open the hub menu" aria-expanded={open} aria-haspopup="dialog"
             className="group relative grid h-11 w-11 shrink-0 place-items-center rounded-full outline-none ring-cyan/60 focus-visible:ring-2">
             <span aria-hidden="true" className="absolute inset-0 rounded-full bg-white/5 transition-colors group-hover:bg-white/10" />

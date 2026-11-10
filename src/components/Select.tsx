@@ -171,7 +171,7 @@ export default function Select({ value, onChange, options, label, ariaLabel, pla
       <AnimatePresence>
         {open && !sheet && (
           <motion.div key="pop" initial={reduce ? false : { opacity: 0, y: up ? 6 : -6, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: up ? 6 : -6, scale: 0.98 }} transition={{ duration: 0.16 }}
-            className={`absolute left-0 right-0 z-50 overflow-hidden rounded-xl border border-white/15 bg-zinc-950/95 shadow-2xl shadow-black/70 backdrop-blur-xl ${up ? "bottom-full mb-2" : "top-full mt-2"}`}>
+            className={`absolute left-0 right-0 z-50 overflow-hidden rounded-xl border border-white/[0.14] bg-[#0a0b0d] ${up ? "bottom-full mb-2" : "top-full mt-2"}`}>
             {panel}
           </motion.div>
         )}
@@ -179,7 +179,7 @@ export default function Select({ value, onChange, options, label, ariaLabel, pla
           <motion.div key="sheet" className="fixed inset-0 z-[70]" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={(e) => { if (e.target === e.currentTarget) close(); }}>
             <div className="absolute inset-0 bg-black/60" aria-hidden="true" />
             <motion.div initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }} transition={{ type: "spring", stiffness: 380, damping: 36 }}
-              className="absolute inset-x-0 bottom-0 rounded-t-3xl border border-white/15 bg-zinc-950 pb-[env(safe-area-inset-bottom)] shadow-2xl">
+              className="absolute inset-x-0 bottom-0 rounded-t-3xl border border-white/[0.14] bg-[#0a0b0d] pb-[env(safe-area-inset-bottom)]">
               <div className="mx-auto mb-1 mt-2 h-1 w-10 rounded-full bg-white/20" aria-hidden="true" />
               {(label || ariaLabel) && <p className="px-5 pb-1 pt-2 font-display text-sm font-semibold text-zinc-300">{label ?? ariaLabel}</p>}
               {panel}

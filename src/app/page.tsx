@@ -44,10 +44,10 @@ export default function Home() {
           <p className="mt-2 text-[11px] text-zinc-600">Counts of sample entries in this prototype.</p>
         </div>
         <div className="relative mx-auto hidden h-[26rem] w-full max-w-md lg:block" aria-hidden="true">
-          <div className="absolute inset-8 rounded-[2.5rem] border border-white/10 bg-gradient-to-br from-white/[0.06] to-transparent" />
+          <div className="absolute inset-8 rounded-[2.5rem] border border-white/[0.14] bg-[#0a0b0d]" />
           {hero.map((g, i) => (
             <div key={g.slug} className="absolute animate-float" style={{ top: ["4%", "16%", "52%", "62%"][i], left: ["8%", "52%", "2%", "46%"][i], animationDelay: `${i * -1.4}s` }}>
-              <div className="rounded-3xl border border-white/10 bg-ink/80 p-3 shadow-2xl shadow-black/60 backdrop-blur"><GameBadge game={g} size="xl" /><p className="mt-2 text-center font-display text-sm font-semibold text-zinc-200">{g.short}</p></div>
+              <div className="rounded-3xl border border-white/[0.14] bg-[#0a0b0d] p-3"><GameBadge game={g} size="xl" /><p className="mt-2 text-center font-display text-sm font-semibold text-zinc-200">{g.short}</p></div>
             </div>
           ))}
         </div>
@@ -112,7 +112,7 @@ export default function Home() {
       </section>
 
       <Reveal>
-        <section aria-labelledby="tools" className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-cyan/10 via-white/[0.02] to-purple/10 p-6 sm:p-10">
+        <section aria-labelledby="tools" className="relative overflow-hidden rounded-3xl border border-white/[0.14] bg-[#0a0b0d] p-6 sm:p-10">
           <div className="grid items-center gap-10 md:grid-cols-2">
             <div>
               <p className="text-sm font-semibold uppercase tracking-widest text-purple-400">Organiser tools</p>
@@ -121,7 +121,7 @@ export default function Home() {
               <div className="mt-6 flex flex-wrap gap-3"><Link href="/tools/id-cards/" className="btn">Make ID cards</Link><Link href="/tools/" className="btn-ghost">All {TOOLS.length} tools</Link></div>
             </div>
             <ul className="grid grid-cols-2 gap-2 text-sm text-zinc-300">
-              {TOOLS.map((t) => (<li key={t.slug} className="flex items-center gap-2 rounded-xl border border-white/10 bg-ink/40 px-3 py-2.5"><span className={`h-2 w-2 rounded-full ${t.href ? "bg-cyan" : "bg-zinc-600"}`} />{t.name}</li>))}
+              {TOOLS.map((t) => (<li key={t.slug} className="flex items-center gap-2 rounded-xl border border-white/[0.14] bg-[#0f1013] px-3 py-2.5"><span className={`h-2 w-2 rounded-full ${t.href ? "bg-cyan" : "bg-zinc-600"}`} />{t.name}</li>))}
             </ul>
           </div>
         </section>

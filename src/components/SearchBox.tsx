@@ -65,7 +65,7 @@ export default function SearchBox({ large = false, placeholder = "Search games, 
       />
       <svg aria-hidden="true" viewBox="0 0 24 24" className={`pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 fill-none stroke-zinc-500 ${large ? "h-6 w-6 left-4" : "h-5 w-5"}`} strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" /></svg>
       {open && q.trim() && (
-        <ul id="search-results" role="listbox" className="absolute inset-x-0 top-full z-30 mt-2 overflow-hidden rounded-xl border border-zinc-700 bg-zinc-950 shadow-2xl">
+        <ul id="search-results" role="listbox" className="absolute inset-x-0 top-full z-30 mt-2 overflow-hidden rounded-xl border border-white/[0.14] bg-[#0a0b0d]">
           {hits.length === 0 && <li className="px-4 py-3 text-sm text-zinc-400">Nothing matches &ldquo;{q}&rdquo; in the sample data.</li>}
           {hits.map((h, n) => (
             <li key={h.href + h.title} role="option" aria-selected={n === i}>
