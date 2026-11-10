@@ -3,6 +3,7 @@
 import GameBadge from "@/components/GameBadge";
 import TiltLink from "@/components/TiltLink";
 import { useState } from "react";
+import Select from "@/components/Select";
 import { EVENTS, GAMES, gameBySlug } from "@/lib/data";
 
 export default function EventsBrowser() {
@@ -13,15 +14,9 @@ export default function EventsBrowser() {
   return (
     <>
       <div className="mt-6 grid gap-3 sm:grid-cols-3">
-        <label className="block text-sm text-zinc-400">Game
-          <select className="field mt-1" value={game} onChange={(e) => setGame(e.target.value)}><option value="all">All games</option>{GAMES.map((g) => (<option key={g.slug} value={g.slug}>{g.name}</option>))}</select>
-        </label>
-        <label className="block text-sm text-zinc-400">Mode
-          <select className="field mt-1" value={mode} onChange={(e) => setMode(e.target.value)}>{["all", "Online", "Offline", "Hybrid"].map((m) => (<option key={m} value={m}>{m === "all" ? "Any mode" : m}</option>))}</select>
-        </label>
-        <label className="block text-sm text-zinc-400">Level
-          <select className="field mt-1" value={level} onChange={(e) => setLevel(e.target.value)}>{["all", "Open", "College", "Community", "Pro qualifier"].map((m) => (<option key={m} value={m}>{m === "all" ? "Any level" : m}</option>))}</select>
-        </label>
+        <Select label="Game" value={game} onChange={setGame} options={[{ value: "all", label: "All games" }, ...GAMES.map((g) => ({ value: g.slug, label: g.name, icon: <GameBadge game={g} size="sm" /> }))]} />
+        <Select label="Mode" value={mode} onChange={setMode} options={["all", "Online", "Offline", "Hybrid"].map((m) => ({ value: m, label: m === "all" ? "Any mode" : m }))} />
+        <Select label="Level" value={level} onChange={setLevel} options={["all", "Open", "College", "Community", "Pro qualifier"].map((m) => ({ value: m, label: m === "all" ? "Any level" : m }))} />
       </div>
       <p className="mt-4 text-sm text-zinc-500" aria-live="polite">{list.length} {list.length === 1 ? "event" : "events"}</p>
       <div className="mt-3 grid gap-4 md:grid-cols-2">

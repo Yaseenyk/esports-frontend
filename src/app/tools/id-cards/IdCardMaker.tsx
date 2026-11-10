@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import GameBadge from "@/components/GameBadge";
+import Select from "@/components/Select";
 import { useXp } from "@/components/XpProvider";
 import { GAMES } from "@/lib/data";
 
@@ -73,9 +75,7 @@ export default function IdCardMaker() {
         <section className="card space-y-3">
           <h2 className="font-bold text-zinc-50">Event</h2>
           <label className="block text-sm text-zinc-400">Event name<input className="field mt-1" value={event} onChange={(e) => setEvent(e.target.value)} /></label>
-          <label className="block text-sm text-zinc-400">Game
-            <select className="field mt-1" value={game} onChange={(e) => setGame(e.target.value)}>{GAMES.map((g) => (<option key={g.slug} value={g.short}>{g.name}</option>))}<option value="Multi-game">Several games</option></select>
-          </label>
+          <Select label="Game" value={game} onChange={setGame} options={[...GAMES.map((g) => ({ value: g.short, label: g.name, icon: <GameBadge game={g} size="sm" /> })), { value: "Multi-game", label: "Several games" }]} />
           <label className="block text-sm text-zinc-400">Organiser<input className="field mt-1" value={organiser} onChange={(e) => setOrganiser(e.target.value)} /></label>
         </section>
         <section className="card space-y-3">
@@ -95,7 +95,7 @@ export default function IdCardMaker() {
               <li key={i} className="grid gap-2 rounded-xl border border-zinc-800 p-3 sm:grid-cols-[1fr_1fr_8rem_auto]">
                 <input className="field" aria-label="Name" placeholder="Full name" value={p.name} onChange={(e) => update(i, { name: e.target.value })} />
                 <input className="field" aria-label="Team" placeholder="Team" value={p.team} onChange={(e) => update(i, { team: e.target.value })} />
-                <select className="field" aria-label="Role" value={p.role} onChange={(e) => update(i, { role: e.target.value as Role })}>{ROLES.map((r) => (<option key={r}>{r}</option>))}</select>
+                <Select ariaLabel="Role" value={p.role} onChange={(v) => update(i, { role: v as Role })} options={ROLES.map((r) => ({ value: r, label: r }))} />
                 <button type="button" className="btn-ghost !min-h-11 text-sm text-red-300" onClick={() => remove(i)} aria-label={`Remove ${p.name || "person"}`}>Remove</button>
                 <input className="field" aria-label="ID number" placeholder="ID" value={p.id} onChange={(e) => update(i, { id: e.target.value })} />
                 <label className="field flex cursor-pointer items-center text-sm text-zinc-400 sm:col-span-3">{p.photo ? "Photo added (tap to change)" : "Add photo (optional)"}<input type="file" accept="image/*" className="sr-only" onChange={(e) => photo(i, e.target.files?.[0])} /></label>
