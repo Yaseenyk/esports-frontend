@@ -1,0 +1,39 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html { scroll-behavior: smooth; }
+  body {
+    @apply text-zinc-100 antialiased;
+    overflow-x: hidden;
+    background-color: #05070a;
+    background-image: linear-gradient(to right, #4f4f4f1f 1px, transparent 1px), linear-gradient(to bottom, #4f4f4f1f 1px, transparent 1px);
+    background-size: 40px 40px;
+    background-attachment: fixed;
+  }
+  input, select, textarea { font-size: 16px; }
+  ::selection { @apply bg-cyan text-ink; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+}
+
+@layer components {
+  .card { @apply rounded-2xl border border-zinc-800 bg-zinc-900/50 p-5 transition-colors; }
+  a.card:hover { @apply border-zinc-600 bg-zinc-900/80; }
+  .field { @apply min-h-11 w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 text-zinc-100 outline-none placeholder:text-zinc-500 focus:border-cyan focus-visible:ring-2 focus-visible:ring-cyan/40; }
+  .chip { @apply inline-flex min-h-9 items-center rounded-full border border-zinc-700 px-3 text-sm text-zinc-300 transition-colors hover:border-zinc-500 hover:text-zinc-50; }
+  .chip[aria-pressed="true"] { @apply border-cyan bg-cyan/10 text-cyan; }
+  .btn { @apply inline-flex min-h-11 items-center justify-center rounded-lg bg-cyan px-4 font-semibold text-ink outline-none transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-white/60; }
+  .btn-ghost { @apply inline-flex min-h-11 items-center justify-center rounded-lg border border-zinc-700 px-4 text-zinc-100 outline-none transition-colors hover:border-zinc-500 focus-visible:ring-2 focus-visible:ring-cyan; }
+  .tag { @apply inline-flex items-center rounded-md bg-zinc-800 px-2 py-0.5 text-xs text-zinc-300; }
+}
+
+/* ID card sheet: credit-card size, three across on A4, controls and chrome hidden when printing. */
+.idcard { width: 85.6mm; height: 54mm; }
+@media print {
+  @page { size: A4; margin: 10mm; }
+  body { background: #fff !important; }
+  .no-print { display: none !important; }
+  .print-sheet { display: grid !important; grid-template-columns: repeat(2, 85.6mm); gap: 6mm; justify-content: center; }
+  .idcard { break-inside: avoid; box-shadow: none !important; }
+}
