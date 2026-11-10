@@ -15,12 +15,12 @@ export const metadata: Metadata = {
   description: "One place for gaming and esports communities that run several games: find games and events, and use organiser tools such as player ID cards.",
   robots: { index: false, follow: false }, // sample data only: not indexed until it carries real content
 };
-export const viewport: Viewport = { themeColor: "#05070A", width: "device-width", initialScale: 1 };
+export const viewport: Viewport = { themeColor: "#05070A", width: "device-width", initialScale: 1, viewportFit: "cover", colorScheme: "dark" }; // cover + safe-area padding keeps iPhone's home bar clear; colorScheme stops Samsung Internet and Chrome from re-darkening the page
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${body.variable} ${display.variable}`}>
-      <body className="min-h-screen font-sans">
+      <body className="min-h-[100svh] font-sans">
         <MotionProvider>
         <XpProvider>
         <HexField />

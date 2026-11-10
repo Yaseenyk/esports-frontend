@@ -58,6 +58,7 @@ export default function DesignStep(p: Props) {
             <button type="button" className="btn-ghost !min-h-10 px-3 text-sm" title="Give each team a different design" onClick={p.differentPerTeam}>Different per team</button>
           </div>
         </div>
+        <p className="mb-2 text-xs text-zinc-400 sm:hidden">Swipe sideways to see more designs, then tap one to use it.</p>
         <ul className="-mx-1 flex snap-x gap-3 overflow-x-auto px-1 pb-2" aria-label="Designs">
           {list.map((th) => (
             <li key={th.id} className={`shrink-0 snap-start ${p.vibe && !th.tags.includes(p.vibe) ? "opacity-35" : ""}`} style={{ width: thumbW }}>

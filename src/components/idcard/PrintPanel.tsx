@@ -122,11 +122,11 @@ export default function PrintPanel({ people, allPeople, teams, teamOpts, printTe
             <label className="flex items-center gap-2 text-sm text-zinc-300" title="Adds 3 mm of extra edge around every card so a print shop can trim cleanly. Square corners; the artwork is extended outward from its edges."><input type="checkbox" checked={bleed} onChange={(e) => setBleed(e.target.checked)} className="h-5 w-5 accent-cyan" />3 mm bleed (print shops)</label>
           </div>
         </div>
-        <div className="flex flex-wrap gap-2">
-          <button type="button" className="btn" onClick={() => { onPrinted(); window.print(); }}>Print {people.length} {people.length === 1 ? "card" : "cards"}</button>
-          <button type="button" className="btn-ghost" onClick={makePdf}>Download PDF (real size)</button>
+        <div className="grid gap-2 sm:flex sm:flex-wrap">
+          <button id="pdf-button" type="button" className="btn" onClick={makePdf}>Download PDF (real size)</button>
+          <button type="button" className="btn-ghost" onClick={() => { onPrinted(); window.print(); }}>Print {people.length} {people.length === 1 ? "card" : "cards"}</button>
           <button type="button" className="btn-ghost" onClick={zipAll} title="Every card as a PNG picture, in one zip file">Download all as PNG (zip)</button>
-          <button type="button" className="btn-ghost" onClick={pack}>Check-in pack for the gate</button>
+          <button type="button" className="btn-ghost" onClick={pack} title="A file the gate-check page uses to check guests in without internet">Check-in pack for the gate</button>
         </div>
         {status && <p className="text-sm text-zinc-300" role="status">{status}</p>}
         <p className="text-xs text-zinc-400">The PDF puts every card at its real size on A4 pages. Backs go on their own pages, mirrored so a double-sided print lines up. Hover or tap a card to view it in your hand or save it as a PNG. In the print window, turn on background graphics if your browser asks.</p>

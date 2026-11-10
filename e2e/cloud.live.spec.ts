@@ -1,3 +1,4 @@
+const openMenu = async (page: import("@playwright/test").Page) => { const t = page.getByRole("button", { name: /Save, open or share/ }); if (await t.isVisible() && (await t.getAttribute("aria-expanded")) !== "true") await t.click(); }; // phones keep Save / Open / Online in a menu
 // Runs against the REAL deployed backend with a throw-away account, so it is skipped unless asked for:
 //   LIVE=1 PORT=4173 npx playwright test e2e/cloud.live.spec.ts --project=desktop
 // (4173 is one of the origins the backend allows. Build first with NEXT_PUBLIC_API_URL set.)
@@ -12,7 +13,8 @@ const API = "https://esports-api.yaseenyk.workers.dev";
 
 test("sign up, save online, live check-in on a second page, pass link, invite and approval", async ({ page, context }) => {
   await page.goto("/tools/id-cards/");
-  await page.getByRole("button", { name: "Online", exact: true }).click();
+  await openMenu(page);
+  await page.getByRole("button", { name: /^Online/ }).click();
   const dlg = page.getByRole("dialog", { name: "Cloud" });
   await dlg.getByRole("tab", { name: "Create account" }).click();
   await dlg.getByLabel("Your name").fill("Live Test");

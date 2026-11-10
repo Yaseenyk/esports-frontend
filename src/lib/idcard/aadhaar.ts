@@ -45,10 +45,10 @@ export function parseAadhaar(text: string, ocrLines?: OcrLine[]): AadhaarRead {
   // Name. Scripts the engine cannot read (Marathi, Hindi, Tamil...) come out as junk like "dl TepR urd", so a line only counts as a
   // name if it is clean Latin text AND the engine is confident about it. The English name appears in two places on an e-Aadhaar:
   // two lines under "To", and directly above the date of birth on the card. We collect both and keep the most confident one.
-  const word = /^(?:[A-Z][a-z]{1,}|[A-Z]{2,}|[A-Z]\.?)$/;
+  const word = /^(?:[A-Z][a-z]{1,}|[A-Z]{2,}|[A-Z]\.?|(?:D|O|L)['’][A-Z][a-z]+)$/; // D'Souza, O'Neil, L'Oreal-style names keep their apostrophe
   const looksLikeName = (l: string) => {
     const words = l.split(" ").filter(Boolean);
-    return words.length >= 2 && words.length <= 5 && /^[A-Za-z][A-Za-z .'-]+$/.test(l) && !NOISE.test(l) && words.every((w) => word.test(w));
+    return words.length >= 2 && words.length <= 5 && /^[A-Za-z][A-Za-z .'’-]+$/.test(l) && !NOISE.test(l) && words.every((w) => word.test(w));
   };
   const cands: OcrLine[] = [];
   const take = (i: number) => { if (rows[i] && looksLikeName(rows[i].text) && rows[i].conf >= 60) cands.push(rows[i]); };
@@ -59,7 +59,7 @@ export function parseAadhaar(text: string, ocrLines?: OcrLine[]): AadhaarRead {
   // Older cards have neither marker: fall back to any clean line.
   if (!cands.length) rows.forEach((_, i) => take(i));
   const best = cands.sort((x, y) => y.conf - x.conf || y.text.length - x.text.length)[0];
-  if (best) out.name = best.text.split(" ").map((w) => (w.length > 2 ? w[0].toUpperCase() + w.slice(1).toLowerCase() : w)).join(" ");
+  if (best) out.name = best.text.split(" ").map((w) => (w.length > 2 ? w.split(/(['’])/).map((p) => (p.length > 1 ? p[0].toUpperCase() + p.slice(1).toLowerCase() : p)).join("") : w)).join(" ");
   return out;
 }
 

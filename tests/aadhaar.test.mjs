@@ -72,3 +72,15 @@ test("no confident name found means no name rather than a wrong one", () => {
   const r = parseAadhaar(rows.map((x) => x.text).join("\n"), rows);
   assert.equal(r.name, undefined);
 });
+
+test("names with initials or an apostrophe are read whole", () => {
+  const read = (n) => parseAadhaar(`Government of India
+${n}
+DOB: 01/02/2000
+MALE
+1234 5678 9012`).name;
+  assert.equal(read("A. Mehta"), "A. Mehta");
+  assert.equal(read("Priya K. Nair"), "Priya K. Nair");
+  assert.equal(read("Rohan D'Souza"), "Rohan D'Souza");
+  assert.equal(read("Rohan D’Souza"), "Rohan D’Souza");
+});

@@ -1,3 +1,4 @@
+const openMenu = async (page: import("@playwright/test").Page) => { const t = page.getByRole("button", { name: /Save, open or share/ }); if (await t.isVisible() && (await t.getAttribute("aria-expanded")) !== "true") await t.click(); }; // phones keep Save / Open / Online in a menu
 // The online features with the server mocked, so they run anywhere and never touch real data.
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
@@ -10,7 +11,8 @@ test("the Online panel asks for sign-in and explains a wrong password plainly", 
   await preflight(page);
   await page.route("**/auth/login", (r) => r.fulfill(json({ error: "Invalid email or password" }, 401)));
   await page.goto("/tools/id-cards/");
-  await page.getByRole("button", { name: "Online", exact: true }).click();
+  await openMenu(page);
+  await page.getByRole("button", { name: /^Online/ }).click();
   const dlg = page.getByRole("dialog", { name: "Cloud" });
   await expect(dlg.getByText(/Optional: sign in/)).toBeVisible();
   await dlg.getByLabel("Email").fill("a@example.com");
@@ -28,7 +30,8 @@ test("a signed-in organiser sees their events and the sign-out button", async ({
   await page.addInitScript(() => localStorage.setItem("eh-session-v1", JSON.stringify({ token: "t", user: { id: "u", email: "o@example.com", name: "Olivia" } })));
   await page.route("**/events", (r) => r.fulfill(json([{ id: "e1", key: "cup", name: "Spring Cup", game: "BGMI", organiser: "", date: "2026-12-01", venue: "", emergency: "", rules: "", settings: {}, updatedAt: "" }])));
   await page.goto("/tools/id-cards/");
-  await page.getByRole("button", { name: "Online", exact: true }).click();
+  await openMenu(page);
+  await page.getByRole("button", { name: /^Online/ }).click();
   const dlg = page.getByRole("dialog", { name: "Cloud" });
   await expect(dlg.getByText("Olivia")).toBeVisible();
   await expect(dlg.getByText("Spring Cup")).toBeVisible();

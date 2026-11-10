@@ -30,6 +30,12 @@ const PRELOAD = [() => undefined, loadPeople, loadDesign, loadPrint];
 
 const STORE = "eh-idstudio-v3"; // designs and team names only; people and photos are never saved
 const STEPS = ["Event & teams", "People", "Design", "Print"];
+const GUIDE = [
+  "Name your event, pick the game and the shape of the card, and list your teams. Then tap Next.",
+  "Add everyone who needs a card: scan Aadhaar cards, import a sheet, or add by hand. Demo people are already here to try.",
+  "Choose how the cards look for each team. Tap a design to use it, then change anything you like.",
+  "Download the PDF to print at real size, or the PNG zip to share. Read the warnings first.",
+];
 const SAMPLE_TEAMS: Team[] = [{ id: "t1", name: "Konkan Kings" }, { id: "t2", name: "Deadly Duos" }, { id: "t3", name: "Pune Phantoms" }];
 /** Demo roster: invented names, dates and card numbers. */
 const SAMPLE_PEOPLE: Person[] = [
@@ -94,6 +100,8 @@ export default function IdCardStudio() {
   // Passes signed by the server once the event is saved online. A code is only trusted while the person still has the role it was signed for.
   const [cloudCodes, setCloudCodes] = useState<Record<string, { code: string; role: Role }>>({});
   const [cloudOpen, setCloudOpen] = useState(false);
+  const [projMenu, setProjMenu] = useState(false);
+  const staleCodes = people.filter((p) => cloudCodes[p.id] && cloudCodes[p.id]!.role !== p.role).length;
   const [side, setSide] = useState<"front" | "back">("front");
   const [pdfAsk, setPdfAsk] = useState<{ file: File; wrong: boolean } | null>(null);
   const [pdfPass, setPdfPass] = useState("");
@@ -270,12 +278,23 @@ export default function IdCardStudio() {
         <h1 className="font-display text-2xl font-bold text-white sm:text-3xl">ID cards <span className="text-cyan">&amp;</span> passes</h1>
         <p className="text-sm text-zinc-400"><span className="sm:hidden">Teams, people, design, print. Runs in your browser; demo data is loaded.</span><span className="hidden sm:inline">Set up your teams, add people (scan Aadhaar cards or import a sheet), design a card for each team, then print or download. Everything stays in your browser. Demo data is loaded so you can try it.</span></p>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <button type="button" className="btn-ghost !min-h-9 px-3 text-sm" onClick={() => setCloudOpen(true)} title="Save this event online, check guests in live, invite players">Online</button>
-          <button type="button" className="btn-ghost !min-h-9 px-3 text-sm" onClick={saveProject} title="Download this event (details, teams, people, photos and designs) as one file">Save project</button>
-          <label className="btn-ghost !min-h-9 cursor-pointer px-3 text-sm" title="Open a project file you saved before">Open project<input type="file" accept="application/json,.json" className="sr-only" onChange={(e) => { openProject(e.target.files?.[0]); e.target.value = ""; }} /></label>
+        <div className="w-full sm:w-auto">
+          <button type="button" aria-expanded={projMenu} aria-controls="project-menu" className="btn-ghost !min-h-10 w-full justify-between px-4 text-sm sm:hidden" onClick={() => setProjMenu((v) => !v)}>
+            <span>Save, open or share</span><span aria-hidden="true">{projMenu ? "▴" : "▾"}</span>
+          </button>
+          <div id="project-menu" className={`${projMenu ? "mt-2 flex" : "hidden"} flex-col gap-2 sm:mt-0 sm:flex sm:flex-row sm:flex-wrap sm:items-center`}>
+            <button type="button" className="btn-ghost !min-h-10 flex-col items-start px-4 py-2 text-left text-sm sm:!min-h-9 sm:flex-row sm:items-center sm:px-3 sm:py-0" onClick={() => { setProjMenu(false); setCloudOpen(true); }} title="Save this event online, check guests in live, invite players">Online<span className="text-xs font-normal text-zinc-400 sm:hidden">Sign in to share passes and check guests in live</span></button>
+            <button type="button" className="btn-ghost !min-h-10 flex-col items-start px-4 py-2 text-left text-sm sm:!min-h-9 sm:flex-row sm:items-center sm:px-3 sm:py-0" onClick={() => { setProjMenu(false); saveProject(); }} title="Download this event (details, teams, people, photos and designs) as one file">Save project<span className="text-xs font-normal text-zinc-400 sm:hidden">Download your work as a file you can open later</span></button>
+            <label className="btn-ghost !min-h-10 cursor-pointer flex-col items-start px-4 py-2 text-left text-sm sm:!min-h-9 sm:flex-row sm:items-center sm:px-3 sm:py-0" title="Open a project file you saved before">Open project<span className="text-xs font-normal text-zinc-400 sm:hidden">Load a file you saved before</span><input type="file" accept="application/json,.json" className="sr-only" onChange={(e) => { setProjMenu(false); openProject(e.target.files?.[0]); e.target.value = ""; }} /></label>
+          </div>
         </div>
       </header>
+      {staleCodes > 0 && (
+        <p role="status" className="no-print mb-3 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-500/40 bg-[#0a0b0d] px-3 py-2 text-sm text-amber-100">
+          <span>{staleCodes} {staleCodes === 1 ? "person's role was" : "people's roles were"} changed since the last online save. Their cards use the old pass code, so the gate would reject them until you save again.</span>
+          <button type="button" className="btn-ghost !min-h-9 px-3 text-sm" onClick={() => setCloudOpen(true)}>Save online now</button>
+        </p>
+      )}
       {projectMsg && <p className="no-print mb-3 flex items-start justify-between gap-3 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-zinc-200" role="status"><span>{projectMsg}</span><button type="button" aria-label="Dismiss" className="shrink-0 text-zinc-400 hover:text-white" onClick={() => setProjectMsg(null)}>×</button></p>}
 
       <ol className="no-print mb-5 grid grid-cols-4 gap-1.5 sm:gap-2" aria-label="Steps">
@@ -289,6 +308,8 @@ export default function IdCardStudio() {
         ))}
       </ol>
 
+      <p className="no-print mb-4 rounded-xl border border-white/[0.14] bg-[#0a0b0d] px-3 py-2.5 text-sm text-zinc-300"><strong className="text-white">Step {step + 1} of 4: {STEPS[step]}.</strong> {GUIDE[step]}</p>
+
       <AnimatePresence mode="wait" initial={false}>
         <motion.div key={step} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.18 }}>
           {step === 0 && <SetupStep event={event} setEvent={setEvent} game={game} setGame={setGame} organiser={organiser} setOrganiser={setOrganiser} fmt={fmt} onFmt={(f) => { setFmt(f); setTemplates({}); }} teams={teams} setTeams={setTeams} setPeople={setPeople} info={info} setInfo={setInfo} />}
@@ -300,10 +321,10 @@ export default function IdCardStudio() {
         </motion.div>
       </AnimatePresence>
 
-      <nav aria-label="Step navigation" className="no-print sticky bottom-3 z-30 mt-6 flex items-center justify-between gap-3 rounded-2xl border border-white/[0.14] bg-[#0a0b0d] px-3 py-2.5 sm:bottom-3">
-        <button type="button" className="btn-ghost !min-h-10 px-4 text-sm" disabled={step === 0} onClick={() => setStep((s) => s - 1)}>← Back</button>
+      <nav aria-label="Step navigation" className="no-print sticky z-30 mt-6 grid grid-cols-2 items-center gap-3 rounded-2xl border border-white/[0.14] bg-[#0a0b0d] px-3 py-2.5 sm:flex sm:justify-between" style={{ bottom: "max(0.75rem, env(safe-area-inset-bottom))" }}>
+        <button type="button" className="btn-ghost !min-h-11 px-4 text-sm" disabled={step === 0} onClick={() => setStep((s) => s - 1)}>← Back</button>
         <p className="hidden min-w-0 truncate text-sm text-zinc-400 sm:block">{hint}</p>
-        {step < 3 ? <button type="button" className="btn !min-h-10 px-5 text-sm" onClick={() => setStep((s) => s + 1)}>Next: {STEPS[step + 1]} →</button> : <span />}
+        {step < 3 ? <button type="button" className="btn !min-h-11 px-4 text-sm sm:px-5" onClick={() => setStep((s) => s + 1)}>Next: {STEPS[step + 1]} →</button> : <button type="button" className="btn !min-h-11 px-4 text-sm sm:px-5" onClick={() => document.getElementById("pdf-button")?.click()}>Download PDF</button>}
       </nav>
       {cloudOpen && (
         <CloudPanel

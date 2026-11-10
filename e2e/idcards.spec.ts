@@ -2,6 +2,7 @@ import { expect, test, type Page } from "@playwright/test";
 import fs from "node:fs";
 
 const step = (page: Page, name: string) => page.locator("ol button").filter({ hasText: name }).first().click();
+const openMenu = async (page: import("@playwright/test").Page) => { const t = page.getByRole("button", { name: /Save, open or share/ }); if (await t.isVisible() && (await t.getAttribute("aria-expanded")) !== "true") await t.click(); }; // phones keep Save / Open / Online in a menu
 const open = async (page: Page) => { await page.goto("/tools/id-cards/"); await expect(page.getByRole("heading", { level: 1 })).toContainText(/ID cards/i); };
 
 test("demo event: teams, people and cards are all there", async ({ page }) => {
@@ -13,7 +14,7 @@ test("demo event: teams, people and cards are all there", async ({ page }) => {
   await step(page, "Design");
   await expect(page.locator(".idcard-box, [data-card]").first().or(page.locator("[style*='container-type']").first())).toBeVisible();
   await step(page, "Print");
-  await expect(page.getByRole("button", { name: /Download PDF/ })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Download PDF (real size)" })).toBeVisible();
 });
 
 test("the next and back buttons walk through the four steps", async ({ page }) => {
@@ -44,7 +45,7 @@ test("scanning a dummy Aadhaar card adds the person, keeping only the last 4 dig
 
 test("a project can be saved and opened again", async ({ page }) => {
   await open(page);
-  const [dl] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Save project" }).click()]);
+  const [dl] = await Promise.all([page.waitForEvent("download"), (async () => { await openMenu(page); await page.getByRole("button", { name: /^Save project/ }).click(); })()]);
   const file = await dl.path();
   const saved = JSON.parse(fs.readFileSync(file!, "utf8"));
   expect(saved.app).toBe("esports-hub-idcards");
@@ -66,7 +67,7 @@ test("the PDF downloads with real card pages", async ({ page }) => {
   test.setTimeout(150_000); // exporting 12 cards is CPU-heavy when several browsers run at once
   await open(page);
   await step(page, "Print");
-  const [dl] = await Promise.all([page.waitForEvent("download", { timeout: 140_000 }), page.getByRole("button", { name: /Download PDF/ }).click()]);
+  const [dl] = await Promise.all([page.waitForEvent("download", { timeout: 140_000 }), page.getByRole("button", { name: "Download PDF (real size)" }).click()]);
   const bytes = fs.readFileSync((await dl.path())!);
   expect(bytes.subarray(0, 5).toString()).toBe("%PDF-");
   expect(bytes.length).toBeGreaterThan(10_000);
@@ -91,7 +92,7 @@ test("steps load on demand and show a skeleton on a slow connection", async ({ p
   await page.evaluate(() => [...document.querySelectorAll("ol button")].find((b) => b.getAttribute("aria-label")?.startsWith("Print"))?.dispatchEvent(new MouseEvent("click", { bubbles: true })));
   await expect(page.locator("[role=status] .sk").first()).toBeVisible({ timeout: 8000 });
   await cdp.send("Network.emulateNetworkConditions", { offline: false, latency: 0, downloadThroughput: -1, uploadThroughput: -1 });
-  await expect(page.getByRole("button", { name: /Download PDF/ })).toBeVisible({ timeout: 30_000 });
+  await expect(page.getByRole("button", { name: "Download PDF (real size)" })).toBeVisible({ timeout: 30_000 });
   await expect(page.locator("[role=status] .sk")).toHaveCount(0);
 });
 

@@ -10,9 +10,9 @@ import { ROLES } from "../idcard/types";
 export interface Snapshot { event: string; game: string; organiser: string; info: EventInfo; teams: Team[]; people: Person[] }
 
 /** The fields the server accepts for a person. Deliberately leaves out dob, gender and last4. */
-export function rosterPayload(teams: Team[], people: Person[], minorOf: (p: Person) => boolean) {
+export function rosterPayload(teams: { id: string; name: string; logo?: string | null }[], people: Person[], minorOf: (p: Person) => boolean) {
   return {
-    teams: teams.map((t) => ({ id: t.id, name: t.name })),
+    teams: teams.map((t) => (t.logo ? { id: t.id, name: t.name, logo: t.logo } : { id: t.id, name: t.name })),
     people: people.map((p) => ({
       id: p.id, name: p.name || "Unnamed", teamId: p.teamId, role: p.role, zones: p.zones ?? "",
       minor: minorOf(p), guardian: !!p.guardian,
@@ -49,6 +49,34 @@ export async function fitPhoto(dataUrl: string, limit = 380_000): Promise<Blob |
   return null;
 }
 
+/** The server keeps a team logo of at most 60 KB as a data URL, so a bigger one is shrunk first. */
+export async function fitLogo(dataUrl: string, limit = 58_000): Promise<string | null> {
+  if (dataUrl.length <= limit && /^data:image\/(png|jpeg|webp);base64,/.test(dataUrl)) return dataUrl;
+  const bmp = await createImageBitmap(await (await fetch(dataUrl)).blob());
+  for (const [max, q] of [[192, 0.85], [128, 0.8], [96, 0.7]] as const) {
+    const k = Math.min(1, max / Math.max(bmp.width, bmp.height));
+    const cv = document.createElement("canvas"); cv.width = Math.max(1, Math.round(bmp.width * k)); cv.height = Math.max(1, Math.round(bmp.height * k));
+    cv.getContext("2d")!.drawImage(bmp, 0, 0, cv.width, cv.height);
+    const out = cv.toDataURL("image/webp", q);
+    if (out.length <= limit) { bmp.close(); return out; }
+  }
+  bmp.close();
+  return null;
+}
+
+/** True when a picture has see-through areas, i.e. it is a background-removed cut-out. */
+export async function hasAlpha(dataUrl: string): Promise<boolean> {
+  try {
+    const bmp = await createImageBitmap(await (await fetch(dataUrl)).blob());
+    const k = Math.min(1, 64 / Math.max(bmp.width, bmp.height));
+    const cv = document.createElement("canvas"); cv.width = Math.max(1, Math.round(bmp.width * k)); cv.height = Math.max(1, Math.round(bmp.height * k));
+    const ctx = cv.getContext("2d", { willReadFrequently: true })!; ctx.drawImage(bmp, 0, 0, cv.width, cv.height); bmp.close();
+    const d = ctx.getImageData(0, 0, cv.width, cv.height).data; let clear = 0;
+    for (let i = 3; i < d.length; i += 4) if (d[i]! < 200) clear++;
+    return clear / (d.length / 4) > 0.06;
+  } catch { return false; }
+}
+
 export interface SaveResult { id: string; key: string; codes: Record<string, string>; sentRoster: boolean; photosSent: number; photosSkipped: string[] }
 
 export async function saveToCloud(s: Snapshot, existingId: string | null, minorOf: (p: Person) => boolean, say: (t: string) => void): Promise<SaveResult> {
@@ -65,7 +93,9 @@ export async function saveToCloud(s: Snapshot, existingId: string | null, minorO
   const m = (memo[id] ??= {});
   m.details = fingerprint(details);
 
-  const body = rosterPayload(s.teams, s.people, minorOf);
+  const teams: { id: string; name: string; logo?: string | null }[] = [];
+  for (const t of s.teams) teams.push({ id: t.id, name: t.name, logo: t.logo ? await fitLogo(t.logo) : null });
+  const body = rosterPayload(teams, s.people, minorOf);
   const rf = fingerprint(body);
   let sentRoster = false;
   if (m.roster !== rf) { say(`Saving ${s.people.length} people…`); await events.saveRoster(id, body); m.roster = rf; sentRoster = true; }
@@ -110,7 +140,7 @@ export async function loadFromCloud(ev: CloudEvent, say: (t: string) => void): P
     for (let p = queue.shift(); p; p = queue.shift()) {
       const url = await events.photoAsDataUrl(p.photoUrl!);
       const t = people.find((x) => x.id === p.id);
-      if (t && url) t.photo = url;
+      if (t && url) { t.photo = url; if (await hasAlpha(url)) t.cutout = true; }
       say(`Photos ${++done} of ${withPhoto.length}…`);
     }
   }));
