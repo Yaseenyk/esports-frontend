@@ -1,6 +1,8 @@
-import type { CSSProperties } from "react";
+import QRCode from "qrcode";
+import { useMemo, type CSSProperties } from "react";
 import { maskAadhaar } from "@/lib/idcard/aadhaar";
-import { FONTS, FORMATS, fmtOf, type El, type Person, type Template } from "@/lib/idcard/types";
+import { bustDataUri } from "@/lib/idcard/bust";
+import { FONTS, FORMATS, fmtOf, type El, type Pattern, type Person, type Template } from "@/lib/idcard/types";
 
 export interface Ctx { event: string; game: string; teamName: string; person: Person }
 
@@ -22,14 +24,64 @@ export function fieldValue(el: El, c: Ctx): string {
 
 const grad = (a: string, b: string, angle: number) => `linear-gradient(${angle}deg, ${a}, ${b})`;
 
+/** Background texture. It sits in its own layer so its sizes can use the card's own width units. */
+function patternStyle(p: Pattern): CSSProperties {
+  const c = p.color, s = p.size, cx = p.cx ?? 70, cy = p.cy ?? 30;
+  switch (p.type) {
+    case "dots": return { backgroundImage: `radial-gradient(circle, ${c} ${s * 0.1}cqw, transparent ${s * 0.12}cqw)`, backgroundSize: `${s}cqw ${s}cqw` };
+    case "grid": return { backgroundImage: `linear-gradient(${c} 0.15cqw, transparent 0.15cqw), linear-gradient(90deg, ${c} 0.15cqw, transparent 0.15cqw)`, backgroundSize: `${s}cqw ${s}cqw` };
+    case "stripes": return { backgroundImage: `repeating-linear-gradient(45deg, ${c} 0, ${c} ${s * 0.2}cqw, transparent ${s * 0.2}cqw, transparent ${s}cqw)` };
+    case "rays": return { backgroundImage: `repeating-conic-gradient(from 0deg at ${cx}% ${cy}%, ${c} 0deg, ${c} ${s}deg, transparent ${s}deg, transparent ${s * 2}deg)` };
+    case "rings": return { backgroundImage: `repeating-radial-gradient(circle at ${cx}% ${cy}%, transparent 0, transparent ${s}cqw, ${c} ${s}cqw, ${c} ${s + 0.35}cqw)` };
+    case "diamonds": return { backgroundImage: `linear-gradient(45deg, ${c} 0.18cqw, transparent 0.18cqw), linear-gradient(-45deg, ${c} 0.18cqw, transparent 0.18cqw)`, backgroundSize: `${s}cqw ${s}cqw` };
+  }
+}
+
+/** A QR code drawn as one SVG path, so it prints crisply at any size. It encodes the person's ID number only. */
+function Qr({ value, fg, bg, style }: { value: string; fg: string; bg: string; style: CSSProperties }) {
+  const m = useMemo(() => { try { return QRCode.create(value || "ID", { errorCorrectionLevel: "M" }).modules; } catch { return null; } }, [value]);
+  if (!m) return <div style={style} />;
+  const n = m.size; let d = "";
+  for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) if (m.get(x, y)) d += `M${x} ${y}h1v1h-1z`;
+  return (
+    <svg viewBox={`-2 -2 ${n + 4} ${n + 4}`} preserveAspectRatio="none" shapeRendering="crispEdges" style={style}>
+      {bg !== "none" && <rect x="-2" y="-2" width={n + 4} height={n + 4} fill={bg} />}
+      <path d={d} fill={fg} />
+    </svg>
+  );
+}
+
+const STICKER_DIRS: [number, number][] = [[1, 0], [-1, 0], [0, 1], [0, -1], [0.7, 0.7], [-0.7, 0.7], [0.7, -0.7], [-0.7, -0.7]];
+
 /** One element, drawn from percentages so the card is resolution independent. */
 export function ElView({ el, ctx }: { el: El; ctx: Ctx }) {
   const box: CSSProperties = { position: "absolute", left: `${el.x}%`, top: `${el.y}%`, width: `${el.w}%`, height: `${el.h}%`, transform: el.rot ? `rotate(${el.rot}deg)` : undefined, opacity: el.opacity };
+  const fillCss = el.fill2 ? grad(el.fill ?? "#fff", el.fill2, el.ang ?? 90) : el.fill;
+
   if (el.kind === "rect" || el.kind === "ellipse") {
-    return <div style={{ ...box, background: el.fill2 ? grad(el.fill ?? "#fff", el.fill2, 90) : el.fill, borderRadius: el.kind === "ellipse" ? "50%" : `${el.radius ?? 0}cqmin`, border: el.stroke ? `${el.strokeW ?? 0.5}cqw solid ${el.stroke}` : undefined }} />;
+    return <div style={{ ...box, background: fillCss, borderRadius: el.kind === "ellipse" ? "50%" : `${el.radius ?? 0}cqmin`, border: el.stroke ? `${el.strokeW ?? 0.5}cqw solid ${el.stroke}` : undefined }} />;
   }
+
+  if (el.kind === "qr") {
+    return <Qr value={ctx.person.id} fg={el.color ?? "#000000"} bg={el.fill ?? "#ffffff"} style={{ ...box, borderRadius: `${el.radius ?? 0}cqmin` }} />;
+  }
+
   if (el.kind === "photo") {
     const r = el.radius ?? 0;
+    if (el.cutout) {
+      // A cut-out person. With no photo yet we show a stylised figure so the layout still reads. A normal (non-transparent) photo
+      // falls back to a soft-edged picture instead of looking like a rectangle pasted on.
+      const real = ctx.person.photo;
+      const hasAlpha = !real || ctx.person.cutout;
+      const src = real ?? bustDataUri(ctx.person.name, el.color ?? "#334155");
+      const filters: string[] = [];
+      if (el.sticker && hasAlpha) for (const [dx, dy] of STICKER_DIRS) filters.push(`drop-shadow(${dx * 0.55}cqw ${dy * 0.55}cqw 0 ${el.sticker})`);
+      if (el.shadow) filters.push("drop-shadow(0 1cqw 1.6cqw rgba(0,0,0,.45))");
+      return (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={src} alt="" style={{ ...box, objectFit: hasAlpha ? "contain" : "cover", objectPosition: "center bottom", filter: filters.join(" ") || undefined, WebkitMaskImage: hasAlpha ? undefined : "linear-gradient(#000 72%, transparent)", maskImage: hasAlpha ? undefined : "linear-gradient(#000 72%, transparent)" }} />
+      );
+    }
     return (
       <div style={{ ...box, borderRadius: r >= 50 ? "50%" : `${r}cqmin`, overflow: "hidden", background: el.fill, border: el.stroke ? `${el.strokeW ?? 0.6}cqw solid ${el.stroke}` : undefined }}>
         {ctx.person.photo
@@ -39,18 +91,37 @@ export function ElView({ el, ctx }: { el: El; ctx: Ctx }) {
       </div>
     );
   }
+
   if (el.kind === "image") {
     // eslint-disable-next-line @next/next/no-img-element
     return el.src ? <img src={el.src} alt="" style={{ ...box, objectFit: "contain", borderRadius: `${el.radius ?? 0}cqmin` }} /> : <div style={{ ...box, border: "0.4cqw dashed #ffffff55" }} />;
   }
-  const text = el.kind === "field" ? fieldValue(el, ctx) : el.text ?? "";
+
+  // text and detail
+  const raw = el.kind === "field" ? fieldValue(el, ctx) : el.text ?? "";
+  const text = el.ticker ? Array.from({ length: 16 }, () => raw).join("   •   ") : raw;
   // Auto-fit: long names shrink to fit their box instead of being cut off. Wide, heavy or capital letters take more room.
-  const k = el.font === "heavy" ? 0.68 : el.upper ? 0.64 : el.font === "mono" ? 0.6 : el.font === "serif" ? 0.5 : 0.54;
+  const k = el.font === "heavy" ? 0.8 : el.upper ? 0.7 : el.font === "mono" ? 0.62 : el.font === "serif" ? 0.52 : 0.56;
   const base = el.size ?? 4;
-  const fit = Math.min(base, (el.w * 0.96) / Math.max(1, text.length * k + (el.spacing ?? 0) * text.length * 0.5));
+  const fit = el.ticker ? base : Math.min(base, (el.w * 0.96) / Math.max(1, text.length * k + (el.spacing ?? 0) * text.length * 0.5));
+  const lines = Math.max(1, Math.min(8, el.repeat ?? 1));
+  const hasBox = !!el.fill && !el.outline;
+  const style: CSSProperties = {
+    ...box,
+    display: "flex", flexDirection: "column", justifyContent: "center",
+    alignItems: el.align === "center" ? "center" : el.align === "right" ? "flex-end" : "flex-start",
+    overflow: "hidden", whiteSpace: "nowrap",
+    color: el.outline ? "transparent" : el.color,
+    WebkitTextStroke: el.outline ? `${el.strokeW ?? 0.3}cqw ${el.stroke ?? el.color ?? "#fff"}` : undefined,
+    fontFamily: FONTS[el.font ?? "body"].css, fontSize: `${Math.max(fit, base * 0.45)}cqw`, fontWeight: el.weight ?? 600, fontStyle: el.italic ? "italic" : undefined,
+    textTransform: el.upper ? "uppercase" : undefined, letterSpacing: el.spacing ? `${el.spacing}cqw` : undefined, lineHeight: 1.1,
+    background: hasBox ? fillCss : undefined, borderRadius: hasBox ? `${el.radius ?? 0}cqmin` : undefined, padding: hasBox ? "0 1.6cqw" : undefined, boxSizing: "border-box",
+  };
   return (
-    <div style={{ ...box, display: "flex", alignItems: "center", justifyContent: el.align === "center" ? "center" : el.align === "right" ? "flex-end" : "flex-start", overflow: "hidden", whiteSpace: "nowrap", color: el.color, fontFamily: FONTS[el.font ?? "body"].css, fontSize: `${Math.max(fit, base * 0.45)}cqw`, fontWeight: el.weight ?? 600, textTransform: el.upper ? "uppercase" : undefined, letterSpacing: el.spacing ? `${el.spacing}cqw` : undefined, lineHeight: 1.1 }}>
-      <span style={{ overflow: "hidden", textOverflow: "ellipsis", maxWidth: "100%" }}>{text}</span>
+    <div style={style}>
+      {Array.from({ length: lines }, (_, i) => (
+        <span key={i} style={{ flex: lines > 1 ? 1 : undefined, display: "flex", alignItems: "center", maxWidth: "100%", overflow: "hidden", textOverflow: el.ticker ? "clip" : "ellipsis", justifyContent: el.align === "center" ? "center" : el.align === "right" ? "flex-end" : "flex-start" }}>{text}</span>
+      ))}
     </div>
   );
 }
@@ -61,6 +132,7 @@ export default function CardView({ tpl, ctx, className = "", children }: { tpl: 
   const slot = fmt.slot;
   return (
     <div className={`idcard-box ${className}`} style={{ position: "relative", width: "100%", aspectRatio: `${fmt.w} / ${fmt.h}`, overflow: "hidden", background: grad(tpl.bg.a, tpl.bg.b, tpl.bg.angle), containerType: "size", borderRadius: fmt.w > 150 ? "1.2% / 10%" : "3.5% / 2.4%", WebkitPrintColorAdjust: "exact", printColorAdjust: "exact" } as CSSProperties}>
+      {tpl.bg.pattern && <div aria-hidden="true" style={{ position: "absolute", inset: 0, opacity: tpl.bg.pattern.opacity, ...patternStyle(tpl.bg.pattern) }} />}
       {tpl.els.map((el) => <ElView key={el.id} el={el} ctx={ctx} />)}
       {slot && (
         // Lanyard slot guide: punch or cut inside the dashed outline.

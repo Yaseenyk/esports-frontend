@@ -7,7 +7,7 @@ import Select from "@/components/Select";
 import { useXp } from "@/components/XpProvider";
 import { maskAadhaar } from "@/lib/idcard/aadhaar";
 import { scanAadhaar, stopOcr } from "@/lib/idcard/ocr";
-import { suggest, themeById, THEMES, VIBES } from "@/lib/idcard/themes";
+import { suggest, themeById, THEMES, VIBES, type ThemeEntry } from "@/lib/idcard/themes";
 import { FORMATS, ROLES, fmtOf, type Fmt, type Person, type Role, type Team, type Template } from "@/lib/idcard/types";
 import { GAMES } from "@/lib/data";
 import CardView, { type Ctx } from "./CardView";
@@ -40,12 +40,18 @@ const uidT = () => `t${Date.now().toString(36)}${Math.floor(Math.random() * 1e3)
 const prefix = (name: string) => (name.replace(/[^A-Za-z0-9]/g, "").slice(0, 3) || "ID").toUpperCase();
 
 /** Photos are shrunk to a sensible size so a full roster stays light in memory and prints sharply. */
-async function shrink(file: File, max = 500): Promise<string> {
+async function shrink(file: File, max = 800): Promise<{ url: string; cutout: boolean }> {
   const bmp = await createImageBitmap(file);
-  const s = Math.min(1, max / Math.max(bmp.width, bmp.height));
-  const cv = document.createElement("canvas"); cv.width = Math.round(bmp.width * s); cv.height = Math.round(bmp.height * s);
-  cv.getContext("2d")!.drawImage(bmp, 0, 0, cv.width, cv.height); bmp.close();
-  return cv.toDataURL("image/jpeg", 0.85);
+  const k = Math.min(1, max / Math.max(bmp.width, bmp.height));
+  const cv = document.createElement("canvas"); cv.width = Math.round(bmp.width * k); cv.height = Math.round(bmp.height * k);
+  const ctx = cv.getContext("2d", { willReadFrequently: true })!;
+  ctx.drawImage(bmp, 0, 0, cv.width, cv.height); bmp.close();
+  // A cut-out has a transparent background. Keep it as a PNG; everything else becomes a smaller JPEG.
+  const d = ctx.getImageData(0, 0, cv.width, cv.height).data;
+  let seen = 0, clear = 0;
+  for (let i = 3; i < d.length; i += 4 * 37) { seen++; if (d[i] < 200) clear++; }
+  const cutout = seen > 0 && clear / seen > 0.06;
+  return { url: cutout ? cv.toDataURL("image/png") : cv.toDataURL("image/jpeg", 0.88), cutout };
 }
 
 interface Job { key: number; file: string; state: "queued" | "reading" | "done" | "error"; pct: number; note?: string }
@@ -85,7 +91,7 @@ export default function IdCardStudio() {
   useEffect(() => { if (ready) try { localStorage.setItem(STORE, JSON.stringify({ event, game, organiser, fmt, teams, templates })); } catch {} }, [ready, event, game, organiser, fmt, teams, templates]);
 
   // Every team always has a design: new teams get a theme chosen from their name.
-  const tplFor = useCallback((t: Team): Template => templates[t.id] ?? { ...themeById(suggest(null, t.name))!.make(fmt), id: t.id }, [templates, fmt]);
+  const tplFor = useCallback((t: Team): Template => templates[t.id] ?? { ...themeById(suggest(null, t.name, fmt))!.make(fmt), id: t.id }, [templates, fmt]);
   const teamById = (id: string) => teams.find((t) => t.id === id) ?? teams[0];
   const gameObj = GAMES.find((g) => g.short === game);
 
@@ -113,7 +119,7 @@ export default function IdCardStudio() {
     }
   };
   const trySample = async (file: string) => { const r = await fetch(`/samples/sample-card-${file}.png`); const b = await r.blob(); await scan([new File([b], `sample-card-${file}.png`, { type: "image/png" })]); };
-  const photo = async (id: string, f?: File) => { if (f) setPerson(id, { photo: await shrink(f) }); };
+  const photo = async (id: string, f?: File) => { if (!f) return; const r = await shrink(f); setPerson(id, { photo: r.url, cutout: r.cutout }); };
 
   const printable = useMemo(() => people.filter((p) => printTeam === "all" || p.teamId === printTeam), [people, printTeam]);
   const teamOpts = teams.map((t) => ({ value: t.id, label: t.name || "Untitled team" }));
@@ -122,6 +128,27 @@ export default function IdCardStudio() {
   const needReview = people.filter((p) => p.review).length;
 
   const applyTheme = (themeId: string, teamIds: string[]) => setTemplates((t) => { const n = { ...t }; for (const id of teamIds) { const cur = n[id] ?? tplFor(teamById(id)); n[id] = { ...themeById(themeId)!.make(fmtOf(cur)), id }; } return n; });
+
+  const upright = (f: Fmt) => f === "portrait" || f === "badge";
+  const themeGrid = (list: ThemeEntry[], title: string) => {
+    if (!dTeam) return null;
+    const f = fmtOf(tplFor(dTeam));
+    return (
+      <div>
+        <h3 className="mb-3 font-display text-lg font-bold text-white">{title} <span className="text-sm font-normal text-zinc-500">· {list.length}</span></h3>
+        <ul className={`grid gap-3 ${f === "strip" ? "grid-cols-1 sm:grid-cols-2" : FORMATS[f].w < FORMATS[f].h ? "grid-cols-2 sm:grid-cols-4 lg:grid-cols-5" : "grid-cols-2 sm:grid-cols-3 lg:grid-cols-5"}`}>
+          {list.map((th) => (
+            <li key={th.id} className={vibe && !th.tags.includes(vibe) ? "opacity-35" : ""}>
+              <button type="button" onClick={() => applyTheme(th.id, [dTeam.id])} className={`group w-full rounded-xl border p-2 text-left outline-none transition-colors focus-visible:ring-2 focus-visible:ring-cyan ${tplFor(dTeam).theme === th.id ? "border-cyan" : "border-white/10 hover:border-white/30"}`} aria-label={`Use the ${th.name} theme`}>
+                <CardView tpl={th.make(f)} ctx={{ event, game, teamName: dTeam.name, person: sample }} />
+                <span className="mt-2 block text-center text-xs font-semibold text-zinc-300">{th.name}</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      </div>
+    );
+  };
 
   return (
     <div className="mt-8">
@@ -226,7 +253,7 @@ export default function IdCardStudio() {
                       <Select ariaLabel="Gender" value={p.gender ?? ""} onChange={(v) => setPerson(p.id, { gender: v || undefined })} options={[{ value: "", label: "Gender" }, { value: "Male", label: "Male" }, { value: "Female", label: "Female" }, { value: "Transgender", label: "Transgender" }]} searchable={false} />
                       <input className="field" aria-label="ID number" placeholder="ID" value={p.id} onChange={(e) => { const v = e.target.value; setPeople((l) => l.map((x) => (x === p ? { ...x, id: v } : x))); }} />
                       <span className="flex min-h-11 items-center justify-between gap-2 rounded-lg border border-white/10 px-3 font-mono text-sm text-zinc-400" title="Only the last 4 digits are kept">{p.last4 ? maskAadhaar(p.last4) : "No Aadhaar"}{p.source && <span className={`rounded px-1.5 font-sans text-[10px] font-bold ${p.source === "qr" ? "bg-emerald-500/20 text-emerald-300" : "bg-amber-500/20 text-amber-200"}`}>{p.source === "qr" ? "QR" : "OCR"}</span>}</span>
-                      <label className="field flex cursor-pointer items-center text-sm text-zinc-400">{p.photo ? "Photo ✓ (change)" : "Add photo"}<input type="file" accept="image/*" className="sr-only" onChange={(e) => photo(p.id, e.target.files?.[0])} /></label>
+                      <label className="field flex cursor-pointer items-center text-sm text-zinc-400">{p.photo ? (p.cutout ? "Cut-out ✓ (change)" : "Photo ✓ (change)") : "Add photo"}<input type="file" accept="image/*" className="sr-only" onChange={(e) => photo(p.id, e.target.files?.[0])} /></label>
                       {p.review ? <button type="button" className="btn !min-h-11 text-sm" onClick={() => setPerson(p.id, { review: false })}>Looks right</button> : <span />}
                     </li>
                   ))}
@@ -241,27 +268,18 @@ export default function IdCardStudio() {
                 <div className="grid gap-3 sm:grid-cols-[16rem_1fr] sm:items-end">
                   <div className="grid gap-3">
                     <Select label="Designing for team" value={dTeam.id} onChange={setDesignTeam} options={teamOpts} searchable={false} />
-                    <Select label="Card type for this team" value={fmtOf(tplFor(dTeam))} onChange={(v) => setTemplates((t) => { const cur = tplFor(dTeam); return { ...t, [dTeam.id]: { ...(themeById(cur.theme ?? "") ?? themeById(suggest(null, dTeam.name))!).make(v as Fmt), id: dTeam.id } }; })} options={(Object.keys(FORMATS) as Fmt[]).map((k) => ({ value: k, label: FORMATS[k].label, hint: `${FORMATS[k].w} x ${FORMATS[k].h} mm` }))} searchable={false} />
+                    <Select label="Card type for this team" value={fmtOf(tplFor(dTeam))} onChange={(v) => setTemplates((t) => { const cur = tplFor(dTeam); return { ...t, [dTeam.id]: { ...(themeById(cur.theme ?? "") ?? themeById(suggest(null, dTeam.name, v as Fmt))!).make(v as Fmt), id: dTeam.id } }; })} options={(Object.keys(FORMATS) as Fmt[]).map((k) => ({ value: k, label: FORMATS[k].label, hint: `${FORMATS[k].w} x ${FORMATS[k].h} mm` }))} searchable={false} />
                     {fmtOf(tplFor(dTeam)) !== fmt && <p className="text-xs text-zinc-500">Changing the card type rebuilds this team&apos;s card from its theme. Your own edits to the layout are replaced.</p>}
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="text-sm text-zinc-400">Style assistant:</span>
                     {VIBES.map((v) => (<button key={v} type="button" className="chip capitalize" aria-pressed={vibe === v} onClick={() => setVibe(vibe === v ? null : v)}>{v}</button>))}
-                    <button type="button" className="btn !min-h-9 px-3 text-sm" onClick={() => { applyTheme(suggest(vibe, dTeam.name), [dTeam.id]); }}>Suggest for this team</button>
-                    <button type="button" className="btn-ghost !min-h-9 px-3 text-sm" onClick={() => setTemplates((t) => { const n = { ...t }; teams.forEach((x, i) => { const id = suggest(vibe, x.name + i); n[x.id] = { ...themeById(id)!.make(fmtOf(tplFor(x))), id: x.id }; }); return n; })}>Different theme for every team</button>
+                    <button type="button" className="btn !min-h-9 px-3 text-sm" onClick={() => { applyTheme(suggest(vibe, dTeam.name, fmtOf(tplFor(dTeam))), [dTeam.id]); }}>Suggest for this team</button>
+                    <button type="button" className="btn-ghost !min-h-9 px-3 text-sm" onClick={() => setTemplates((t) => { const n = { ...t }; teams.forEach((x, i) => { const id = suggest(vibe, x.name + i, fmtOf(tplFor(x))); n[x.id] = { ...themeById(id)!.make(fmtOf(tplFor(x))), id: x.id }; }); return n; })}>Different theme for every team</button>
                   </div>
                 </div>
-                <h3 className="font-display text-lg font-bold text-white">10 ready-made themes</h3>
-                <ul className={`grid gap-3 ${fmtOf(tplFor(dTeam)) === "strip" ? "grid-cols-1 sm:grid-cols-2" : FORMATS[fmtOf(tplFor(dTeam))].w < FORMATS[fmtOf(tplFor(dTeam))].h ? "grid-cols-2 sm:grid-cols-4 lg:grid-cols-5" : "grid-cols-2 sm:grid-cols-3 lg:grid-cols-5"}`}>
-                  {THEMES.map((th) => (
-                    <li key={th.id} className={vibe && !th.tags.includes(vibe) ? "opacity-35" : ""}>
-                      <button type="button" onClick={() => applyTheme(th.id, [dTeam.id])} className={`group w-full rounded-xl border p-2 text-left outline-none transition-colors focus-visible:ring-2 focus-visible:ring-cyan ${tplFor(dTeam).theme === th.id ? "border-cyan" : "border-white/10 hover:border-white/30"}`} aria-label={`Use the ${th.name} theme`}>
-                        <CardView tpl={th.make(fmtOf(tplFor(dTeam)))} ctx={{ event, game, teamName: dTeam.name, person: sample }} />
-                        <span className="mt-2 block text-center text-xs font-semibold text-zinc-300">{th.name}</span>
-                      </button>
-                    </li>
-                  ))}
-                </ul>
+                {upright(fmtOf(tplFor(dTeam))) && themeGrid(THEMES.filter((t) => t.group === "poster"), "Poster themes")}
+                {themeGrid(THEMES.filter((t) => t.group === "classic"), "Classic themes")}
                 <button type="button" className="btn-ghost text-sm" onClick={() => { const cur = tplFor(dTeam); setTemplates((t) => { const n = { ...t }; teams.forEach((x) => { n[x.id] = { ...cur, id: x.id, els: cur.els.map((e) => ({ ...e })) }; }); return n; }); }}>Copy this team&apos;s design to all teams</button>
               </section>
               <section className="card !p-4 sm:!p-6">

@@ -2,11 +2,12 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Select from "@/components/Select";
-import { FIELDS, FONTS, FORMATS, fmtOf, uid, type El, type Field, type FontKey, type Template } from "@/lib/idcard/types";
+import { FIELDS, FONTS, FORMATS, fmtOf, uid, type El, type Field, type FontKey, type Pattern, type Template } from "@/lib/idcard/types";
 import CardView, { type Ctx } from "./CardView";
 
 const clamp = (n: number, a: number, b: number) => Math.min(b, Math.max(a, n));
 const fieldOptions = (Object.keys(FIELDS) as Field[]).map((f) => ({ value: f, label: FIELDS[f] }));
+const patternOptions = [{ value: "none", label: "No pattern" }, { value: "dots", label: "Dots" }, { value: "grid", label: "Grid" }, { value: "stripes", label: "Stripes" }, { value: "rays", label: "Sunburst rays" }, { value: "rings", label: "Rings" }, { value: "diamonds", label: "Diamonds" }];
 const fontOptions = (Object.keys(FONTS) as FontKey[]).map((f) => ({ value: f, label: FONTS[f].label }));
 
 function Num({ label, value, onChange, min = -50, max = 150, step = 1 }: { label: string; value: number; onChange: (n: number) => void; min?: number; max?: number; step?: number }) {
@@ -97,7 +98,7 @@ export default function Editor({ tpl, onChange, ctx }: { tpl: Template; onChange
 
   const logo = (f?: File) => { if (!f) return; const r = new FileReader(); r.onload = () => add({ kind: "image", src: String(r.result), w: 20, h: 20, x: 70, y: 70 }); r.readAsDataURL(f); };
   const isText = el && (el.kind === "text" || el.kind === "field");
-  const isShape = el && (el.kind === "rect" || el.kind === "ellipse" || el.kind === "photo");
+  const isShape = el && (el.kind === "rect" || el.kind === "ellipse" || (el.kind === "photo" && !el.cutout));
 
   return (
     <div ref={root} tabIndex={-1} className="grid gap-4 outline-none lg:grid-cols-[1fr_17rem]" onKeyDown={onKey}>
@@ -111,6 +112,8 @@ export default function Editor({ tpl, onChange, ctx }: { tpl: Template; onChange
           <button type="button" className="btn-ghost !min-h-9 px-3 text-sm" onClick={() => add({ kind: "rect", fill: "#22D3EE", w: 30, h: 12, radius: 2 })}>+ Box</button>
           <button type="button" className="btn-ghost !min-h-9 px-3 text-sm" onClick={() => add({ kind: "ellipse", fill: "#A855F7", w: 20, h: 32 })}>+ Circle</button>
           <button type="button" className="btn-ghost !min-h-9 px-3 text-sm" onClick={() => add({ kind: "photo", w: 24, h: 45, radius: 6, fill: "#00000055", stroke: "#22D3EE", strokeW: 0.9 })}>+ Photo</button>
+          <button type="button" className="btn-ghost !min-h-9 px-3 text-sm" onClick={() => add({ kind: "photo", cutout: true, w: 60, h: 55, x: 20, y: 30, color: "#334155", shadow: true })}>+ Cut-out</button>
+          <button type="button" className="btn-ghost !min-h-9 px-3 text-sm" onClick={() => add({ kind: "qr", w: 24, h: 15, color: "#111111", fill: "#ffffff", radius: 3 })}>+ QR</button>
           <label className="btn-ghost !min-h-9 cursor-pointer px-3 text-sm">+ Logo<input type="file" accept="image/*" className="sr-only" onChange={(e) => { logo(e.target.files?.[0]); e.target.value = ""; }} /></label>
         </div>
         <div className="mx-auto w-full select-none" style={{ maxWidth: FORMATS[fmtOf(tpl)].w < FORMATS[fmtOf(tpl)].h ? 330 : 640 }} ref={box} onPointerDown={() => { root.current?.focus({ preventScroll: true }); setSel(null); }}>
@@ -133,6 +136,17 @@ export default function Editor({ tpl, onChange, ctx }: { tpl: Template; onChange
             <Color label="Colour 1" value={tpl.bg.a} onChange={(v) => commit({ ...tpl, bg: { ...tpl.bg, a: v } })} />
             <Color label="Colour 2" value={tpl.bg.b} onChange={(v) => commit({ ...tpl, bg: { ...tpl.bg, b: v } })} />
             <Range label="Angle" min={0} max={360} value={tpl.bg.angle} onChange={(n) => onChange({ ...tpl, bg: { ...tpl.bg, angle: n } })} />
+            <Select label="Pattern" value={tpl.bg.pattern?.type ?? "none"} searchable={false} options={patternOptions}
+              onChange={(v) => commit({ ...tpl, bg: { ...tpl.bg, pattern: v === "none" ? undefined : { type: v as Pattern["type"], color: tpl.bg.pattern?.color ?? "#ffffff", opacity: tpl.bg.pattern?.opacity ?? 0.18, size: tpl.bg.pattern?.size ?? (v === "rays" ? 3.2 : 4), cx: tpl.bg.pattern?.cx ?? 70, cy: tpl.bg.pattern?.cy ?? 30 } } })} />
+            {tpl.bg.pattern && <>
+              <Color label="Pattern colour" value={tpl.bg.pattern.color} onChange={(v) => commit({ ...tpl, bg: { ...tpl.bg, pattern: { ...tpl.bg.pattern!, color: v } } })} />
+              <Range label="Pattern strength" min={0.03} max={1} step={0.01} value={tpl.bg.pattern.opacity} onChange={(n) => onChange({ ...tpl, bg: { ...tpl.bg, pattern: { ...tpl.bg.pattern!, opacity: n } } })} />
+              <Range label="Pattern size" min={1} max={20} step={0.1} value={tpl.bg.pattern.size} onChange={(n) => onChange({ ...tpl, bg: { ...tpl.bg, pattern: { ...tpl.bg.pattern!, size: n } } })} />
+              {(tpl.bg.pattern.type === "rings" || tpl.bg.pattern.type === "rays") && <>
+                <Range label="Centre across" min={-20} max={120} value={tpl.bg.pattern.cx ?? 70} onChange={(n) => onChange({ ...tpl, bg: { ...tpl.bg, pattern: { ...tpl.bg.pattern!, cx: n } } })} />
+                <Range label="Centre down" min={-20} max={120} value={tpl.bg.pattern.cy ?? 30} onChange={(n) => onChange({ ...tpl, bg: { ...tpl.bg, pattern: { ...tpl.bg.pattern!, cy: n } } })} />
+              </>}
+            </>}
           </div>
         </div>
         {!el ? <p className="text-sm text-zinc-500">Select anything on the card to edit it.</p> : (
@@ -142,18 +156,53 @@ export default function Editor({ tpl, onChange, ctx }: { tpl: Template; onChange
             {el.kind === "field" && <Select label="Shows" value={el.field ?? "name"} onChange={(v) => patch(el.id, { field: v as Field })} options={fieldOptions} searchable={false} />}
             {isText && <>
               <Select label="Font" value={el.font ?? "body"} onChange={(v) => patch(el.id, { font: v as FontKey })} options={fontOptions} searchable={false} />
-              <Range label="Size" min={1.5} max={16} step={0.1} value={el.size ?? 4} onChange={(n) => patch(el.id, { size: n }, false)} />
+              <Range label="Size" min={1.5} max={34} step={0.1} value={el.size ?? 4} onChange={(n) => patch(el.id, { size: n }, false)} />
               <Range label="Weight" min={300} max={900} step={100} value={el.weight ?? 600} onChange={(n) => patch(el.id, { weight: n }, false)} />
               <Range label="Letter spacing" min={0} max={2} step={0.1} value={el.spacing ?? 0} onChange={(n) => patch(el.id, { spacing: n }, false)} />
               <Color label="Colour" value={el.color ?? "#ffffff"} onChange={(v) => patch(el.id, { color: v })} />
               <div className="flex gap-1" role="group" aria-label="Alignment">{(["left", "center", "right"] as const).map((a) => (<button key={a} type="button" aria-pressed={el.align === a} className="chip flex-1 justify-center capitalize" onClick={() => patch(el.id, { align: a })}>{a}</button>))}</div>
-              <button type="button" className="chip" aria-pressed={!!el.upper} onClick={() => patch(el.id, { upper: !el.upper })}>UPPERCASE</button>
+              <div className="flex flex-wrap gap-1">
+                <button type="button" className="chip" aria-pressed={!!el.upper} onClick={() => patch(el.id, { upper: !el.upper })}>UPPERCASE</button>
+                <button type="button" className="chip italic" aria-pressed={!!el.italic} onClick={() => patch(el.id, { italic: !el.italic })}>Italic</button>
+                <button type="button" className="chip" aria-pressed={!!el.outline} onClick={() => patch(el.id, { outline: !el.outline, stroke: el.stroke ?? el.color ?? "#ffffff", strokeW: el.strokeW ?? 0.3 })}>Outline only</button>
+                <button type="button" className="chip" aria-pressed={!!el.ticker} onClick={() => patch(el.id, { ticker: !el.ticker })}>Ribbon repeat</button>
+              </div>
+              {el.outline && <>
+                <Color label="Outline colour" value={el.stroke ?? "#ffffff"} onChange={(v) => patch(el.id, { stroke: v })} />
+                <Range label="Outline width" min={0.1} max={1.2} step={0.05} value={el.strokeW ?? 0.3} onChange={(n) => patch(el.id, { strokeW: n }, false)} />
+              </>}
+              <Range label="Stack the line" min={1} max={6} step={1} value={el.repeat ?? 1} onChange={(n) => patch(el.id, { repeat: n }, false)} />
+              <div className="flex items-center justify-between gap-2">
+                <Color label="Box behind text" value={el.fill ?? "#000000"} onChange={(v) => patch(el.id, { fill: v })} />
+                {el.fill && <button type="button" className="chip !min-h-8" onClick={() => patch(el.id, { fill: undefined, fill2: undefined })}>None</button>}
+              </div>
+              {el.fill && <Range label="Box corner radius" min={0} max={50} value={el.radius ?? 0} onChange={(n) => patch(el.id, { radius: n }, false)} />}
+            </>}
+            {el.kind === "photo" && <>
+              <button type="button" className="chip" aria-pressed={!!el.cutout} onClick={() => patch(el.id, { cutout: !el.cutout })}>Cut-out person (no frame)</button>
+              {el.cutout && <>
+                <div className="flex flex-wrap items-center gap-2">
+                  <button type="button" className="chip" aria-pressed={!!el.sticker} onClick={() => patch(el.id, { sticker: el.sticker ? undefined : "#ffffff" })}>Sticker outline</button>
+                  <button type="button" className="chip" aria-pressed={!!el.shadow} onClick={() => patch(el.id, { shadow: !el.shadow })}>Shadow</button>
+                </div>
+                {el.sticker && <Color label="Outline colour" value={el.sticker} onChange={(v) => patch(el.id, { sticker: v })} />}
+                <Color label="Placeholder shirt" value={el.color ?? "#334155"} onChange={(v) => patch(el.id, { color: v })} />
+                <p className="text-xs text-zinc-500">Use a transparent PNG for the best result. Without one, the photo fades softly at the bottom.</p>
+              </>}
+            </>}
+            {el.kind === "qr" && <>
+              <Color label="QR colour" value={el.color ?? "#111111"} onChange={(v) => patch(el.id, { color: v })} />
+              <Color label="QR background" value={el.fill && el.fill !== "none" ? el.fill : "#ffffff"} onChange={(v) => patch(el.id, { fill: v })} />
+              <button type="button" className="chip" aria-pressed={el.fill === "none"} onClick={() => patch(el.id, { fill: el.fill === "none" ? "#ffffff" : "none" })}>Transparent background</button>
+              <Range label="Corner radius" min={0} max={20} value={el.radius ?? 0} onChange={(n) => patch(el.id, { radius: n }, false)} />
+              <p className="text-xs text-zinc-500">The QR holds the person&apos;s ID number only.</p>
             </>}
             {isShape && <>
               {el.kind !== "photo" && <Color label="Fill" value={el.fill ?? "#ffffff"} onChange={(v) => patch(el.id, { fill: v })} />}
               {el.kind !== "photo" && <Color label="Gradient to" value={el.fill2 ?? el.fill ?? "#ffffff"} onChange={(v) => patch(el.id, { fill2: v })} />}
+              {el.kind !== "photo" && el.fill2 && <Range label="Gradient angle" min={0} max={360} value={el.ang ?? 90} onChange={(n) => patch(el.id, { ang: n }, false)} />}
               {el.kind !== "ellipse" && <Range label="Corner radius" min={0} max={50} value={el.radius ?? 0} onChange={(n) => patch(el.id, { radius: n }, false)} />}
-              {el.kind === "photo" && <Color label="Frame" value={el.stroke ?? "#ffffff"} onChange={(v) => patch(el.id, { stroke: v })} />}
+              {el.kind === "photo" && !el.cutout && <Color label="Frame" value={el.stroke ?? "#ffffff"} onChange={(v) => patch(el.id, { stroke: v })} />}
             </>}
             {el.kind === "image" && <Range label="Corner radius" min={0} max={50} value={el.radius ?? 0} onChange={(n) => patch(el.id, { radius: n }, false)} />}
             <Range label="Rotation" min={-180} max={180} value={el.rot} onChange={(n) => patch(el.id, { rot: n }, false)} />

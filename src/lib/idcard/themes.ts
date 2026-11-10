@@ -1,4 +1,5 @@
-import { uid, type El, type Fmt, type FontKey, type Template } from "./types";
+import { POSTERS } from "./posters";
+import { FORMATS, uid, type El, type Fmt, type FontKey, type Template } from "./types";
 
 type Layout = "band" | "side" | "center" | "slash";
 interface Pal {
@@ -117,17 +118,37 @@ function build(p: Pal, fmt: Fmt = "wallet"): El[] {
   return els;
 }
 
-export const THEMES: { id: string; name: string; tags: string[]; make: (fmt?: Fmt) => Template }[] = PALS.map((p) => ({
-  id: p.id, name: p.name, tags: p.tags,
+export interface ThemeEntry { id: string; name: string; tags: string[]; group: "classic" | "poster"; fmts?: Fmt[]; make: (fmt?: Fmt) => Template }
+
+const classic: ThemeEntry[] = PALS.map((p) => ({
+  id: p.id, name: p.name, tags: p.tags, group: "classic" as const,
   make: (fmt: Fmt = "wallet") => ({ id: p.id, name: p.name, theme: p.id, fmt, bg: { a: p.bg[0], b: p.bg[1], angle: p.angle }, els: build(p, fmt) }),
 }));
 
-export const VIBES = ["neon", "premium", "minimal", "aggressive", "playful", "light"] as const;
+/** Poster themes are made for upright badges. On other card shapes they rebuild from a matching classic palette instead. */
+const posters: ThemeEntry[] = POSTERS.map((p) => ({
+  id: p.id, name: p.name, tags: p.tags, group: "poster" as const, fmts: ["portrait", "badge"] as Fmt[],
+  make: (fmt: Fmt = "portrait") => {
+    if (fmt === "portrait" || fmt === "badge") {
+      const f = FORMATS[fmt];
+      return { id: p.id, name: p.name, theme: p.id, fmt, bg: { ...p.bg }, els: p.build(f.h / f.w) };
+    }
+    const pal = PALS.find((x) => x.id === p.fallback) ?? PALS[0];
+    return { id: p.id, name: p.name, theme: p.id, fmt, bg: { a: pal.bg[0], b: pal.bg[1], angle: pal.angle }, els: build(pal, fmt) };
+  },
+}));
+
+export const THEMES: ThemeEntry[] = [...classic, ...posters];
+const upright = (f?: Fmt) => f === "portrait" || f === "badge";
+
+export const VIBES = ["neon", "premium", "minimal", "aggressive", "playful", "light", "bold"] as const;
 export const themeById = (id: string) => THEMES.find((t) => t.id === id);
 /** A simple, honest helper: picks a theme from the chosen vibe and the team name, so each team lands on a different one. */
-export function suggest(vibe: string | null, teamName: string): string {
-  const pool = THEMES.filter((t) => !vibe || t.tags.includes(vibe));
-  const list = pool.length ? pool : THEMES;
+export function suggest(vibe: string | null, teamName: string, fmt?: Fmt): string {
+  // Upright badges get the poster themes; other shapes get the classic ones.
+  const eligible = THEMES.filter((t) => (upright(fmt) ? t.group === "poster" : t.group === "classic"));
+  const pool = eligible.filter((t) => !vibe || t.tags.includes(vibe));
+  const list = pool.length ? pool : eligible;
   let h = 0; for (const c of teamName) h = (h * 31 + c.charCodeAt(0)) >>> 0;
   return list[h % list.length].id;
 }

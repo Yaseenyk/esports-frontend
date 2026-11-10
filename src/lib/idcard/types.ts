@@ -18,7 +18,7 @@ export type Field = keyof typeof FIELDS;
 export const ROLES = ["Player", "Substitute", "Coach", "Manager", "Staff", "Guest", "Caster"] as const;
 export type Role = (typeof ROLES)[number];
 
-export type Kind = "text" | "field" | "photo" | "rect" | "ellipse" | "image";
+export type Kind = "text" | "field" | "photo" | "rect" | "ellipse" | "image" | "qr";
 
 export interface El {
   id: string;
@@ -45,7 +45,26 @@ export interface El {
   strokeW?: number;
   /** image: a data URL the user uploaded (for example a team logo) */
   src?: string;
+  /** text: italic */
+  italic?: boolean;
+  /** text: transparent letters with only an outline (uses stroke / strokeW) */
+  outline?: boolean;
+  /** text: stack the same line this many times, like a repeated word behind a portrait */
+  repeat?: number;
+  /** text: repeat across the width like a ribbon ("NAME • NAME • NAME") */
+  ticker?: boolean;
+  /** shapes and text boxes: angle of the gradient between fill and fill2 */
+  ang?: number;
+  /** photo: a cut-out person (transparent PNG) stands on the bottom edge with no frame, so type behind it shows around them */
+  cutout?: boolean;
+  /** photo cut-out: colour of a sticker-style outline around the person */
+  sticker?: string;
+  /** photo cut-out: soft drop shadow */
+  shadow?: boolean;
 }
+
+/** A texture drawn over the background: dots, grid, stripes, sunburst rays, concentric rings or a diamond lattice. */
+export interface Pattern { type: "dots" | "grid" | "stripes" | "rays" | "rings" | "diamonds"; color: string; opacity: number; size: number; cx?: number; cy?: number }
 
 export interface Template {
   id: string;
@@ -54,7 +73,7 @@ export interface Template {
   fmt?: Fmt;
   /** Which ready-made theme it started from, so a change of card type can rebuild the same look. */
   theme?: string;
-  bg: { a: string; b: string; angle: number };
+  bg: { a: string; b: string; angle: number; pattern?: Pattern };
   els: El[];
 }
 
@@ -73,6 +92,8 @@ export interface Person {
   review?: boolean;
   /** How a scanned person was read: the card's QR code (exact) or OCR (needs a check). */
   source?: "qr" | "ocr";
+  /** The photo is a cut-out with a transparent background. */
+  cutout?: boolean;
 }
 
 export const FONTS = {
