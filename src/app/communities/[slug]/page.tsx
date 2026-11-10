@@ -16,7 +16,7 @@ export default function CommunityPage({ params }: { params: { slug: string } }) 
   const events = EVENTS.filter((e) => e.organiser === c.name);
   return (
     <div className="space-y-10">
-      <nav aria-label="Breadcrumb" className="text-sm text-zinc-500"><Link href="/communities/" className="hover:text-zinc-300">Communities</Link> / {c.name}</nav>
+      <nav aria-label="Breadcrumb" className="text-sm text-zinc-400"><Link href="/communities/" className="hover:text-zinc-300">Communities</Link> / {c.name}</nav>
       <header><span className="tag">{c.kind}</span><h1 className="mt-3 text-3xl font-black text-zinc-50 sm:text-4xl">{c.name}</h1><p className="mt-2 max-w-2xl text-zinc-300">{c.blurb}</p></header>
       <section aria-labelledby="g"><h2 id="g" className="mb-4 text-2xl font-bold text-zinc-50">Games they play</h2>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">

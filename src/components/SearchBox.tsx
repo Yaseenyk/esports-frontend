@@ -73,7 +73,7 @@ export default function SearchBox({ large = false, placeholder = "Search games, 
                 <span className={`w-20 shrink-0 rounded-md px-2 py-0.5 text-center text-[11px] font-semibold ${KIND_STYLE[h.kind]}`}>{h.kind}</span>
                 <span className="min-w-0">
                   <span className="block truncate text-zinc-50">{h.title}</span>
-                  <span className="block truncate text-xs text-zinc-500">{h.sub}</span>
+                  <span className="block truncate text-xs text-zinc-400">{h.sub}</span>
                 </span>
               </Link>
             </li>

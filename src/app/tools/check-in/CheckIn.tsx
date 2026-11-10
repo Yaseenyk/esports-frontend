@@ -119,13 +119,13 @@ export default function CheckIn() {
         <section className="card space-y-3">
           <h2 className="font-display text-lg font-bold text-white">2. Passphrase</h2>
           <input type="password" autoComplete="off" className="field font-mono" value={pass} onChange={(e) => setPass(e.target.value)} placeholder="Event passphrase" aria-label="Event passphrase" />
-          <p className="text-xs text-zinc-500">Kept on this device for this session only.</p>
+          <p className="text-xs text-zinc-400">Kept on this device for this session only.</p>
         </section>
         <section className="card space-y-3">
           <h2 className="font-display text-lg font-bold text-white">3. Scan</h2>
           <div className="flex flex-wrap gap-2">
             <button type="button" className="btn !min-h-10 px-4 text-sm" disabled={!pack} onClick={() => setCamera(camera === "on" ? "off" : "on")}>{camera === "on" ? "Stop camera" : "Start camera"}</button>
-            <label className={`btn-ghost !min-h-10 px-4 text-sm ${pack ? "cursor-pointer" : "pointer-events-none opacity-40"}`}>Scan a photo<input type="file" accept="image/*" className="sr-only" onChange={(e) => { scanPhoto(e.target.files?.[0]); e.target.value = ""; }} /></label>
+            <label aria-disabled={!pack} className={`btn-ghost !min-h-10 px-4 text-sm ${pack ? "cursor-pointer" : "pointer-events-none opacity-40"}`}>Scan a photo<input type="file" accept="image/*" className="sr-only" onChange={(e) => { scanPhoto(e.target.files?.[0]); e.target.value = ""; }} /></label>
           </div>
           {camera === "error" && <p className="text-sm text-red-300">The camera could not start. Allow camera access, or use Scan a photo.</p>}
           {camera === "on" && <video ref={video} playsInline muted className="aspect-square w-full rounded-xl border border-white/10 bg-black object-cover" />}
@@ -169,7 +169,7 @@ export default function CheckIn() {
               {pack.people.map((p) => (
                 <li key={p.id} className="flex items-center justify-between gap-2 rounded-lg border border-white/10 px-3 py-2 text-sm">
                   <span className="flex min-w-0 items-center gap-2"><span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: ROLE_COLOURS[p.role] }} /><span className="truncate text-zinc-200">{p.name}</span></span>
-                  <span className={log[p.id] ? "text-emerald-300" : "text-zinc-500"}>{log[p.id] ? time(log[p.id]) : "—"}</span>
+                  <span className={log[p.id] ? "text-emerald-300" : "text-zinc-400"}>{log[p.id] ? time(log[p.id]) : "—"}</span>
                 </li>
               ))}
             </ul>

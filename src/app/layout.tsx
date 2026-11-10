@@ -30,7 +30,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </div>
         <HubNav />
         <main className="mx-auto max-w-6xl px-4 pb-12 pt-8 sm:py-12">{children}</main>
-        <footer className="no-print mt-16 border-t border-white/10 px-4 py-8 text-center text-sm text-zinc-500">
+        <footer className="no-print mt-16 border-t border-white/10 px-4 py-8 text-center text-sm text-zinc-400">
           Esports Hub is an independent project and is not affiliated with any game publisher. Game names and logos are trademarks of their owners and are used only to identify the games.
         </footer>
         </XpProvider>

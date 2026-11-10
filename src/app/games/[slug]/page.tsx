@@ -20,7 +20,7 @@ export default function GamePage({ params }: { params: { slug: string } }) {
   const related = GAMES.filter((x) => x.slug !== g.slug && (x.genre === g.genre || x.platform === g.platform)).slice(0, 5);
   return (
     <div className="space-y-12">
-      <nav aria-label="Breadcrumb" className="text-sm text-zinc-500"><Link href="/games/" className="hover:text-zinc-300">Games</Link> / {g.short}</nav>
+      <nav aria-label="Breadcrumb" className="text-sm text-zinc-400"><Link href="/games/" className="hover:text-zinc-300">Games</Link> / {g.short}</nav>
       <header className="relative overflow-hidden rounded-3xl border border-white/10 p-6 sm:p-10">
         <div aria-hidden="true" className={`absolute -right-24 -top-24 h-72 w-72 rounded-full bg-gradient-to-br ${g.hue} opacity-30 blur-3xl`} />
         <div className="relative flex flex-col gap-6 sm:flex-row sm:items-center">

@@ -45,7 +45,7 @@ export default function SetupStep({ event, setEvent, game, setGame, organiser, s
         </section>
 
         <section className="card flex flex-col gap-3" aria-labelledby="tm-h">
-          <div className="flex items-baseline justify-between gap-2"><h2 id="tm-h" className="font-display text-lg font-bold text-white">Teams <span className="text-sm font-normal text-zinc-500">· {teams.length}</span></h2></div>
+          <div className="flex items-baseline justify-between gap-2"><h2 id="tm-h" className="font-display text-lg font-bold text-white">Teams <span className="text-sm font-normal text-zinc-400">· {teams.length}</span></h2></div>
           <p className="text-sm text-zinc-400">Every team gets its own card design. The logo is optional.</p>
           <ul className="space-y-2">
             {teams.map((t) => (

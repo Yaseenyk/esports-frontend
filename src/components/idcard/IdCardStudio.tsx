@@ -278,7 +278,7 @@ export default function IdCardStudio() {
           <li key={s}>
             <button type="button" onClick={() => setStep(i)} onPointerEnter={() => void PRELOAD[i]()} onFocus={() => void PRELOAD[i]()} onTouchStart={() => void PRELOAD[i]()} aria-current={step === i ? "step" : undefined} aria-label={`${s}, ${stepMeta[i]}`} className={`flex w-full flex-col items-center gap-1 rounded-xl border px-1.5 py-2 text-center outline-none transition-colors focus-visible:ring-2 focus-visible:ring-cyan sm:flex-row sm:gap-3 sm:px-3 sm:text-left ${step === i ? "border-cyan/60 bg-cyan/10" : "border-white/10 hover:border-white/25"}`}>
               <span className={`grid h-6 w-6 shrink-0 place-items-center rounded-full text-xs font-bold sm:h-7 sm:w-7 ${step === i ? "bg-cyan text-ink" : i < step ? "bg-emerald-500/20 text-emerald-300" : "bg-white/10 text-zinc-300"}`}>{i < step ? "✓" : i + 1}</span>
-              <span className="min-w-0"><span className={`block truncate text-xs font-semibold sm:text-sm ${step === i ? "text-white" : "text-zinc-200"}`}><span className="sm:hidden">{s.split(" ")[0]}</span><span className="hidden sm:inline">{s}</span></span><span className="hidden truncate text-[11px] text-zinc-500 sm:block">{stepMeta[i]}</span></span>
+              <span className="min-w-0"><span className={`block truncate text-xs font-semibold sm:text-sm ${step === i ? "text-white" : "text-zinc-200"}`}><span className="sm:hidden">{s.split(" ")[0]}</span><span className="hidden sm:inline">{s}</span></span><span className="hidden truncate text-[11px] text-zinc-400 sm:block">{stepMeta[i]}</span></span>
             </button>
           </li>
         ))}

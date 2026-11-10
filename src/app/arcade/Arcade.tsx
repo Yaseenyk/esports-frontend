@@ -47,7 +47,7 @@ function AimTrainer({ onBest, best }: { onBest: (n: number) => void; best: numbe
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div><h2 id="aim" className="text-2xl font-bold text-white">Aim trainer</h2><p className="text-sm text-zinc-400">Hit as many targets as you can in {ROUND} seconds. Targets vanish fast.</p></div>
         <dl className="flex gap-5 text-center">
-          {[["Time", state === "idle" ? ROUND : Math.max(0, left)], ["Hits", hits], ["Accuracy", `${acc}%`], ["Best", best]].map(([k, v]) => (<div key={k as string}><dd className="font-display text-2xl font-bold text-white">{v}</dd><dt className="text-[11px] uppercase tracking-wider text-zinc-500">{k}</dt></div>))}
+          {[["Time", state === "idle" ? ROUND : Math.max(0, left)], ["Hits", hits], ["Accuracy", `${acc}%`], ["Best", best]].map(([k, v]) => (<div key={k as string}><dd className="font-display text-2xl font-bold text-white">{v}</dd><dt className="text-[11px] uppercase tracking-wider text-zinc-400">{k}</dt></div>))}
         </dl>
       </div>
       <div className="relative mt-4 aspect-[16/10] w-full touch-none select-none overflow-hidden rounded-2xl border border-white/10 bg-ink/70 sm:aspect-video"
@@ -55,7 +55,7 @@ function AimTrainer({ onBest, best }: { onBest: (n: number) => void; best: numbe
         {state !== "run" && (
           <div className="absolute inset-0 z-10 grid place-items-center bg-ink/60 backdrop-blur-sm">
             <div className="text-center">
-              {state === "done" && <p className="mb-3 font-display text-3xl font-bold text-white">{hits} hits <span className="text-zinc-500">· {acc}% accuracy</span></p>}
+              {state === "done" && <p className="mb-3 font-display text-3xl font-bold text-white">{hits} hits <span className="text-zinc-400">· {acc}% accuracy</span></p>}
               <button type="button" className="btn" onClick={start}>{state === "done" ? "Play again" : "Start"}</button>
             </div>
           </div>
@@ -108,7 +108,7 @@ function Reaction({ onBest, best }: { onBest: (n: number) => void; best: number 
     <section className="card !p-4 sm:!p-6" aria-labelledby="rt">
       <div className="flex items-center justify-between gap-3">
         <div><h2 id="rt" className="text-2xl font-bold text-white">Reaction test</h2><p className="text-sm text-zinc-400">How fast are your reflexes?</p></div>
-        <dl className="text-center"><dd className="font-display text-2xl font-bold text-white">{best ? `${best} ms` : "—"}</dd><dt className="text-[11px] uppercase tracking-wider text-zinc-500">Best</dt></dl>
+        <dl className="flex flex-col-reverse text-center"><dt className="text-[11px] uppercase tracking-wider text-zinc-400">Best</dt><dd className="font-display text-2xl font-bold text-white">{best ? `${best} ms` : "—"}</dd></dl>
       </div>
       <button type="button" onPointerDown={press} onKeyDown={(e) => { if (e.key === " " || e.key === "Enter") { e.preventDefault(); press(); } }}
         className={`mt-4 flex h-56 w-full select-none flex-col items-center justify-center rounded-2xl border border-white/10 outline-none transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-cyan ${view.bg}`}>

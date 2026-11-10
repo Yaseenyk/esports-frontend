@@ -133,7 +133,7 @@ export default function Select({ value, onChange, options, label, ariaLabel, pla
       <ul ref={list} id={`${id}-list`} role="listbox" tabIndex={-1} aria-label={label ?? ariaLabel} aria-activedescendant={shown[active] ? `${id}-${active}` : undefined} onKeyDown={onKey} onScroll={measure}
         style={{ ["--ft" as string]: fade.t ? 1 : 0, ["--fb" as string]: fade.b ? 1 : 0 }}
         className="hub-list no-native-scroll max-h-64 overflow-y-auto overscroll-contain p-1.5 pr-3 outline-none sm:max-h-72">
-        {shown.length === 0 && <li className="px-3 py-3 text-sm text-zinc-500">No matches</li>}
+        {shown.length === 0 && <li className="px-3 py-3 text-sm text-zinc-400">No matches</li>}
         {shown.map((o, i) => {
           const sel = o.value === value;
           return (
@@ -141,7 +141,7 @@ export default function Select({ value, onChange, options, label, ariaLabel, pla
               className={`flex min-h-11 cursor-pointer items-center gap-3 rounded-lg px-3 text-[15px] transition-colors ${i === active ? "bg-white/10 text-white" : "text-zinc-300"} ${sel ? "font-semibold" : ""}`}>
               {o.icon && <span className="shrink-0">{o.icon}</span>}
               <span className="min-w-0 flex-1 truncate">{o.label}</span>
-              {o.hint && <span className="shrink-0 text-xs text-zinc-500">{o.hint}</span>}
+              {o.hint && <span className="shrink-0 text-xs text-zinc-400">{o.hint}</span>}
               {sel && <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4 shrink-0 fill-none stroke-cyan" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d={CHECK} /></svg>}
             </li>
           );
@@ -164,7 +164,7 @@ export default function Select({ value, onChange, options, label, ariaLabel, pla
         onClick={() => (open ? close() : openIt())} onKeyDown={onKey}
         className={`field flex items-center gap-3 text-left transition-colors hover:border-zinc-500 ${open ? "!border-cyan" : ""}`}>
         {current?.icon && <span className="shrink-0">{current.icon}</span>}
-        <span className={`min-w-0 flex-1 truncate ${current ? "" : "text-zinc-500"}`}>{current?.label ?? placeholder}</span>
+        <span className={`min-w-0 flex-1 truncate ${current ? "" : "text-zinc-400"}`}>{current?.label ?? placeholder}</span>
         <motion.svg aria-hidden="true" viewBox="0 0 24 24" animate={{ rotate: open ? 180 : 0 }} transition={{ duration: reduce ? 0 : 0.2 }} className="h-4 w-4 shrink-0 fill-none stroke-zinc-400" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9l6 6 6-6" /></motion.svg>
       </button>
 

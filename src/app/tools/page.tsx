@@ -19,7 +19,7 @@ export default function Tools() {
               <p className="mt-1 text-sm text-zinc-400">{t.blurb}</p>
             </>
           );
-          return live ? <TiltLink key={t.slug} href={t.href!}>{body}</TiltLink> : <div key={t.slug} className="card opacity-70">{body}</div>;
+          return live ? <TiltLink key={t.slug} href={t.href!}>{body}</TiltLink> : <div key={t.slug} className="card opacity-85">{body}</div>;
         })}
       </div>
     </div>

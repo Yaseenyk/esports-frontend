@@ -49,7 +49,7 @@ export default function RosterPanel({ teams, people, setTeams, setPeople, minorO
         <button type="button" className="chip" onClick={() => downloadBlob(new Blob([csvTemplate()], { type: "text/csv" }), "roster-template.csv")}>Blank template</button>
       </div>
       {msg && <p className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-zinc-200" role="status">{msg}</p>}
-      <p className="text-xs text-zinc-500">A full Aadhaar number in a sheet is cut down to its last 4 digits on the way in. The exported roster holds names and birth dates, so keep the file safe.</p>
+      <p className="text-xs text-zinc-400">A full Aadhaar number in a sheet is cut down to its last 4 digits on the way in. The exported roster holds names and birth dates, so keep the file safe.</p>
     </section>
   );
 }

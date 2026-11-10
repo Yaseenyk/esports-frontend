@@ -48,8 +48,8 @@ function Comb({ pattern, className, current, reduce }: { pattern: number[]; clas
                     <span className="relative flex h-full flex-col items-center justify-center gap-1 text-center">
                       <span className={`transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:scale-110 ${on ? "text-cyan" : "text-zinc-300 group-hover:text-cyan"}`}><Icon d={s.icon} className="h-6 w-6 sm:h-7 sm:w-7" /></span>
                       <span className="font-display text-[12.5px] font-bold text-white sm:text-base">{s.label}</span>
-                      <span className="hidden px-4 text-[11px] leading-tight text-zinc-500 sm:block">{s.blurb}</span>
-                      <kbd className="absolute bottom-[14%] hidden rounded border border-white/10 px-1.5 text-[10px] text-zinc-500 sm:block">{i + 1}</kbd>
+                      <span className="hidden px-4 text-[11px] leading-tight text-zinc-400 sm:block">{s.blurb}</span>
+                      <kbd className="absolute bottom-[14%] hidden rounded border border-white/10 px-1.5 text-[10px] text-zinc-400 sm:block">{i + 1}</kbd>
                     </span>
                   </Link>
                 </motion.li>
@@ -123,7 +123,7 @@ export default function HubNav() {
           <div className="relative hidden h-9 min-w-0 flex-1 items-center overflow-hidden sm:flex" aria-live="polite">
             <AnimatePresence mode="wait" initial={false}>
               <motion.span key={current?.label ?? "Home"} initial={reduce ? false : { y: 16, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={reduce ? undefined : { y: -16, opacity: 0 }} transition={{ duration: 0.22 }} className="flex items-center gap-2 truncate text-sm text-zinc-300">
-                {current ? <><Icon d={current.icon} className="h-4 w-4 text-cyan" />{current.label}</> : <span className="text-zinc-500">Home</span>}
+                {current ? <><Icon d={current.icon} className="h-4 w-4 text-cyan" />{current.label}</> : <span className="text-zinc-400">Home</span>}
               </motion.span>
             </AnimatePresence>
           </div>
@@ -165,7 +165,7 @@ export default function HubNav() {
                 <Comb pattern={[2, 3, 2]} className="sm:hidden" current={current?.href} reduce={!!reduce} />
                 <Comb pattern={[3, 4]} className="hidden sm:block" current={current?.href} reduce={!!reduce} />
               </div>
-              <p className="mt-6 hidden text-center text-xs text-zinc-500 sm:block">Press <kbd className="rounded border border-white/15 px-1.5">1</kbd>–<kbd className="rounded border border-white/15 px-1.5">7</kbd> to jump, <kbd className="rounded border border-white/15 px-1.5">Esc</kbd> to close</p>
+              <p className="mt-6 hidden text-center text-xs text-zinc-400 sm:block">Press <kbd className="rounded border border-white/15 px-1.5">1</kbd>–<kbd className="rounded border border-white/15 px-1.5">7</kbd> to jump, <kbd className="rounded border border-white/15 px-1.5">Esc</kbd> to close</p>
             </div>
           </motion.div>
         )}

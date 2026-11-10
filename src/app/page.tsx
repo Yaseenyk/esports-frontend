@@ -38,7 +38,7 @@ export default function Home() {
           </div>
           <dl className="mt-10 grid max-w-md grid-cols-4 gap-4">
             {[["Games", GAMES.length], ["Events", EVENTS.length], ["Communities", COMMUNITIES.length], ["Tools", TOOLS.length]].map(([k, v]) => (
-              <div key={k as string}><dd className="font-display text-3xl font-bold text-white"><Counter to={v as number} /></dd><dt className="text-xs text-zinc-500">{k}</dt></div>
+              <div key={k as string}><dd className="font-display text-3xl font-bold text-white"><Counter to={v as number} /></dd><dt className="text-xs text-zinc-400">{k}</dt></div>
             ))}
           </dl>
           <p className="mt-2 text-[11px] text-zinc-600">Counts of sample entries in this prototype.</p>
@@ -85,7 +85,7 @@ export default function Home() {
             <Item key={g.slug}>
               <TiltLink href={`/games/${g.slug}/`} className="!p-3">
                 <span className="flex items-center gap-3"><GameBadge game={g} />
-                <span className="min-w-0"><span className="block truncate font-display font-semibold text-white">{g.short}</span><span className="block truncate text-xs text-zinc-500">{g.platform}</span></span></span>
+                <span className="min-w-0"><span className="block truncate font-display font-semibold text-white">{g.short}</span><span className="block truncate text-xs text-zinc-400">{g.platform}</span></span></span>
               </TiltLink>
             </Item>
           ))}
@@ -103,7 +103,7 @@ export default function Home() {
                   <div className="flex items-center gap-3"><GameBadge game={g} size="sm" /><div className="flex gap-2"><span className="tag">{e.mode}</span><span className="tag">{e.level}</span></div></div>
                   <h3 className="mt-4 text-lg font-semibold text-white">{e.name}</h3>
                   <p className="mt-1 text-sm text-zinc-400">{e.format}</p>
-                  <p className="mt-4 text-xs text-zinc-500">{e.organiser}</p>
+                  <p className="mt-4 text-xs text-zinc-400">{e.organiser}</p>
                 </Link>
               </Item>
             );
@@ -146,7 +146,7 @@ export default function Home() {
           <Stagger className="space-y-3">
             {POSTS.slice(0, 3).map((p) => (
               <Item key={p.slug}>
-                <Link href="/guides/" className="card block !p-4"><span className="tag">{p.tag}</span><h3 className="mt-2 font-semibold text-white">{p.title}</h3><p className="mt-1 text-xs text-zinc-500">{p.minutes} min read</p></Link>
+                <Link href="/guides/" className="card block !p-4"><span className="tag">{p.tag}</span><h3 className="mt-2 font-semibold text-white">{p.title}</h3><p className="mt-1 text-xs text-zinc-400">{p.minutes} min read</p></Link>
               </Item>
             ))}
           </Stagger>

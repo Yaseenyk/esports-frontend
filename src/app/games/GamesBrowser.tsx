@@ -23,16 +23,16 @@ export default function GamesBrowser() {
       <div className="mt-2 flex flex-wrap gap-2" role="group" aria-label="Genre">
         {GENRES.map((x) => (<button key={x} type="button" className="chip" aria-pressed={genre === x} onClick={() => setGenre(x)}>{x === "All" ? "All genres" : x}</button>))}
       </div>
-      <p className="mt-4 text-sm text-zinc-500" aria-live="polite">{list.length} {list.length === 1 ? "game" : "games"}</p>
+      <p className="mt-4 text-sm text-zinc-400" aria-live="polite">{list.length} {list.length === 1 ? "game" : "games"}</p>
       <div className="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {list.length === 0 && <p className="card text-zinc-400 sm:col-span-2 lg:col-span-3">No games match. Clear a filter.</p>}
         {list.map((g) => {
           const n = EVENTS.filter((e) => e.game === g.slug).length;
           return (
             <TiltLink key={g.slug} href={`/games/${g.slug}/`}>
-              <div className="flex items-center gap-3"><GameBadge game={g} /><div className="min-w-0"><h2 className="truncate font-bold text-zinc-50">{g.name}</h2><p className="text-xs text-zinc-500">{g.platform} · {g.genre}</p></div></div>
+              <div className="flex items-center gap-3"><GameBadge game={g} /><div className="min-w-0"><h2 className="truncate font-bold text-zinc-50">{g.name}</h2><p className="text-xs text-zinc-400">{g.platform} · {g.genre}</p></div></div>
               <p className="mt-3 text-sm text-zinc-400">{g.blurb}</p>
-              <p className="mt-3 text-xs text-zinc-500">{g.team} · {n} sample {n === 1 ? "event" : "events"}</p>
+              <p className="mt-3 text-xs text-zinc-400">{g.team} · {n} sample {n === 1 ? "event" : "events"}</p>
             </TiltLink>
           );
         })}

@@ -18,16 +18,16 @@ export default function Manage() {
       </header>
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4" aria-label="Summary">
         {[["Games", String(ME.games.length)], ["Teams", "—"], ["Events", String(mine.length)], ["People", "—"]].map(([k, v]) => (
-          <div key={k} className="card"><p className="text-sm text-zinc-500">{k}</p><p className="mt-1 text-3xl font-black text-zinc-50">{v}</p></div>
+          <div key={k} className="card"><p className="text-sm text-zinc-400">{k}</p><p className="mt-1 text-3xl font-black text-zinc-50">{v}</p></div>
         ))}
       </section>
       <section aria-labelledby="games" className="card">
         <h2 id="games" className="mb-3 font-bold text-zinc-50">Rosters by game</h2>
         <div className="overflow-x-auto"><table className="w-full min-w-[28rem] text-left text-sm">
-          <thead className="text-zinc-500"><tr><th className="py-2 pe-4 font-medium">Game</th><th className="py-2 pe-4 font-medium">Team size</th><th className="py-2 pe-4 font-medium">Roster</th><th className="py-2 font-medium">Next event</th></tr></thead>
+          <thead className="text-zinc-400"><tr><th className="py-2 pe-4 font-medium">Game</th><th className="py-2 pe-4 font-medium">Team size</th><th className="py-2 pe-4 font-medium">Roster</th><th className="py-2 font-medium">Next event</th></tr></thead>
           <tbody className="divide-y divide-zinc-800">
             {ME.games.map((s) => { const g = gameBySlug(s)!; const ev = EVENTS.find((e) => e.game === s); return (
-              <tr key={s}><td className="py-3 pe-4 font-semibold text-zinc-100">{g.name}</td><td className="py-3 pe-4 text-zinc-400">{g.team}</td><td className="py-3 pe-4 text-zinc-500">Not set up</td><td className="py-3 text-zinc-400">{ev ? ev.name : "None"}</td></tr>
+              <tr key={s}><td className="py-3 pe-4 font-semibold text-zinc-100">{g.name}</td><td className="py-3 pe-4 text-zinc-400">{g.team}</td><td className="py-3 pe-4 text-zinc-400">Not set up</td><td className="py-3 text-zinc-400">{ev ? ev.name : "None"}</td></tr>
             ); })}
           </tbody>
         </table></div>
@@ -46,7 +46,7 @@ export default function Manage() {
             <button type="button" disabled className="btn-ghost opacity-50">Create event (coming with the app)</button>
             <button type="button" disabled className="btn-ghost opacity-50">Invite a co-manager (coming with the app)</button>
           </div>
-          <p className="mt-4 text-xs text-zinc-500">{GAMES.length} games supported in this prototype.</p>
+          <p className="mt-4 text-xs text-zinc-400">{GAMES.length} games supported in this prototype.</p>
         </div>
       </section>
     </div>

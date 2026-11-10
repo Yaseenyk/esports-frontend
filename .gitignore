@@ -3,3 +3,5 @@ node_modules/
 .next/
 scripts/.tmp-qr/
 scripts/.tmp-photos/
+test-results/
+playwright-report/

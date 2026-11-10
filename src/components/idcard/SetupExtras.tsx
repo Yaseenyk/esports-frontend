@@ -12,7 +12,7 @@ export async function readLogo(file: File, max = 320): Promise<string> {
 }
 
 const Field = ({ label, hint, children, className = "" }: { label: string; hint?: string; children: React.ReactNode; className?: string }) => (
-  <label className={`block text-sm text-zinc-300 ${className}`}>{label}{children}{hint && <span className="mt-1 block text-xs text-zinc-500">{hint}</span>}</label>
+  <label className={`block text-sm text-zinc-300 ${className}`}>{label}{children}{hint && <span className="mt-1 block text-xs text-zinc-400">{hint}</span>}</label>
 );
 
 /**
@@ -27,7 +27,7 @@ export function MoreOptions({ info, setInfo }: { info: EventInfo; setInfo: (i: E
       <summary className="flex cursor-pointer list-none flex-wrap items-center justify-between gap-2 px-4 py-3 outline-none focus-visible:ring-2 focus-visible:ring-cyan">
         <span>
           <span className="font-display text-base font-bold text-white">More options</span>
-          <span className="ml-2 text-sm text-zinc-500">optional: back of the card, age check, signed QR</span>
+          <span className="ml-2 text-sm text-zinc-400">optional: back of the card, age check, signed QR</span>
         </span>
         <span className="flex items-center gap-2 text-xs text-zinc-400">
           <span>{prettyDate(info.date)}</span><span aria-hidden="true">·</span><span>{info.sign ? "signed QR on" : "signed QR off"}</span><span aria-hidden="true">·</span><span>{rules} {rules === 1 ? "rule" : "rules"}</span>
@@ -41,7 +41,7 @@ export function MoreOptions({ info, setInfo }: { info: EventInfo; setInfo: (i: E
           <Field label="Emergency contact" hint="Who to call if the card is found."><input className="field mt-1" value={info.emergency} onChange={(e) => set({ emergency: e.target.value })} /></Field>
           <Field label="Rules" hint="One per line, up to 8."><textarea className="field mt-1 min-h-20 py-2" value={info.rules} onChange={(e) => set({ rules: e.target.value })} /></Field>
           <div className="flex items-center gap-3">
-            <span className="grid h-12 w-20 shrink-0 place-items-center overflow-hidden rounded-lg border border-white/10 bg-white/5">{info.sponsorLogo ? /* eslint-disable-next-line @next/next/no-img-element */ <img src={info.sponsorLogo} alt="" className="max-h-full max-w-full object-contain" /> : <span className="text-[11px] text-zinc-500">No logo</span>}</span>
+            <span className="grid h-12 w-20 shrink-0 place-items-center overflow-hidden rounded-lg border border-white/10 bg-white/5">{info.sponsorLogo ? /* eslint-disable-next-line @next/next/no-img-element */ <img src={info.sponsorLogo} alt="" className="max-h-full max-w-full object-contain" /> : <span className="text-[11px] text-zinc-400">No logo</span>}</span>
             <label className="btn-ghost !min-h-9 cursor-pointer px-3 text-sm">{info.sponsorLogo ? "Change sponsor logo" : "Add sponsor logo"}<input type="file" accept="image/*" className="sr-only" onChange={async (e) => { const f = e.target.files?.[0]; if (f) set({ sponsorLogo: await readLogo(f) }); e.target.value = ""; }} /></label>
             {info.sponsorLogo && <button type="button" className="chip !min-h-8" onClick={() => set({ sponsorLogo: undefined })}>Remove</button>}
           </div>

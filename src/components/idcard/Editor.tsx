@@ -26,7 +26,7 @@ function Color({ label, value, onChange }: { label: string; value: string; onCha
 }
 function Range({ label, value, min, max, step = 1, onChange }: { label: string; value: number; min: number; max: number; step?: number; onChange: (n: number) => void }) {
   return (
-    <label className="block text-xs text-zinc-400"><span className="flex justify-between"><span>{label}</span><span className="text-zinc-500">{Math.round(value * 10) / 10}</span></span>
+    <label className="block text-xs text-zinc-400"><span className="flex justify-between"><span>{label}</span><span className="text-zinc-400">{Math.round(value * 10) / 10}</span></span>
       <input type="range" min={min} max={max} step={step} value={value} onChange={(e) => onChange(parseFloat(e.target.value))} className="mt-1 w-full accent-cyan" />
     </label>
   );
@@ -163,7 +163,7 @@ export default function Editor({ tpl, onChange, ctx, onPhotoFile }: { tpl: Templ
             ))}
           </CardView>
         </div>
-        <p className="mt-3 text-center text-xs text-zinc-500">Drag to move, pull the corner to resize. Arrow keys nudge (Shift for bigger steps). Delete removes. Ctrl+Z undoes.</p>
+        <p className="mt-3 text-center text-xs text-zinc-400">Drag to move, pull the corner to resize. Arrow keys nudge (Shift for bigger steps). Delete removes. Ctrl+Z undoes.</p>
       </div>
 
       <aside className="card h-fit space-y-4 !p-4" aria-label="Properties">
@@ -186,7 +186,7 @@ export default function Editor({ tpl, onChange, ctx, onPhotoFile }: { tpl: Templ
             </>}
           </div>
         </div>
-        {!el ? <p className="text-sm text-zinc-500">Select anything on the card to edit it.</p> : (
+        {!el ? <p className="text-sm text-zinc-400">Select anything on the card to edit it.</p> : (
           <div className="space-y-3 border-t border-white/10 pt-4">
             <h3 className="text-sm font-bold capitalize text-white">{el.kind === "field" ? "Detail" : el.kind}</h3>
             {el.kind === "text" && <label className="block text-xs text-zinc-400">Text<input className="field mt-1 !min-h-9" value={el.text ?? ""} onChange={(e) => patch(el.id, { text: e.target.value }, false)} onBlur={() => snapshot()} /></label>}
@@ -225,7 +225,7 @@ export default function Editor({ tpl, onChange, ctx, onPhotoFile }: { tpl: Templ
                 </div>
                 {el.sticker && <Color label="Outline colour" value={el.sticker} onChange={(v) => patch(el.id, { sticker: v })} />}
                 <Color label="Placeholder shirt" value={el.color ?? "#334155"} onChange={(v) => patch(el.id, { color: v })} />
-                <p className="text-xs text-zinc-500">Use a transparent PNG for the best result. Without one, the photo fades softly at the bottom.</p>
+                <p className="text-xs text-zinc-400">Use a transparent PNG for the best result. Without one, the photo fades softly at the bottom.</p>
               </>}
             </>}
             {el.kind === "qr" && <>
@@ -233,7 +233,7 @@ export default function Editor({ tpl, onChange, ctx, onPhotoFile }: { tpl: Templ
               <Color label="QR background" value={el.fill && el.fill !== "none" ? el.fill : "#ffffff"} onChange={(v) => patch(el.id, { fill: v })} />
               <button type="button" className="chip" aria-pressed={el.fill === "none"} onClick={() => patch(el.id, { fill: el.fill === "none" ? "#ffffff" : "none" })}>Transparent background</button>
               <Range label="Corner radius" min={0} max={20} value={el.radius ?? 0} onChange={(n) => patch(el.id, { radius: n }, false)} />
-              <p className="text-xs text-zinc-500">The QR holds the person&apos;s ID number only.</p>
+              <p className="text-xs text-zinc-400">The QR holds the person&apos;s ID number only.</p>
             </>}
             {isShape && <>
               {el.kind !== "photo" && <Color label="Fill" value={el.fill ?? "#ffffff"} onChange={(v) => patch(el.id, { fill: v })} />}
@@ -243,7 +243,7 @@ export default function Editor({ tpl, onChange, ctx, onPhotoFile }: { tpl: Templ
               {el.kind !== "photo" && <button type="button" className="chip" aria-pressed={!!el.roleColor} onClick={() => patch(el.id, { roleColor: !el.roleColor })}>Colour follows role</button>}
               {el.kind === "photo" && !el.cutout && <Color label="Frame" value={el.stroke ?? "#ffffff"} onChange={(v) => patch(el.id, { stroke: v })} />}
             </>}
-            {el.kind === "image" && el.bind && <p className="text-xs text-zinc-500">Shows the {el.bind === "team" ? "team's logo, added in Event & teams or with the logo button above" : "sponsor logo, added in Event & teams"}.</p>}
+            {el.kind === "image" && el.bind && <p className="text-xs text-zinc-400">Shows the {el.bind === "team" ? "team's logo, added in Event & teams or with the logo button above" : "sponsor logo, added in Event & teams"}.</p>}
             {el.kind === "image" && <Range label="Corner radius" min={0} max={50} value={el.radius ?? 0} onChange={(n) => patch(el.id, { radius: n }, false)} />}
             <Range label="Rotation" min={-180} max={180} value={el.rot} onChange={(n) => patch(el.id, { rot: n }, false)} />
             <Range label="Opacity" min={0.05} max={1} step={0.05} value={el.opacity} onChange={(n) => patch(el.id, { opacity: n }, false)} />

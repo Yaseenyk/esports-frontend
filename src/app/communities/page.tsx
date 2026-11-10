@@ -16,7 +16,7 @@ export default function Communities() {
             <span className="tag">{c.kind}</span>
             <h2 className="mt-3 text-lg font-bold text-white">{c.name}</h2>
             <p className="mt-1 text-sm text-zinc-400">{c.blurb}</p>
-            <div className="mt-4 flex items-center justify-between"><div className="flex -space-x-2">{c.games.map((s) => <GameBadge key={s} game={gameBySlug(s)!} size="sm" />)}</div><span className="text-xs text-zinc-500">{c.city}</span></div>
+            <div className="mt-4 flex items-center justify-between"><div className="flex -space-x-2">{c.games.map((s) => <GameBadge key={s} game={gameBySlug(s)!} size="sm" />)}</div><span className="text-xs text-zinc-400">{c.city}</span></div>
           </TiltLink>
         ))}
       </div>

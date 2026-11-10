@@ -69,11 +69,11 @@ export default function PeopleStep(p: Props) {
             <div className="space-y-3">
               <label className="flex items-start gap-2.5 text-sm text-zinc-200">
                 <input type="checkbox" checked={p.consent} onChange={(e) => p.setConsent(e.target.checked)} className="mt-0.5 h-5 w-5 shrink-0 accent-cyan" />
-                <span>I have the card holder&apos;s permission to read their Aadhaar card for this event.<span className="block text-xs text-zinc-500">Cards are read inside your browser. The picture is never uploaded or saved, and only the last 4 digits of the number are kept.</span></span>
+                <span>I have the card holder&apos;s permission to read their Aadhaar card for this event.<span className="block text-xs text-zinc-400">Cards are read inside your browser. The picture is never uploaded or saved, and only the last 4 digits of the number are kept.</span></span>
               </label>
               <div className="grid gap-3 sm:grid-cols-[14rem_1fr] sm:items-end">
                 <Select label="Add them to" value={p.valid(p.scanTeam)} onChange={p.setScanTeam} options={p.teamOpts} searchable={false} />
-                <label onDragOver={(e) => e.preventDefault()} onDrop={(e) => { e.preventDefault(); if (p.consent) p.scan(e.dataTransfer.files); }} className={`flex min-h-12 items-center justify-center gap-3 rounded-xl border-2 border-dashed px-4 text-center text-sm transition-colors ${p.consent ? "cursor-pointer border-cyan/50 text-white hover:bg-cyan/5" : "cursor-not-allowed border-white/10 text-zinc-500"}`}>
+                <label onDragOver={(e) => e.preventDefault()} onDrop={(e) => { e.preventDefault(); if (p.consent) p.scan(e.dataTransfer.files); }} className={`flex min-h-12 items-center justify-center gap-3 rounded-xl border-2 border-dashed px-4 text-center text-sm transition-colors ${p.consent ? "cursor-pointer border-cyan/50 text-white hover:bg-cyan/5" : "cursor-not-allowed border-white/10 text-zinc-400"}`}>
                   <span className="font-semibold">{p.consent ? "Drop card photos or PDFs here, or click to choose" : "Tick the permission box first"}</span>
                   <input type="file" accept="image/*,application/pdf" multiple disabled={!p.consent} className="sr-only" onChange={(e) => { p.scan(e.target.files); e.target.value = ""; }} />
                 </label>
@@ -81,7 +81,7 @@ export default function PeopleStep(p: Props) {
               <details className="text-sm text-zinc-400">
                 <summary className="cursor-pointer text-zinc-300 outline-none focus-visible:ring-2 focus-visible:ring-cyan">Card language (only matters when a card has no readable QR code)</summary>
                 <div className="mt-2 max-w-sm"><Select ariaLabel="Card language" value={p.ocrLang} onChange={p.setOcrLang} options={OCR_LANGS.map((l) => ({ value: l.value, label: l.label }))} searchable={false} /></div>
-                <p className="mt-1 text-xs text-zinc-500">The QR code is read first and needs no language. If it cannot be read, the printed text is read instead. Extra languages download a few MB the first time.</p>
+                <p className="mt-1 text-xs text-zinc-400">The QR code is read first and needs no language. If it cannot be read, the printed text is read instead. Extra languages download a few MB the first time.</p>
               </details>
               <p className="flex flex-wrap items-center gap-2 text-sm text-zinc-400">
                 <span>No card handy? Try a dummy one:</span>
@@ -93,7 +93,7 @@ export default function PeopleStep(p: Props) {
                     <li key={j.key} className="rounded-lg border border-white/10 px-3 py-2 text-sm">
                       <div className="flex items-center justify-between gap-3"><span className="truncate text-zinc-300">{j.file}</span><span className={j.state === "error" ? "text-red-300" : j.state === "done" ? "text-emerald-300" : "text-zinc-400"}>{j.state === "reading" ? `Reading ${j.pct}%` : j.state === "queued" ? "Waiting" : j.state === "done" ? "Added" : "Needs attention"}</span></div>
                       {j.state === "reading" && <div className="mt-1.5 h-1 overflow-hidden rounded bg-white/10"><div className="h-full bg-gradient-to-r from-cyan to-purple transition-[width]" style={{ width: `${j.pct}%` }} /></div>}
-                      {j.note && <p className="mt-0.5 text-xs text-zinc-500">{j.note}</p>}
+                      {j.note && <p className="mt-0.5 text-xs text-zinc-400">{j.note}</p>}
                     </li>
                   ))}
                 </ul>
@@ -112,7 +112,7 @@ export default function PeopleStep(p: Props) {
             <div className="flex flex-wrap items-end gap-3">
               <div className="w-56"><Select label="Add to team" value={p.valid(p.scanTeam)} onChange={p.setScanTeam} options={p.teamOpts} searchable={false} /></div>
               <button type="button" className="btn" onClick={() => { p.addPerson(p.valid(p.scanTeam)); setTab("hand"); setOpen(null); }}>+ Add a person</button>
-              <p className="text-sm text-zinc-500">A blank person is added at the bottom of the list below. Open it to fill in the details.</p>
+              <p className="text-sm text-zinc-400">A blank person is added at the bottom of the list below. Open it to fill in the details.</p>
             </div>
           )}
         </div>
@@ -121,7 +121,7 @@ export default function PeopleStep(p: Props) {
       {/* ------------------------------------------------------------ the list */}
       <section className="card !p-0" aria-label="People">
         <div className="flex flex-wrap items-center gap-3 border-b border-white/10 px-4 py-3">
-          <h2 className="font-display text-lg font-bold text-white">People <span className="text-sm font-normal text-zinc-500">· {p.people.length}</span></h2>
+          <h2 className="font-display text-lg font-bold text-white">People <span className="text-sm font-normal text-zinc-400">· {p.people.length}</span></h2>
           {needReview > 0 && <Pill tone="amber" title="Read by OCR. Open the row, check the details, then confirm.">{needReview} to check</Pill>}
           {minors > 0 && <Pill tone="red" title="Under 18 on the event date">{minors} under 18</Pill>}
           <div className="ms-auto grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:flex-wrap sm:items-center">
@@ -132,7 +132,7 @@ export default function PeopleStep(p: Props) {
         {p.bgNote && <p className="border-b border-white/10 px-4 py-2 text-xs text-zinc-400" role="status">{p.bgNote}{p.bgBusy ? " (the first time downloads a small model, then it works offline)" : ""}</p>}
 
         <ul className="divide-y divide-white/10">
-          {shown.length === 0 && <li className="px-4 py-6 text-center text-sm text-zinc-500">{p.people.length === 0 ? "No one yet. Scan a card, import a sheet or add someone by hand above." : "No one matches this search."}</li>}
+          {shown.length === 0 && <li className="px-4 py-6 text-center text-sm text-zinc-400">{p.people.length === 0 ? "No one yet. Scan a card, import a sheet or add someone by hand above." : "No one matches this search."}</li>}
           {shown.map((x) => {
             const isOpen = open === x.id;
             const minor = p.minorOf(x), dup = p.duplicates.get(x.id);
@@ -191,7 +191,7 @@ export default function PeopleStep(p: Props) {
             );
           })}
         </ul>
-        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-white/10 px-4 py-2.5 text-xs text-zinc-500">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-white/10 px-4 py-2.5 text-xs text-zinc-400">
           <span>{shown.length === p.people.length ? `${p.people.length} people` : `Showing ${shown.length} of ${p.people.length}`}</span>
           <label className="flex items-center gap-2" title="When you add a photo, the person is cut out of its background automatically. The first time downloads a small model.">
             <input type="checkbox" checked={p.autoBg} onChange={(e) => p.setAutoBg(e.target.checked)} className="h-4 w-4 accent-cyan" />Cut people out of new photos automatically

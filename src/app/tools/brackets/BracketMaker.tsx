@@ -58,7 +58,7 @@ export default function BracketMaker() {
       <aside className="card no-print h-fit space-y-3">
         <label className="block text-sm font-medium text-zinc-300" htmlFor="teams">Teams (one per line, best seed first)</label>
         <textarea id="teams" className="field min-h-56 py-2" value={text} onChange={(e) => { setText(e.target.value); setPicks({}); }} />
-        <p className="text-xs text-zinc-500">{teams.length} {teams.length === 1 ? "team" : "teams"} · bracket of {size}{teams.length > size ? "" : ""}{teams.length >= 64 ? " (max 64)" : ""}</p>
+        <p className="text-xs text-zinc-400">{teams.length} {teams.length === 1 ? "team" : "teams"} · bracket of {size}{teams.length > size ? "" : ""}{teams.length >= 64 ? " (max 64)" : ""}</p>
         <div className="flex gap-2">
           <button type="button" className="btn-ghost flex-1 !min-h-10 text-sm" onClick={() => { const a = [...teams]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } setText(a.join("\n")); setPicks({}); }}>Shuffle seeds</button>
           <button type="button" className="btn-ghost flex-1 !min-h-10 text-sm" onClick={() => setPicks({})}>Clear results</button>

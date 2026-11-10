@@ -18,12 +18,12 @@ export default function EventPage({ params }: { params: { slug: string } }) {
   const rows: [string, string][] = [["Game", g.name], ["Date", e.date], ["Venue", e.venue], ["Format", e.format], ["Mode", e.mode], ["Level", e.level], ["Slots", e.slots], ["Entry fee", e.fee], ["Prize pool", e.prize]];
   return (
     <div className="space-y-8">
-      <nav aria-label="Breadcrumb" className="text-sm text-zinc-500"><Link href="/events/" className="hover:text-zinc-300">Events</Link> / {e.name}</nav>
+      <nav aria-label="Breadcrumb" className="text-sm text-zinc-400"><Link href="/events/" className="hover:text-zinc-300">Events</Link> / {e.name}</nav>
       <header className="flex items-center gap-4"><GameBadge game={g} size="lg" /><div><h1 className="text-3xl font-black text-zinc-50 sm:text-4xl">{e.name}</h1><p className="mt-1 text-zinc-400">by {org ? <Link href={`/communities/${org.slug}/`} className="text-cyan hover:underline">{e.organiser}</Link> : e.organiser}</p></div></header>
       <p className="max-w-2xl text-zinc-300">{e.blurb}</p>
       <div className="grid gap-6 md:grid-cols-3">
         <dl className="card md:col-span-2 divide-y divide-zinc-800 !p-0">
-          {rows.map(([k, v]) => (<div key={k} className="flex justify-between gap-4 px-5 py-3 text-sm"><dt className="text-zinc-500">{k}</dt><dd className="text-end text-zinc-100">{v}</dd></div>))}
+          {rows.map(([k, v]) => (<div key={k} className="flex justify-between gap-4 px-5 py-3 text-sm"><dt className="text-zinc-400">{k}</dt><dd className="text-end text-zinc-100">{v}</dd></div>))}
         </dl>
         <aside className="card space-y-3">
           <h2 className="font-bold text-zinc-50">Take part</h2>

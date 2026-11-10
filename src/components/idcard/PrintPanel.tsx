@@ -129,7 +129,7 @@ export default function PrintPanel({ people, allPeople, teams, teamOpts, printTe
           <button type="button" className="btn-ghost" onClick={pack}>Check-in pack for the gate</button>
         </div>
         {status && <p className="text-sm text-zinc-300" role="status">{status}</p>}
-        <p className="text-xs text-zinc-500">The PDF puts every card at its real size on A4 pages. Backs go on their own pages, mirrored so a double-sided print lines up. Hover or tap a card to view it in your hand or save it as a PNG. In the print window, turn on background graphics if your browser asks.</p>
+        <p className="text-xs text-zinc-400">The PDF puts every card at its real size on A4 pages. Backs go on their own pages, mirrored so a double-sided print lines up. Hover or tap a card to view it in your hand or save it as a PNG. In the print window, turn on background graphics if your browser asks.</p>
 
         {(unconsented.length > 0 || dupCount > 0 || needReview > 0 || noPhoto > 0) && (
           <ul className="space-y-1.5 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-100" aria-label="Things to check before printing">
@@ -144,8 +144,8 @@ export default function PrintPanel({ people, allPeople, teams, teamOpts, printTe
 
       {groups.map(({ k, list }) => (
         <section key={k} className="mb-8" aria-label={FORMATS[k].label}>
-          <h2 className="no-print mb-3 font-display text-lg font-bold text-white">{FORMATS[k].label} <span className="text-sm font-normal text-zinc-500">· {FORMATS[k].w} x {FORMATS[k].h} mm · {list.length} {list.length === 1 ? "card" : "cards"}</span></h2>
-          {FORMATS[k].slot && <p className="no-print mb-3 text-sm text-zinc-500">Punch or cut inside the dashed slot at the top, then thread a lanyard or fit a clip. Print on thick card (250 gsm or more) or put the printout in a badge holder.</p>}
+          <h2 className="no-print mb-3 font-display text-lg font-bold text-white">{FORMATS[k].label} <span className="text-sm font-normal text-zinc-400">· {FORMATS[k].w} x {FORMATS[k].h} mm · {list.length} {list.length === 1 ? "card" : "cards"}</span></h2>
+          {FORMATS[k].slot && <p className="no-print mb-3 text-sm text-zinc-400">Punch or cut inside the dashed slot at the top, then thread a lanyard or fit a clip. Print on thick card (250 gsm or more) or put the printout in a badge holder.</p>}
           <div className="print-sheet grid gap-4" style={{ ["--w" as string]: `${FORMATS[k].w}mm`, ["--cols" as string]: FORMATS[k].cols, gridTemplateColumns: `repeat(auto-fill, minmax(${k === "strip" ? 260 : k === "wallet" ? 280 : 200}px, 1fr))` }}>
             {list.map((p) => card(p, "front", k))}
           </div>
@@ -157,7 +157,7 @@ export default function PrintPanel({ people, allPeople, teams, teamOpts, printTe
         if (!withBack.length) return null;
         return (
           <section key={`b-${k}`} className="mb-8 break-before-page" aria-label={`${FORMATS[k].label} backs`}>
-            <h2 className="no-print mb-3 font-display text-lg font-bold text-white">{FORMATS[k].label} backs <span className="text-sm font-normal text-zinc-500">· mirrored for double-sided printing</span></h2>
+            <h2 className="no-print mb-3 font-display text-lg font-bold text-white">{FORMATS[k].label} backs <span className="text-sm font-normal text-zinc-400">· mirrored for double-sided printing</span></h2>
             <div className="print-sheet grid gap-4" style={{ ["--w" as string]: `${FORMATS[k].w}mm`, ["--cols" as string]: FORMATS[k].cols, gridTemplateColumns: `repeat(auto-fill, minmax(${k === "strip" ? 260 : k === "wallet" ? 280 : 200}px, 1fr))` }}>
               {mirrored(withBack, FORMATS[k].cols).map((p) => card(p, "back", k))}
             </div>

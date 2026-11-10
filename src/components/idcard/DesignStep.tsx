@@ -48,8 +48,8 @@ export default function DesignStep(p: Props) {
       <section className="card !p-3" aria-label="Designs">
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
           <div>
-            <h2 className="font-display text-base font-bold text-white">1. Pick a starting design <span className="text-sm font-normal text-zinc-500">· {list.length} for {FORMATS[f].label.toLowerCase()}</span></h2>
-            {!poster && <p className="text-xs text-zinc-500">Want poster-style cards with big type and cut-out portraits? Change the card shape to Poster, Story or Phone pass.</p>}
+            <h2 className="font-display text-base font-bold text-white">1. Pick a starting design <span className="text-sm font-normal text-zinc-400">· {list.length} for {FORMATS[f].label.toLowerCase()}</span></h2>
+            {!poster && <p className="text-xs text-zinc-400">Want poster-style cards with big type and cut-out portraits? Change the card shape to Poster, Story or Phone pass.</p>}
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <div className="w-36"><Select ariaLabel="Style" value={p.vibe ?? ""} onChange={(v) => p.setVibe(v || null)} options={[{ value: "", label: "Any style" }, ...VIBES.map((v) => ({ value: v, label: v[0].toUpperCase() + v.slice(1) }))]} searchable={false} /></div>
@@ -73,11 +73,11 @@ export default function DesignStep(p: Props) {
       {/* 3. Fine-tune it */}
       <section className="card !p-3 sm:!p-4" aria-label="Edit the card">
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-          <h2 className="font-display text-base font-bold text-white">2. Fine-tune <span className="text-cyan">{p.dTeam.name}</span>&apos;s {p.side} <span className="text-sm font-normal text-zinc-500">· click anything on the card to change it</span></h2>
+          <h2 className="font-display text-base font-bold text-white">2. Fine-tune <span className="text-cyan">{p.dTeam.name}</span>&apos;s {p.side} <span className="text-sm font-normal text-zinc-400">· click anything on the card to change it</span></h2>
           <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Card options">
             {p.curTpl.back
               ? <button type="button" className="chip" title="Throw away edits to the back and rebuild it from the front's colours" onClick={p.rebuildBack}>Rebuild the back</button>
-              : f === "strip" ? <span className="text-xs text-zinc-500">Wristbands have no back.</span> : <button type="button" className="chip" title="Make a back with a QR code, return details and rules" onClick={p.addBack}>Add a back</button>}
+              : f === "strip" ? <span className="text-xs text-zinc-400">Wristbands have no back.</span> : <button type="button" className="chip" title="Make a back with a QR code, return details and rules" onClick={p.addBack}>Add a back</button>}
             <button type="button" className="chip" aria-pressed={p.roleBarOn} title="A thin stripe whose colour shows the person's role (Player, Staff, VIP…), so guards can tell roles apart at a glance" onClick={p.toggleRoleBar}>Role colour stripe</button>
             <TeamLogoButton team={p.dTeam} onLogo={p.setTeamLogo} />
             <button type="button" className="chip" title="Save this card's design as a file you can share or reuse in another event" onClick={p.onSaveDesign}>Save design file</button>

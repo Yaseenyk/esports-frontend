@@ -11,7 +11,7 @@ export default function Guides() {
       <div className="mt-8 grid gap-4 md:grid-cols-2">
         {POSTS.map((p) => (
           <article key={p.slug} className="card">
-            <div className="flex items-center justify-between"><span className="tag">{p.tag}</span><span className="text-xs text-zinc-500">{p.minutes} min</span></div>
+            <div className="flex items-center justify-between"><span className="tag">{p.tag}</span><span className="text-xs text-zinc-400">{p.minutes} min</span></div>
             <h2 className="mt-3 font-bold text-zinc-50">{p.title}</h2>
             <p className="mt-1 text-sm text-zinc-400">{p.blurb}</p>
           </article>
