@@ -34,6 +34,8 @@
   .no-print { display: none !important; }
   .print-sheet { display: grid !important; grid-template-columns: repeat(2, 85.6mm); gap: 6mm; justify-content: center; }
   .idcard { break-inside: avoid; box-shadow: none !important; }
+  .idcard-wrap { width: 85.6mm !important; break-inside: avoid; }
+  .idcard-box { box-shadow: none !important; }
 }
 
 /* Ambient background: two slow colour blobs behind everything. */

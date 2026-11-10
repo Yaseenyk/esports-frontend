@@ -120,7 +120,7 @@ export interface Tool {
   href?: string;
 }
 export const TOOLS: Tool[] = [
-  { slug: "id-cards", name: "ID cards and passes", blurb: "Make printable player, staff and guest cards for an event, with a photo, role and ID number. Works in your browser; nothing is uploaded.", status: "Working in this prototype", href: "/tools/id-cards/" },
+  { slug: "id-cards", name: "ID cards and passes", blurb: "Read Aadhaar cards automatically, pick from 10 team themes, redesign the card like a mini Canva, and print. Everything runs in your browser.", status: "Working in this prototype", href: "/tools/id-cards/" },
   { slug: "brackets", name: "Bracket maker", blurb: "Paste your teams, get a seeded single-elimination bracket, and click winners to advance them to the final.", status: "Working in this prototype", href: "/tools/brackets/" },
   { slug: "schedule", name: "Event schedule", blurb: "A run-sheet and match schedule you can share or print.", status: "Planned" },
   { slug: "rosters", name: "Team and roster manager", blurb: "One organisation, several games: players, substitutes, staff and contracts in one place.", status: "Planned" },

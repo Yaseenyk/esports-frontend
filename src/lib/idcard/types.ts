@@ -1,0 +1,82 @@
+/**
+ * ID card data model. A card is a background plus a list of elements. Every position and size is a percentage of the card,
+ * and font sizes are a percentage of the card width, so one design prints at any size and shows at any screen size.
+ */
+export const FIELDS = {
+  name: "Full name",
+  team: "Team",
+  role: "Role",
+  id: "ID number",
+  event: "Event",
+  game: "Game",
+  dob: "Date of birth",
+  gender: "Gender",
+  aadhaar: "Aadhaar (last 4 only)",
+} as const;
+export type Field = keyof typeof FIELDS;
+
+export const ROLES = ["Player", "Substitute", "Coach", "Manager", "Staff", "Guest", "Caster"] as const;
+export type Role = (typeof ROLES)[number];
+
+export type Kind = "text" | "field" | "photo" | "rect" | "ellipse" | "image";
+
+export interface El {
+  id: string;
+  kind: Kind;
+  x: number; y: number; w: number; h: number; // % of the card
+  rot: number; // degrees
+  opacity: number; // 0..1
+  /** text */
+  text?: string;
+  /** field: which person detail this shows */
+  field?: Field;
+  font?: FontKey;
+  size?: number; // % of card width
+  weight?: number;
+  color?: string;
+  align?: "left" | "center" | "right";
+  upper?: boolean;
+  spacing?: number; // letter spacing in %
+  /** shapes, photo frame */
+  fill?: string;
+  fill2?: string; // gradient end
+  radius?: number; // % of the shorter side, 50 = fully round
+  stroke?: string;
+  strokeW?: number;
+  /** image: a data URL the user uploaded (for example a team logo) */
+  src?: string;
+}
+
+export interface Template {
+  id: string;
+  name: string;
+  bg: { a: string; b: string; angle: number };
+  els: El[];
+}
+
+export interface Team { id: string; name: string }
+export interface Person {
+  id: string;
+  name: string;
+  teamId: string;
+  role: Role;
+  dob?: string;
+  gender?: string;
+  /** Only the last four digits of an Aadhaar number are ever kept. */
+  last4?: string;
+  photo?: string;
+  /** True when the details came from a scan and nobody has checked them yet. */
+  review?: boolean;
+}
+
+export const FONTS = {
+  display: { label: "Display", css: "var(--font-display), system-ui, sans-serif" },
+  body: { label: "Clean", css: "var(--font-body), system-ui, sans-serif" },
+  mono: { label: "Mono", css: "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" },
+  serif: { label: "Serif", css: "Georgia, 'Times New Roman', serif" },
+  heavy: { label: "Heavy", css: "'Arial Black', Impact, 'Haettenschweiler', sans-serif" },
+} as const;
+export type FontKey = keyof typeof FONTS;
+
+let n = 0;
+export const uid = () => `e${Date.now().toString(36)}${(n++).toString(36)}`;
