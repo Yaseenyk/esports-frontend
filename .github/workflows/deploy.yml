@@ -39,6 +39,7 @@ jobs:
         run: npm run build
         env:
           NEXT_PUBLIC_SITE_URL: https://esports.streamerosai.com
+          NEXT_PUBLIC_API_URL: https://esports-api.yaseenyk.workers.dev
 
       - name: Disable Jekyll
         run: touch ./out/.nojekyll

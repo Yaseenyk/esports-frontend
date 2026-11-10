@@ -1,0 +1,114 @@
+"use client";
+
+import { useCallback, useEffect, useState } from "react";
+import { auth, events, explain, type CloudEvent } from "@/lib/api/cloud";
+import { hasBackend } from "@/lib/api";
+import { loadFromCloud, readLink, saveToCloud, writeLink, type Loaded, type Snapshot } from "@/lib/cloud/sync";
+import type { Person } from "@/lib/idcard/types";
+import InvitesPanel from "./InvitesPanel";
+import LivePanel from "./LivePanel";
+import { useSession } from "./useSession";
+
+export interface CloudProps {
+  snapshot: Snapshot;
+  minorOf: (p: Person) => boolean;
+  onCodes: (codes: Record<string, string>) => void;
+  onLoaded: (l: Loaded) => void;
+  onPeople: (add: Person[]) => void;
+  onClose: () => void;
+}
+
+const TABS = ["Save & sync", "Live check-in", "Player invites"] as const;
+
+function SignIn() {
+  const [mode, setMode] = useState<"login" | "register">("login");
+  const [email, setEmail] = useState(""), [name, setName] = useState(""), [pw, setPw] = useState("");
+  const [busy, setBusy] = useState(false), [err, setErr] = useState("");
+  const go = async (e: React.FormEvent) => {
+    e.preventDefault(); setBusy(true); setErr("");
+    try { if (mode === "login") await auth.login(email.trim(), pw); else await auth.register(email.trim(), name.trim() || "Organiser", pw); } catch (x) { setErr(explain(x)); } finally { setBusy(false); }
+  };
+  return (
+    <form onSubmit={go} className="mx-auto w-full max-w-sm space-y-3">
+      <p className="text-sm text-zinc-300">An account lets you save an event online, check guests in live from several phones, and send players a link to add themselves. Everything else still works without one.</p>
+      <div className="flex gap-2" role="tablist" aria-label="Account">
+        {(["login", "register"] as const).map((m) => <button key={m} type="button" role="tab" aria-selected={mode === m} onClick={() => setMode(m)} className={`chip ${mode === m ? "!border-cyan !text-cyan" : ""}`}>{m === "login" ? "Sign in" : "Create account"}</button>)}
+      </div>
+      {mode === "register" && <label className="block text-sm text-zinc-300">Your name<input className="field mt-1" value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" required /></label>}
+      <label className="block text-sm text-zinc-300">Email<input className="field mt-1" type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" required /></label>
+      <label className="block text-sm text-zinc-300">Password<input className="field mt-1" type="password" value={pw} onChange={(e) => setPw(e.target.value)} autoComplete={mode === "login" ? "current-password" : "new-password"} minLength={mode === "register" ? 8 : undefined} required />{mode === "register" && <span className="mt-1 block text-xs text-zinc-400">At least 8 characters.</span>}</label>
+      {err && <p role="alert" className="text-sm text-red-300">{err}</p>}
+      <button className="btn w-full" disabled={busy}>{busy ? "Please wait…" : mode === "login" ? "Sign in" : "Create account"}</button>
+    </form>
+  );
+}
+
+export default function CloudPanel(p: CloudProps) {
+  const session = useSession();
+  const [tab, setTab] = useState<(typeof TABS)[number]>("Save & sync");
+  const [link, setLink] = useState<{ id: string; key: string } | null>(null);
+  const [list, setList] = useState<CloudEvent[] | null>(null);
+  const [busy, setBusy] = useState(false), [msg, setMsg] = useState(""), [err, setErr] = useState("");
+
+  useEffect(() => setLink(readLink()), []);
+  const { onClose } = p;
+  useEffect(() => { const k = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); }; window.addEventListener("keydown", k); return () => window.removeEventListener("keydown", k); }, [onClose]);
+  const refresh = useCallback(() => { events.list().then(setList).catch((e) => setErr(explain(e))); }, []);
+  useEffect(() => { if (session) refresh(); }, [session, refresh]);
+
+  const save = async () => {
+    setBusy(true); setErr(""); setMsg("");
+    try {
+      const r = await saveToCloud(p.snapshot, link?.id ?? null, p.minorOf, setMsg);
+      const l = { id: r.id, key: r.key }; writeLink(l); setLink(l); p.onCodes(r.codes); refresh();
+      setMsg(`Saved. ${r.sentRoster ? `${p.snapshot.people.length} people sent` : "People were already up to date"}, ${r.photosSent} photo${r.photosSent === 1 ? "" : "s"} uploaded.${r.photosSkipped.length ? ` Too large even after shrinking: ${r.photosSkipped.join(", ")}.` : ""} Cards now carry the server-signed passes.`);
+    } catch (e) { setErr(explain(e)); setMsg(""); } finally { setBusy(false); }
+  };
+  const open = async (ev: CloudEvent) => {
+    setBusy(true); setErr(""); setMsg("");
+    try { const l = await loadFromCloud(ev, setMsg); const lk = { id: ev.id, key: ev.key }; writeLink(lk); setLink(lk); p.onLoaded(l); const codes: Record<string, string> = {}; for (const x of await events.passes(ev.id)) codes[x.personId] = x.code; p.onCodes(codes); setMsg(`Opened ${ev.name}.`); } catch (e) { setErr(explain(e)); setMsg(""); } finally { setBusy(false); }
+  };
+  const del = async (ev: CloudEvent) => {
+    if (!confirm(`Delete "${ev.name}" from the server? Its roster, photos, check-ins and links are removed. Your copy in this browser stays.`)) return;
+    try { await events.remove(ev.id); if (link?.id === ev.id) { writeLink(null); setLink(null); } refresh(); } catch (e) { setErr(explain(e)); }
+  };
+
+  return (
+    <div role="dialog" aria-modal="true" aria-label="Cloud" className="no-print fixed inset-0 z-50 overflow-y-auto bg-ink/85 p-3 backdrop-blur-xl sm:p-8">
+      <div className="mx-auto max-w-3xl rounded-3xl border border-white/10 bg-zinc-950 p-4 shadow-2xl sm:p-6">
+        <div className="mb-4 flex items-start justify-between gap-3">
+          <div><h2 className="font-display text-xl font-bold text-white">Online events</h2><p className="text-sm text-zinc-400">{session ? <>Signed in as <strong className="text-zinc-200">{session.user.name}</strong> ({session.user.email})</> : "Optional: sign in to save and run an event online."}</p></div>
+          <div className="flex gap-2">{session && <button type="button" className="btn-ghost !min-h-9 px-3 text-sm" onClick={() => auth.logout()}>Sign out</button>}<button type="button" autoFocus className="btn-ghost !min-h-9 px-3 text-sm" onClick={p.onClose}>Close</button></div>
+        </div>
+
+        {!hasBackend ? <p className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-100">The online service is not connected in this build. Everything else works in your browser.</p>
+          : !session ? <SignIn /> : (
+          <>
+            <div className="mb-4 flex flex-wrap gap-2" role="tablist" aria-label="Online features">
+              {TABS.map((t) => <button key={t} type="button" role="tab" aria-selected={tab === t} onClick={() => setTab(t)} className={`chip ${tab === t ? "!border-cyan !text-cyan" : ""}`}>{t}</button>)}
+            </div>
+            {tab === "Save & sync" && (
+              <div className="space-y-4">
+                <div className="rounded-xl border border-white/10 p-3 text-sm text-zinc-300">
+                  <p>{link ? <>This event is saved online as <strong className="text-white">{p.snapshot.event}</strong>.</> : <>Not saved online yet.</>} Only names, teams, roles, access zones, minor flags and photos are sent. <strong className="text-zinc-100">Birth dates and Aadhaar digits stay in your browser.</strong></p>
+                  <div className="mt-3 flex flex-wrap items-center gap-2"><button type="button" className="btn !min-h-10 px-4 text-sm" disabled={busy} onClick={save}>{busy ? "Working…" : link ? "Save changes online" : "Save this event online"}</button>{link && <button type="button" className="chip" onClick={() => { writeLink(null); setLink(null); }}>Save as a new event instead</button>}</div>
+                </div>
+                <div>
+                  <h3 className="mb-2 font-display font-bold text-white">Your online events</h3>
+                  {list === null ? <p className="text-sm text-zinc-400">Loading…</p> : list.length === 0 ? <p className="text-sm text-zinc-400">None yet.</p> : (
+                    <ul className="space-y-2">{list.map((ev) => (
+                      <li key={ev.id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-white/10 px-3 py-2 text-sm"><span className="min-w-0"><span className="block truncate font-semibold text-white">{ev.name}</span><span className="text-xs text-zinc-400">{ev.game || "No game"} · {ev.date || "No date"}{link?.id === ev.id ? " · linked" : ""}</span></span><span className="flex gap-2"><button type="button" className="btn-ghost !min-h-9 px-3 text-sm" disabled={busy} onClick={() => open(ev)}>Open here</button><button type="button" className="chip !min-h-9" disabled={busy} onClick={() => del(ev)}>Delete</button></span></li>
+                    ))}</ul>
+                  )}
+                </div>
+              </div>
+            )}
+            {tab === "Live check-in" && (link ? <LivePanel eventId={link.id} /> : <p className="text-sm text-zinc-300">Save the event online first (Save &amp; sync), then come back here.</p>)}
+            {tab === "Player invites" && (link ? <InvitesPanel eventId={link.id} teams={p.snapshot.teams} people={p.snapshot.people} onApproved={async () => { const r = await events.roster(link.id); const have = new Set(p.snapshot.people.map((x) => x.id)); const add = r.people.filter((x) => !have.has(x.id)).map((x) => ({ id: x.id, name: x.name, teamId: x.teamId, role: (x.role as Person["role"]) || "Player" })); if (add.length) p.onPeople(add); }} /> : <p className="text-sm text-zinc-300">Save the event online first (Save &amp; sync), then come back here.</p>)}
+            <div aria-live="polite" className="mt-4 space-y-1">{msg && <p className="text-sm text-emerald-300">{msg}</p>}{err && <p role="alert" className="text-sm text-red-300">{err}</p>}</div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}

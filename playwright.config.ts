@@ -1,6 +1,6 @@
 import { defineConfig, devices } from "@playwright/test";
 
-const PORT = 4300;
+const PORT = Number(process.env.PORT || 4300);
 
 // Tests run against the built static site (`npm run build` first), served like GitHub Pages serves it.
 export default defineConfig({

@@ -25,6 +25,7 @@ const loadPrint = () => import("./PrintPanel");
 const PeopleStep = dynamic(loadPeople, { loading: () => <StepSkeleton kind="people" /> });
 const DesignStep = dynamic(loadDesign, { loading: () => <StepSkeleton kind="design" /> });
 const PrintPanel = dynamic(loadPrint, { loading: () => <StepSkeleton kind="print" /> });
+const CloudPanel = dynamic(() => import("@/components/cloud/CloudPanel"), { loading: () => <div className="fixed inset-0 z-50 grid place-items-center bg-ink/85 p-6"><StepSkeleton kind="people" /></div> });
 const PRELOAD = [() => undefined, loadPeople, loadDesign, loadPrint];
 
 const STORE = "eh-idstudio-v3"; // designs and team names only; people and photos are never saved
@@ -90,6 +91,9 @@ export default function IdCardStudio() {
   const [ready, setReady] = useState(false);
   const [info, setInfo] = useState<EventInfo>(DEFAULT_INFO);
   const [qrMap, setQrMap] = useState<Record<string, string>>({});
+  // Passes signed by the server once the event is saved online. A code is only trusted while the person still has the role it was signed for.
+  const [cloudCodes, setCloudCodes] = useState<Record<string, { code: string; role: Role }>>({});
+  const [cloudOpen, setCloudOpen] = useState(false);
   const [side, setSide] = useState<"front" | "back">("front");
   const [pdfAsk, setPdfAsk] = useState<{ file: File; wrong: boolean } | null>(null);
   const [pdfPass, setPdfPass] = useState("");
@@ -125,7 +129,7 @@ export default function IdCardStudio() {
   const eventDay = useMemo(() => { const d = new Date(info.date + "T00:00:00"); return Number.isNaN(d.getTime()) ? new Date() : d; }, [info.date]);
   const minorOf = useCallback((p: Person) => isMinor(p.dob, eventDay), [eventDay]);
   const duplicates = useMemo(() => findDuplicates(people), [people]);
-  const ctxFor = (p: Person): Ctx => ({ event, game, teamName: teamById(p.teamId)?.name ?? "", person: p, info: { organiser, date: prettyDate(info.date), venue: info.venue, emergency: info.emergency, rules: info.rules }, teamLogo: teamById(p.teamId)?.logo, sponsorLogo: info.sponsorLogo, qr: qrMap[p.id], minor: minorOf(p) });
+  const ctxFor = (p: Person): Ctx => ({ event, game, teamName: teamById(p.teamId)?.name ?? "", person: p, info: { organiser, date: prettyDate(info.date), venue: info.venue, emergency: info.emergency, rules: info.rules }, teamLogo: teamById(p.teamId)?.logo, sponsorLogo: info.sponsorLogo, qr: (cloudCodes[p.id]?.role === p.role ? cloudCodes[p.id]!.code : undefined) ?? qrMap[p.id], minor: minorOf(p) });
   useEffect(() => {
     let off = false;
     (async () => {
@@ -267,6 +271,7 @@ export default function IdCardStudio() {
         <p className="text-sm text-zinc-400"><span className="sm:hidden">Teams, people, design, print. Runs in your browser; demo data is loaded.</span><span className="hidden sm:inline">Set up your teams, add people (scan Aadhaar cards or import a sheet), design a card for each team, then print or download. Everything stays in your browser. Demo data is loaded so you can try it.</span></p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
+          <button type="button" className="btn-ghost !min-h-9 px-3 text-sm" onClick={() => setCloudOpen(true)} title="Save this event online, check guests in live, invite players">Online</button>
           <button type="button" className="btn-ghost !min-h-9 px-3 text-sm" onClick={saveProject} title="Download this event (details, teams, people, photos and designs) as one file">Save project</button>
           <label className="btn-ghost !min-h-9 cursor-pointer px-3 text-sm" title="Open a project file you saved before">Open project<input type="file" accept="application/json,.json" className="sr-only" onChange={(e) => { openProject(e.target.files?.[0]); e.target.value = ""; }} /></label>
         </div>
@@ -300,6 +305,16 @@ export default function IdCardStudio() {
         <p className="hidden min-w-0 truncate text-sm text-zinc-400 sm:block">{hint}</p>
         {step < 3 ? <button type="button" className="btn !min-h-10 px-5 text-sm" onClick={() => setStep((s) => s + 1)}>Next: {STEPS[step + 1]} →</button> : <span />}
       </nav>
+      {cloudOpen && (
+        <CloudPanel
+          snapshot={{ event, game, organiser, info, teams, people }}
+          minorOf={minorOf}
+          onClose={() => setCloudOpen(false)}
+          onCodes={(codes) => setCloudCodes(Object.fromEntries(Object.entries(codes).map(([id, code]) => [id, { code, role: peopleRef.current.find((p) => p.id === id)?.role ?? "Player" }])))}
+          onPeople={(add) => setPeople((l) => [...l, ...add.filter((a) => !l.some((x) => x.id === a.id))])}
+          onLoaded={(l) => { setEvent(l.details.name); setGame(l.details.game || game); setOrganiser(l.details.organiser || organiser); setInfo((i) => ({ ...i, date: l.details.date || i.date, venue: l.details.venue || i.venue, emergency: l.details.emergency || i.emergency, rules: l.details.rules || i.rules })); setTeams(l.teams.length ? l.teams : teams); setPeople(l.people); setTemplates({}); setStep(0); }}
+        />
+      )}
     </div>
   );
 }

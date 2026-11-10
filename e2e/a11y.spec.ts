@@ -7,6 +7,7 @@ for (const path of PAGES) {
   test(`${path} has no serious accessibility problems`, async ({ page }) => {
     await page.goto(path);
     await page.waitForLoadState("networkidle");
+    await page.waitForTimeout(900); // let the page fade-in finish: contrast is measured on what is really on screen
     const r = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa"]).exclude(".idcard-box").analyze();
     const bad = r.violations.filter((v) => v.impact === "serious" || v.impact === "critical");
     expect(bad.map((v) => `${v.id}: ${v.nodes.slice(0, 3).map((n) => n.target.join(" ")).join(" | ")}`)).toEqual([]);
