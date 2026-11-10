@@ -1,4 +1,4 @@
-import { uid, type El, type FontKey, type Template } from "./types";
+import { uid, type El, type Fmt, type FontKey, type Template } from "./types";
 
 type Layout = "band" | "side" | "center" | "slash";
 interface Pal {
@@ -28,7 +28,43 @@ const F = (field: El["field"], x: number, y: number, w: number, h: number, size:
 const T = (text: string, x: number, y: number, w: number, h: number, size: number, color: string, font: FontKey, o: Partial<El> = {}): El => ({ id: uid(), kind: "text", text, x, y, w, h, rot: 0, opacity: 1, size, color, font, weight: 600, align: "left", ...o });
 const P = (x: number, y: number, w: number, h: number, radius: number, stroke: string): El => ({ id: uid(), kind: "photo", x, y, w, h, rot: 0, opacity: 1, radius, fill: "#00000055", stroke, strokeW: 0.9 });
 
-function build(p: Pal): El[] {
+/** Upright layout for lanyard badges and event badges. The top band leaves room for the slot guide. */
+function buildUpright(p: Pal): El[] {
+  const f = p.font;
+  return [
+    E(-30, -12, 160, 44, p.accent, { opacity: 0.12 }),
+    R(0, 0, 100, 16, p.accent, { fill2: p.accent2 }),
+    F("event", 6, 8.6, 88, 6, 4.6, p.on, f, { align: "center", weight: 800, upper: true, spacing: 0.3 }),
+    P(23, 20, 54, 33, p.round >= 50 ? 50 : Math.min(p.round, 12), p.accent),
+    F("name", 6, 56, 88, 9, 8, p.text, f, { align: "center", weight: 800, upper: p.upper }),
+    F("team", 6, 65.5, 88, 5.5, 5, p.accent, f, { align: "center" }),
+    R(27, 72.5, 46, 6.5, p.accent, { radius: 50, fill2: p.accent2 }),
+    F("role", 27, 72.5, 46, 6.5, 4, p.on, f, { align: "center", weight: 800, upper: true, spacing: 0.3 }),
+    F("id", 6, 81, 88, 4.5, 4.4, p.muted, "mono", { align: "center", weight: 500 }),
+    F("game", 6, 86, 88, 4, 3.4, p.muted, f, { align: "center" }),
+    R(0, 93, 100, 7, p.accent, { fill2: p.accent2 }),
+    T("Please wear this badge visibly", 6, 93, 88, 7, 3, p.on, "body", { align: "center", weight: 700 }),
+  ];
+}
+
+/** One long line for a wristband or strap: game block, event and name, role, then ID and team. */
+function buildStrip(p: Pal): El[] {
+  const f = p.font;
+  return [
+    R(0, 0, 15, 100, p.accent, { fill2: p.accent2 }),
+    F("game", 0, 0, 15, 100, 2.4, p.on, f, { align: "center", weight: 800, upper: true }),
+    F("event", 18, 8, 42, 30, 1.7, p.accent, f, { weight: 800, upper: true, spacing: 0.15 }),
+    F("name", 18, 38, 44, 54, 3.6, p.text, f, { weight: 800, upper: p.upper }),
+    R(65, 28, 15, 44, p.accent, { radius: 50, fill2: p.accent2 }),
+    F("role", 65, 28, 15, 44, 1.7, p.on, f, { align: "center", weight: 800, upper: true, spacing: 0.15 }),
+    F("id", 82, 10, 16, 38, 2.1, p.muted, "mono", { align: "right", weight: 500 }),
+    F("team", 82, 52, 16, 38, 2, p.accent, f, { align: "right" }),
+  ];
+}
+
+function build(p: Pal, fmt: Fmt = "wallet"): El[] {
+  if (fmt === "portrait" || fmt === "badge") return buildUpright(p);
+  if (fmt === "strip") return buildStrip(p);
   const els: El[] = [];
   const f = p.font;
   if (p.layout === "band") {
@@ -81,9 +117,9 @@ function build(p: Pal): El[] {
   return els;
 }
 
-export const THEMES: { id: string; name: string; tags: string[]; make: () => Template }[] = PALS.map((p) => ({
+export const THEMES: { id: string; name: string; tags: string[]; make: (fmt?: Fmt) => Template }[] = PALS.map((p) => ({
   id: p.id, name: p.name, tags: p.tags,
-  make: () => ({ id: p.id, name: p.name, bg: { a: p.bg[0], b: p.bg[1], angle: p.angle }, els: build(p) }),
+  make: (fmt: Fmt = "wallet") => ({ id: p.id, name: p.name, theme: p.id, fmt, bg: { a: p.bg[0], b: p.bg[1], angle: p.angle }, els: build(p, fmt) }),
 }));
 
 export const VIBES = ["neon", "premium", "minimal", "aggressive", "playful", "light"] as const;

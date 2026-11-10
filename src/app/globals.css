@@ -32,9 +32,9 @@
   @page { size: A4; margin: 10mm; }
   body { background: #fff !important; }
   .no-print { display: none !important; }
-  .print-sheet { display: grid !important; grid-template-columns: repeat(2, 85.6mm); gap: 6mm; justify-content: center; }
+  .print-sheet { display: grid !important; grid-template-columns: repeat(var(--cols, 2), var(--w, 85.6mm)) !important; gap: 6mm; justify-content: center; }
   .idcard { break-inside: avoid; box-shadow: none !important; }
-  .idcard-wrap { width: 85.6mm !important; break-inside: avoid; }
+  .idcard-wrap { width: var(--w, 85.6mm) !important; break-inside: avoid; }
   .idcard-box { box-shadow: none !important; }
 }
 

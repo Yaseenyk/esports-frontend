@@ -37,7 +37,7 @@ export async function scanAadhaar(file: File, progress?: (p: number) => void): P
   const cv = await prepare(file);
   try {
     const { data } = await w.recognize(cv);
-    return parseAadhaar(data.text);
+    return parseAadhaar(data.text, data.lines.map((l) => ({ text: l.text, conf: l.confidence })));
   } finally {
     cv.width = cv.height = 0; // drop the picture
     onProgress = null;

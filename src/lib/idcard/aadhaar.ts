@@ -15,8 +15,12 @@ const NOISE = /(government|india|aadhaar|aadhar|unique|identification|authority|
 
 const clean = (l: string) => l.replace(/[|_~=«»“”"]+/g, " ").replace(/\s+/g, " ").trim();
 
-export function parseAadhaar(text: string): AadhaarRead {
-  const lines = text.split(/\r?\n/).map(clean).filter(Boolean);
+/** One line of OCR output with the engine's own confidence (0 to 100) for it. */
+export interface OcrLine { text: string; conf: number }
+
+export function parseAadhaar(text: string, ocrLines?: OcrLine[]): AadhaarRead {
+  const rows: OcrLine[] = (ocrLines ?? text.split(/\r?\n/).map((t) => ({ text: t, conf: 100 }))).map((l) => ({ text: clean(l.text), conf: l.conf })).filter((l) => l.text);
+  const lines = rows.map((r) => r.text);
   const all = lines.join("\n");
   const out: AadhaarRead = {};
 
@@ -34,15 +38,24 @@ export function parseAadhaar(text: string): AadhaarRead {
   else if (/\bMALE\b/i.test(all)) out.gender = "Male";
   else if (/TRANSGENDER/i.test(all)) out.gender = "Transgender";
 
-  // Name: on a card it is the line just above the date of birth. Walk upwards and take the first line that looks like a name.
+  // Name. Scripts the engine cannot read (Marathi, Hindi, Tamil...) come out as junk like "dl TepR urd", so a line only counts as a
+  // name if it is clean Latin text AND the engine is confident about it. The English name appears in two places on an e-Aadhaar:
+  // two lines under "To", and directly above the date of birth on the card. We collect both and keep the most confident one.
+  const word = /^(?:[A-Z][a-z]{1,}|[A-Z]{2,}|[A-Z]\.?)$/;
   const looksLikeName = (l: string) => {
     const words = l.split(" ").filter(Boolean);
-    return words.length >= 2 && words.length <= 5 && /^[A-Za-z][A-Za-z .'-]+$/.test(l) && !NOISE.test(l) && words.every((w) => w.length > 1 || /^[A-Z]\.?$/.test(w));
+    return words.length >= 2 && words.length <= 5 && /^[A-Za-z][A-Za-z .'-]+$/.test(l) && !NOISE.test(l) && words.every((w) => word.test(w));
   };
+  const cands: OcrLine[] = [];
+  const take = (i: number) => { if (rows[i] && looksLikeName(rows[i].text) && rows[i].conf >= 60) cands.push(rows[i]); };
+  const to = lines.findIndex((l) => /^to$/i.test(l));
+  if (to >= 0) for (let i = to + 1; i <= to + 3; i++) take(i);
   const at = lines.findIndex((l) => /(?:DOB|D\.?O\.?B|Date\s*of\s*Birth|Year\s*of\s*Birth)/i.test(l) || (dob && l.includes(dob[1]) && l.includes(dob[3])));
-  if (at > 0) for (let i = at - 1; i >= Math.max(0, at - 3); i--) if (looksLikeName(lines[i])) { out.name = lines[i]; break; }
-  if (!out.name) { const f = lines.find(looksLikeName); if (f) out.name = f; }
-  if (out.name) out.name = out.name.split(" ").map((w) => (w.length > 2 ? w[0].toUpperCase() + w.slice(1).toLowerCase() : w)).join(" ");
+  if (at > 0) for (let i = at - 1; i >= Math.max(0, at - 3); i--) take(i);
+  // Older cards have neither marker: fall back to any clean line.
+  if (!cands.length) rows.forEach((_, i) => take(i));
+  const best = cands.sort((x, y) => y.conf - x.conf || y.text.length - x.text.length)[0];
+  if (best) out.name = best.text.split(" ").map((w) => (w.length > 2 ? w[0].toUpperCase() + w.slice(1).toLowerCase() : w)).join(" ");
   return out;
 }
 

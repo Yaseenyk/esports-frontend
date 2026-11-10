@@ -50,6 +50,10 @@ export interface El {
 export interface Template {
   id: string;
   name: string;
+  /** Card shape. Older saved designs have none and are wallet cards. */
+  fmt?: Fmt;
+  /** Which ready-made theme it started from, so a change of card type can rebuild the same look. */
+  theme?: string;
   bg: { a: string; b: string; angle: number };
   els: El[];
 }
@@ -80,3 +84,13 @@ export type FontKey = keyof typeof FONTS;
 
 let n = 0;
 export const uid = () => `e${Date.now().toString(36)}${(n++).toString(36)}`;
+
+/** Card types. Wearable ones have a slot guide for a lanyard or clip. Sizes are millimetres. */
+export const FORMATS = {
+  wallet: { label: "Wallet card", w: 85.6, h: 54, cols: 2, slot: null, note: "Credit-card size. Carry it." },
+  portrait: { label: "Lanyard badge", w: 54, h: 85.6, cols: 3, slot: { w: 26, h: 3.6 }, note: "Credit-card size, upright. Punch the slot and wear it on a lanyard." },
+  badge: { label: "Event badge", w: 76, h: 102, cols: 2, slot: { w: 19, h: 3 }, note: "Large 3 x 4 in badge for lanyards, clips and pins." },
+  strip: { label: "Wristband strip", w: 190, h: 22, cols: 1, slot: null, note: "A long strip. Cut it, then fit it around the wrist or a bag strap." },
+} as const;
+export type Fmt = keyof typeof FORMATS;
+export const fmtOf = (t: { fmt?: Fmt }): Fmt => t.fmt ?? "wallet";

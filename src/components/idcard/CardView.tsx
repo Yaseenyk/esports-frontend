@@ -1,6 +1,6 @@
 import type { CSSProperties } from "react";
 import { maskAadhaar } from "@/lib/idcard/aadhaar";
-import { FONTS, type El, type Person, type Template } from "@/lib/idcard/types";
+import { FONTS, FORMATS, fmtOf, type El, type Person, type Template } from "@/lib/idcard/types";
 
 export interface Ctx { event: string; game: string; teamName: string; person: Person }
 
@@ -55,11 +55,17 @@ export function ElView({ el, ctx }: { el: El; ctx: Ctx }) {
   );
 }
 
-/** A finished card at any size: it fills the width of its parent and keeps the credit-card ratio. */
+/** A finished card at any size: it fills the width of its parent and keeps its real shape. */
 export default function CardView({ tpl, ctx, className = "", children }: { tpl: Template; ctx: Ctx; className?: string; children?: React.ReactNode }) {
+  const fmt = FORMATS[fmtOf(tpl)];
+  const slot = fmt.slot;
   return (
-    <div className={`idcard-box ${className}`} style={{ position: "relative", width: "100%", aspectRatio: "85.6 / 54", overflow: "hidden", background: grad(tpl.bg.a, tpl.bg.b, tpl.bg.angle), containerType: "size", borderRadius: "3.5% / 5.5%", WebkitPrintColorAdjust: "exact", printColorAdjust: "exact" } as CSSProperties}>
+    <div className={`idcard-box ${className}`} style={{ position: "relative", width: "100%", aspectRatio: `${fmt.w} / ${fmt.h}`, overflow: "hidden", background: grad(tpl.bg.a, tpl.bg.b, tpl.bg.angle), containerType: "size", borderRadius: fmt.w > 150 ? "1.2% / 10%" : "3.5% / 2.4%", WebkitPrintColorAdjust: "exact", printColorAdjust: "exact" } as CSSProperties}>
       {tpl.els.map((el) => <ElView key={el.id} el={el} ctx={ctx} />)}
+      {slot && (
+        // Lanyard slot guide: punch or cut inside the dashed outline.
+        <div aria-hidden="true" style={{ position: "absolute", left: `${50 - slot.w / (fmt.w / 100) / 2}%`, top: "2.6%", width: `${slot.w / (fmt.w / 100)}%`, height: `${slot.h / (fmt.h / 100)}%`, borderRadius: "999px", background: "rgba(0,0,0,.35)", border: "0.5cqw dashed rgba(255,255,255,.75)", boxShadow: "0 0 0 0.25cqw rgba(0,0,0,.4)" }} />
+      )}
       {children}
     </div>
   );

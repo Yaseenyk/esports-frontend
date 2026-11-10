@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Select from "@/components/Select";
-import { FIELDS, FONTS, uid, type El, type Field, type FontKey, type Template } from "@/lib/idcard/types";
+import { FIELDS, FONTS, FORMATS, fmtOf, uid, type El, type Field, type FontKey, type Template } from "@/lib/idcard/types";
 import CardView, { type Ctx } from "./CardView";
 
 const clamp = (n: number, a: number, b: number) => Math.min(b, Math.max(a, n));
@@ -113,7 +113,7 @@ export default function Editor({ tpl, onChange, ctx }: { tpl: Template; onChange
           <button type="button" className="btn-ghost !min-h-9 px-3 text-sm" onClick={() => add({ kind: "photo", w: 24, h: 45, radius: 6, fill: "#00000055", stroke: "#22D3EE", strokeW: 0.9 })}>+ Photo</button>
           <label className="btn-ghost !min-h-9 cursor-pointer px-3 text-sm">+ Logo<input type="file" accept="image/*" className="sr-only" onChange={(e) => { logo(e.target.files?.[0]); e.target.value = ""; }} /></label>
         </div>
-        <div className="mx-auto w-full max-w-[640px] select-none" ref={box} onPointerDown={() => { root.current?.focus({ preventScroll: true }); setSel(null); }}>
+        <div className="mx-auto w-full select-none" style={{ maxWidth: FORMATS[fmtOf(tpl)].w < FORMATS[fmtOf(tpl)].h ? 330 : 640 }} ref={box} onPointerDown={() => { root.current?.focus({ preventScroll: true }); setSel(null); }}>
           <CardView tpl={tpl} ctx={ctx} className="ring-1 ring-white/10 shadow-2xl shadow-black/60">
             {tpl.els.map((e) => (
               <div key={e.id} data-el={e.id} onPointerDown={(ev) => drag(ev, e, "move")} className={`absolute cursor-move touch-none ${sel === e.id ? "outline outline-2 outline-cyan" : "hover:outline hover:outline-1 hover:outline-white/40"}`}
