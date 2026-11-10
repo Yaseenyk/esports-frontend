@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import TiltLink from "@/components/TiltLink";
 import { TOOLS } from "@/lib/data";
 
 export const metadata: Metadata = { title: "Organiser tools" };
@@ -19,7 +19,7 @@ export default function Tools() {
               <p className="mt-1 text-sm text-zinc-400">{t.blurb}</p>
             </>
           );
-          return live ? <Link key={t.slug} href={t.href!} className="card block">{body}</Link> : <div key={t.slug} className="card opacity-80">{body}</div>;
+          return live ? <TiltLink key={t.slug} href={t.href!}>{body}</TiltLink> : <div key={t.slug} className="card opacity-70">{body}</div>;
         })}
       </div>
     </div>

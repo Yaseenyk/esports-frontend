@@ -68,6 +68,13 @@ export const EVENTS: EventItem[] = [
   { slug: "sample-fc-knockout", name: "Sample 1v1 Knockout", game: "ea-fc", organiser: "Sample Campus Fest", format: "Single elimination", mode: "Offline", level: "College", slots: "64 players", blurb: "Placeholder for a one-day fest bracket." },
   { slug: "sample-mlbb-cup", name: "Sample Regional Cup", game: "mobile-legends", organiser: "Sample Regional Community", format: "Double elimination", mode: "Online", level: "Open", slots: "32 teams", blurb: "Placeholder for a regional open cup." },
   { slug: "sample-multi-game-fest", name: "Sample Multi-Game Fest", game: "valorant", organiser: "Sample University", format: "Several games, one fest, one ID system", mode: "Offline", level: "College", slots: "Many", blurb: "Placeholder for a fest that runs several games and needs one set of passes and a shared schedule." },
+  { slug: "sample-minecraft-build-battle", name: "Sample Build Battle", game: "minecraft", organiser: "Sample Streamers Collective", format: "Timed theme, judged by the community", mode: "Online", level: "Community", slots: "40 builders", blurb: "Placeholder for a build-off with a theme, a timer and community voting." },
+  { slug: "sample-roblox-obby-night", name: "Sample Obby Night", game: "roblox", organiser: "Sample College Esports Club", format: "Rounds on a shared course", mode: "Online", level: "College", slots: "Open", blurb: "Placeholder for a casual creator night inside a player-made game." },
+  { slug: "sample-apex-trios", name: "Sample Trios Cup", game: "apex-legends", organiser: "Sample Tournament Organiser", format: "Trios, 5 matches, points table", mode: "Online", level: "Open", slots: "20 trios", blurb: "Placeholder for an open trios cup." },
+  { slug: "sample-rocket-league-3v3", name: "Sample 3v3 Weekender", game: "rocket-league", organiser: "Sample Gaming Cafe", format: "Double elimination", mode: "Hybrid", level: "Community", slots: "16 teams", blurb: "Placeholder for a weekend bracket with a venue final." },
+  { slug: "sample-chess-open", name: "Sample Online Chess Open", game: "chess", organiser: "Sample Esports Federation", format: "Swiss rounds then knockout", mode: "Online", level: "Open", slots: "128 players", blurb: "Placeholder for a big open event anyone can enter." },
+  { slug: "sample-sf6-weekly", name: "Sample Fighting Weekly", game: "street-fighter-6", organiser: "Sample Gaming Cafe", format: "Double elimination, best of 3", mode: "Offline", level: "Community", slots: "32 players", blurb: "Placeholder for a local weekly with pools and a top-8 finals." },
+  { slug: "sample-among-us-night", name: "Sample Among Us Night", game: "among-us", organiser: "Sample Streamers Collective", format: "Lobbies of 10, several rounds", mode: "Online", level: "Community", slots: "60 players", blurb: "Placeholder for a social night with streamers and viewers." },
 ];
 
 export interface Community {
@@ -85,6 +92,8 @@ export const COMMUNITIES: Community[] = [
   { slug: "sample-cafe", name: "Sample Gaming Cafe", kind: "Gaming cafe", games: ["cs2", "valorant", "dota-2"], city: "Sample city", blurb: "A venue that hosts LAN nights and local qualifiers." },
   { slug: "sample-organiser", name: "Sample Tournament Organiser", kind: "Tournament organiser", games: ["valorant", "mobile-legends", "clash-royale"], city: "Online", blurb: "Runs open cups across games, with sponsors and brackets." },
   { slug: "sample-federation", name: "Sample Esports Federation", kind: "Tournament organiser", games: ["bgmi", "cod-mobile", "ea-fc"], city: "Sample state", blurb: "A state-level body that runs leagues and publishes rules for them." },
+  { slug: "sample-sandbox-guild", name: "Sample Sandbox Guild", kind: "Tournament organiser", games: ["minecraft", "roblox", "among-us"], city: "Online", blurb: "A creator group that runs build battles, survival seasons and showcase nights." },
+  { slug: "sample-fighting-club", name: "Sample Fighting Game Club", kind: "Tournament organiser", games: ["street-fighter-6", "tekken-8", "rocket-league"], city: "Sample city", blurb: "A club that hosts weekly meetups and a monthly bracket." },
 ];
 
 export interface Post {
@@ -112,7 +121,7 @@ export interface Tool {
 }
 export const TOOLS: Tool[] = [
   { slug: "id-cards", name: "ID cards and passes", blurb: "Make printable player, staff and guest cards for an event, with a photo, role and ID number. Works in your browser; nothing is uploaded.", status: "Working in this prototype", href: "/tools/id-cards/" },
-  { slug: "brackets", name: "Bracket and points table", blurb: "Single or double elimination, round robin, and battle-royale points tables with tie-breakers.", status: "Planned" },
+  { slug: "brackets", name: "Bracket maker", blurb: "Paste your teams, get a seeded single-elimination bracket, and click winners to advance them to the final.", status: "Working in this prototype", href: "/tools/brackets/" },
   { slug: "schedule", name: "Event schedule", blurb: "A run-sheet and match schedule you can share or print.", status: "Planned" },
   { slug: "rosters", name: "Team and roster manager", blurb: "One organisation, several games: players, substitutes, staff and contracts in one place.", status: "Planned" },
   { slug: "registration", name: "Registration forms", blurb: "Collect teams and players, check eligibility, and confirm slots.", status: "Planned" },
