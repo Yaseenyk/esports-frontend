@@ -281,7 +281,7 @@ export default function IdCardStudio() {
       <ol className="no-print mb-5 grid grid-cols-4 gap-1.5 sm:gap-2" aria-label="Steps">
         {STEPS.map((s, i) => (
           <li key={s}>
-            <button type="button" onClick={() => setStep(i)} onPointerEnter={() => void PRELOAD[i]()} onFocus={() => void PRELOAD[i]()} onTouchStart={() => void PRELOAD[i]()} aria-current={step === i ? "step" : undefined} aria-label={`${s}, ${stepMeta[i]}`} className={`flex w-full flex-col items-center gap-1 rounded-xl border px-1.5 py-2 text-center outline-none transition-colors focus-visible:ring-2 focus-visible:ring-cyan sm:flex-row sm:gap-3 sm:px-3 sm:text-left ${step === i ? "border-cyan/60 bg-cyan/10" : "border-white/10 hover:border-white/25"}`}>
+            <button type="button" onClick={() => setStep(i)} onPointerEnter={() => void PRELOAD[i]()} onFocus={() => void PRELOAD[i]()} onTouchStart={() => void PRELOAD[i]()} aria-current={step === i ? "step" : undefined} aria-label={`${s}, ${stepMeta[i]}`} className={`flex w-full flex-col items-center gap-1 rounded-xl border px-1.5 py-2 text-center outline-none transition-colors focus-visible:ring-2 focus-visible:ring-cyan sm:flex-row sm:gap-3 sm:px-3 sm:text-left ${step === i ? "border-cyan/60 bg-[#0c1d27]" : "border-white/10 bg-[#0b0f15] hover:border-white/25"}`}>
               <span className={`grid h-6 w-6 shrink-0 place-items-center rounded-full text-xs font-bold sm:h-7 sm:w-7 ${step === i ? "bg-cyan text-ink" : i < step ? "bg-emerald-500/20 text-emerald-300" : "bg-white/10 text-zinc-300"}`}>{i < step ? "✓" : i + 1}</span>
               <span className="min-w-0"><span className={`block truncate text-xs font-semibold sm:text-sm ${step === i ? "text-white" : "text-zinc-200"}`}><span className="sm:hidden">{s.split(" ")[0]}</span><span className="hidden sm:inline">{s}</span></span><span className="hidden truncate text-[11px] text-zinc-400 sm:block">{stepMeta[i]}</span></span>
             </button>
@@ -300,7 +300,7 @@ export default function IdCardStudio() {
         </motion.div>
       </AnimatePresence>
 
-      <nav aria-label="Step navigation" className="no-print sticky bottom-3 z-30 mt-6 flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-ink/85 px-3 py-2.5 shadow-2xl backdrop-blur-xl sm:bottom-3">
+      <nav aria-label="Step navigation" className="no-print sticky bottom-3 z-30 mt-6 flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-[#070a0f] px-3 py-2.5 shadow-[0_8px_24px_-8px_rgba(0,0,0,.9)] sm:bottom-3">
         <button type="button" className="btn-ghost !min-h-10 px-4 text-sm" disabled={step === 0} onClick={() => setStep((s) => s - 1)}>← Back</button>
         <p className="hidden min-w-0 truncate text-sm text-zinc-400 sm:block">{hint}</p>
         {step < 3 ? <button type="button" className="btn !min-h-10 px-5 text-sm" onClick={() => setStep((s) => s + 1)}>Next: {STEPS[step + 1]} →</button> : <span />}
