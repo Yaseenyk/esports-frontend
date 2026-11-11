@@ -21,7 +21,18 @@ export interface ToolPage {
   path?: string;
   /** The parent in the breadcrumb when it is not the tools index. */
   crumb?: { name: string; href: string };
+  /** The name as it reads inside a heading ("Why use this ..."), when the full name is long or starts with a capital that must stay. */
+  shortName?: string;
+  /** Other pages worth a link from this one: shown as "Related pages". Every href must be a real page. */
+  related?: { href: string; label: string; blurb: string }[];
+  /** A small table shown under "Why use this ...", as plain HTML: caption, header row and rows. */
+  table?: { caption: string; head: string[]; rows: string[][] };
+  /** The date (YYYY-MM-DD) the text of this page last really changed. Used as the sitemap lastmod. */
+  updated?: string;
 }
+
+/** The tool's name as it reads in a heading: the short name when set, else the name without a leading "Free", first letter lowercased. */
+export const headingName = (t: ToolPage) => t.shortName ?? ((n) => n.charAt(0).toLowerCase() + n.slice(1))(t.name.replace(/^Free /, ""));
 
 /**
  * A public page for one tool: what it does, the working tool itself (free, no account) and the questions people ask.
@@ -30,12 +41,13 @@ export interface ToolPage {
 export default function ToolLanding({ t, children }: { t: ToolPage; children?: React.ReactNode }) {
   const path = t.path ?? `/tools/${t.slug}/`, url = `${SITE_URL}${path}`, crumb = t.crumb ?? { name: "Tools", href: "/tools/" };
   const guides = (t.guides ?? []).map((s) => GUIDES.find((g) => g.slug === s)).filter((g): g is NonNullable<typeof g> => !!g);
+  const hn = headingName(t);
   return (
     <article className="space-y-12">
       <JsonLd data={[
-        { "@context": "https://schema.org", "@type": "SoftwareApplication", name: t.name, applicationCategory: "BusinessApplication", operatingSystem: "Web", url, description: t.lead, inLanguage: "en-IN", offers: { "@type": "Offer", price: "0", priceCurrency: "INR" } },
+        { "@context": "https://schema.org", "@type": "SoftwareApplication", name: t.name, applicationCategory: "UtilitiesApplication", operatingSystem: "Web", url, description: t.lead, inLanguage: "en-IN", isAccessibleForFree: true, browserRequirements: "Requires JavaScript. Works in any current browser.", featureList: t.benefits.map((b) => b.title), offers: { "@type": "Offer", price: "0", priceCurrency: "INR" } },
         { "@context": "https://schema.org", "@type": "FAQPage", mainEntity: t.faq.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })) },
-        { "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [{ "@type": "ListItem", position: 1, name: "Home", item: SITE_URL }, { "@type": "ListItem", position: 2, name: crumb.name, item: `${SITE_URL}${crumb.href}` }, { "@type": "ListItem", position: 3, name: t.name, item: url }] },
+        { "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [{ "@type": "ListItem", position: 1, name: "Home", item: `${SITE_URL}/` }, { "@type": "ListItem", position: 2, name: crumb.name, item: `${SITE_URL}${crumb.href}` }, { "@type": "ListItem", position: 3, name: t.name, item: url }] },
       ]} />
       <header className="no-print">
         <nav aria-label="Breadcrumb" className="text-sm text-zinc-400"><Link href={crumb.href} className="hover:text-zinc-200">{crumb.name}</Link> / {t.name}</nav>
@@ -45,11 +57,23 @@ export default function ToolLanding({ t, children }: { t: ToolPage; children?: R
 
       {children && <section aria-labelledby="use"><h2 id="use" className="mb-4 font-display text-2xl font-bold text-white">{t.useHeading ?? "Use it now"}</h2>{children}</section>}
 
-      <section className="no-print" aria-labelledby="why"><h2 id="why" className="font-display text-2xl font-bold text-white">What you get</h2>
+      <section className="no-print" aria-labelledby="why"><h2 id="why" className="font-display text-2xl font-bold text-white">{`Why use this ${hn}`}</h2>
         <Stagger className="mt-4 grid gap-4 md:grid-cols-3">{t.benefits.map((b) => <Item key={b.title}><div className="card h-full"><h3 className="font-display font-bold text-white">{b.title}</h3><p className="mt-2 text-sm text-zinc-300">{b.body}</p></div></Item>)}</Stagger>
       </section>
 
-      <section className="no-print" aria-labelledby="how"><h2 id="how" className="font-display text-2xl font-bold text-white">How it works</h2>
+      {t.table && (
+        <section className="no-print" aria-label={t.table.caption}>
+          <div role="region" aria-label={t.table.caption} tabIndex={0} className="overflow-x-auto rounded-xl border border-white/[0.14] outline-none focus-visible:ring-2 focus-visible:ring-cyan">
+            <table className="w-full border-collapse text-left text-sm">
+              <caption className="px-3 py-2 text-left text-sm font-semibold text-zinc-200">{t.table.caption}</caption>
+              <thead><tr className="bg-[#0f1013] text-zinc-200">{t.table.head.map((h) => <th key={h} scope="col" className="px-3 py-2">{h}</th>)}</tr></thead>
+              <tbody>{t.table.rows.map((r) => <tr key={r[0]} className="border-t border-white/[0.08]">{r.map((c, i) => i === 0 ? <th key={i} scope="row" className="px-3 py-2 font-semibold text-white">{c}</th> : <td key={i} className="px-3 py-2 text-zinc-300">{c}</td>)}</tr>)}</tbody>
+            </table>
+          </div>
+        </section>
+      )}
+
+      <section className="no-print" aria-labelledby="how"><h2 id="how" className="font-display text-2xl font-bold text-white">{`How to use the ${hn}`}</h2>
         <Stagger className="mt-4 space-y-3"><ol className="contents">{t.steps.map((s, i) => <li key={s} className="list-none"><Item><div className="card flex gap-4 !p-4"><span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-cyan font-bold text-ink">{i + 1}</span><span className="text-zinc-200">{s}</span></div></Item></li>)}</ol></Stagger>
       </section>
 
@@ -59,9 +83,15 @@ export default function ToolLanding({ t, children }: { t: ToolPage; children?: R
         </section>
       )}
 
+      {t.related && t.related.length > 0 && (
+        <section className="no-print" aria-labelledby="related"><h2 id="related" className="font-display text-2xl font-bold text-white">Related pages</h2>
+          <ul className="mt-4 grid gap-3 sm:grid-cols-2">{t.related.map((r) => <li key={r.href}><Link href={r.href} className="card block h-full !p-4"><span className="block font-semibold text-white">{r.label}</span><span className="mt-1 block text-sm text-zinc-300">{r.blurb}</span></Link></li>)}</ul>
+        </section>
+      )}
+
       <section className="no-print grid gap-6 lg:grid-cols-[minmax(0,15rem)_minmax(0,1fr)] lg:gap-10" aria-labelledby="faq">
         <div className="lg:sticky lg:top-24 lg:self-start">
-          <h2 id="faq" className="font-display text-2xl font-bold text-white">Questions</h2>
+          <h2 id="faq" className="font-display text-2xl font-bold text-white">{`${((n) => n.charAt(0).toUpperCase() + n.slice(1))(t.shortName ?? t.name)}: questions and answers`}</h2>
           <p className="mt-2 text-sm leading-6 text-zinc-300">Straight answers about how this tool works, what it can and cannot do, and where your data goes.</p>
         </div>
         <Faq items={t.faq} className="max-w-3xl" />

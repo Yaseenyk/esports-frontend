@@ -10,6 +10,7 @@ import { Waiting } from "@/components/skeleton/Scenes";
 import { cardFontVars } from "@/components/idcard/fonts";
 import CardView from "@/components/idcard/CardView";
 import { LangSwitch, useLang } from "@/components/useLang";
+import { takeTokenSearch } from "@/lib/tokenHygiene";
 
 const asRole = (r: string): Role => ((ROLES as readonly string[]).includes(r) ? (r as Role) : "Player");
 
@@ -22,7 +23,7 @@ export default function PassPage() {
   const [again, setAgain] = useState(0);
 
   useEffect(() => {
-    const tok = new URLSearchParams(location.search).get("t");
+    const tok = new URLSearchParams(takeTokenSearch()).get("t");
     if (!tok) { setErr(t("link_incomplete")); setLoading(false); return; }
     setLoading(true); setErr("");
     pub.pass(tok).then((d) => setData(d)).catch((e) => setErr((e as { status?: number }).status === 404 ? t("pass_inactive") : explain(e))).finally(() => setLoading(false));

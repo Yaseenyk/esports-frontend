@@ -8,7 +8,7 @@ const problems = [];
 const bad = (page, msg) => problems.push(`${page}: ${msg}`);
 
 // Pages that must stay out of search results (demo data, private screens, one-off links).
-const NOINDEX = [/^\/games\//, /^\/events\//, /^\/communities\//, /^\/manage\//, /^\/arcade\//, /^\/login\//, /^\/signup\//, /^\/forgot-password\//, /^\/reset-password\//, /^\/app\//, /^\/gate\//, /^\/join\//, /^\/pass\//, /^\/register\//, /^\/display\//, /^\/live\//, /^\/overlay\//, /^\/embed\//, /^\/score\//, /^\/report\//, /^\/ready\//, /^\/run\//, /^\/league\//, /^\/tournaments\//, /^\/team\//, /^\/unsubscribe\//];
+const NOINDEX = [/^\/games\//, /^\/events\//, /^\/communities\//, /^\/manage\//, /^\/arcade\//, /^\/login\//, /^\/signup\//, /^\/forgot-password\//, /^\/reset-password\//, /^\/app\//, /^\/gate\//, /^\/join\//, /^\/pass\//, /^\/register\//, /^\/display\//, /^\/live\//, /^\/overlay\//, /^\/embed\//, /^\/score\//, /^\/report\//, /^\/ready\//, /^\/run\//, /^\/league\//, /^\/tournaments\//, /^\/team\//, /^\/unsubscribe\//, /^\/verify-email\//];
 const isNoindexPath = (p) => NOINDEX.some((re) => re.test(p));
 
 function walk(dir) { return fs.readdirSync(dir, { withFileTypes: true }).flatMap((e) => (e.isDirectory() ? walk(path.join(dir, e.name)) : [path.join(dir, e.name)])); }

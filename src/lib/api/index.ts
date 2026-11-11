@@ -12,7 +12,10 @@ let onAuthFail: () => void = () => undefined;
 /** Lets the session code say what to do when the server rejects the token (sign out and go to the sign-in page). */
 export const setAuthFailHandler = (f: () => void) => { onAuthFail = f; };
 
-export const api = createClient({ base: API_BASE, token: () => token, onUnauthorized: () => onAuthFail() });
+/** `/events/7/x` flushes from `/events/7`; `/orgs/:id/events/7/x` flushes from `/orgs/:id/events/7`, so one write never empties a whole organisation's cache. */
+export const cacheRootDepth = (path: string): number => (path.startsWith("/orgs/") ? 4 : 2);
+
+export const api = createClient({ base: API_BASE, token: () => token, onUnauthorized: () => onAuthFail(), cacheRootDepth: cacheRootDepth });
 
 export { ApiError } from "./client";
 export { createBatchQueue } from "./queue";

@@ -275,6 +275,7 @@ const BASE_GUIDES: Guide[] = [
           "If still equal, a decider match or the organisers' ruling.",
         ] },
         { t: "p", x: "The calculator on this site uses the first three, then team name, so the same input always gives the same order." },
+        { t: "p", x: "Running a custom room for one game? Try the [BGMI points table maker](/points-table/bgmi/) or the [Free Fire points table maker](/points-table/free-fire/): the same calculator, with the starting scale marked as an example." },
       ] },
       { h2: "Running it on the day", blocks: [
         { t: "ul", items: [

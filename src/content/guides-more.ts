@@ -347,7 +347,7 @@ export const MORE_GUIDES: Guide[] = [
       ] },
       { h2: "Make the cards", blocks: [
         { t: "ol", items: [
-          "Open the [ID card maker](/tools/id-cards/) and list your teams and people, by hand or from a spreadsheet.",
+          "Open the [student ID card maker](/id-card-maker/student/) (or the [ID card maker](/tools/id-cards/)) and list your teams and people, by hand or from a spreadsheet.",
           "Pick a design for each team and adjust colours and logos.",
           "Add a QR code if you will check people in at the gate.",
           "Download the PDF, check the preview and print.",
@@ -813,6 +813,9 @@ export const MORE_GUIDES: Guide[] = [
           "Long free-text questions. A long form lowers completion.",
         ] },
         { t: "note", x: "Tell people on the form what you will do with their details and how long you will keep them. Delete them when the event is over. Our [privacy policy](/privacy/) explains how this site handles data entered in the registration feature." },
+      ] },
+      { h2: "Free Fire and BGMI tournament registration form", blocks: [
+        { t: "p", x: "A squad game needs four players and one substitute for each team, so the form needs a line for each of them with a name and an in-game name or ID. The [free tournament registration form](/tools/registration/) has a squad preset for this: pick it, type your event name and copy the questions into Google Forms or WhatsApp. For the rest of the event, see the [Free Fire](/guides/free-fire-tournament-organiser/) and [BGMI](/guides/bgmi-custom-room-tournament/) guides." },
       ] },
       { h2: "Open, close and approve", blocks: [
         { t: "ol", items: [

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { unsubscribe, type UnsubscribeInfo } from "@/lib/api/f-reminders";
+import { takeTokenSearch } from "@/lib/tokenHygiene";
 
 type Phase = "loading" | "missing" | "notfound" | "error" | "ask" | "done";
 
@@ -14,7 +15,7 @@ export default function UnsubscribePage() {
   const [err, setErr] = useState("");
 
   useEffect(() => {
-    token.current = new URLSearchParams(location.search).get("t") ?? "";
+    token.current = new URLSearchParams(takeTokenSearch()).get("t") ?? "";
     if (!token.current) { setPhase("missing"); return; }
     unsubscribe.info(token.current)
       .then((r) => { setInfo(r); setPhase(r.unsubscribed ? "done" : "ask"); })

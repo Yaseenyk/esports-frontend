@@ -10,9 +10,9 @@ import { GUIDES } from "@/content/guides";
 import { HOME_FAQ } from "@/content/home-faq";
 import { GAMES, TOOLS } from "@/lib/data";
 import { CARD_DESIGNS, CARD_SHAPES, LANGUAGES_COUNT, SCREEN_DESIGNS, SITE_DESCRIPTION } from "@/lib/facts";
-import { SITE_URL } from "@/lib/site";
+import { ORG_ID, SITE_URL } from "@/lib/site";
 
-const HOME_TITLE = "Esports Hub: free tournament tools, from sign-up to trophy";
+const HOME_TITLE = "Free tournament tools for India: bracket, points table, ID cards";
 export const metadata: Metadata = {
   title: { absolute: HOME_TITLE },
   description: SITE_DESCRIPTION,
@@ -46,7 +46,10 @@ export default function Home() {
   const badges = GAMES.filter((g) => ["bgmi", "free-fire-max", "valorant", "cs2", "cod-mobile", "mobile-legends", "minecraft", "roblox", "fortnite", "clash-royale", "ea-fc", "gta-v"].includes(g.slug));
   return (
     <div className="space-y-20">
-      <JsonLd data={{ "@context": "https://schema.org", "@type": "FAQPage", mainEntity: FAQ.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })) }} />
+      <JsonLd data={[
+        { "@context": "https://schema.org", "@type": "WebSite", "@id": `${SITE_URL}/#website`, name: "Esports Hub", url: `${SITE_URL}/`, description: SITE_DESCRIPTION, inLanguage: "en-IN", publisher: { "@id": ORG_ID } },
+        { "@context": "https://schema.org", "@type": "FAQPage", mainEntity: FAQ.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })) },
+      ]} />
 
       <section className="relative grid items-center gap-12 pt-4 lg:grid-cols-[1.1fr_.9fr]">
         <div>
@@ -95,6 +98,7 @@ export default function Home() {
             </Item>
           ))}
         </Stagger>
+        <p className="mt-4 text-sm text-zinc-400">Not sure which tool to use? <Link href="/compare/free-tournament-software-india/" className="text-cyan underline underline-offset-2 hover:text-white">See free tournament software for India, compared honestly</Link>. Running a custom room? Make a <Link href="/points-table/bgmi/" className="text-cyan underline underline-offset-2 hover:text-white">BGMI points table</Link> or a <Link href="/points-table/free-fire/" className="text-cyan underline underline-offset-2 hover:text-white">Free Fire points table</Link>.</p>
       </section>
 
       <section aria-labelledby="proof">
@@ -133,7 +137,7 @@ export default function Home() {
           <div className="grid items-center gap-8 lg:grid-cols-[1fr_1.1fr]">
             <div>
               <h2 id="games" className="text-3xl font-bold text-white">Made for any game</h2>
-              <p className="mt-3 leading-relaxed text-zinc-300">ID cards, brackets, points tables and the gate scanner do not depend on the game. Use them for mobile battle royales, PC shooters, sandbox worlds or party games: you set the team size, the roles and the rules.</p>
+              <p className="mt-3 leading-relaxed text-zinc-300">ID cards, brackets, points tables (see the <Link href="/points-table/bgmi/" className="text-cyan underline underline-offset-2 hover:text-white">BGMI points table</Link> and the <Link href="/points-table/free-fire/" className="text-cyan underline underline-offset-2 hover:text-white">Free Fire points table</Link>) and the gate scanner do not depend on the game. Use them for mobile battle royales, PC shooters, sandbox worlds or party games: you set the team size, the roles and the rules.</p>
               <div className="mt-5 flex flex-wrap gap-3"><Link href="/guides/choosing-a-tournament-format/" className="btn-ghost">Choosing a format</Link><Link href="/guides/points-table/" className="btn-ghost">Points tables</Link></div>
             </div>
             <div aria-hidden="true" className="grid grid-cols-4 gap-3 sm:grid-cols-6">

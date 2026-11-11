@@ -9,6 +9,7 @@ import {
 import BrEntry from "./BrEntry";
 import ConfirmSheet, { type SheetAsk } from "./ConfirmSheet";
 import MatchCard from "./MatchCard";
+import { takeTokenSearch } from "@/lib/tokenHygiene";
 
 type Load = "loading" | "ready" | "error" | "invalid";
 const uid = () => (typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`);
@@ -33,7 +34,7 @@ export default function ScorePage() {
 
   const note = useCallback((ok: boolean, text: string) => setNotes((n) => [...n.slice(-3), { id: uid(), ok, text }]), []);
 
-  useEffect(() => { setToken(new URLSearchParams(location.search).get("t")); }, []);
+  useEffect(() => { setToken(new URLSearchParams(takeTokenSearch()).get("t")); }, []);
   const client = useMemo(() => (token ? scoreClient(token) : null), [token]);
   const storeKey = token ? queueStorageKey(token) : null;
 

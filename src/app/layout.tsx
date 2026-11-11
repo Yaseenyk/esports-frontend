@@ -19,7 +19,7 @@ const display = localFont({ src: [{ path: "../fonts/space-grotesk-300-700-normal
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   verification: { google: "OG5PRiRPw3I5jB5p-G7nDzf_mlxdiZzrpLaFYCZ0p1M" },
-  title: { default: "Esports Hub: free tournament tools, from sign-up to trophy", template: "%s · Esports Hub" },
+  title: { default: "Free tournament tools for India: bracket, points table, ID cards", template: "%s · Esports Hub" },
   description: SITE_DESCRIPTION,
   manifest: "/manifest.webmanifest",
   icons: { icon: "/icon.svg", apple: "/icon-192.png" },

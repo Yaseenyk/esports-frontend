@@ -7,7 +7,7 @@ import { TOOLS } from "../src/lib/data.ts";
 import { TOOL_PAGES } from "../src/lib/tool-pages.ts";
 
 const slugs = new Set(GUIDES.map((g) => g.slug));
-const knownPaths = new Set(["/gate/", "/about/", "/contact/", "/privacy/", "/terms/", "/tools/", "/guides/", "/tools/poster/", "/points-table/bgmi/", "/points-table/free-fire/", ...TOOLS.map((t) => t.href), ...GUIDES.map((g) => `/guides/${g.slug}/`)]);
+const knownPaths = new Set(["/gate/", "/about/", "/contact/", "/privacy/", "/terms/", "/tools/", "/guides/", "/tools/poster/", "/points-table/bgmi/", "/points-table/free-fire/", "/id-card-maker/student/", ...TOOLS.map((t) => t.href), ...GUIDES.map((g) => `/guides/${g.slug}/`)]);
 const textOf = (g) => [g.intro, ...g.sections.flatMap((s) => [s.h2, ...s.blocks.flatMap((b) => (b.t === "p" || b.t === "note" || b.t === "h3" ? [b.x] : b.t === "ul" || b.t === "ol" ? b.items : b.t === "table" ? [...b.head, ...b.rows.flat()] : []))])];
 
 test("every guide has a unique slug, title and description and complete fields", () => {

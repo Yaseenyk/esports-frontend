@@ -5,6 +5,7 @@ import { report, type CaptainMatch, type CaptainView } from "@/lib/api/f-results
 import { createPoller } from "@/lib/api/poller";
 import { MAX_NOTE, MAX_SCORE, checkScores, fromSides, outcomeText, reportError, statusLabel, statusText, stepScore, toSides, tokenFromSearch } from "@/lib/results";
 import { proofFromFile } from "./proof";
+import { takeTokenSearch } from "@/lib/tokenHygiene";
 
 type Load = "loading" | "ready" | "missing" | "error";
 
@@ -59,7 +60,7 @@ export default function ReportPage() {
   const poller = useRef<ReturnType<typeof createPoller<CaptainView>> | null>(null);
   const pickedRef = useRef<HTMLHeadingElement>(null);
 
-  useEffect(() => { setToken(tokenFromSearch(location.search)); }, []);
+  useEffect(() => { setToken(tokenFromSearch(takeTokenSearch())); }, []);
   useEffect(() => { if (token === null) setLoad("missing"); }, [token]);
   useEffect(() => {
     if (!token) return;

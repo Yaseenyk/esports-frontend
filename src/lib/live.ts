@@ -12,7 +12,23 @@ export interface Sponsor { name: string; logo?: string }
 export interface LiveSnapshot { views: LiveView[]; announcements: Announcement[]; sponsors: Sponsor[]; ticker: string[] }
 export interface LiveState { slug: string | null; published: boolean; snapshot: LiveSnapshot | null; updatedAt: string | null }
 /** `matches` is present when the organiser has matches (public subset only). */
-export interface PublicLive { event: { name: string; date: string; venue: string }; snapshot: LiveSnapshot; updatedAt: string | null; matches?: PublicMatch[] }
+export interface PublicLive { event: { name: string; date: string; venue: string }; snapshot: LiveSnapshot; updatedAt: string | null; matches?: PublicMatch[]; /** Server hint for the refresh interval, in ms (additive; older servers omit it). */ pollMs?: number }
+
+/** Poll interval the page used before the server sent a hint. */
+export const POLL_DEFAULT = { minMs: 20_000, maxMs: 60_000 } as const;
+export const POLL_HINT_MIN = 10_000;
+export const POLL_HINT_MAX = 300_000;
+
+/** The server's `pollMs` hint, clamped to 10 s..300 s; null when absent or not a finite number (the caller then keeps the current behaviour). */
+export function clampPollMs(v: unknown): number | null {
+  if (typeof v !== "number" || !Number.isFinite(v)) return null;
+  return Math.min(POLL_HINT_MAX, Math.max(POLL_HINT_MIN, Math.round(v)));
+}
+
+/** Poller bounds for a hint: the hint is the base interval; the backoff ceiling never drops below the old 60 s. */
+export function pollBounds(hint: number | null): { minMs: number; maxMs: number } {
+  return hint === null ? { ...POLL_DEFAULT } : { minMs: hint, maxMs: Math.max(POLL_DEFAULT.maxMs, hint) };
+}
 
 export const LIMITS = { views: 5, announcements: 10, announcementText: 140, sponsors: 4, sponsorName: 40, logoChars: 60000, ticker: 5, tickerLine: 80, bytes: 250_000 } as const;
 

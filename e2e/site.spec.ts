@@ -261,6 +261,7 @@ test("a closed or unknown registration link says so", async ({ page }) => {
   await expect(page.getByText(/All places are taken/)).toBeVisible();
   await page.goto("/register/?t=gone");
   await expect(page.getByRole("alert").filter({ hasText: /not active/i })).toBeVisible();
+  await page.evaluate(() => sessionStorage.clear()); // the page keeps the last link for a reload; a bare link in a fresh tab has none
   await page.goto("/register/");
   await expect(page.getByRole("alert").filter({ hasText: /incomplete/i })).toBeVisible();
 });

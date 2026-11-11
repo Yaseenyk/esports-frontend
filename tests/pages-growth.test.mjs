@@ -33,8 +33,8 @@ test("titles and descriptions are unique across all pages", () => {
 
 test("each rewritten title starts with the keyword the page targets", () => {
   const starts = {
-    "/tools/poster/": "Tournament poster maker", "/tools/points-table/": "Points table maker", "/tools/schedule/": "Fixture generator",
-    "/tools/round-robin/": "Round robin tournament", "/tools/brackets/": "Tournament bracket", "/tools/check-in/": "QR code attendance",
+    "/tools/poster/": "Tournament poster maker", "/tools/points-table/": "Points table maker", "/tools/schedule/": "Free fixture maker",
+    "/tools/round-robin/": "Round robin tournament", "/tools/brackets/": "Free tournament bracket", "/tools/check-in/": "QR code attendance",
     "/tools/display-screen/": "Online scoreboard", "/points-table/bgmi/": "BGMI points table", "/points-table/free-fire/": "Free Fire points table",
     [COMPARE_PATH]: "Free tournament software",
   };
@@ -164,4 +164,17 @@ test("the rewritten tool pages keep every claim to what the product does", () =>
   // The scoreboard page names the real features: sponsor strip, ticker, OBS, no plugin.
   const d = t["display-screen"].lead.toLowerCase();
   for (const w of ["sponsor", "ticker", "obs", "no plugin"]) assert.ok(d.includes(w), w);
+});
+
+test("SEO pass 12 Nov: the student page, related links, game tables and the home title", async () => {
+  const { STUDENT_PAGE, STUDENT_PATH } = await import("../src/lib/student-page.ts");
+  assert.ok(STUDENT_PAGE.title.length + SUFFIX <= 70 && STUDENT_PAGE.description.length >= 70 && STUDENT_PAGE.description.length <= 170);
+  assert.ok(/does not issue official/i.test(STUDENT_PAGE.lead));
+  assert.ok(GROWTH_PAGES.some((p) => p.path === STUDENT_PATH));
+  const real = new Set([...TOOLS.map((t) => t.href), ...GROWTH_PAGES.map((p) => p.path)]);
+  for (const p of [...toolPages, ...gamePages, STUDENT_PAGE]) for (const r of p.related ?? []) assert.ok(real.has(r.href), `${p.slug} links to missing page ${r.href}`);
+  for (const g of gamePages) assert.ok(g.table && g.table.rows.length >= 6 && /not the official scale/.test(g.table.caption), g.path);
+  assert.ok(TOOL_PAGES["points-table"].related.some((r) => r.href === "/points-table/bgmi/") && TOOL_PAGES["points-table"].related.some((r) => r.href === "/points-table/free-fire/"));
+  assert.ok(/generator/i.test(TOOL_PAGES["brackets"].title) && /generator/i.test(TOOL_PAGES["brackets"].h1));
+  assert.ok(read("src/app/(site)/page.tsx").includes("India") && read("src/app/layout.tsx").includes("for India"));
 });

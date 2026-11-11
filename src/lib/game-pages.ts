@@ -12,11 +12,13 @@ const CRUMB = { name: "Points table maker", href: "/tools/points-table/" };
 
 export const GAME_PAGES: Record<PointsPreset, GamePage> = {
   bgmi: {
-    slug: "bgmi-points-table", path: "/points-table/bgmi/", crumb: CRUMB, preset: "bgmi", name: "BGMI points table maker",
+    slug: "bgmi-points-table", path: "/points-table/bgmi/", crumb: CRUMB, preset: "bgmi", name: "BGMI points table maker", shortName: "BGMI points table maker", updated: "2026-11-12",
+    related: [{ href: "/points-table/free-fire/", label: "Free Fire points table maker and points system", blurb: "Placement and kill points for Free Fire custom rooms, ready to post." }, { href: "/tools/points-table/", label: "Points table maker for any battle royale", blurb: "The same tool without a game name, for any placement and kill scale." }, { href: "/compare/free-tournament-software-india/", label: "Free tournament software for India, compared", blurb: "What five other tournament products show on their own pages, and where we are weaker." }],
     title: "BGMI points table maker and points system (free)",
     description: "Free BGMI points table maker for custom rooms: set placement and kill points, enter each squad's results and get ranked standings you can share on WhatsApp.",
     h1: "BGMI points table maker and points system",
     lead: "A BGMI custom-room points system adds placement points (for where a squad finished) to kill points, match after match. Enter your own scale, type each squad's place and kills, and the table ranks them with tie-breakers. Share it as a picture on WhatsApp or show it on a TV. Free, no account. The scale shown is an example, not an official one.",
+    table: { caption: "Example BGMI placement points (an example, not the official scale)", head: ["Place", "Placement points"], rows: [["1st", "10"], ["2nd", "6"], ["3rd", "5"], ["4th", "4"], ["5th", "3"], ["6th", "2"], ["7th and 8th", "1 each"], ["Each kill", "1 point"]] },
     useHeading: "Make your BGMI points table",
     benefits: [
       { title: "Your rulebook, your numbers", body: "Type any placement scale and any kill value. The starting scale is only an example of the kind used in custom rooms: replace it with the scale in your own rules or the publisher's rulebook." },
@@ -27,6 +29,7 @@ export const GAME_PAGES: Record<PointsPreset, GamePage> = {
     guides: ["bgmi-custom-room-tournament", "points-table", "esports-tournament-rules-template", "stream-your-event"],
     faq: [
       { q: "How does a BGMI custom room points system work?", a: "Most custom-room events score each match in two parts. Placement points depend on where the squad finished, with the last survivors earning the most, and kill points are a fixed number for every elimination. A squad's match score is the two added together, and its tournament total is the sum over all matches. This tool does exactly that sum, ranks the squads by total, and shows the points earned in each match so players can check the table against their own notes." },
+      { q: "What is the BGMI points system for a custom room?", a: "Most custom-room events give points for finishing place and for each kill, then add them across matches. The scale in this tool is an example, not the official scale: tournament organisers publish their own, so copy the one in your rulebook into the placement and kill boxes. Ties are broken by most wins, then most kills, then the better place in the last match, then the squad name. The table shows the points each squad earned in every match next to its total, so players can check a score against their own notes before the next match starts." },
       { q: "What placement points should I use for BGMI?", a: "Use the scale in your own rulebook, or in the publisher's rulebook if you are copying an official event. This page starts with an example scale of 10, 6, 5, 4, 3, 2, 1 and 1 points for the first eight places and one point per kill, because a starting point is easier to edit than a blank box. It is only an example, not an official scale, and it may differ from the current rules of any official BGMI tournament, so always set your own numbers and publish them before the first match." },
       { q: "How do I make a points table for a BGMI custom room tournament?", a: "Set the placement points and the points per kill, choose how many matches you will play, then add one row per squad. After every match type each squad's place and kills in its row. The standings below update by themselves and show rank, points per match, kills, wins and the total. When the last match is done you can share the table as a picture, download it as a CSV file for a spreadsheet, or open it on a TV for the room. Nothing needs installing and no account is needed." },
       { q: "How are ties broken in the table?", a: "When two squads have the same total, the order is decided by most wins (matches finished first), then most kills, then the better placement in the last match, then the squad name. A row that was ordered by these rules is marked tie-break in the table. These are this tool's rules, not an official standard, so write the tie-breakers you want in your event rules before the first match and, if they differ, work out the order by hand for the tied squads." },
@@ -36,11 +39,13 @@ export const GAME_PAGES: Record<PointsPreset, GamePage> = {
     ],
   },
   "free-fire": {
-    slug: "free-fire-points-table", path: "/points-table/free-fire/", crumb: CRUMB, preset: "free-fire", name: "Free Fire points table maker",
+    slug: "free-fire-points-table", path: "/points-table/free-fire/", crumb: CRUMB, preset: "free-fire", name: "Free Fire points table maker", shortName: "Free Fire points table maker", updated: "2026-11-12",
+    related: [{ href: "/points-table/bgmi/", label: "BGMI points table maker and points system", blurb: "Placement and kill points for BGMI custom rooms, with a WhatsApp-ready table." }, { href: "/tools/points-table/", label: "Points table maker for any battle royale", blurb: "The same tool without a game name, for any placement and kill scale." }],
     title: "Free Fire points table maker and points system",
     description: "Free Fire points table maker for custom rooms: set placement and kill points, enter each team's results and get ranked standings for WhatsApp, a TV or a stream.",
     h1: "Free Fire points table maker and points system",
     lead: "A Free Fire custom-room points system gives each team placement points for where it finished plus points for every kill, added up over all matches. Enter your own scale, type each team's place and kills, and get a ranked table with tie-breakers to share on WhatsApp or show on a TV. Free, no account. The scale shown is an example, not an official one.",
+    table: { caption: "Example Free Fire placement points (an example, not the official scale)", head: ["Place", "Placement points"], rows: [["1st", "10"], ["2nd", "6"], ["3rd", "5"], ["4th", "4"], ["5th", "3"], ["6th", "2"], ["7th and 8th", "1 each"], ["Each kill", "1 point"]] },
     useHeading: "Make your Free Fire points table",
     benefits: [
       { title: "Set the points yourself", body: "Type your placement points and your points per kill. The starting scale is an example only, so replace it with the scale in your own rules or the publisher's rulebook." },

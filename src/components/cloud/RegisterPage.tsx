@@ -7,6 +7,7 @@ import { CONSENT_TEXT, isEmail } from "@/lib/reminders";
 import { Waiting } from "@/components/skeleton/Scenes";
 import { Sk, SkLines } from "@/components/skeleton/Sk";
 import { LangSwitch, useLang } from "@/components/useLang";
+import { takeTokenSearch } from "@/lib/tokenHygiene";
 
 const blank = (n: number): RegPlayer[] => Array.from({ length: n }, () => ({ name: "", ign: "", minor: false }));
 
@@ -23,7 +24,7 @@ export default function RegisterPage() {
   const [players, setPlayers] = useState<RegPlayer[]>([]);
 
   useEffect(() => {
-    const tok = new URLSearchParams(location.search).get("t") ?? "";
+    const tok = new URLSearchParams(takeTokenSearch()).get("t") ?? "";
     setToken(tok);
     if (!tok) { setErr({ key: "reg_incomplete" }); setLoading(false); return; }
     pub.registration(tok).then((r) => { setInfo(r); setPlayers(blank(r.form.teamSize + r.form.subs)); }).catch((e) => setErr((e as { status?: number }).status === 404 ? { key: "reg_inactive" } : { raw: explain(e) })).finally(() => setLoading(false));

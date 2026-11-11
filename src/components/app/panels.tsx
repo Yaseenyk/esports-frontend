@@ -1,6 +1,7 @@
 import type { ComponentType } from "react";
 
-export type Role = "owner" | "editor" | "viewer";
+import { isKnownRole, type Role } from "@/lib/role";
+export type { Role };
 export type PanelGroup = "run" | "share" | "settings";
 
 /** What every panel receives. A panel with controls that change things must check `role` and show a read-only view for "viewer". */
@@ -53,4 +54,4 @@ export const PANELS: PanelDef[] = [
 ];
 
 /** Panels a person with this role may see, in registry order, optionally for one group. */
-export const panelsFor = (role: Role, group?: PanelGroup): PanelDef[] => PANELS.filter((p) => p.roles.includes(role) && (!group || p.group === group));
+export const panelsFor = (role: Role, group?: PanelGroup): PanelDef[] => isKnownRole(role) ? PANELS.filter((p) => p.roles.includes(role) && (!group || p.group === group)) : []; // an unknown role sees no panels

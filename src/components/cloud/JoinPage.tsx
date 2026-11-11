@@ -7,6 +7,7 @@ import type { Key } from "@/lib/i18n";
 import { Waiting } from "@/components/skeleton/Scenes";
 import { Sk, SkLines } from "@/components/skeleton/Sk";
 import { LangSwitch, useLang } from "@/components/useLang";
+import { takeTokenSearch } from "@/lib/tokenHygiene";
 
 const ROLES = ["Player", "Substitute", "Coach", "Manager", "Staff"];
 const toDataUrl = (b: Blob) => new Promise<string>((ok) => { const r = new FileReader(); r.onload = () => ok(String(r.result)); r.readAsDataURL(b); });
@@ -22,7 +23,7 @@ export default function JoinPage() {
   const [preview, setPreview] = useState("");
 
   useEffect(() => {
-    const tok = new URLSearchParams(location.search).get("t") ?? "";
+    const tok = new URLSearchParams(takeTokenSearch()).get("t") ?? "";
     setToken(tok);
     if (!tok) { setErr(t("link_incomplete")); setLoading(false); return; }
     pub.invite(tok).then(setInfo).catch((e) => setErr((e as { status?: number }).status === 404 ? t("invite_inactive") : explain(e))).finally(() => setLoading(false));

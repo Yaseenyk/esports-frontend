@@ -4,7 +4,7 @@ import Faq from "@/components/seo/Faq";
 import JsonLd from "@/components/seo/JsonLd";
 import { CHECKED, COMPARE_DESCRIPTION, COMPARE_FAQ, COMPARE_H1, COMPARE_LEAD, COMPARE_PATH, COMPARE_TITLE, COMPETITORS, type Fact } from "@/lib/compare";
 import { TOOLS } from "@/lib/data";
-import { SITE_URL } from "@/lib/site";
+import { ORG_ID, SITE_URL } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: COMPARE_TITLE, description: COMPARE_DESCRIPTION, alternates: { canonical: COMPARE_PATH },
@@ -23,10 +23,10 @@ export default function Page() {
         {
           "@context": "https://schema.org", "@type": "Article", headline: COMPARE_H1, description: COMPARE_DESCRIPTION, datePublished: "2026-11-11", dateModified: "2026-11-11",
           mainEntityOfPage: url, image: `${SITE_URL}/og.png`, inLanguage: "en-IN",
-          author: { "@type": "Organization", name: "Esports Hub", url: SITE_URL }, publisher: { "@type": "Organization", name: "Esports Hub", url: SITE_URL, logo: { "@type": "ImageObject", url: `${SITE_URL}/icon-512.png` } },
+          author: { "@id": ORG_ID }, publisher: { "@id": ORG_ID },
         },
         { "@context": "https://schema.org", "@type": "FAQPage", mainEntity: COMPARE_FAQ.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })) },
-        { "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [{ "@type": "ListItem", position: 1, name: "Home", item: SITE_URL }, { "@type": "ListItem", position: 2, name: "Free tournament software for India", item: url }] },
+        { "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [{ "@type": "ListItem", position: 1, name: "Home", item: `${SITE_URL}/` }, { "@type": "ListItem", position: 2, name: "Free tournament software for India", item: url }] },
       ]} />
       <header>
         <nav aria-label="Breadcrumb" className="text-sm text-zinc-400"><Link href="/" className="hover:text-zinc-200">Home</Link> / Compare</nav>

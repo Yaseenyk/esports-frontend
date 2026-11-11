@@ -5,6 +5,7 @@ import { useCallback, useEffect, useId, useRef, useState } from "react";
 import ToolStep from "@/components/tools/ToolStep";
 import { events, explain, type CloudEvent } from "@/lib/api/cloud";
 import { duplicate } from "@/lib/api/f-duplicate";
+import { safeRole } from "@/lib/role";
 import {
   DEFAULT_INCLUDE, NAME_MAX, NEVER_COPIED, OPTIONS, buildRequest, dateProblem, defaultName, eventHref, includeProblem, nameProblem, nextWeekName, sameTimeNextWeek, summaryLines,
   type DuplicateInclude, type Role,
@@ -27,7 +28,7 @@ export default function DuplicateEventButton({ eventId, eventName }: { eventId: 
 
 function DuplicateDialog({ eventId, eventName, onClose }: { eventId: string; eventName: string; onClose: () => void }) {
   const [step, setStep] = useState<1 | 2>(1);
-  const [role, setRole] = useState<Role>("editor"); // until the list says otherwise, nothing owner-only is offered
+  const [role, setRole] = useState<Role>("viewer"); // until the list says otherwise, nothing owner-only is offered
   const [srcDate, setSrcDate] = useState("");
   const [name, setName] = useState(defaultName(eventName));
   const [date, setDate] = useState("");
@@ -47,7 +48,7 @@ function DuplicateDialog({ eventId, eventName, onClose }: { eventId: string; eve
     events.list().then((l) => {
       const me = l.find((e) => e.id === eventId);
       if (!live || !me) return;
-      setRole(me.role ?? "editor");
+      setRole(safeRole(me.role));
       setSrcDate(me.date ?? "");
       setDate((d) => d || me.date || "");
     }).catch(() => undefined);

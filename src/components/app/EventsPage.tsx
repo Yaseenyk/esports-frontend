@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { canEditRole, isOwner, safeRole } from "@/lib/role";
 import { events, explain, type CloudEvent, type CloudRoster, type Live } from "@/lib/api/cloud";
 import { useQuery } from "@/lib/api/useQuery";
 import { Waiting } from "@/components/skeleton/Scenes";
@@ -37,7 +38,7 @@ export default function EventsPage() {
         (list.data ?? []).length > 0 && (
           <ul className="grid gap-3 md:grid-cols-2">
             {(list.data ?? []).map((ev) => (
-              <li key={ev.id}><button type="button" onClick={() => select(ev.id)} className="card block w-full text-left outline-none focus-visible:ring-2 focus-visible:ring-cyan"><span className="block truncate font-display text-lg font-bold text-white">{ev.name}</span><span className="mt-1 block text-sm text-zinc-300">{[ev.game, ev.date, ev.venue].filter(Boolean).join(" · ") || "No details yet"}</span><span className="mt-2 flex items-center gap-2 text-sm font-semibold text-cyan">Open →{ev.role && ev.role !== "owner" && <span className="tag !text-zinc-200">Shared with you · {ev.role === "editor" ? "editor" : "view only"}</span>}</span></button></li>
+              <li key={ev.id}><button type="button" onClick={() => select(ev.id)} className="card block w-full text-left outline-none focus-visible:ring-2 focus-visible:ring-cyan"><span className="block truncate font-display text-lg font-bold text-white">{ev.name}</span><span className="mt-1 block text-sm text-zinc-300">{[ev.game, ev.date, ev.venue].filter(Boolean).join(" · ") || "No details yet"}</span><span className="mt-2 flex items-center gap-2 text-sm font-semibold text-cyan">Open →{!isOwner(ev.role) && <span className="tag !text-zinc-200">Shared with you · {ev.role === "editor" ? "editor" : "view only"}</span>}</span></button></li>
             ))}
           </ul>
         )
@@ -60,7 +61,7 @@ function ScreenLauncher({ ev }: { ev: CloudEvent }) {
       if (w) w.location.href = url; else setErr("Your browser blocked the new window. Allow pop-ups for this site and try again.");
     } catch (x) { w?.close(); setErr(explain(x)); } finally { setBusy(false); }
   };
-  if (ev.role === "viewer") return null;
+  if (!canEditRole(ev.role)) return null;
   return (
     <section aria-label="Check-in screen" className="card space-y-2 !p-4">
       <h3 className="font-display text-lg font-bold text-white">Check-in screen</h3>
@@ -97,7 +98,7 @@ function Detail({ ev, onBack, onDeleted }: { ev: CloudEvent; onBack: () => void;
   const minors = people.filter((p) => p.minor).length, noConsent = people.filter((p) => p.minor && !p.guardian).length, noPhoto = people.filter((p) => !p.photoUrl).length;
   const [designed, setDesigned] = useState(false), [printed, setPrinted] = useState(false);
   useEffect(() => { try { const st = JSON.parse(localStorage.getItem("eh-idstudio-v3") || "null"); setDesigned(!!st && Object.keys(st.templates ?? {}).length > 0); setPrinted(localStorage.getItem("eh-idcards-printed") === "1"); } catch {} }, []);
-  const canEdit = ev.role !== "viewer";
+  const canEdit = canEditRole(ev.role);
   const stat = (label: string, value: string | number, note?: string) => (
     <div className="card !p-4"><p className="text-xs uppercase tracking-wider text-zinc-400">{label}</p><p className="mt-1 font-display text-3xl font-bold text-white">{value}</p>{note && <p className="mt-1 text-xs text-zinc-400">{note}</p>}</div>
   );
@@ -136,17 +137,17 @@ function Detail({ ev, onBack, onDeleted }: { ev: CloudEvent; onBack: () => void;
       {roster.data && teams.length > 0 && (
         <div className="card !p-4"><h3 className="font-display font-bold text-white">Teams</h3><ul className="mt-2 grid gap-1.5 text-sm sm:grid-cols-2">{teams.map((t) => <li key={t.id} className="flex justify-between gap-2 rounded-lg border border-white/10 px-3 py-2"><span className="truncate text-zinc-200">{t.name}</span><span className="text-zinc-400">{people.filter((p) => p.teamId === t.id).length} people</span></li>)}</ul></div>
       )}
-      {ev.role === "viewer" && <p role="note" className="rounded-xl border border-amber-500/30 bg-[#0a0b0d] p-3 text-sm text-amber-100">You have view-only access to this event. You can look, but not change anything.</p>}
-      {ev.role !== "viewer" && <RegistrationPanel eventId={ev.id} onApproved={() => { roster.refetch(); }} />}
-      <EventToolbox eventId={ev.id} eventName={ev.name} role={ev.role ?? "owner"} />
-      {(ev.role === undefined || ev.role === "owner") && <MembersPanel eventId={ev.id} />}
+      {!canEdit && <p role="note" className="rounded-xl border border-amber-500/30 bg-[#0a0b0d] p-3 text-sm text-amber-100">You have view-only access to this event. You can look, but not change anything.</p>}
+      {canEdit && <RegistrationPanel eventId={ev.id} onApproved={() => { roster.refetch(); }} />}
+      <EventToolbox eventId={ev.id} eventName={ev.name} role={safeRole(ev.role)} />
+      {isOwner(ev.role) && <MembersPanel eventId={ev.id} />}
       {(
         <details className="group rounded-2xl border border-white/10 bg-zinc-900/40">
-          <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-2 px-4 py-3 outline-none focus-visible:ring-2 focus-visible:ring-cyan"><span><span className="font-display text-base font-bold text-white">More options</span><span className="ml-2 text-sm text-zinc-400">venue screen, points table, certificates{ev.role === undefined || ev.role === "owner" ? ", delete this event" : ""}</span></span><svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4 fill-none stroke-current transition-transform group-open:rotate-180" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9l6 6 6-6" /></svg></summary>
+          <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-2 px-4 py-3 outline-none focus-visible:ring-2 focus-visible:ring-cyan"><span><span className="font-display text-base font-bold text-white">More options</span><span className="ml-2 text-sm text-zinc-400">venue screen, points table, certificates{isOwner(ev.role) ? ", delete this event" : ""}</span></span><svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4 fill-none stroke-current transition-transform group-open:rotate-180" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9l6 6 6-6" /></svg></summary>
           <div className="space-y-4 border-t border-white/10 p-4">
             <ScreenLauncher ev={ev} />
             <div className="space-y-2"><p className="text-sm text-zinc-300">Other tools for after the games:</p><div className="flex flex-wrap gap-2"><Link href="/tools/points-table/" className="btn-ghost !min-h-11 px-4 text-sm">Points table</Link><Link href="/tools/certificates/" className="btn-ghost !min-h-11 px-4 text-sm">Certificates</Link></div></div>
-            {(ev.role === undefined || ev.role === "owner") && <DeleteEvent ev={ev} onDeleted={onDeleted} />}
+            {isOwner(ev.role) && <DeleteEvent ev={ev} onDeleted={onDeleted} />}
           </div>
         </details>
       )}

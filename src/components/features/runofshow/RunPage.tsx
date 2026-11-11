@@ -5,6 +5,7 @@ import { runofshow } from "@/lib/api/f-runofshow";
 import { createPoller } from "@/lib/api/poller";
 import { agoText } from "@/lib/live";
 import { STATUS_LABEL, dayText, displayTime, filterByOwner, inText, nowNext, owners, ownerKey, progress, readToken, sortByTime, type PublicRos } from "@/lib/runofshow";
+import { takeTokenSearch } from "@/lib/tokenHygiene";
 
 type Status = "loading" | "ready" | "missing" | "error";
 type Row = PublicRos["items"][number];
@@ -33,7 +34,7 @@ export default function RunPage() {
   const [offline, setOffline] = useState(false);
   const [me, setMe] = useState("");
 
-  useEffect(() => { const t = readToken(location.search); if (t) { setToken(t); setMe(readName(ownerKey(t))); } else { setToken(""); setStatus("missing"); } }, []);
+  useEffect(() => { const t = readToken(takeTokenSearch()); if (t) { setToken(t); setMe(readName(ownerKey(t))); } else { setToken(""); setStatus("missing"); } }, []);
   useEffect(() => { const id = setInterval(() => setNow(Date.now()), 30_000); return () => clearInterval(id); }, []);
 
   useEffect(() => {

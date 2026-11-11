@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { live } from "@/lib/api/cloud";
 import { createPoller } from "@/lib/api/poller";
-import { KIND_LABEL, agoText, formatLocalTime, isLogo, nextMatches, orderedViews, teamsOf, type LiveKind, type PublicLive } from "@/lib/live";
+import { KIND_LABEL, agoText, clampPollMs, pollBounds, formatLocalTime, isLogo, nextMatches, orderedViews, teamsOf, type LiveKind, type PublicLive } from "@/lib/live";
 import { nextMatchFor, opponentText, stageLabel, teamNames } from "@/lib/matches";
 import { sendHit } from "@/lib/hits";
 import { brandTheme, fetchPublicBrand, readableOn, type Brand } from "@/lib/brand";
@@ -41,6 +41,7 @@ export default function LivePage() {
   const [tab, setTab] = useState<LiveKind | "matches" | "">("");
   const [team, setTeam] = useState("");
   const [msg, setMsg] = useState("");
+  const [hint, setHint] = useState<number | null>(null); // the server's pollMs, clamped; the poller restarts only when it changes
   const tabs = useRef<HTMLDivElement>(null);
   const [brand, setBrand] = useState<Brand | null>(null);
   useEffect(() => { if (!slug) return; let on = true; void fetchPublicBrand(slug).then((b) => { if (on) setBrand(b); }); return () => { on = false; }; }, [slug]); // the organiser's logo and colours; the page looks right without them
@@ -53,15 +54,15 @@ export default function LivePage() {
     const p = createPoller<PublicLive>({
       fetch: () => live.public(slug),
       same: (a, b) => a === b || JSON.stringify(a) === JSON.stringify(b),
-      onData: (d) => { setData(d); setStatus("ready"); setOkAt(Date.now()); setOffline(false); },
+      onData: (d) => { setHint(clampPollMs(d.pollMs)); setData(d); setStatus("ready"); setOkAt(Date.now()); setOffline(false); },
       onError: (e) => { const s = (e as { status?: number }).status; if (s === 404) { setStatus("missing"); setData(null); } else { setOffline(true); setStatus((cur) => (cur === "loading" ? "error" : cur)); } },
-      minMs: 20_000, maxMs: 60_000, staleMs: 15_000,
+      ...pollBounds(hint), staleMs: 15_000,
     });
     const wake = () => { setOffline(!navigator.onLine); p.resume(); };
     document.addEventListener("visibilitychange", wake); window.addEventListener("online", wake); window.addEventListener("offline", wake); window.addEventListener("focus", wake);
     p.start();
     return () => { p.stop(); document.removeEventListener("visibilitychange", wake); window.removeEventListener("online", wake); window.removeEventListener("offline", wake); window.removeEventListener("focus", wake); };
-  }, [slug]);
+  }, [slug, hint]);
 
   useEffect(() => { if (slug && status === "ready") sendHit(slug, "live"); }, [slug, status]); // sponsor report: one page-load count, once per load
   const snap = data?.snapshot ?? null;

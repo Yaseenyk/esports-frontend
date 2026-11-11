@@ -167,11 +167,11 @@ test("an event can be deleted from its page, after a confirmation, and leaves th
 
 test("live gate: a key the server refuses says so, a refused code is not queued, and a lost connection keeps the scan", async ({ page }) => {
   await preflight(page);
+  await signedIn(page); // first: its catch-all must be the OLDEST route so this spec's own routes win
   const A = "**/esports-api.yaseenyk.workers.dev";
   let keyOk = false, mode: "refuse" | "offline" = "refuse";
   await page.route(`${A}/gate/roster`, (r) => (keyOk ? r.fulfill(json({ event: { name: "Spring Cup", date: "2026-12-01", venue: "Pune" }, people: [] })) : r.fulfill(json({ error: "bad key" }, 401))));
   await page.route(`${A}/gate/checkin`, (r) => (mode === "refuse" ? r.fulfill(json({ error: "bad code" }, 422)) : r.abort()));
-  await signedIn(page);
   await page.goto("/app/check-in/");
   await page.getByRole("tab", { name: /Live/ }).click();
   await page.getByLabel("Gate key").fill("gk_wrong");

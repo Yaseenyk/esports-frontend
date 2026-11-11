@@ -20,6 +20,11 @@ export interface ClientOptions {
   onLatency?: (key: string, ms: number) => void;
   /** Called when the server says the sign-in is no longer valid (401) on a request that carried a token. */
   onUnauthorized?: () => void;
+  /**
+   * How many path segments make up the "collection root" that a write flushes from the cache. Default 2: a write to
+   * `/events/7/x` flushes everything under `/events/7`. Return 4 for `/orgs/:id/...` so one write does not flush a whole org.
+   */
+  cacheRootDepth?: (path: string) => number;
 }
 
 export interface GetOptions {
@@ -153,11 +158,12 @@ export function createClient(o: ClientOptions) {
   /** After a write, forget cached reads of the same collection so nobody sees stale data. */
   function invalidateRelated(path: string) {
     const segs = path.split("?")[0].split("/");
-    const root = segs.slice(0, 3).join("/");
+    const depth = Math.max(1, Math.floor(o.cacheRootDepth?.(path) ?? 2));
+    const root = segs.slice(0, depth + 1).join("/");
     epoch++;
     for (const k of [...cache.keys()]) if (k === root || k.startsWith(root + "/") || k.startsWith(root + "?")) cache.delete(k);
     // Creating, renaming or deleting one item changes the list it belongs to ("/events/7" -> "/events").
-    if (segs.length <= 3 && segs.length > 2) for (const k of [...cache.keys()]) { const kp = k.split("?")[0]; if (kp === segs.slice(0, 2).join("/")) cache.delete(k); }
+    if (segs.length <= depth + 1 && segs.length > depth) for (const k of [...cache.keys()]) { const kp = k.split("?")[0]; if (kp === segs.slice(0, depth).join("/")) cache.delete(k); }
   }
 
   return {

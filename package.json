@@ -8,7 +8,8 @@
     "start": "next start",
     "test": "node --import tsx --test --test-reporter=spec tests/*.test.mjs",
     "test:e2e": "playwright test",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "check:bundle": "node scripts/check-bundle.mjs"
   },
   "dependencies": {
     "framer-motion": "^11.18.2",

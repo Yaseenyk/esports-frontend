@@ -7,7 +7,7 @@ import { TOOLS } from "@/lib/data";
 import { SITE_URL } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: "Free tools for esports and gaming event organisers",
+  title: "Free tournament tools: bracket, points table, ID card",
   description: "Free tools for running esports and gaming events: ID card maker, tournament bracket maker, battle royale points table calculator and a QR gate check-in scanner.",
   alternates: { canonical: "/tools/" },
 };
@@ -47,7 +47,7 @@ export default function Tools() {
           </TiltLink></Item>
         ))}
       </Stagger>
-      <p className="text-sm text-zinc-400">An account is optional. It adds saving events online, invite links for players and live check-in across several doors. New to running an event? Start with the <Link href="/guides/run-a-campus-tournament/" className="text-cyan underline">college tournament guide</Link>.</p>
+      <p className="text-sm text-zinc-400">An account is optional. It adds saving events online, invite links for players and live check-in across several doors. Looking for one game? See the <Link href="/points-table/bgmi/" className="text-cyan underline">BGMI points table</Link> and the <Link href="/points-table/free-fire/" className="text-cyan underline">Free Fire points table</Link>, or <Link href="/compare/free-tournament-software-india/" className="text-cyan underline">how free tournament software for India compares</Link>. New to running an event? Start with the <Link href="/guides/run-a-campus-tournament/" className="text-cyan underline">college tournament guide</Link>.</p>
     </div>
   );
 }

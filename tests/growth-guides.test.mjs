@@ -10,7 +10,7 @@ const SLUGS = [
 ];
 const slugs = new Set(GUIDES.map((g) => g.slug));
 // Pages owned by other workstreams that are guaranteed to exist.
-const known = new Set(["/gate/", "/about/", "/contact/", "/privacy/", "/terms/", "/tools/", "/guides/", "/tools/poster/", "/points-table/bgmi/", "/points-table/free-fire/", ...TOOLS.map((t) => t.href), ...GUIDES.map((g) => `/guides/${g.slug}/`)]);
+const known = new Set(["/gate/", "/about/", "/contact/", "/privacy/", "/terms/", "/tools/", "/guides/", "/tools/poster/", "/points-table/bgmi/", "/points-table/free-fire/", "/id-card-maker/student/", ...TOOLS.map((t) => t.href), ...GUIDES.map((g) => `/guides/${g.slug}/`)]);
 const blocks = (g) => g.sections.flatMap((s) => [s.h2, ...s.blocks.flatMap((b) => (b.t === "p" || b.t === "note" || b.t === "h3" ? [b.x] : b.t === "ul" || b.t === "ol" ? b.items : b.t === "table" ? [...b.head, ...b.rows.flat()] : []))]);
 const everything = (g) => [g.title, g.seoTitle ?? "", g.description, g.intro, g.answer ?? "", ...blocks(g), ...(g.faq ?? []).flatMap((f) => [f.q, f.a])];
 

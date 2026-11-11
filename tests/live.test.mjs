@@ -183,3 +183,17 @@ test("bracket round chips and the round to open first", () => {
   const dbl = bracketRounds({ title: "", sections: [{ name: "Winners", rounds: [{ name: "R1", matches: [] }] }, { name: "Losers", rounds: [{ name: "R1", matches: [] }] }] });
   assert.deepEqual(dbl.map((x) => x.label), ["Winners: R1", "Losers: R1"]);
 });
+
+test("pollMs hint: clamped to 10 s..300 s, absent or invalid keeps the current 20 s / 60 s behaviour", async () => {
+  const { clampPollMs, pollBounds, POLL_DEFAULT } = await import("../src/lib/live.ts");
+  assert.equal(clampPollMs(20000), 20000);
+  assert.equal(clampPollMs(120000), 120000);
+  assert.equal(clampPollMs(1), 10000);
+  assert.equal(clampPollMs(9_999_999), 300000);
+  for (const bad of [undefined, null, "20000", NaN, Infinity, {}]) assert.equal(clampPollMs(bad), null);
+  assert.deepEqual(pollBounds(null), POLL_DEFAULT);
+  assert.deepEqual(pollBounds(null), { minMs: 20000, maxMs: 60000 });
+  assert.deepEqual(pollBounds(20000), { minMs: 20000, maxMs: 60000 });
+  assert.deepEqual(pollBounds(120000), { minMs: 120000, maxMs: 120000 });
+  assert.deepEqual(pollBounds(300000), { minMs: 300000, maxMs: 300000 });
+});

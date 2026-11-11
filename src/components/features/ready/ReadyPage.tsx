@@ -5,6 +5,7 @@ import { captain } from "@/lib/api/f-ready";
 import { createPoller } from "@/lib/api/poller";
 import { explain } from "@/lib/api/cloud";
 import { captainState, clockOffset, graceDeadlineMs, spanText, tokenFromSearch, type CaptainData, type CaptainMatch, type CaptainState } from "@/lib/ready";
+import { takeTokenSearch } from "@/lib/tokenHygiene";
 
 type Status = "loading" | "ready" | "missing" | "error";
 
@@ -75,7 +76,7 @@ export default function ReadyPage() {
   const [err, setErr] = useState("");
   const poller = useRef<ReturnType<typeof createPoller<CaptainData>> | null>(null);
 
-  useEffect(() => { setToken(tokenFromSearch(location.search)); }, []);
+  useEffect(() => { setToken(tokenFromSearch(takeTokenSearch())); }, []);
   useEffect(() => { if (token === null) setStatus("missing"); }, [token]);
   useEffect(() => { const id = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(id); }, []);
   useEffect(() => { if (!msg) return; const t = setTimeout(() => setMsg(""), 5000); return () => clearTimeout(t); }, [msg]);

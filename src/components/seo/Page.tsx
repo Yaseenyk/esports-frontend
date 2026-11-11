@@ -6,7 +6,7 @@ import { SITE_URL } from "@/lib/site";
 export default function TextPage({ title, path, updated, intro, children }: { title: string; path: string; updated: string; intro: string; children: React.ReactNode }) {
   return (
     <article className="mx-auto max-w-3xl space-y-8">
-      <JsonLd data={{ "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [{ "@type": "ListItem", position: 1, name: "Home", item: SITE_URL }, { "@type": "ListItem", position: 2, name: title, item: `${SITE_URL}${path}` }] }} />
+      <JsonLd data={{ "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [{ "@type": "ListItem", position: 1, name: "Home", item: `${SITE_URL}/` }, { "@type": "ListItem", position: 2, name: title, item: `${SITE_URL}${path}` }] }} />
       <header>
         <nav aria-label="Breadcrumb" className="text-sm text-zinc-400"><Link href="/" className="hover:text-zinc-200">Home</Link> / {title}</nav>
         <h1 className="mt-3 text-3xl font-black text-zinc-50 sm:text-4xl">{title}</h1>

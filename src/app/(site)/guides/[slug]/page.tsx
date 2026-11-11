@@ -5,7 +5,7 @@ import { notFound } from "next/navigation";
 import JsonLd from "@/components/seo/JsonLd";
 import { Blocks, Inline } from "@/components/seo/Prose";
 import { GUIDES, guideBySlug } from "@/content/guides";
-import { SITE_URL } from "@/lib/site";
+import { ORG_ID, SITE_URL } from "@/lib/site";
 
 export const dynamicParams = false;
 export function generateStaticParams() {
@@ -36,9 +36,9 @@ export default function GuidePage({ params }: { params: { slug: string } }) {
         {
           "@context": "https://schema.org", "@type": "Article", headline: g.title, description: g.description, datePublished: g.published, dateModified: g.updated,
           mainEntityOfPage: url, image: `${SITE_URL}/og.png`, inLanguage: "en-IN",
-          author: { "@type": "Organization", name: "Esports Hub", url: SITE_URL }, publisher: { "@type": "Organization", name: "Esports Hub", url: SITE_URL, logo: { "@type": "ImageObject", url: `${SITE_URL}/icon-512.png` } },
+          author: { "@id": ORG_ID }, publisher: { "@id": ORG_ID },
         },
-        { "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [{ "@type": "ListItem", position: 1, name: "Home", item: SITE_URL }, { "@type": "ListItem", position: 2, name: "Guides", item: `${SITE_URL}/guides/` }, { "@type": "ListItem", position: 3, name: g.title, item: url }] },
+        { "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [{ "@type": "ListItem", position: 1, name: "Home", item: `${SITE_URL}/` }, { "@type": "ListItem", position: 2, name: "Guides", item: `${SITE_URL}/guides/` }, { "@type": "ListItem", position: 3, name: g.title, item: url }] },
         ...(g.faq?.length ? [{ "@context": "https://schema.org", "@type": "FAQPage", mainEntity: g.faq.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })) }] : []),
       ]} />
       <header>

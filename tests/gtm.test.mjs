@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { gtmAllowed, GTM_ID, GTM_BOOT } from "../src/lib/gtm.ts";
+import { gtmAllowed, GTM_ID, CLARITY_ID, GTM_BOOT } from "../src/lib/gtm.ts";
 
 test("the tag loads on public marketing pages", () => {
   for (const p of ["/", "/tools/", "/tools/bracket/", "/guides/", "/guides/how-to-run-a-bgmi-tournament/", "/compare/", "/about/", "/contact/", "/privacy/", "/terms/"]) assert.equal(gtmAllowed(p), true, p);
@@ -20,15 +20,15 @@ test("the container id is the one the owner supplied", () => assert.equal(GTM_ID
 /** Runs the head loader the way a browser would, and returns how many scripts it added. */
 function runBoot(path, nav = {}) {
   const added = [];
-  const win = { location: { pathname: path }, navigator: { doNotTrack: "0", ...nav } };
+  const win = { clarity: undefined, location: { pathname: path }, navigator: { doNotTrack: "0", ...nav } };
   const doc = { head: { appendChild: (s) => added.push(s.src) }, createElement: () => ({}) };
   new Function("location", "navigator", "window", "document", GTM_BOOT)(win.location, win.navigator, win, doc);
   return added;
 }
 
 test("the head loader really loads the container on a marketing page", () => {
-  assert.deepEqual(runBoot("/"), [`https://www.googletagmanager.com/gtm.js?id=${GTM_ID}`]);
-  assert.equal(runBoot("/tools/bracket/").length, 1);
+  assert.deepEqual(runBoot("/"), [`https://www.googletagmanager.com/gtm.js?id=${GTM_ID}`, `https://www.clarity.ms/tag/${CLARITY_ID}?ref=bwt`]);
+  assert.equal(runBoot("/tools/bracket/").length, 2);
 });
 
 test("the head loader stays off for private pages and for opt-outs", () => {
@@ -38,5 +38,5 @@ test("the head loader stays off for private pages and for opt-outs", () => {
 });
 
 test("the head loader and gtmAllowed agree on every path", () => {
-  for (const p of ["/", "/tools/", "/guides/x/", "/compare/", "/about/", "/contact/", "/privacy/", "/terms/", "/points-table/", "/app/", "/live/x/", "/toolsx/", "/login/"]) assert.equal(runBoot(p).length === 1, gtmAllowed(p), p);
+  for (const p of ["/", "/tools/", "/guides/x/", "/compare/", "/about/", "/contact/", "/privacy/", "/terms/", "/points-table/", "/app/", "/live/x/", "/toolsx/", "/login/"]) assert.equal(runBoot(p).length > 0, gtmAllowed(p), p);
 });

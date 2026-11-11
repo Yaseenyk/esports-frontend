@@ -29,7 +29,7 @@ export const TOOL_PAGES: Record<string, ToolPage & { title: string; description:
     ],
   },
   plan: {
-    slug: "plan", name: "Plan my tournament",
+    slug: "plan", name: "Plan my tournament", shortName: "tournament planner", updated: "2026-11-12", 
     title: "Plan my tournament: free format, schedule and rules",
     description: "Free tournament planner: say how many teams, rooms and hours you have and get the format, match counts, a timed schedule and draft rules to copy or download.",
     h1: "Plan my tournament: format, schedule and rules in one pack",
@@ -54,7 +54,7 @@ export const TOOL_PAGES: Record<string, ToolPage & { title: string; description:
     ],
   },
   "id-cards": {
-    slug: "id-cards", name: "Free ID card maker for events and teams",
+    slug: "id-cards", name: "Free ID card maker for events and teams", shortName: "ID card maker", updated: "2026-11-12", related: [{ href: "/id-card-maker/student/", label: "Student ID card maker", blurb: "Free ID cards for school clubs, college fests and events, with photo and QR code, printed at real size on A4." }],
     title: "Free ID card maker for events, teams and tournaments",
     description: "Make player and event ID cards free in your browser: add people, pick a design per team, add a QR code and print at real size on A4. No account needed.",
     h1: "Free ID card maker for events, teams and tournaments",
@@ -104,8 +104,8 @@ export const TOOL_PAGES: Record<string, ToolPage & { title: string; description:
     ],
   },
   registration: {
-    slug: "registration", name: "Free tournament registration form",
-    title: "Free tournament registration form for esports events",
+    slug: "registration", name: "Free tournament registration form", updated: "2026-11-12", 
+    title: "Free tournament registration form for esports and sports",
     description: "A free tournament registration form for esports and gaming events: copy a ready team form, or get a link that collects teams and adds approved ones to your roster.",
     h1: "Free tournament registration form for esports events",
     lead: "Collect team registrations without chasing messages. Copy a ready-made registration form for squad, 5 v 5, duo or solo events, or create a free account to get a link where captains register their own team and you approve each one.",
@@ -121,6 +121,7 @@ export const TOOL_PAGES: Record<string, ToolPage & { title: string; description:
       { q: "Is the tournament registration form free?", a: "Yes. The copyable form is free and needs no account: pick a team size, type your event name and copy the questions into Google Forms, WhatsApp or a printed sheet. If you want a link that runs itself, create a free account. Captains then fill in the form on their phones, you set a team limit and a closing time, and you approve or reject each team. Approved teams go straight into your roster for ID cards and gate check-in, so you do not retype anything." },
       { q: "What questions does a team registration form need?", a: "Ask only what you need to run the event. The form asks for the team name, the college, club or city, the captain's full name and phone number or email, and each player's full name and in-game name or ID, with whether that player is under 18. It ends with an optional note, a yes or no that the team has read the rules, and a line for parent or guardian consent for players under 18. Nothing else is collected, which keeps the form short and the data safe." },
       { q: "Is there a registration form for Free Fire or BGMI squads?", a: "Yes. Choose Squad game when you copy the form and it asks for four players plus one substitute. There are also presets for 5 v 5 games such as Valorant (five players and one substitute), duos (two players) and solo players. Always follow the rules of your own event or the game's tournament rules for team size. The Free Fire and BGMI organiser guides explain how to run the rest of the event, from lobbies to the points table." },
+      { q: "Can I make a Free Fire or BGMI tournament registration form?", a: "Yes. Choose the team size (solo, duo or squad), type your event name and copy the form. It asks for the team name, the college, club or city, the captain's name and phone number or email, and each player's name and in-game name or ID, with whether that player is under 18. It also has a note, a yes or no that the team has read the rules, and a line for parent or guardian consent. Paste it into Google Forms or WhatsApp, or create a free account for a link where captains register themselves. Teams you approve go straight into the roster used for ID cards and gate check-in." },
       { q: "How do I collect registrations from teams without chasing messages?", a: "Create a free account and get a registration link. Share it in your college group or Discord server. Each captain opens it on a phone and fills in the team, the players and the substitutes, so you are not copying names out of chat messages. You see every registration in one list and approve or reject each one. You can set a maximum number of teams and a closing time, and you can close and reopen registration at any time." },
       { q: "What happens to the contact details people enter?", a: "They are shown only to the organiser of the event and are deleted with the event or your account. They are never shown publicly. Players under 18 are marked by the captain so that you can get a parent or guardian's consent before you print a card, and you record the consent in the roster. Read the privacy policy for the full details. If you use only the copyable form, the data never touches this site: it lives in Google Forms, WhatsApp or wherever you paste it." },
       { q: "Should I ask for Aadhaar numbers in registration?", a: "Not unless you truly need them. A tournament registration rarely does, and holding a copy of someone's government ID creates risk for you and the player. If you need to verify identity at an event, the ID card maker can scan an Aadhaar card on the organiser's own device and keep only the last four digits, never the full number. The registration form fields guide explains what to ask, what to leave out and why, so the form stays short." },
@@ -154,11 +155,11 @@ export const TOOL_PAGES: Record<string, ToolPage & { title: string; description:
     ],
   },
   schedule: {
-    slug: "schedule", name: "Fixture generator and match timetable",
-    title: "Fixture generator and match timetable for any sport",
+    slug: "schedule", name: "Fixture generator and match timetable", shortName: "fixture maker", updated: "2026-11-12", 
+    title: "Free fixture maker and match timetable for any sport",
     description: "Free fixture timetable for cricket, football, kabaddi and esports: set matches, pitches or rooms, match length and breaks, and get start and end times for the day.",
     h1: "Fixture schedule maker for cricket, football, kabaddi and esports",
-    lead: "Turn a fixture list into a plan for the day. Enter how many matches you have, how many can be played at the same time (pitches, courts or game rooms), how long each takes and when you want breaks, and get a round-by-round timetable with the finish time. It suits cricket, football, kabaddi and esports. Need the pairings first? The round robin generator lists every fixture. Free, no account.",
+    lead: "Use this free fixture maker to build a match timetable for cricket, football, kabaddi or esports, with no download and no APK. Turn a fixture list into a plan for the day. Enter how many matches you have, how many can be played at the same time (pitches, courts or game rooms), how long each takes and when you want breaks, and get a round-by-round timetable with the finish time. It suits cricket, football, kabaddi and esports. Need the pairings first? The round robin generator lists every fixture. Free, no account.",
     useHeading: "Build your schedule",
     benefits: [
       { title: "Plan the whole day", body: "See straight away what time the last match ends, so you know whether the day fits before you announce it." },
@@ -205,7 +206,7 @@ export const TOOL_PAGES: Record<string, ToolPage & { title: string; description:
     ],
   },
   "display-screen": {
-    slug: "display-screen", name: "Online scoreboard and OBS scoreboard",
+    slug: "display-screen", name: "Online scoreboard and OBS scoreboard", shortName: "online scoreboard", updated: "2026-11-12", 
     title: "Online scoreboard and OBS scoreboard for events (free)",
     description: "Free online scoreboard for events and streams: standings, bracket, schedule or countdown full screen or as an OBS browser source, with a sponsor strip and ticker.",
     h1: "Online scoreboard and OBS scoreboard, free, with no plugin",
@@ -230,7 +231,7 @@ export const TOOL_PAGES: Record<string, ToolPage & { title: string; description:
     ],
   },
   "check-in": {
-    slug: "check-in", name: "QR code attendance for events",
+    slug: "check-in", name: "QR code attendance for events", shortName: "QR code attendance scanner", updated: "2026-11-12", 
     title: "QR code attendance for events: gate check-in scanner",
     description: "Free QR code attendance for events: print signed QR passes, scan them at the gate with a phone, and see photo and role. Copied passes are rejected. Works offline.",
     h1: "QR code attendance for events, with passes that cannot be copied",
@@ -254,10 +255,10 @@ export const TOOL_PAGES: Record<string, ToolPage & { title: string; description:
     ],
   },
   brackets: {
-    slug: "brackets", name: "Tournament bracket maker and generator",
-    title: "Tournament bracket maker with live page and TV screen",
-    description: "Free tournament bracket generator: paste teams in seed order, get a single-elimination bracket with byes, then share it as a picture, on a TV screen or a live page.",
-    h1: "Tournament bracket maker: bracket, live page, TV screen and share card",
+    slug: "brackets", name: "Tournament bracket maker and generator", updated: "2026-11-12", related: [{ href: "/points-table/bgmi/", label: "BGMI points table maker and points system", blurb: "Placement and kill points for BGMI custom rooms, with a WhatsApp-ready table." }, { href: "/compare/free-tournament-software-india/", label: "Free tournament software for India, compared", blurb: "What five other tournament products show on their own pages, and where we are weaker." }],
+    title: "Free tournament bracket generator with live page and TV",
+    description: "Free tournament bracket maker and generator: single elimination for 2 to 64 teams, then a share picture, TV screen or live page. The bracket needs no account.",
+    h1: "Tournament bracket generator: bracket, live page, TV screen and share card",
     lead: "Paste your teams in seed order and get a single-elimination tournament bracket with byes added for you. Click winners forward, then use the bracket where people will see it: as a share card picture for WhatsApp or Instagram, full screen on a TV, projector or OBS, or on a live page for your event (the live page needs a free account). The bracket itself needs no account.",
     useHeading: "Make your bracket",
     benefits: [
@@ -279,11 +280,11 @@ export const TOOL_PAGES: Record<string, ToolPage & { title: string; description:
     ],
   },
   "points-table": {
-    slug: "points-table", name: "Points table maker for BGMI and Free Fire",
+    slug: "points-table", name: "Points table maker for BGMI and Free Fire", updated: "2026-11-12", related: [{ href: "/points-table/bgmi/", label: "BGMI points table maker and points system", blurb: "Placement and kill points for BGMI custom rooms, with a WhatsApp-ready table." }, { href: "/points-table/free-fire/", label: "Free Fire points table maker and points system", blurb: "Placement and kill points for Free Fire custom rooms, ready to post." }, { href: "/compare/free-tournament-software-india/", label: "Free tournament software for India, compared", blurb: "What five other tournament products show on their own pages, and where we are weaker." }],
     title: "Points table maker for BGMI and Free Fire (free)",
     description: "Free points table maker for BGMI and Free Fire custom rooms: enter placement and kills, get ranked standings and share a picture. Cricket or football: round robin.",
     h1: "Points table maker for BGMI, Free Fire and battle royale",
-    lead: "Make a points table for a BGMI or Free Fire custom-room event: set your own placement and kill points, enter each team's results for every match, and get ranked standings with tie-breakers, ready to share as a picture or show on a TV. For a cricket or football league table with wins, draws and losses, use the round robin tool. Free, nothing to install, no account.",
+    lead: "Make a points table in your browser: no app to install, no account. For a BGMI or Free Fire custom-room event, set your own placement and kill points, enter each team's results for every match, and get ranked standings with tie-breakers, ready to share as a picture or show on a TV. For a cricket or football league table with wins, draws and losses, use the round robin tool. Free.",
     useHeading: "Work out your standings",
     benefits: [
       { title: "Your scale, your rules", body: "Type any placement scale and kill value. The example scale is only an example: use the one in your own rulebook." },
