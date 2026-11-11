@@ -4,6 +4,7 @@ import "./globals.css";
 import HexField from "@/components/HexField";
 import MotionProvider from "@/components/MotionProvider";
 import PwaRegister from "@/components/PwaRegister";
+import GoogleTag from "@/components/GoogleTag";
 import { SITE_DESCRIPTION } from "@/lib/facts";
 import { INDEXABLE, SITE_URL } from "@/lib/site";
 import XpProvider from "@/components/XpProvider";
@@ -34,6 +35,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="min-h-[100svh] font-sans">
         <MotionProvider>
         <PwaRegister />
+        <GoogleTag />
         <XpProvider>
         <HexField />
         <div aria-hidden="true" className="aurora no-print" />
