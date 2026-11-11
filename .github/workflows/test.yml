@@ -28,6 +28,7 @@ jobs:
       - run: npm run build
         env:
           NEXT_PUBLIC_API_URL: https://esports-api.yaseenyk.workers.dev
+      - run: npm run check:third-party
       - run: node scripts/verify-seo.mjs
       - run: npx playwright test
       - uses: actions/upload-artifact@v4
