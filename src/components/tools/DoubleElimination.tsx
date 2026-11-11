@@ -1,7 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { build, isPlayable, resolve, slots, type Match, type Slot } from "@/lib/doubleelim";
+import ScreenButtons from "@/components/display/ScreenButtons";
+import { doubleElimView } from "@/lib/display-views";
+import { build, champion as championOf, isPlayable, slots, type Match, type Slot } from "@/lib/doubleelim";
 
 const EXAMPLE = "Konkan Kings\nPune Phantoms\nMumbai Mavericks\nNashik Ninjas\nGoa Gamers\nThane Titans";
 const label = (s: Slot) => (s.kind === "team" ? s.name : s.kind === "bye" ? "Bye" : s.label);
@@ -41,14 +43,8 @@ export default function DoubleElimination() {
     );
   };
 
-  const champion = bracket ? (() => {
-    const first = picks["GF"];
-    if (first === undefined) return null;
-    const gf = slots(bracket, bracket.matches.find((m) => m.id === "GF")!, picks);
-    if (first === 0) return gf[0].kind === "team" ? gf[0] : null;
-    const r = resolve(bracket, { t: "winner", of: "GF2" }, picks);
-    return r.kind === "team" ? r : null;
-  })() : null;
+  const champion = bracket ? championOf(bracket, picks) : null;
+  const screen = useMemo(() => (bracket ? doubleElimView(bracket, picks) : null), [bracket, picks]);
   const wRounds = bracket ? Math.max(...bracket.matches.filter((m) => m.bracket === "W").map((m) => m.round)) : 0;
   const resetNeeded = picks["GF"] === 1;
 
@@ -63,6 +59,7 @@ export default function DoubleElimination() {
 
       {bracket && (
         <>
+          <ScreenButtons payload={screen} what="bracket" />
           {champion && <p role="status" className="rounded-xl border border-emerald-400/40 bg-[#0a0b0d] p-4 text-center font-display text-xl font-bold text-white">Champion: {champion.name}</p>}
           {(["W", "L"] as const).map((kind) => (
             <section key={kind} className="card space-y-3" aria-label={kind === "W" ? "Winners bracket" : "Losers bracket"}>

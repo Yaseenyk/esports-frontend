@@ -3,6 +3,8 @@
 import { AnimatePresence, m as motion } from "framer-motion";
 import { useEffect, useMemo, useState } from "react";
 import { useXp } from "@/components/XpProvider";
+import ScreenButtons from "@/components/display/ScreenButtons";
+import { singleElimView } from "@/lib/display-views";
 import { seedOrder } from "@/lib/seeding";
 
 const SAMPLE = ["Sample Squad A", "Sample Squad B", "Sample Squad C", "Sample Squad D", "Sample Squad E", "Sample Squad F", "Sample Squad G", "Sample Squad H"].join("\n");
@@ -37,6 +39,7 @@ export default function BracketMaker() {
   }, [teams, picks]);
 
   const champion = rounds[rounds.length - 1][0];
+  const screen = useMemo(() => (teams.length >= 2 ? singleElimView(rounds, picks, rounds.slice(0, -1).map((_, r) => roundName(r, rounds.length - 1))) : null), [rounds, picks, teams.length]);
   useEffect(() => { if (champion && teams.length >= 4) award("bracket-boss", 20, "Bracket boss: crowned a champion"); }, [champion, teams.length, award]);
 
   const choose = (r: number, m: number, side: 0 | 1) => {
@@ -61,6 +64,7 @@ export default function BracketMaker() {
         <button type="button" className="btn w-full" onClick={() => window.print()}>Print bracket</button>
       </aside>
 
+      <div className="no-print lg:col-span-2 lg:order-last"><ScreenButtons payload={screen} what="bracket" /></div>
       <div className="overflow-x-auto pb-4">
         {teams.length < 2 ? <p className="card text-zinc-400">Add at least two teams.</p> : (
           <div className="flex min-w-max gap-6">

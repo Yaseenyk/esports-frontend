@@ -4,11 +4,13 @@ import { useEffect, useMemo, useState } from "react";
 import { EXAMPLE_SCALE, standings } from "@/lib/points";
 import { encode, type Payload } from "@/lib/display";
 import { leagueView, pointsView, scheduleView } from "@/lib/display-views";
+import { singleElimView } from "@/lib/display-views";
+import { seedOrder } from "@/lib/seeding";
 import { buildSchedule } from "@/lib/schedule";
 import { BYE, fixtures, table } from "@/lib/roundrobin";
 
-type Kind = "standings" | "league" | "schedule" | "countdown";
-const KINDS: { id: Kind; label: string }[] = [{ id: "standings", label: "Battle royale standings" }, { id: "league", label: "League table" }, { id: "schedule", label: "Run-sheet" }, { id: "countdown", label: "Countdown" }];
+type Kind = "standings" | "league" | "schedule" | "countdown" | "bracket";
+const KINDS: { id: Kind; label: string }[] = [{ id: "standings", label: "Battle royale standings" }, { id: "league", label: "League table" }, { id: "schedule", label: "Run-sheet" }, { id: "countdown", label: "Countdown" }, { id: "bracket", label: "Knockout bracket" }];
 
 function sample(kind: Kind): Payload {
   if (kind === "standings") {
@@ -31,6 +33,12 @@ function sample(kind: Kind): Payload {
     const now = new Date(); now.setMinutes(Math.floor(now.getMinutes() / 5) * 5 - 10, 0, 0); // starts ten minutes ago, so a round is "on now"
     const start = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
     return scheduleView(buildSchedule({ start, matches: 9, duration: 25, gap: 5, lobbies: 2, breakEvery: 3, breakLength: 15 }) ?? [], "Spring Cup run-sheet");
+  }
+  if (kind === "bracket") {
+    const teams = ["Konkan Kings", "Pune Phantoms", "Mumbai Mavericks", "Nashik Ninjas", "Goa Gamers", "Thane Titans", "Nagpur Nova", "Kolhapur Knights"];
+    const first = seedOrder(8).map((n) => teams[n - 1]!);
+    const r2 = [first[0]!, first[3]!, first[4]!, first[7]!], r3 = [r2[0]!, r2[3]!];
+    return singleElimView([first, r2, r3, [r3[0]!]], { "0-0": 0, "0-1": 0, "0-2": 0, "0-3": 1, "1-0": 0 }, ["Quarter-finals", "Semi-finals", "Final"], "Spring Cup bracket");
   }
   return { v: "countdown", d: { title: "Spring Cup", subtitle: "Doors open soon", at: new Date(Date.now() + 2 * 3600_000 + 5 * 60_000).toISOString() } };
 }

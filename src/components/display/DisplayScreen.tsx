@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { CHANNEL, DEFAULT_LOOK, decode, lookFrom, remaining, slotNow, type CountdownData, type Look, type Payload, type ScheduleData, type TableData } from "@/lib/display";
+import { CHANNEL, DEFAULT_LOOK, decode, lookFrom, remaining, slotNow, type BracketData, type CountdownData, type Look, type Payload, type ScheduleData, type TableData } from "@/lib/display";
 import { gateClient } from "@/lib/api/cloud";
 import { createPoller } from "@/lib/api/poller";
 
@@ -81,6 +81,44 @@ function ScheduleView({ d, c }: { d: ScheduleData; c: Theme }) {
           );
         })}
       </ul>
+    </section>
+  );
+}
+
+/** A knockout bracket that fits the screen. Text size follows how many matches the widest round has, winners are lit, the champion gets a card. */
+function BracketView({ d, c }: { d: BracketData; c: Theme }) {
+  const weight = (sec: BracketData["sections"][number]) => Math.max(1, ...sec.rounds.map((r) => r.matches.length));
+  const total = d.sections.reduce((n, sec) => n + weight(sec), 0);
+  const fs = Math.max(1.15, Math.min(2.7, (d.sections.length > 1 ? 52 : 60) / (total * 2.7)));
+  const card = (m: BracketData["sections"][number]["rounds"][number]["matches"][number], i: number) => (
+    <li key={i} style={{ borderRadius: `${fs * 0.5}vmin`, background: c.row, border: `.2vmin solid ${c.line}`, overflow: "hidden", fontSize: `${fs}vmin`, animation: `dsIn .5s ${Math.min(i, 12) * 0.04}s both ease-out` }}>
+      {[m.a, m.b].map((t, side) => {
+        const won = m.w === side, lost = m.w !== undefined && m.w !== side;
+        return <div key={side} style={{ display: "flex", justifyContent: "space-between", gap: ".6em", padding: `${fs * 0.28}vmin ${fs * 0.6}vmin`, borderTop: side ? `.15vmin solid ${c.line}` : "none", background: won ? `${c.accent}33` : "transparent", color: lost || t === "TBD" || t === "Bye" ? c.soft : c.fg, fontWeight: won ? 800 : 500, textDecoration: lost ? "line-through" : "none", opacity: lost ? 0.6 : 1 }}><span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t}</span>{won && <span aria-hidden="true" style={{ color: c.accent }}>✓</span>}</div>;
+      })}
+    </li>
+  );
+  return (
+    <section aria-label={d.title} className="flex h-full min-h-0 flex-col">
+      <Title title={d.title} c={c} />
+      <div className="flex min-h-0 flex-1 flex-col" style={{ gap: "1.2vmin" }}>
+        {d.sections.map((sec, si) => (
+          <div key={si} className="flex min-h-0 flex-col" style={{ flex: `${weight(sec)} 1 0` }}>
+            {sec.name && <h2 style={{ fontSize: "2vmin", color: c.accent2, textTransform: "uppercase", letterSpacing: ".12em", fontWeight: 800, marginBottom: ".5vmin" }}>{sec.name}</h2>}
+            <div className="flex min-h-0 flex-1" style={{ gap: "1.6vmin" }}>
+              {sec.rounds.map((r, ri) => (
+                <div key={ri} className="flex min-w-0 flex-1 flex-col">
+                  <p style={{ fontSize: "1.6vmin", color: c.soft, textTransform: "uppercase", letterSpacing: ".08em", textAlign: "center", marginBottom: ".5vmin" }}>{r.name}</p>
+                  <ul className="flex min-h-0 flex-1 flex-col justify-around" style={{ gap: ".6vmin" }}>{r.matches.map(card)}</ul>
+                </div>
+              ))}
+              {si === d.sections.length - 1 && d.champion !== undefined && (
+                <div className="flex min-w-0 flex-1 flex-col"><p style={{ fontSize: "1.6vmin", color: c.accent2, textTransform: "uppercase", letterSpacing: ".08em", textAlign: "center", marginBottom: ".5vmin" }}>Champion</p><div className="flex flex-1 items-center"><div className="ds-pulse" style={{ width: "100%", textAlign: "center", padding: "2vmin 1vmin", borderRadius: "1.6vmin", border: `.3vmin solid ${c.accent}`, background: `linear-gradient(135deg, ${c.accent}33, ${c.accent2}33)` }}><div style={{ fontSize: "5vmin" }} aria-hidden="true">🏆</div><div style={{ fontSize: "2.8vmin", fontWeight: 800, color: c.fg }}>{d.champion}</div></div></div></div>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
     </section>
   );
 }
@@ -171,6 +209,7 @@ export default function DisplayScreen() {
           : countdown ? <CountdownView d={countdown} c={c} />
           : payload?.v === "table" ? <TableView d={payload.d} c={c} />
           : payload?.v === "schedule" ? <ScheduleView d={payload.d} c={c} />
+          : payload?.v === "bracket" ? <BracketView d={payload.d} c={c} />
           : payload?.v === "countdown" ? <CountdownView d={payload.d} c={c} />
           : <div className="flex h-full flex-col items-center justify-center text-center" role="status">{bad ? <><p style={{ fontSize: "5vmin", fontWeight: 800 }}>This screen link is damaged</p><p style={{ fontSize: "2.6vmin", color: c.soft, marginTop: "1vmin" }}>Open the screen again from the tool it came from.</p></> : <><p style={{ fontSize: "5vmin", fontWeight: 800 }}>Waiting for a view</p><p style={{ fontSize: "2.6vmin", color: c.soft, marginTop: "1vmin" }}>Open a screen from a tool such as the points table calculator, and it appears here.</p></>}</div>}
       </div>

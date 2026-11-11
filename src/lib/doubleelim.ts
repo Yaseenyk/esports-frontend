@@ -79,3 +79,12 @@ export function slots(bracket: Bracket, m: Match, picks: Record<string, 0 | 1 | 
 
 /** A match is played when both slots hold real teams. */
 export const isPlayable = (s: [Slot, Slot]) => s[0].kind === "team" && s[1].kind === "team";
+
+/** The tournament winner once the grand final (and the reset, if it was needed) has been decided, else null. */
+export function champion(bracket: Bracket, picks: Record<string, 0 | 1 | undefined>): { name: string; seed: number } | null {
+  const first = picks["GF"];
+  if (first === undefined) return null;
+  const gf = slots(bracket, bracket.matches.find((m) => m.id === "GF")!, picks);
+  const r = first === 0 ? gf[0] : resolve(bracket, { t: "winner", of: "GF2" }, picks);
+  return r.kind === "team" ? { name: r.name, seed: r.seed } : null;
+}

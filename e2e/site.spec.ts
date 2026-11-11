@@ -401,8 +401,24 @@ test("the schedule screen marks the round on now and the next round", async ({ p
 test("the display screen page explains itself and previews each screen", async ({ page }) => {
   await page.goto("/tools/display-screen/");
   await expect(page.getByRole("heading", { level: 1 })).toContainText(/scoreboard display/i);
-  for (const name of ["Battle royale standings", "League table", "Run-sheet", "Countdown"]) {
+  for (const name of ["Battle royale standings", "League table", "Run-sheet", "Countdown", "Knockout bracket"]) {
     await page.getByRole("button", { name }).click();
     await expect(page.locator("iframe")).toHaveAttribute("src", /\/display\//);
   }
+});
+
+test("both bracket tools open a bracket screen that follows the results", async ({ page }) => {
+  await page.goto("/tools/brackets/");
+  const [screen] = await Promise.all([page.waitForEvent("popup"), page.getByRole("button", { name: "Open the screen" }).click()]);
+  await screen.waitForLoadState("load");
+  await expect(screen.getByText("Sample Squad A").first()).toBeVisible();
+  await expect(screen.getByText("Quarter-finals")).toBeVisible();
+  await expect(screen.locator("nav, footer")).toHaveCount(0);
+  await screen.close(); // the tools reuse one named screen window, so close it before opening the next
+  await page.goto("/tools/double-elimination/");
+  const [dscreen] = await Promise.all([page.waitForEvent("popup"), page.getByRole("button", { name: "Open the screen" }).click()]);
+  await dscreen.waitForLoadState("load");
+  await expect(dscreen.getByText("Winners bracket")).toBeVisible();
+  await expect(dscreen.getByText("Losers bracket")).toBeVisible();
+  await expect(dscreen.getByText("Konkan Kings").first()).toBeVisible();
 });

@@ -132,16 +132,16 @@ export const TOOL_PAGES: Record<string, ToolPage & { title: string; description:
   "display-screen": {
     slug: "display-screen", name: "Display screen for TV and OBS",
     title: "Free scoreboard display for TV, OBS and YouTube",
-    description: "Free fullscreen scoreboard for esports events: standings, league table, schedule or countdown on a TV, projector, OBS or YouTube, with a transparent background.",
+    description: "Free fullscreen scoreboard for esports events: standings, league table, bracket, schedule or countdown on a TV, projector, OBS or YouTube, with a transparent background.",
     h1: "Free scoreboard display for TV, OBS and YouTube",
-    lead: "Show your standings, league table, schedule or a countdown on a big screen. Open the screen from a tool, put it on the venue TV or projector, or capture it in OBS for your stream. It is full screen, easy to read from the back of the room, and it updates the moment you change a result.",
+    lead: "Show your standings, league table, knockout bracket, schedule or a countdown on a big screen. Open the screen from a tool, put it on the venue TV or projector, or capture it in OBS for your stream. It is full screen, easy to read from the back of the room, and it updates the moment you change a result.",
     useHeading: "Try a screen",
     benefits: [
       { title: "Made for a big screen", body: "Large text, safe margins for TVs, and long tables scroll on their own. The top three get medals and a team that moves up flashes so the room notices." },
       { title: "Works with OBS and YouTube", body: "Choose a transparent background and use the screen as an OBS browser source or capture the window, so it sits on top of your stream." },
       { title: "Live from your tools", body: "Open a screen from the points table, the round robin or the schedule tool and every change you make appears on it straight away. Nothing is uploaded and no account is needed." },
     ],
-    steps: ["Make your standings, league table or schedule in one of the tools.", "Press Open the screen and put that window on the TV or projector (press F for full screen).", "For a stream, tick transparent background and capture the window in OBS, or copy the link into an OBS browser source.", "Keep updating results in the tool and the screen follows."],
+    steps: ["Make your standings, league table, bracket or schedule in one of the tools.", "Press Open the screen and put that window on the TV or projector (press F for full screen).", "For a stream, tick transparent background and capture the window in OBS, or copy the link into an OBS browser source.", "Keep updating results in the tool and the screen follows."],
     guides: ["stream-your-event", "points-table", "run-a-campus-tournament"],
     faq: [
       { q: "How do I show it on a TV?", a: "Connect the TV as a second display, drag the screen window onto it and press F for full screen. Or open the same link in the TV's browser." },
@@ -187,7 +187,7 @@ export const TOOL_PAGES: Record<string, ToolPage & { title: string; description:
     faq: [
       { q: "How are byes decided?", a: "The bracket rounds the number of teams up to the next power of two, and the missing places become byes, given to the highest seeds. With 11 teams there are 5 byes." },
       { q: "Does it support double elimination or round robin?", a: "Not yet. It builds single-elimination brackets. The guide on tournament formats explains the other formats and how many matches each needs." },
-      { q: "Can I share the bracket?", a: "You can print or take a screenshot. Sharing a link is not built yet." },
+      { q: "Can I share the bracket?", a: "You can print it, take a screenshot, or press Open the screen to show the live bracket on a TV, projector or stream. A shareable link to an editable bracket is not built." },
     ],
   },
   "points-table": {

@@ -6,7 +6,9 @@
 export interface TableData { title: string; subtitle?: string; head: string[]; rows: string[][]; /** Which column holds the highlighted figure (for example the total). */ strong?: number }
 export interface ScheduleData { title: string; /** The day the times are on, yyyy-mm-dd. Defaults to today. */ date?: string; slots: { n: number; start: string; end: string; label: string; breakAfter?: number }[] }
 export interface CountdownData { title: string; subtitle?: string; /** ISO date and time. */ at: string }
-export type Payload = { v: "table"; d: TableData } | { v: "schedule"; d: ScheduleData } | { v: "countdown"; d: CountdownData };
+/** A knockout bracket: one section for single elimination, three (winners, losers, grand final) for double. `w` is the side that won, 0 or 1. */
+export interface BracketData { title: string; sections: { name: string; rounds: { name: string; matches: { a: string; b: string; w?: 0 | 1 }[] }[] }[]; champion?: string }
+export type Payload = { v: "table"; d: TableData } | { v: "schedule"; d: ScheduleData } | { v: "countdown"; d: CountdownData } | { v: "bracket"; d: BracketData };
 
 export interface Look { theme: "dark" | "light" | "neon"; /** "transparent" for OBS, or a hex colour. */ bg: string; /** Margin as a percentage of the screen, for TV overscan. */ safe: number; /** Text size multiplier. */ scale: number; names: boolean }
 export const DEFAULT_LOOK: Look = { theme: "dark", bg: "#05070a", safe: 3, scale: 1, names: false };
@@ -62,6 +64,15 @@ export function validate(x: unknown): Payload | null {
   if (p.v === "countdown") {
     const at = str(d.at, 40);
     return Number.isNaN(Date.parse(at)) ? null : { v: "countdown", d: { title: str(d.title, 100), subtitle: str(d.subtitle, 140), at } };
+  }
+  if (p.v === "bracket") {
+    if (!Array.isArray(d.sections) || d.sections.length < 1 || d.sections.length > 3) return null;
+    const sections = (d.sections as Record<string, unknown>[]).map((sec) => {
+      const rs = Array.isArray(sec.rounds) ? (sec.rounds as Record<string, unknown>[]).slice(0, 8) : [];
+      return { name: str(sec.name, 40), rounds: rs.map((r) => ({ name: str(r.name, 40), matches: (Array.isArray(r.matches) ? (r.matches as Record<string, unknown>[]).slice(0, 64) : []).map((m) => ({ a: str(String(m.a ?? ""), 60), b: str(String(m.b ?? ""), 60), w: m.w === 0 || m.w === 1 ? (m.w as 0 | 1) : undefined })) })) };
+    });
+    if (sections.every((sec) => sec.rounds.length === 0)) return null;
+    return { v: "bracket", d: { title: str(d.title, 100), sections, champion: str(d.champion, 60) || undefined } };
   }
   return null;
 }

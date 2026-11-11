@@ -226,3 +226,40 @@ test("the schedule screen finds the round on now and the one next", () => {
   assert.deepEqual(slotNow(d, new Date("2026-12-12T09:00:00")), { current: -1, next: 0 });
   assert.deepEqual(slotNow(d, new Date("2026-12-12T13:00:00")), { current: -1, next: -1 });
 });
+
+// ---- bracket screens ----
+import { singleElimView, doubleElimView } from "../src/lib/display-views.ts";
+import { build as buildDE, champion as championDE } from "../src/lib/doubleelim.ts";
+
+test("a single elimination bracket becomes a screen with byes, winners and the champion", async () => {
+  const rounds = [["A", "B", "C", null], ["A", "C"], ["A"]]; // 3 teams: C has a bye
+  const p = singleElimView(rounds, { "0-0": 0, "1-0": 0 }, ["Semi-finals", "Final"], "Cup");
+  assert.equal(p.v, "bracket");
+  assert.equal(p.d.sections[0].rounds.length, 2);
+  assert.deepEqual(p.d.sections[0].rounds[0].matches[1], { a: "C", b: "Bye", w: 0 }, "a bye advances automatically");
+  assert.equal(p.d.sections[0].rounds[0].matches[0].w, 0);
+  assert.equal(p.d.champion, "A");
+  assert.deepEqual(await decode(await encode(p)), p, "survives a link round trip");
+});
+
+test("a double elimination bracket becomes winners, losers and grand final, and a reset appears only when needed", () => {
+  const b = buildDE(["A", "B", "C", "D"]);
+  const p = doubleElimView(b, {});
+  assert.deepEqual(p.d.sections.map((x) => x.name), ["Winners bracket", "Losers bracket", "Grand final"]);
+  assert.equal(p.d.sections[2].rounds.length, 1);
+  assert.equal(p.d.champion, undefined);
+  const upset = doubleElimView(b, { GF: 1 });
+  assert.equal(upset.d.sections[2].rounds.length, 2, "reset final shown after a losers-bracket win");
+  assert.equal(championDE(b, {}), null);
+  assert.equal(championDE(b, { "W1-1": 0, "W1-2": 0, "W2-1": 0, "L1-1": 0, "L2-1": 0, GF: 0 }).name, "A");
+});
+
+test("hostile or oversized bracket links are trimmed or refused", () => {
+  assert.equal(validate({ v: "bracket", d: { sections: [] } }), null);
+  assert.equal(validate({ v: "bracket", d: { sections: [{ name: "x", rounds: [] }] } }), null);
+  const ok = validate({ v: "bracket", d: { title: "t", sections: [{ name: "n", rounds: [{ name: "r", matches: [{ a: "<b>x</b>", b: 5, w: 7 }] }] }] } });
+  assert.deepEqual(ok.d.sections[0].rounds[0].matches[0], { a: "<b>x</b>", b: "5", w: undefined });
+  const big = validate({ v: "bracket", d: { sections: [{ name: "n", rounds: Array.from({ length: 20 }, () => ({ name: "r", matches: Array.from({ length: 200 }, () => ({ a: "a", b: "b" })) })) }] } });
+  assert.equal(big.d.sections[0].rounds.length, 8);
+  assert.equal(big.d.sections[0].rounds[0].matches.length, 64);
+});
