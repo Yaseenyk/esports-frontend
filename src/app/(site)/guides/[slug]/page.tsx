@@ -64,8 +64,12 @@ export default function GuidePage({ params }: { params: { slug: string } }) {
       ))}
 
       {g.faq && g.faq.length > 0 && (
-        <section aria-labelledby="faq"><h2 id="faq" className="font-display text-2xl font-bold text-white">Questions and answers</h2>
-          <div className="mt-4"><Faq items={g.faq} /></div>
+        <section aria-labelledby="faq" className="grid gap-6 lg:grid-cols-[minmax(0,15rem)_minmax(0,1fr)] lg:gap-10">
+          <div className="lg:sticky lg:top-24 lg:self-start">
+            <h2 id="faq" className="font-display text-2xl font-bold text-white">Questions and answers</h2>
+            <p className="mt-2 text-sm leading-6 text-zinc-300">The things people ask most about this, answered plainly.</p>
+          </div>
+          <Faq items={g.faq} className="max-w-3xl" />
         </section>
       )}
 

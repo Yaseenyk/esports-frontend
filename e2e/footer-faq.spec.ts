@@ -15,13 +15,13 @@ test("the footer is a honeycomb of every tool plus a guide log, with working lin
   await expect(page).toHaveURL(/\/tools\/check-in\/$/);
 });
 
-test("the home page questions are real answers: several are open, each has substance, and the structured data matches", async ({ page }) => {
+test("the home page questions are real answers: the first is open, each has substance, and the structured data matches", async ({ page }) => {
   await page.goto("/");
   const section = page.locator("section[aria-labelledby=faq]");
   await section.scrollIntoViewIfNeeded();
   const items = section.locator("details");
   expect(await items.count()).toBeGreaterThanOrEqual(10);
-  expect(await section.locator("details[open]").count()).toBe(3);
+  expect(await section.locator("details[open]").count()).toBe(1);
   for (const i of [0, 3, 9]) {
     const text = ((await items.nth(i).textContent()) ?? "").replace(/\s+/g, " ");
     expect(text.length, `question ${i + 1} should be a full answer`).toBeGreaterThan(350);
@@ -36,7 +36,7 @@ test("the home page questions are real answers: several are open, each has subst
 test("a tool page and a guide show their questions in full", async ({ page }) => {
   for (const path of ["/tools/points-table/", "/guides/run-a-campus-tournament/"]) {
     await page.goto(path);
-    const items = page.locator("#faq").locator("xpath=..").locator("details");
+    const items = page.locator("section[aria-labelledby=faq]").locator("details");
     expect(await items.count(), path).toBeGreaterThanOrEqual(6);
     const longest = await items.evaluateAll((els) => Math.min(...els.map((e) => (e.textContent ?? "").length)));
     expect(longest, `${path}: every answer is more than one line`).toBeGreaterThan(300);

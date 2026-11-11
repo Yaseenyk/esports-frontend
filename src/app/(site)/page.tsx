@@ -137,9 +137,16 @@ export default function Home() {
         </Stagger>
       </section>
 
-      <section aria-labelledby="faq" className="max-w-3xl">
-        <Reveal><h2 id="faq" className="text-3xl font-bold text-white">Questions</h2></Reveal>
-        <div className="mt-6"><Faq items={FAQ} /></div>
+      <section aria-labelledby="faq" className="grid gap-8 lg:grid-cols-[minmax(0,17rem)_minmax(0,1fr)] lg:gap-12">
+        <div className="lg:sticky lg:top-24 lg:self-start">
+          <Reveal>
+            <p className="text-sm font-semibold uppercase tracking-widest text-cyan">Good to know</p>
+            <h2 id="faq" className="mt-2 text-3xl font-bold text-white">Questions</h2>
+            <p className="mt-3 text-sm leading-6 text-zinc-300">What the tools do, what they cost, and what happens to your players&apos; details. Not here? Ask us.</p>
+            <Link href="/contact/" className="mt-4 inline-flex items-center gap-2 text-sm text-cyan hover:text-white">Contact us <span aria-hidden="true">→</span></Link>
+          </Reveal>
+        </div>
+        <Faq items={FAQ} className="max-w-3xl" />
       </section>
     </div>
   );

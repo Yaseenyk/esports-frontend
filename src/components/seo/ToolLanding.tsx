@@ -55,8 +55,12 @@ export default function ToolLanding({ t, children }: { t: ToolPage; children?: R
         </section>
       )}
 
-      <section className="no-print" aria-labelledby="faq"><h2 id="faq" className="font-display text-2xl font-bold text-white">Questions</h2>
-        <div className="mt-4"><Faq items={t.faq} /></div>
+      <section className="no-print grid gap-6 lg:grid-cols-[minmax(0,15rem)_minmax(0,1fr)] lg:gap-10" aria-labelledby="faq">
+        <div className="lg:sticky lg:top-24 lg:self-start">
+          <h2 id="faq" className="font-display text-2xl font-bold text-white">Questions</h2>
+          <p className="mt-2 text-sm leading-6 text-zinc-300">Straight answers about how this tool works, what it can and cannot do, and where your data goes.</p>
+        </div>
+        <Faq items={t.faq} className="max-w-3xl" />
       </section>
 
       <section className="card text-center"><h2 className="font-display text-xl font-bold text-white">Want to save your work online?</h2><p className="mt-1 text-sm text-zinc-300">The tools are free without an account. A free account adds saving events online, player invite links and live gate check-in.</p><div className="mt-4 flex justify-center gap-3"><Link href="/signup/" className="btn">Create a free account</Link></div></section>
