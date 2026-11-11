@@ -24,7 +24,7 @@ export interface IncludeOption { key: Exclude<keyof DuplicateInclude, "directory
 /** The checkboxes, in order, with plain labels and one-line explanations. */
 export const OPTIONS: IncludeOption[] = [
   { key: "teams", label: "Teams", hint: "Team names and logos, so you do not type them again." },
-  { key: "people", label: "People", hint: "Players, coaches and staff, ready for new passes.", warning: PEOPLE_WARNING },
+  { key: "people", label: "People", hint: "Players, coaches and staff, ready for new passes. Only the owner of the event can bring them over.", ownerOnly: true, warning: PEOPLE_WARNING },
   { key: "registrationForm", label: "Registration form text", hint: "Title, intro and settings. It gets a new link and starts closed." },
   { key: "liveExtras", label: "Sponsors and ticker", hint: "Sponsor names and logos and the news ticker. The live page starts unpublished with a new address." },
   { key: "matches", label: "Structure of matches", hint: "Rounds and pairings only. Every score, result and winner starts empty." },
@@ -73,6 +73,7 @@ export function nextWeekName(name: string, oldDate: string, newDate: string): st
 /** Returns a plain-words problem with the choices, or null when they are fine. */
 export function includeProblem(inc: DuplicateInclude, role: Role): string | null {
   if (inc.people && !inc.teams) return "People come over with their teams. Tick Teams too, or untick People.";
+  if (inc.people && role !== "owner") return "Only the owner of the event can bring its people over.";
   if (inc.members && role !== "owner") return "Only the owner of the event can bring editors and viewers over.";
   return null;
 }
@@ -92,7 +93,7 @@ export function dateProblem(date: string): string | null {
 export function normaliseInclude(raw: Partial<Record<string, unknown>>, role: Role): DuplicateInclude {
   const t = (k: string) => raw[k] === true;
   const teams = t("teams");
-  return { teams, people: teams && t("people"), registrationForm: t("registrationForm"), liveExtras: t("liveExtras"), directory: false, members: role === "owner" && t("members"), matches: t("matches") };
+  return { teams, people: teams && role === "owner" && t("people"), registrationForm: t("registrationForm"), liveExtras: t("liveExtras"), directory: false, members: role === "owner" && t("members"), matches: t("matches") };
 }
 
 export interface DuplicateRequest { name: string; date?: string; include: DuplicateInclude }

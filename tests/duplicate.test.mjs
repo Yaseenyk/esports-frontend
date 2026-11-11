@@ -37,6 +37,7 @@ test("defaults: safe things ticked, people and members not, directory never", ()
   assert.ok(OPTIONS.find((o) => o.key === "people").warning === PEOPLE_WARNING);
   assert.equal(PEOPLE_WARNING, "Names and teams only. Photos, birth dates, consent and passes are never copied.");
   assert.ok(OPTIONS.find((o) => o.key === "members").ownerOnly);
+  assert.ok(OPTIONS.find((o) => o.key === "people").ownerOnly, "an editor must not be able to copy the people of an event");
   assert.ok(!OPTIONS.some((o) => o.key === "directory"));
 });
 
