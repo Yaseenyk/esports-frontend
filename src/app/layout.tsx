@@ -5,6 +5,7 @@ import HexField from "@/components/HexField";
 import MotionProvider from "@/components/MotionProvider";
 import PwaRegister from "@/components/PwaRegister";
 import GoogleTag from "@/components/GoogleTag";
+import { GTM_BOOT } from "@/lib/gtm";
 import { SITE_DESCRIPTION } from "@/lib/facts";
 import { INDEXABLE, SITE_URL } from "@/lib/site";
 import XpProvider from "@/components/XpProvider";
@@ -32,6 +33,7 @@ export const viewport: Viewport = { themeColor: "#05070A", width: "device-width"
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${body.variable} ${display.variable}`}>
+      <head><script dangerouslySetInnerHTML={{ __html: GTM_BOOT }} /></head>
       <body className="min-h-[100svh] font-sans">
         <MotionProvider>
         <PwaRegister />
