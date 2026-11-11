@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Faq from "@/components/seo/Faq";
 import { notFound } from "next/navigation";
 import JsonLd from "@/components/seo/JsonLd";
 import { Blocks, Inline } from "@/components/seo/Prose";
@@ -64,7 +65,7 @@ export default function GuidePage({ params }: { params: { slug: string } }) {
 
       {g.faq && g.faq.length > 0 && (
         <section aria-labelledby="faq"><h2 id="faq" className="font-display text-2xl font-bold text-white">Questions and answers</h2>
-          <div className="mt-4 space-y-3">{g.faq.map((f) => <details key={f.q} className="card !p-4"><summary className="cursor-pointer font-semibold text-white outline-none focus-visible:ring-2 focus-visible:ring-cyan">{f.q}</summary><p className="mt-2 text-sm text-zinc-300">{f.a}</p></details>)}</div>
+          <div className="mt-4"><Faq items={g.faq} /></div>
         </section>
       )}
 

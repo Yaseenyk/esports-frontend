@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Item, Reveal, Stagger } from "@/components/Motion";
 import JsonLd from "./JsonLd";
+import Faq from "@/components/seo/Faq";
 import { GUIDES } from "@/content/guides";
 import { SITE_URL } from "@/lib/site";
 
@@ -55,7 +56,7 @@ export default function ToolLanding({ t, children }: { t: ToolPage; children?: R
       )}
 
       <section className="no-print" aria-labelledby="faq"><h2 id="faq" className="font-display text-2xl font-bold text-white">Questions</h2>
-        <div className="mt-4 space-y-3">{t.faq.map((f) => <details key={f.q} className="card !p-4"><summary className="cursor-pointer font-semibold text-white outline-none focus-visible:ring-2 focus-visible:ring-cyan">{f.q}</summary><p className="mt-2 text-sm text-zinc-300">{f.a}</p></details>)}</div>
+        <div className="mt-4"><Faq items={t.faq} /></div>
       </section>
 
       <section className="card text-center"><h2 className="font-display text-xl font-bold text-white">Want to save your work online?</h2><p className="mt-1 text-sm text-zinc-300">The tools are free without an account. A free account adds saving events online, player invite links and live gate check-in.</p><div className="mt-4 flex justify-center gap-3"><Link href="/signup/" className="btn">Create a free account</Link></div></section>

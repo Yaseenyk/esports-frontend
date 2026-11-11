@@ -4,20 +4,23 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { CHANNEL, DEFAULT_LOOK, decode, lookFrom, remaining, secondsUntil, slotNow, validate, type BracketData, type CountdownData, type Look, type Payload, type ScheduleData, type TableData } from "@/lib/display";
 import { gateClient } from "@/lib/api/cloud";
 import { createPoller } from "@/lib/api/poller";
+import { cardFontVars } from "@/components/idcard/fonts";
+import { fontCss, rankStyle, surface, themeById, type DisplayTheme } from "@/lib/display-themes";
 
-const THEMES = {
-  dark: { fg: "#f4f4f5", soft: "#a1a1aa", accent: "#22d3ee", accent2: "#a855f7", row: "rgba(255,255,255,.06)", line: "rgba(255,255,255,.14)", bg: "#05070a" },
-  light: { fg: "#111827", soft: "#4b5563", accent: "#0e7490", accent2: "#7c3aed", row: "rgba(17,24,39,.06)", line: "rgba(17,24,39,.18)", bg: "#ffffff" },
-  neon: { fg: "#ffffff", soft: "#c4b5fd", accent: "#22d3ee", accent2: "#f472b6", row: "rgba(168,85,247,.16)", line: "rgba(34,211,238,.4)", bg: "#0b0220" },
-} as const;
-type Theme = (typeof THEMES)[Look["theme"]];
+type Theme = DisplayTheme;
 
 const pad = (n: number) => String(n).padStart(2, "0");
 
 function useNow(every = 1000) { const [n, setN] = useState(() => Date.now()); useEffect(() => { const id = setInterval(() => setN(Date.now()), every); return () => clearInterval(id); }, [every]); return n; }
 
 function Title({ title, subtitle, c }: { title: string; subtitle?: string; c: Theme }) {
-  return <header className="mb-[2.2vmin]"><h1 style={{ fontSize: "5.2vmin", lineHeight: 1.05, fontWeight: 800, color: c.fg, letterSpacing: "-.01em" }}>{title}</h1>{subtitle && <p style={{ fontSize: "2.4vmin", color: c.soft, marginTop: ".6vmin" }}>{subtitle}</p>}</header>;
+  const h1: React.CSSProperties = { fontSize: "5.2vmin", lineHeight: 1.05, fontWeight: 800, color: c.head === "bar" ? c.on : c.fg, letterSpacing: c.upper ? ".04em" : "-.01em", textTransform: c.upper ? "uppercase" : "none" };
+  return (
+    <header className="mb-[2.2vmin]">
+      {c.head === "bar" ? <h1 style={{ ...h1, display: "inline-block", background: `linear-gradient(90deg, ${c.accent}, ${c.accent2})`, padding: ".6vmin 2.4vmin", clipPath: "polygon(0 0, 100% 0, calc(100% - 1.6vmin) 100%, 0 100%)" }}>{title}</h1> : <h1 style={{ ...h1, ...(c.head === "underline" ? { borderBottom: `.5vmin solid ${c.accent}`, display: "inline-block", paddingBottom: ".6vmin" } : null) }}>{title}</h1>}
+      {subtitle && <p style={{ fontSize: "2.4vmin", color: c.soft, marginTop: ".8vmin", textTransform: c.upper ? "uppercase" : "none", letterSpacing: c.upper ? ".08em" : 0 }}>{subtitle}</p>}
+    </header>
+  );
 }
 
 /** A table that fills the screen. Long tables scroll by themselves, rows that move up flash, and the top three get medals. */
@@ -33,11 +36,11 @@ function TableView({ d, c }: { d: TableData; c: Theme }) {
     if (moved.size) { setUp(moved); const t = setTimeout(() => setUp(new Set()), 3500); return () => clearTimeout(t); }
   }, [d, nameCol]);
   const scrolls = d.rows.length > 12;
-  const medal = ["#facc15", "#d4d4d8", "#d97706"];
   const cols = `minmax(6vmin,.6fr) minmax(0,3fr) ${d.head.slice(2).map(() => "minmax(7vmin,1fr)").join(" ")}`;
+  const flat = c.rows === "stripe";
   const row = (r: string[], i: number, key: string, hidden = false) => (
-    <li key={key} aria-hidden={hidden || undefined} className={up.has(r[nameCol] ?? "") ? "ds-flash" : ""} style={{ display: "grid", gridTemplateColumns: cols, alignItems: "center", gap: "1.2vmin", padding: "1.1vmin 1.6vmin", marginBottom: ".8vmin", borderRadius: "1.2vmin", background: c.row, borderLeft: `.7vmin solid ${i < 3 ? medal[i] : "transparent"}`, fontSize: "3.1vmin", animation: `dsIn .5s ${Math.min(i, 14) * 0.05}s both ease-out` }}>
-      {r.map((cell, j) => <span key={j} style={{ color: j === d.strong ? c.accent : j === 0 && i < 3 ? medal[i] : j === 1 ? c.fg : c.soft, fontWeight: j === d.strong || j <= 1 ? 800 : 500, textAlign: j >= 2 ? "right" : "left", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontVariantNumeric: "tabular-nums" }}>{cell}</span>)}
+    <li key={key} aria-hidden={hidden || undefined} className={up.has(r[nameCol] ?? "") ? "ds-flash" : ""} style={{ display: "grid", gridTemplateColumns: cols, alignItems: "center", gap: "1.2vmin", padding: "1.1vmin 1.6vmin", marginBottom: flat ? 0 : ".8vmin", ...surface(c, i), ...(c.rows === "pill" ? { borderLeft: `.7vmin solid ${i < 3 ? c.medals[i] : "transparent"}` } : null), fontSize: "3.1vmin", animation: `dsIn .5s ${Math.min(i, 14) * 0.05}s both ease-out` }}>
+      {r.map((cell, j) => <span key={j} style={j === 0 ? { ...rankStyle(c, i), fontVariantNumeric: "tabular-nums" } : { color: j === d.strong ? c.accent : j === 1 ? c.fg : c.soft, fontWeight: j === d.strong || j === 1 ? 800 : 500, textAlign: j >= 2 ? "right" : "left", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontVariantNumeric: "tabular-nums" }}>{cell}</span>)}
     </li>
   );
   return (
@@ -68,11 +71,11 @@ function ScheduleView({ d, c }: { d: ScheduleData; c: Theme }) {
         {d.slots.map((s, i) => {
           const isNow = i === current, past = current >= 0 ? i < current : next >= 0 ? i < next : true;
           return (
-            <li key={i} ref={i === target ? cur : undefined} style={{ display: "grid", gridTemplateColumns: "10vmin 38vmin 1fr auto", alignItems: "center", gap: "2vmin", padding: "1.3vmin 2vmin", marginBottom: ".8vmin", borderRadius: "1.2vmin", background: isNow ? `linear-gradient(90deg, ${c.accent}33, ${c.accent2}22)` : c.row, outline: isNow ? `.35vmin solid ${c.accent}` : "none", opacity: past && !isNow ? 0.45 : 1, fontSize: "3.2vmin", animation: `dsIn .5s ${Math.min(i, 12) * 0.04}s both ease-out` }}>
+            <li key={i} ref={i === target ? cur : undefined} style={{ display: "grid", gridTemplateColumns: "10vmin 38vmin 1fr auto", alignItems: "center", gap: "2vmin", padding: "1.3vmin 2vmin", marginBottom: c.rows === "stripe" ? 0 : ".8vmin", ...surface(c, i), ...(isNow ? { background: `linear-gradient(90deg, ${c.accent}33, ${c.accent2}22)`, outline: `.35vmin solid ${c.accent}` } : null), opacity: past && !isNow ? 0.45 : 1, fontSize: "3.2vmin", animation: `dsIn .5s ${Math.min(i, 12) * 0.04}s both ease-out` }}>
               <span style={{ color: c.accent, fontWeight: 800 }}>R{s.n}</span>
               <span style={{ color: c.fg, fontWeight: 800, fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap" }}>{s.start}<span style={{ color: c.soft, fontWeight: 400 }}> to {s.end}</span></span>
               <span style={{ color: c.fg }}>{s.label}{s.breakAfter ? <span style={{ color: c.soft, fontSize: "2.2vmin" }}>   · break {s.breakAfter} min after</span> : null}</span>
-              {isNow && <span className="ds-pulse" style={{ background: c.accent, color: "#05070a", fontWeight: 800, fontSize: "2.2vmin", padding: ".4vmin 1.4vmin", borderRadius: "5vmin" }}>NOW</span>}
+              {isNow && <span className="ds-pulse" style={{ background: c.accent, color: c.on, fontWeight: 800, fontSize: "2.2vmin", padding: ".4vmin 1.4vmin", borderRadius: "5vmin" }}>NOW</span>}
               {!isNow && i === next && <span style={{ color: c.accent2, fontWeight: 800, fontSize: "2.2vmin" }}>NEXT</span>}
             </li>
           );
@@ -88,7 +91,7 @@ function BracketView({ d, c }: { d: BracketData; c: Theme }) {
   const total = d.sections.reduce((n, sec) => n + weight(sec), 0);
   const fs = Math.max(1.15, Math.min(2.7, (d.sections.length > 1 ? 52 : 60) / (total * 2.7)));
   const card = (m: BracketData["sections"][number]["rounds"][number]["matches"][number], i: number) => (
-    <li key={i} style={{ borderRadius: `${fs * 0.5}vmin`, background: c.row, border: `.2vmin solid ${c.line}`, overflow: "hidden", fontSize: `${fs}vmin`, animation: `dsIn .5s ${Math.min(i, 12) * 0.04}s both ease-out` }}>
+    <li key={i} style={{ ...surface(c, i), border: `.2vmin solid ${c.line}`, borderRadius: c.rows === "stripe" ? 0 : `${Math.max(c.radius, 0.3) * 0.6}vmin`, clipPath: undefined, backdropFilter: undefined, overflow: "hidden", fontSize: `${fs}vmin`, animation: `dsIn .5s ${Math.min(i, 12) * 0.04}s both ease-out` }}>
       {[m.a, m.b].map((t, side) => {
         const won = m.w === side, lost = m.w !== undefined && m.w !== side;
         return <div key={side} style={{ display: "flex", justifyContent: "space-between", gap: ".6em", padding: `${fs * 0.28}vmin ${fs * 0.6}vmin`, borderTop: side ? `.15vmin solid ${c.line}` : "none", background: won ? `${c.accent}33` : "transparent", color: lost || t === "TBD" || t === "Bye" ? c.soft : c.fg, fontWeight: won ? 800 : 500, textDecoration: lost ? "line-through" : "none", opacity: lost ? 0.6 : 1 }}><span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t}</span>{won && <span aria-hidden="true" style={{ color: c.accent }}>✓</span>}</div>;
@@ -123,7 +126,7 @@ function BracketView({ d, c }: { d: BracketData; c: Theme }) {
 function CountdownView({ d, c }: { d: CountdownData; c: Theme }) {
   const now = useNow(250);
   const r = remaining(d.at, now);
-  const cell = (n: number, label: string) => <div style={{ textAlign: "center" }}><div style={{ fontSize: "17vmin", fontWeight: 800, lineHeight: 1, color: c.fg, fontVariantNumeric: "tabular-nums", textShadow: `0 0 4vmin ${c.accent}55` }}>{pad(n)}</div><div style={{ fontSize: "2.4vmin", color: c.soft, textTransform: "uppercase", letterSpacing: ".2em", marginTop: "1vmin" }}>{label}</div></div>;
+  const cell = (n: number, label: string) => <div style={{ textAlign: "center", padding: "2vmin 3vmin", ...surface(c, 0) }}><div style={{ fontSize: "17vmin", fontWeight: 800, lineHeight: 1, color: c.fg, fontVariantNumeric: "tabular-nums", textShadow: `0 0 4vmin ${c.accent}55` }}>{pad(n)}</div><div style={{ fontSize: "2.4vmin", color: c.soft, textTransform: "uppercase", letterSpacing: ".2em", marginTop: "1vmin" }}>{label}</div></div>;
   return (
     <section aria-label={d.title} className="flex h-full flex-col items-center justify-center text-center">
       <h1 style={{ fontSize: "7vmin", fontWeight: 800, color: c.fg, lineHeight: 1.05 }}>{d.title}</h1>
@@ -182,7 +185,7 @@ export default function DisplayScreen() {
     const q = new URLSearchParams(location.search);
     const l = lookFrom(q);
     setLook(l);
-    document.body.style.background = l.bg === "transparent" ? "transparent" : l.bg === DEFAULT_LOOK.bg ? THEMES[l.theme].bg : l.bg;
+    document.body.style.background = l.bg === "transparent" ? "transparent" : l.bg === DEFAULT_LOOK.bg ? themeById(l.theme).bg : l.bg;
     setExtra({ view: q.get("v") ?? "", key: q.get("k") ?? "", title: q.get("title") ?? "", at: q.get("t") ?? "", sub: q.get("sub") ?? "" });
     // The link can change while the screen stays open (the tool opens the same window again), so read it now and whenever it changes.
     let alive = true;
@@ -201,13 +204,14 @@ export default function DisplayScreen() {
   useEffect(() => { wake(); const k = (e: KeyboardEvent) => { if (e.key === "f" || e.key === "F") void toggleFull(); else wake(); }; window.addEventListener("keydown", k); return () => { window.removeEventListener("keydown", k); if (idle.current) clearTimeout(idle.current); }; }, [wake]);
   const toggleFull = async () => { try { if (document.fullscreenElement) await document.exitFullscreen(); else await document.documentElement.requestFullscreen(); } catch { /* not allowed here */ } };
 
-  const c = THEMES[look.theme];
+  const c = themeById(look.theme);
   const transparent = look.bg === "transparent";
   const countdown: CountdownData | null = extra.view === "countdown" && !Number.isNaN(Date.parse(extra.at)) ? { title: extra.title || "Starting soon", subtitle: extra.sub, at: extra.at } : null;
 
   return (
-    <div className="ds-root" onPointerMove={wake} style={{ position: "fixed", top: 0, left: 0, width: "100vw", height: "100dvh", boxSizing: "border-box", overflow: "hidden", padding: `${look.safe}vmin`, fontSize: `${look.scale}rem`, zoom: look.scale === 1 ? undefined : look.scale, color: c.fg, background: transparent ? "transparent" : undefined, cursor: bar ? "default" : "none", fontFamily: "var(--font-body), system-ui, sans-serif" }}>
-      <div style={{ height: "100%", width: "100%" }}>
+    <div className={`ds-root ${cardFontVars}`} onPointerMove={wake} style={{ fontFamily: fontCss(c), fontSynthesis: "none",  position: "fixed", top: 0, left: 0, width: "100vw", height: "100dvh", boxSizing: "border-box", overflow: "hidden", padding: `${look.safe}vmin`, fontSize: `${look.scale}rem`, zoom: look.scale === 1 ? undefined : look.scale, color: c.fg, background: transparent ? "transparent" : undefined, cursor: bar ? "default" : "none" }}>
+      {!transparent && c.deco && <div aria-hidden="true" style={{ position: "absolute", inset: 0, backgroundImage: c.deco, backgroundSize: c.decoSize, pointerEvents: "none" }} />}
+      <div style={{ height: "100%", width: "100%", position: "relative" }}>
         {extra.view === "checkin" && extra.key ? <CheckinView gateKey={extra.key} title={extra.title} look={look} c={c} />
           : countdown ? <CountdownView d={countdown} c={c} />
           : payload?.v === "table" ? <TableView d={payload.d} c={c} />

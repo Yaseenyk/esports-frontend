@@ -164,7 +164,7 @@ test("the round robin generator makes fixtures, takes scores and ranks teams", a
   const table = page.getByRole("region", { name: "League table" }).last();
   await expect(table.getByRole("row").nth(1)).toContainText("3"); // a win is worth 3 points
   await page.getByLabel(/Play everyone twice/).check();
-  await expect(page.getByText(/20 matches/)).toBeVisible();
+  await expect(page.getByText(/20 matches/).first()).toBeVisible();
   const [dl] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Download fixtures (CSV)" }).click()]);
   expect(dl.suggestedFilename()).toBe("round-robin-fixtures.csv");
 });
@@ -453,13 +453,14 @@ test("changing an early double elimination result clears the results built on it
   await page.goto("/tools/double-elimination/");
   await page.getByLabel("One team per line").fill("Ace\nBolt\nCrow\nDove");
   const pressed = page.locator('[aria-pressed="true"]');
+  const base = await pressed.count(); // the screen design picker on this page has one selected design of its own
   const winners = page.getByRole("region", { name: "Winners bracket rounds" });
   await winners.getByRole("button", { name: /Ace/ }).first().click(); // Ace beats Dove
   await winners.getByRole("button", { name: /Bolt/ }).first().click(); // Bolt beats Crow
   await winners.getByRole("button", { name: /Ace/ }).last().click(); // Ace beats Bolt in the winners final
-  await expect(pressed).toHaveCount(3);
+  await expect(pressed).toHaveCount(base + 3);
   await winners.getByRole("button", { name: /Dove/ }).first().click(); // change: Dove now beats Ace
-  await expect(pressed).toHaveCount(2); // the winners final was forgotten, because Ace is no longer in it
+  await expect(pressed).toHaveCount(base + 2); // the winners final was forgotten, because Ace is no longer in it
 });
 
 test("a display screen shows hostile text as plain text, follows a changed link and survives a bad live message", async ({ page }) => {

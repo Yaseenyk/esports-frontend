@@ -161,3 +161,29 @@ html[data-display] .aurora, html[data-display] canvas.hexfield, html[data-displa
 .ds-flash { animation: dsFlash 3.4s ease-out 1 !important; }
 .ds-pulse { animation: dsPulse 1.6s ease-in-out infinite; }
 @media (prefers-reduced-motion: reduce) { .ds-scroll, .ds-flash, .ds-pulse { animation: none !important; } }
+
+/* Footer: a honeycomb of tools (the shape of the menu), a numbered guide log, and a gradient seam. */
+.fx-seam { height: 1px; background: linear-gradient(90deg, transparent, #22d3ee, #a855f7, transparent); background-size: 200% 100%; animation: sheen 7s linear infinite; }
+.fx-kicker { margin-bottom: 1rem; display: flex; align-items: center; gap: .75rem; font-size: .7rem; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: #a1a1aa; }
+.fx-kicker::after { content: ""; height: 1px; flex: 1; background: linear-gradient(90deg, rgba(255,255,255,.18), transparent); }
+.fx-comb { --w: 6.2rem; --g: .25rem; flex-direction: column; align-items: flex-start; }
+.fx-comb-wide { display: none; }
+.fx-comb-narrow { display: flex; --w: 5.6rem; align-items: center; }
+@media (min-width: 640px) { .fx-comb-wide { display: flex; } .fx-comb-narrow { display: none; } }
+.fx-row { display: flex; gap: var(--g); }
+.fx-row + .fx-row { margin-top: calc(var(--w) * -.2887 + var(--g) * .6); }
+.fx-comb-wide .fx-row:nth-child(even) { margin-left: calc((var(--w) + var(--g)) / 2); }
+.fx-hex { display: block; width: var(--w); height: calc(var(--w) * 1.1547); padding: 1.5px; background: rgba(255,255,255,.16); clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%); transition: transform .25s ease, background .25s ease; outline: none; }
+.fx-hex > span { display: flex; width: 100%; height: 100%; flex-direction: column; align-items: center; justify-content: center; gap: .3rem; padding: 0 .4rem; text-align: center; color: #d4d4d8; background: #0a0b0d; clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%); transition: background .25s ease, color .25s ease; }
+.fx-hex-label { font-size: .68rem; font-weight: 600; line-height: 1.1; }
+.fx-hex:hover, .fx-hex:focus-visible { transform: translateY(-3px); background: linear-gradient(135deg, #22d3ee, #a855f7); }
+.fx-hex:hover > span, .fx-hex:focus-visible > span { background: #0c1822; color: #fff; }
+.fx-log { display: flex; align-items: center; gap: .75rem; border-bottom: 1px dashed rgba(255,255,255,.14); padding: .55rem 0; color: #d4d4d8; outline: none; transition: color .2s, border-color .2s; }
+.fx-log:hover, .fx-log:focus-visible { color: #fff; border-color: #22d3ee; }
+.fx-log:focus-visible { box-shadow: inset 0 -2px 0 #22d3ee; }
+.fx-log-n { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .72rem; color: #22d3ee; }
+.fx-log-go { color: #22d3ee; opacity: 0; transform: translateX(-4px); transition: opacity .2s, transform .2s; }
+.fx-log:hover .fx-log-go, .fx-log:focus-visible .fx-log-go { opacity: 1; transform: none; }
+.fx-top { display: grid; width: 2.6rem; height: 3rem; place-items: center; background: rgba(255,255,255,.16); color: #22d3ee; clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%); transition: background .25s, color .25s; }
+.fx-top:hover, .fx-top:focus-visible { background: linear-gradient(135deg, #22d3ee, #a855f7); color: #fff; outline: none; }
+@media (prefers-reduced-motion: reduce) { .fx-seam { animation: none; } .fx-hex, .fx-hex > span, .fx-log-go { transition: none; } .fx-hex:hover, .fx-hex:focus-visible { transform: none; } }

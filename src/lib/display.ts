@@ -10,8 +10,10 @@ export interface CountdownData { title: string; subtitle?: string; /** ISO date 
 export interface BracketData { title: string; sections: { name: string; rounds: { name: string; matches: { a: string; b: string; w?: 0 | 1 }[] }[] }[]; champion?: string }
 export type Payload = { v: "table"; d: TableData } | { v: "schedule"; d: ScheduleData } | { v: "countdown"; d: CountdownData } | { v: "bracket"; d: BracketData };
 
-export interface Look { theme: "dark" | "light" | "neon"; /** "transparent" for OBS, or a hex colour. */ bg: string; /** Margin as a percentage of the screen, for TV overscan. */ safe: number; /** Text size multiplier. */ scale: number; names: boolean }
+export interface Look { /** A design id from lib/display-themes. */ theme: string; /** "transparent" for OBS, or a hex colour. */ bg: string; /** Margin as a percentage of the screen, for TV overscan. */ safe: number; /** Text size multiplier. */ scale: number; names: boolean }
 export const DEFAULT_LOOK: Look = { theme: "dark", bg: "#05070a", safe: 3, scale: 1, names: false };
+
+import { THEME_IDS } from "./display-themes";
 
 const b64 = (bytes: Uint8Array) => { let s = ""; for (const b of bytes) s += String.fromCharCode(b); return btoa(s).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, ""); };
 const unb64 = (s: string) => { const bin = atob(s.replace(/-/g, "+").replace(/_/g, "/") + "===".slice((s.length + 3) % 4)); return Uint8Array.from(bin, (c) => c.charCodeAt(0)); };
@@ -86,7 +88,7 @@ export function lookFrom(params: URLSearchParams): Look {
   const bg = params.get("bg") ?? DEFAULT_LOOK.bg;
   const safe = Number(params.get("safe") ?? DEFAULT_LOOK.safe), scale = Number(params.get("scale") ?? 1);
   return {
-    theme: theme === "light" || theme === "neon" ? theme : "dark",
+    theme: theme && THEME_IDS.includes(theme) ? theme : "dark",
     bg: bg === "transparent" || /^[0-9a-fA-F]{6}$/.test(bg) ? (bg === "transparent" ? bg : `#${bg}`) : /^#[0-9a-fA-F]{6}$/.test(bg) ? bg : DEFAULT_LOOK.bg,
     safe: Number.isFinite(safe) ? Math.min(15, Math.max(0, safe)) : DEFAULT_LOOK.safe,
     scale: Number.isFinite(scale) ? Math.min(2.5, Math.max(0.5, scale)) : 1,

@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { CHANNEL, encode, type Payload } from "@/lib/display";
 
-export interface ScreenOptions { theme: "dark" | "light" | "neon"; transparent: boolean }
+export interface ScreenOptions { theme: string; transparent: boolean }
 
 /**
  * Lets a tool send what it shows to a display screen window. While the tool page stays open, every change goes straight to the screen

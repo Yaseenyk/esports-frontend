@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Faq from "@/components/seo/Faq";
 import GameBadge from "@/components/GameBadge";
 import HeroArtLazy from "@/components/home/HeroArtLazy";
 import { Counter, Item, Marquee, Reveal, Stagger } from "@/components/Motion";
 import JsonLd from "@/components/seo/JsonLd";
 import TiltLink from "@/components/TiltLink";
 import { GUIDES } from "@/content/guides";
+import { HOME_FAQ } from "@/content/home-faq";
 import { GAMES, TOOLS } from "@/lib/data";
 import { CARD_DESIGNS, CARD_SHAPES, LANGUAGES_COUNT } from "@/lib/facts";
 
@@ -15,13 +17,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/" },
 };
 
-const FAQ = [
-  { q: "What is Esports Hub?", a: "Esports Hub is a set of free tools and written guides for people who organise esports and gaming events: college tournaments, club cups and community game nights." },
-  { q: "Is it free?", a: "Yes. The ID card maker, bracket maker, points table calculator and gate scanner are free and work in your browser without an account. A free account adds saving events online, invite links for players and live check-in across several doors." },
-  { q: "Do I need to install anything?", a: "No. Everything runs in a web browser on a phone or computer. You can add the gate scanner to your phone's home screen." },
-  { q: "What happens to players' personal details?", a: "Cards are made in your browser. Scanning an Aadhaar card happens on your own device and only the last four digits are kept. If you save an event online, only names, teams, roles, access zones, photos and logos are stored; birth dates and Aadhaar digits stay in your browser." },
-  { q: "Who makes it?", a: "Esports Hub is an independent project and is not affiliated with any game publisher. See the about page for how the guides are written and kept up to date." },
-];
+const FAQ = HOME_FAQ;
 
 // Small line icons for the tool cards. Decorative: the words next to them carry the meaning.
 const ICON: Record<string, string> = {
@@ -143,7 +139,7 @@ export default function Home() {
 
       <section aria-labelledby="faq" className="max-w-3xl">
         <Reveal><h2 id="faq" className="text-3xl font-bold text-white">Questions</h2></Reveal>
-        <div className="mt-6 space-y-3">{FAQ.map((f) => <details key={f.q} className="card !p-4"><summary className="cursor-pointer font-semibold text-white outline-none focus-visible:ring-2 focus-visible:ring-cyan">{f.q}</summary><p className="mt-2 text-sm leading-relaxed text-zinc-300">{f.a}</p></details>)}</div>
+        <div className="mt-6"><Faq items={FAQ} /></div>
       </section>
     </div>
   );
