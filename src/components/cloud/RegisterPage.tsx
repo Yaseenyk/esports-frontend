@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { explain, pub, type PublicReg, type RegPlayer } from "@/lib/api/cloud";
 import { Waiting } from "@/components/skeleton/Scenes";
 import { Sk, SkLines } from "@/components/skeleton/Sk";
@@ -30,9 +30,14 @@ export default function RegisterPage() {
   const need = info?.form.teamSize ?? 0;
   const setP = (i: number, patch: Partial<RegPlayer>) => setPlayers((l) => l.map((p, j) => (j === i ? { ...p, ...patch } : p)));
   const errText = err ? ("raw" in err ? err.raw : t(err.key, err.vars)) : "";
+  // The message sits above a long form: bring it into view so a failed send on a phone is never silent.
+  const errBox = useRef<HTMLParagraphElement>(null);
+  useEffect(() => { if (errText && !loading) { errBox.current?.scrollIntoView({ block: "center", behavior: "smooth" }); errBox.current?.focus({ preventScroll: true }); } }, [errText, loading]);
 
   const send = async (e: React.FormEvent) => {
-    e.preventDefault(); setBusy(true); setErr(null);
+    e.preventDefault();
+    if (busy) return;
+    setBusy(true); setErr(null);
     try { await pub.register(token, { teamName: team.trim(), captainName: captain.trim(), captainContact: contact.trim(), players: filled.map((p) => ({ name: p.name.trim(), ign: p.ign.trim(), minor: p.minor })), notes: notes.trim() }); setDone(true); }
     catch (x) { const s = (x as { status?: number }).status; setErr(s === 409 ? { key: "reg_conflict" } : s === 429 ? { key: "reg_toomany" } : s === 400 ? { key: "reg_count", vars: { size: need } } : { raw: explain(x) }); }
     finally { setBusy(false); }
@@ -43,7 +48,7 @@ export default function RegisterPage() {
     <div className="mx-auto max-w-xl">
       <LangSwitch className="mb-4 justify-end" />
       <Waiting loading={loading} apiKey="/public/registration" label="Loading the registration form"><div className="space-y-3"><Sk className="!h-8" w="70%" /><SkLines n={2} /><Sk className="!h-11" /><Sk className="!h-11" i={1} /></div></Waiting>
-      {errText && !done && <p role="alert" className="mb-4 rounded-xl border border-red-400/40 bg-[#0a0b0d] p-4 text-red-100">{errText}</p>}
+      {errText && !done && <p ref={errBox} tabIndex={-1} role="alert" className="mb-4 rounded-xl border border-red-400/40 bg-[#0a0b0d] p-4 text-red-100">{errText}</p>}
       {done ? (
         <div role="status" className="space-y-2 rounded-2xl border border-emerald-400/40 bg-[#0a0b0d] p-5 text-center"><p className="font-display text-xl font-bold text-white">{t("reg_done_title")}</p><p className="text-sm text-emerald-100">{t("reg_done_body")}</p></div>
       ) : info && f && (
@@ -71,6 +76,7 @@ export default function RegisterPage() {
               </fieldset>
               <label className="block text-sm text-zinc-200">{t("reg_notes")}<textarea className="field mt-1 min-h-20 py-2" value={notes} onChange={(e) => setNotes(e.target.value)} maxLength={500} /></label>
               <p className="text-xs text-zinc-400">{t("reg_privacy")}</p>
+              {filled.length < need && filled.length > 0 && <p className="text-xs text-amber-200">{t("reg_count", { size: need })}</p>}
               <button className="btn w-full" disabled={busy || filled.length < need}>{busy ? t("sending") : t("reg_submit")}</button>
             </>
           )}

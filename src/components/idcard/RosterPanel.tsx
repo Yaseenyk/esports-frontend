@@ -4,9 +4,9 @@ import { useState } from "react";
 import { csvTemplate, parseRoster, toCsv } from "@/lib/idcard/roster";
 import { downloadBlob } from "@/lib/idcard/download";
 import type { Person, Team } from "@/lib/idcard/types";
+import { idPrefix, uniqueId } from "./ids";
 
 const uidT = () => `t${Date.now().toString(36)}${Math.floor(Math.random() * 1e3).toString(36)}`;
-const prefix = (name: string) => (name.replace(/[^A-Za-z0-9]/g, "").slice(0, 3) || "ID").toUpperCase();
 
 /** Bring a whole roster in from a sheet, and take it back out. People who are not on a team yet get one made for them. */
 export default function RosterPanel({ teams, people, setTeams, setPeople, minorOf, bare = false }: {
@@ -28,7 +28,9 @@ export default function RosterPanel({ teams, people, setTeams, setPeople, minorO
       let t = r.team ? find(r.team) : nextTeams[0];
       if (!t) { t = { id: uidT(), name: r.team }; nextTeams.push(t); made++; }
       const n = out.filter((p) => p.teamId === t!.id).length + 1;
-      out.push({ id: r.id || `${prefix(t.name)}-${String(n).padStart(3, "0")}`, name: r.name, teamId: t.id, role: r.role ?? "Player", dob: r.dob, gender: r.gender, last4: r.last4, zones: r.zones });
+      // An ID typed in the sheet is kept; a missing one is made fresh, and never repeats one already in use.
+      const taken = out.map((p) => p.id);
+      out.push({ id: r.id && !taken.includes(r.id) ? r.id : uniqueId(idPrefix(t.name), taken, n), name: r.name, teamId: t.id, role: r.role ?? "Player", dob: r.dob, gender: r.gender, last4: r.last4, zones: r.zones });
     }
     setTeams(nextTeams); setPeople(out);
     setMsg(`Added ${rows.length} ${rows.length === 1 ? "person" : "people"}${made ? ` and ${made} new ${made === 1 ? "team" : "teams"}` : ""}.${skipped ? ` ${skipped} row${skipped === 1 ? "" : "s"} had no name and were skipped.` : ""}${trimmedAadhaar ? ` ${trimmedAadhaar} full Aadhaar number${trimmedAadhaar === 1 ? " was" : "s were"} cut down to the last 4 digits.` : ""}`);
@@ -44,7 +46,7 @@ export default function RosterPanel({ teams, people, setTeams, setPeople, minorO
       <textarea className="field min-h-20 py-2 font-mono text-sm" aria-label="Roster rows" placeholder={"name\tteam\trole\tdob\tgender\nAarav Mehta\tKonkan Kings\tPlayer\t12/05/2003\tMale"} value={text} onChange={(e) => setText(e.target.value)} />
       <div className="flex flex-wrap gap-2">
         <button type="button" className="btn !min-h-10 text-sm" disabled={!text.trim()} onClick={() => run(text)}>Add these people</button>
-        <label className="btn-ghost !min-h-10 cursor-pointer px-4 text-sm">Upload a CSV<input type="file" accept=".csv,.tsv,.txt,text/csv,text/plain" className="sr-only" onChange={async (e) => { const f = e.target.files?.[0]; if (f) run(await f.text()); e.target.value = ""; }} /></label>
+        <label className="btn-ghost !min-h-10 cursor-pointer px-4 text-sm">Upload a CSV<input type="file" accept=".csv,.tsv,.txt,text/csv,text/plain" className="sr-only" onChange={async (e) => { const f = e.target.files?.[0]; e.target.value = ""; if (!f) return; try { run(await f.text()); } catch { setMsg("That file could not be read. Use a CSV or a text file."); } }} /></label>
         <button type="button" className="btn-ghost !min-h-10 text-sm" onClick={() => downloadBlob(new Blob([toCsv(people, teams, minorOf)], { type: "text/csv" }), "roster.csv")}>Download roster (CSV)</button>
         <button type="button" className="chip" onClick={() => downloadBlob(new Blob([csvTemplate()], { type: "text/csv" }), "roster-template.csv")}>Blank template</button>
       </div>

@@ -36,6 +36,9 @@ export default function PrintPanel({ people, allPeople, teams, teamOpts, printTe
   const [gap, setGap] = useState(2), [margin, setMargin] = useState(8);
   const [status, setStatus] = useState<string | null>(null);
   const [view, setView] = useState<Person | null>(null);
+  // One download at a time: a second click while a PDF is being drawn would start a second copy of the same work.
+  const [working, setWorking] = useState(false);
+  const alone = (fn: () => Promise<void>) => async () => { if (working) return; setWorking(true); try { await fn(); } finally { setWorking(false); } };
 
   const hasBack = (p: Person) => !!tplFor(teamById(p.teamId)).back;
   const showBacks = backs && people.some(hasBack);
@@ -46,7 +49,7 @@ export default function PrintPanel({ people, allPeople, teams, teamOpts, printTe
   const roles = Array.from(new Set(people.map((p) => p.role)));
 
   const nodes = (face: "front" | "back") => Array.from(document.querySelectorAll<HTMLElement>(`[data-face="${face}"] .idcard-box`));
-  const makePdf = async () => {
+  const makePdf = alone(async () => {
     try {
       const gather = async (face: "front" | "back"): Promise<PdfCard[]> => {
         const out: PdfCard[] = []; const list = nodes(face);
@@ -63,9 +66,9 @@ export default function PrintPanel({ people, allPeople, teams, teamOpts, printTe
       downloadBlob(buildPdf(fronts, bk, { marks: layout === "tight" ? false : marks, bleedMm: bleed ? 3 : 0, paper, ...(layout === "tight" ? { gapMm: 0, marginMm: 5 } : layout === "custom" ? { gapMm: gap, marginMm: margin } : {}) }), `${eventKey(event)}-cards.pdf`);
       setStatus("PDF downloaded.");
     } catch { setStatus("Could not make the PDF. Try Print, then choose Save as PDF."); }
-  };
+  });
 
-  const zipAll = async () => {
+  const zipAll = alone(async () => {
     try {
       const zip = new JSZip();
       for (const face of ["front", "back"] as const) {
@@ -83,20 +86,20 @@ export default function PrintPanel({ people, allPeople, teams, teamOpts, printTe
       downloadBlob(await zip.generateAsync({ type: "blob" }), `${eventKey(event)}-cards-png.zip`);
       setStatus("Zip downloaded.");
     } catch { setStatus("Could not make the zip."); }
-  };
+  });
 
-  const pack = async () => {
+  const pack = alone(async () => {
     setStatus("Making the check-in pack…");
     const list = [];
     for (const p of allPeople) list.push({ id: p.id, name: p.name, team: teamById(p.teamId)?.name ?? "", role: p.role, zones: p.zones ?? "", minor: minorOf(p), guardian: !!p.guardian, thumb: await thumbOf(p.photo) });
     const blob = new Blob([JSON.stringify({ v: 1, eventKey: eventKey(event), event, date: info.date, signed: info.sign, people: list })], { type: "application/json" });
     downloadBlob(blob, `${eventKey(event)}-checkin-pack.json`);
-    setStatus("Check-in pack downloaded. Open the Check-in tool on the gate phone and load it there.");
-  };
+    setStatus("Check-in pack downloaded. Open Gate check-in on the gate phone and load it there.");
+  });
 
   const png = async (p: Person, face: "front" | "back") => {
     const node = document.querySelector<HTMLElement>(`[data-pid="${CSS.escape(p.id)}"][data-face="${face}"] .idcard-box`); if (!node) return;
-    download(await cardToPng(node), `${p.name.replace(/\s+/g, "-") || p.id}-${face}.png`);
+    try { download(await cardToPng(node), `${(p.name.replace(/[^\p{L}\p{N}]+/gu, "-").replace(/^-|-$/g, "") || p.id.replace(/[^A-Za-z0-9_-]/g, "_"))}-${face}.png`); } catch { setStatus("Could not save that card as a picture. Try again."); }
   };
 
   /** Backs are mirrored within each row so a double-sided print lines up when the pages are flipped on the long edge. */
@@ -141,10 +144,10 @@ export default function PrintPanel({ people, allPeople, teams, teamOpts, printTe
           </div>
         </div>
         <div className="grid gap-2 sm:flex sm:flex-wrap">
-          <button id="pdf-button" type="button" className="btn" onClick={makePdf}>Download PDF (real size)</button>
+          <button id="pdf-button" type="button" className="btn" disabled={working} onClick={makePdf}>{working ? "Working…" : "Download PDF (real size)"}</button>
           <button type="button" className="btn-ghost" onClick={() => { onPrinted(); window.print(); }}>Print {people.length} {people.length === 1 ? "card" : "cards"}</button>
-          <button type="button" className="btn-ghost" onClick={zipAll} title="Every card as a PNG picture, in one zip file">Download all as PNG (zip)</button>
-          <button type="button" className="btn-ghost" onClick={pack} title="A file the gate-check page uses to check guests in without internet">Check-in pack for the gate</button>
+          <button type="button" className="btn-ghost" disabled={working} onClick={zipAll} title="Every card as a PNG picture, in one zip file">Download all as PNG (zip)</button>
+          <button type="button" className="btn-ghost" disabled={working} onClick={pack} title="A file the gate-check page uses to check guests in without internet">Check-in pack for the gate</button>
         </div>
         {status && <p className="text-sm text-zinc-300" role="status">{status}</p>}
         <p className="text-xs text-zinc-400">The PDF puts every card at its real size on A4 pages. Backs go on their own pages, mirrored so a double-sided print lines up. Hover or tap a card to view it in your hand or save it as a PNG. In the print window, turn on background graphics if your browser asks.</p>

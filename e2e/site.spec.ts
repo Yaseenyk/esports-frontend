@@ -422,3 +422,75 @@ test("both bracket tools open a bracket screen that follows the results", async 
   await expect(dscreen.getByText("Losers bracket")).toBeVisible();
   await expect(dscreen.getByText("Konkan Kings").first()).toBeVisible();
 });
+
+test("a number box can be cleared and retyped, and stays inside its limits", async ({ page }) => {
+  await page.goto("/tools/schedule/");
+  const box = page.getByLabel("Minutes per match");
+  await box.fill("");
+  await expect(box).toHaveValue(""); // the box is left alone while it is empty
+  await box.pressSequentially("25");
+  await expect(box).toHaveValue("25");
+  await box.fill("9999");
+  await page.getByLabel("Number of matches").focus(); // leaving the box shows the real value again
+  await expect(box).toHaveValue("600");
+  await page.goto("/tools/points-table/");
+  const kill = page.getByLabel("Points per kill");
+  await kill.fill("");
+  await kill.pressSequentially("2.5");
+  await expect(kill).toHaveValue("2.5");
+});
+
+test("round robin ignores repeated names and treats a team called Bye as a team", async ({ page }) => {
+  await page.goto("/tools/round-robin/");
+  await page.getByLabel("One team per line").fill("Alpha\nalpha\nBravo\n\n  \nBye");
+  await expect(page.getByText(/3 teams, 3 rounds, 3 matches/)).toBeVisible();
+  await expect(page.getByText(/1 repeated name was ignored/)).toBeVisible();
+  await page.getByLabel("One team per line").fill(Array.from({ length: 41 }, (_, i) => `Team ${i}`).join("\n"));
+  await expect(page.getByText(/too many for a round robin/)).toBeVisible();
+});
+
+test("changing an early double elimination result clears the results built on it", async ({ page }) => {
+  await page.goto("/tools/double-elimination/");
+  await page.getByLabel("One team per line").fill("Ace\nBolt\nCrow\nDove");
+  const pressed = page.locator('[aria-pressed="true"]');
+  const winners = page.getByRole("region", { name: "Winners bracket rounds" });
+  await winners.getByRole("button", { name: /Ace/ }).first().click(); // Ace beats Dove
+  await winners.getByRole("button", { name: /Bolt/ }).first().click(); // Bolt beats Crow
+  await winners.getByRole("button", { name: /Ace/ }).last().click(); // Ace beats Bolt in the winners final
+  await expect(pressed).toHaveCount(3);
+  await winners.getByRole("button", { name: /Dove/ }).first().click(); // change: Dove now beats Ace
+  await expect(pressed).toHaveCount(2); // the winners final was forgotten, because Ace is no longer in it
+});
+
+test("a display screen shows hostile text as plain text, follows a changed link and survives a bad live message", async ({ page }) => {
+  const encode = (p: unknown) => page.evaluate(async (x) => { const bytes = new TextEncoder().encode(JSON.stringify(x)); let s = ""; for (const b of bytes) s += String.fromCharCode(b); return "p." + btoa(s).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, ""); }, p);
+  await page.goto("/tools/display-screen/");
+  const evil = "<img src=x onerror=\"window.__pwned=1\">";
+  const one = await encode({ v: "table", d: { title: evil, head: ["#", "Team", "Pts"], rows: [["1", evil, "9"]], strong: 2 } });
+  const two = await encode({ v: "table", d: { title: "Second view", head: ["#", "Team", "Pts"], rows: [["1", "Zed", "4"]], strong: 2 } });
+  await page.goto(`/display/#d=${one}`);
+  await expect(page.locator("h1:not(.sr-only)")).toHaveText(evil);
+  expect(await page.evaluate(() => (window as unknown as { __pwned?: number }).__pwned)).toBeUndefined();
+  expect(await page.locator("img[src='x']").count()).toBe(0);
+  await page.evaluate((h) => { location.hash = `d=${h}`; }, two);
+  await expect(page.locator("h1:not(.sr-only)")).toHaveText("Second view");
+  await page.evaluate(() => { const c = new BroadcastChannel("eh-display"); c.postMessage({ payload: { v: "table", d: { head: null, rows: 5 } } }); c.postMessage({ payload: null }); c.close(); });
+  await page.waitForTimeout(300);
+  await expect(page.locator("h1:not(.sr-only)")).toHaveText("Second view");
+});
+
+test("the menu search opens a result with Enter, and a number key for the page you are on closes the menu", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: /menu/i }).first().click();
+  const box = page.getByRole("dialog", { name: "Hub menu" }).getByRole("combobox");
+  await box.fill("valorant");
+  await expect(page.getByRole("option").first()).toBeVisible();
+  await box.press("Enter");
+  await expect(page).toHaveURL(/valorant/);
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await page.goto("/tools/");
+  await page.keyboard.press("m");
+  await expect(page.getByRole("dialog", { name: "Hub menu" })).toBeVisible();
+  await page.keyboard.press("1"); // Tools: the page we are already on
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+});

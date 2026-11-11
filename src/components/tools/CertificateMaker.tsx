@@ -28,7 +28,7 @@ function Cert({ f, name, design, logo }: { f: Fields; name: string; design: Desi
         {logo ? <img src={logo} alt="" style={{ height: 86, objectFit: "contain", marginBottom: 14 }} /> : <div style={{ height: 86 }} />}
         <div style={{ fontSize: 50, fontWeight: 700, letterSpacing: 1, color: accent, lineHeight: 1.1 }}>{f.heading}</div>
         <div style={{ fontSize: 22, color: soft, marginTop: 28 }}>{f.intro}</div>
-        <div style={{ fontSize: name.length > 28 ? 46 : 62, fontWeight: 700, margin: "14px 0 10px", lineHeight: 1.1, borderBottom: `3px solid ${accent}`, padding: "0 28px 10px", maxWidth: "100%" }}>{name || "Participant name"}</div>
+        <div style={{ fontSize: name.length > 70 ? 28 : name.length > 44 ? 36 : name.length > 28 ? 46 : 62, overflowWrap: "anywhere", fontWeight: 700, margin: "14px 0 10px", lineHeight: 1.1, borderBottom: `3px solid ${accent}`, padding: "0 28px 10px", maxWidth: "100%" }}>{name || "Participant name"}</div>
         <div style={{ fontSize: 26, color: ink, maxWidth: 800, lineHeight: 1.45, marginTop: 14 }}>{fill(f.body, f)}</div>
         <div style={{ flex: 1 }} />
         <div style={{ display: "flex", justifyContent: "space-between", width: "100%", alignItems: "flex-end" }}>
@@ -84,7 +84,7 @@ export default function CertificateMaker() {
         <section className="card min-w-0 space-y-3" aria-label="Certificate details">
           <h3 className="font-display text-lg font-bold text-white">1. Details</h3>
           <label className="block text-sm text-zinc-200">Names, one per line<textarea className="field mt-1 min-h-28 py-2" value={names} onChange={(e) => setNames(e.target.value)} spellCheck={false} /></label>
-          <p className="text-xs text-zinc-400">{list.length} certificate{list.length === 1 ? "" : "s"}. Up to 100 per file works well.</p>
+          <p className="text-xs text-zinc-400" aria-live="polite">{list.length === 0 ? "Type or paste at least one name above." : `${list.length} certificate${list.length === 1 ? "" : "s"}. Up to 100 per file works well.`}</p>
           <label className="block text-sm text-zinc-200">Design<select className="field mt-1" value={design} onChange={(e) => setDesign(e.target.value as Design)}>{DESIGNS.map((d) => <option key={d.id} value={d.id}>{d.label}</option>)}</select></label>
           <label className="block text-sm text-zinc-200">Heading<input className="field mt-1" value={f.heading} onChange={set("heading")} /></label>
           <label className="block text-sm text-zinc-200">Award or result<input className="field mt-1" value={f.award} onChange={set("award")} /></label>
@@ -98,7 +98,7 @@ export default function CertificateMaker() {
             <label className="block text-sm text-zinc-200">Signed by<input className="field mt-1" value={f.sign2} onChange={set("sign2")} /></label>
             <label className="block text-sm text-zinc-200">Title<input className="field mt-1" value={f.role2} onChange={set("role2")} /></label>
           </div>
-          <div className="flex flex-wrap items-center gap-2"><label className="btn-ghost !min-h-10 cursor-pointer px-3 text-sm">{logo ? "Change logo" : "Add a logo"}<input type="file" accept="image/*" className="sr-only" onChange={(e) => { readLogo(e.target.files?.[0]); e.target.value = ""; }} /></label>{logo && <button type="button" className="chip" onClick={() => setLogo("")}>Remove logo</button>}</div>
+          <div className="flex flex-wrap items-center gap-2"><label className="btn-ghost cursor-pointer px-3 text-sm focus-within:ring-2 focus-within:ring-cyan">{logo ? "Change logo" : "Add a logo"}<input type="file" accept="image/*" className="sr-only" onChange={(e) => { readLogo(e.target.files?.[0]); e.target.value = ""; }} /></label>{logo && <button type="button" className="chip !min-h-11" onClick={() => setLogo("")}>Remove logo</button>}</div>
         </section>
 
         <section className="min-w-0 space-y-3" aria-label="Preview">

@@ -11,7 +11,7 @@ test("the sign-in page explains a wrong password plainly and passes the accessib
   await page.getByLabel("Email").fill("a@example.com");
   await page.getByLabel("Password").fill("wrong-password");
   await page.getByRole("button", { name: "Sign in", exact: true }).last().click();
-  await expect(page.getByRole("alert").filter({ hasText: /sign-in has expired or the details are wrong/i })).toBeVisible();
+  await expect(page.getByRole("alert").filter({ hasText: /email or password is not right/i })).toBeVisible();
   const bad = (await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze()).violations.filter((v) => v.impact === "serious" || v.impact === "critical");
   expect(bad.map((v) => v.id)).toEqual([]);
 });
@@ -26,6 +26,7 @@ test("a signed-in organiser sees their events and the sign-out button", async ({
   const dlg = page.getByRole("dialog", { name: "Cloud" });
   await expect(dlg.getByText("Olivia")).toBeVisible();
   await expect(dlg.getByText("Spring Cup")).toBeVisible();
+  page.once("dialog", (d) => d.accept()); // signing out asks first, because the cards on this screen are not saved anywhere else
   await dlg.getByRole("button", { name: "Sign out" }).click();
   await expect(page).toHaveURL(/\/login\//); // signing out leaves the app
 });
@@ -95,4 +96,94 @@ test("the Account tab changes a password and explains a wrong current one", asyn
   await expect(dlg.getByRole("alert")).toContainText(/current password is wrong/i);
   await dlg.getByRole("button", { name: "Change password" }).click();
   await expect(dlg.getByText("Password changed.")).toBeVisible();
+});
+
+test("the sign-in form can show the password and does not offer a second Sign in switch on its own page", async ({ page }) => {
+  await preflight(page);
+  await page.goto("/login/");
+  const pw = page.getByLabel("Password", { exact: true });
+  await pw.fill("correct horse");
+  await expect(pw).toHaveAttribute("type", "password");
+  await page.getByLabel("Show characters").check();
+  await expect(pw).toHaveAttribute("type", "text");
+  await expect(pw).toHaveAttribute("autocomplete", "current-password");
+  await expect(page.getByLabel("Email")).toHaveAttribute("autocomplete", "username");
+  await expect(page.getByRole("button", { name: "Create account" })).toHaveCount(0); // the page links to /signup/ instead
+});
+
+test("the sign-in button sends one request even when it is pressed twice", async ({ page }) => {
+  await preflight(page);
+  let n = 0;
+  await page.route("**/auth/login", async (r) => { n++; await new Promise((x) => setTimeout(x, 400)); await r.fulfill(json({ token: "t", user: { id: "u", email: "a@example.com", name: "Asha" } })); });
+  await page.route("**/events", (r) => r.fulfill(json([])));
+  await page.goto("/login/");
+  await page.getByLabel("Email").fill("a@example.com");
+  await page.getByLabel("Password", { exact: true }).fill("correct horse");
+  await page.getByRole("button", { name: "Sign in", exact: true }).last().dblclick();
+  await expect(page).toHaveURL(/\/app\//);
+  expect(n).toBe(1);
+});
+
+test("an expired sign-in says so on the sign-in page and brings the person back", async ({ page }) => {
+  await signedIn(page);
+  await page.route("**/esports-api.yaseenyk.workers.dev/events", (r) => r.fulfill(json({ error: "Authentication required" }, 401)));
+  await page.goto("/app/events/");
+  await expect(page).toHaveURL(/\/login\/\?next=%2Fapp%2Fevents%2F&expired=1/, { timeout: 15000 });
+  await expect(page.getByRole("status").filter({ hasText: /sign-in ran out/i })).toBeVisible();
+});
+
+test("the Sign out button in the app header goes to a plain sign-in page", async ({ page }) => {
+  await signedIn(page);
+  await page.goto("/app/events/");
+  await page.getByRole("button", { name: "Sign out" }).click();
+  await expect(page).toHaveURL(/\/login\/$/);
+  await expect(page.getByRole("status").filter({ hasText: /ran out/i })).toHaveCount(0);
+});
+
+test("an event can be deleted from its page, after a confirmation, and leaves the list", async ({ page }) => {
+  const ev = { id: "e1", key: "cup", name: "Spring Cup", game: "BGMI", organiser: "", date: "2026-12-01", venue: "", emergency: "", rules: "", settings: {}, updatedAt: "", role: "owner" };
+  await signedIn(page, [ev]);
+  let gone = false, deletes = 0;
+  const A = "**/esports-api.yaseenyk.workers.dev";
+  await page.route(`${A}/events`, (r) => (r.request().method() === "GET" ? r.fulfill(json(gone ? [] : [ev])) : r.fallback()));
+  await page.route(`${A}/events/e1`, (r) => { if (r.request().method() === "DELETE") { deletes++; gone = true; return r.fulfill(json({ ok: true })); } return r.fallback(); });
+  await page.route(`${A}/events/e1/roster`, (r) => r.fulfill(json({ teams: [], people: [] })));
+  await page.route(`${A}/events/e1/checkins**`, (r) => r.fulfill(json({ checkins: [], total: 0, checkedIn: 0 })));
+  await page.route(`${A}/events/e1/registration`, (r) => r.fulfill(json({ form: null, counts: { pending: 0, approved: 0, rejected: 0 } })));
+  await page.route(`${A}/events/e1/members`, (r) => r.fulfill(json({ owner: null, members: [] })));
+  await page.goto("/app/events/?id=e1");
+  await expect(page.getByRole("heading", { name: "Spring Cup", level: 2 })).toBeVisible();
+  page.once("dialog", (d) => d.dismiss()); // saying no keeps everything
+  await page.getByRole("button", { name: "Delete event" }).click();
+  expect(deletes).toBe(0);
+  page.once("dialog", (d) => d.accept());
+  await page.getByRole("button", { name: "Delete event" }).click();
+  await expect(page.getByText("No events saved online yet.")).toBeVisible();
+  expect(deletes).toBe(1);
+});
+
+test("live gate: a key the server refuses says so, a refused code is not queued, and a lost connection keeps the scan", async ({ page }) => {
+  await preflight(page);
+  const A = "**/esports-api.yaseenyk.workers.dev";
+  let keyOk = false, mode: "refuse" | "offline" = "refuse";
+  await page.route(`${A}/gate/roster`, (r) => (keyOk ? r.fulfill(json({ event: { name: "Spring Cup", date: "2026-12-01", venue: "Pune" }, people: [] })) : r.fulfill(json({ error: "bad key" }, 401))));
+  await page.route(`${A}/gate/checkin`, (r) => (mode === "refuse" ? r.fulfill(json({ error: "bad code" }, 422)) : r.abort()));
+  await signedIn(page);
+  await page.goto("/app/check-in/");
+  await page.getByRole("tab", { name: /Live/ }).click();
+  await page.getByLabel("Gate key").fill("gk_wrong");
+  await page.getByRole("button", { name: "Connect" }).click();
+  await expect(page.getByRole("alert").filter({ hasText: /not valid/i })).toBeVisible();
+  keyOk = true;
+  await page.getByLabel("Gate key").fill("gk_right");
+  await page.getByRole("button", { name: "Connect" }).click();
+  await expect(page.getByText("Spring Cup")).toBeVisible();
+  await page.getByLabel("Pass code").fill("EH1.x.A-1.sig");
+  await page.getByRole("button", { name: "Check", exact: true }).click();
+  await expect(page.getByText(/server did not accept that code/i)).toBeVisible();
+  await expect(page.getByRole("status").filter({ hasText: /waiting for signal/ })).toHaveCount(0);
+  mode = "offline";
+  await page.getByLabel("Pass code").fill("EH1.x.A-2.sig");
+  await page.getByRole("button", { name: "Check", exact: true }).click();
+  await expect(page.getByRole("status").filter({ hasText: /1 scan waiting for signal/ })).toBeVisible();
 });

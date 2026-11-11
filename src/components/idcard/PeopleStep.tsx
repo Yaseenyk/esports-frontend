@@ -6,6 +6,7 @@ import { maskAadhaar } from "@/lib/idcard/aadhaar";
 import { ROLES, type Person, type Role, type Team } from "@/lib/idcard/types";
 import { OCR_LANGS } from "@/lib/idcard/ocr";
 import RosterPanel from "./RosterPanel";
+import { repeatedIds } from "./ids";
 
 export interface Job { key: number; file: string; state: "queued" | "reading" | "done" | "error"; pct: number; note?: string }
 
@@ -21,7 +22,7 @@ interface Props {
   scanTeam: string; setScanTeam: (v: string) => void; consent: boolean; setConsent: (v: boolean) => void;
   jobs: Job[]; scan: (files: FileList | File[] | null, password?: string) => void; trySample: (file: string) => void;
   pdfAsk: { file: File; wrong: boolean } | null; pdfPass: string; setPdfPass: (v: string) => void;
-  setPeople: (f: (p: Person[]) => Person[]) => void; setTeams: (t: Team[]) => void; setPerson: (id: string, patch: Partial<Person>) => void; addPerson: (teamId?: string) => void;
+  setPeople: (f: (p: Person[]) => Person[]) => void; setTeams: (t: Team[]) => void; setPerson: (id: string, patch: Partial<Person>) => void; addPerson: (teamId?: string) => string;
   minorOf: (p: Person) => boolean; duplicates: Map<string, string[]>;
   photo: (id: string, f?: File) => void; cutOutExisting: (p: Person) => void; bgBusy: string | null; bgNote: string | null; autoBg: boolean; setAutoBg: (v: boolean) => void;
 }
@@ -50,6 +51,7 @@ export default function PeopleStep(p: Props) {
   const shown = useMemo(() => p.people.filter((x) => (teamFilter === "all" || x.teamId === teamFilter) && (!q.trim() || `${x.name} ${x.id}`.toLowerCase().includes(q.trim().toLowerCase()))), [p.people, q, teamFilter]);
   const needReview = p.people.filter((x) => x.review).length;
   const minors = p.people.filter((x) => p.minorOf(x)).length;
+  const sameId = useMemo(() => repeatedIds(p.people.map((x) => x.id)), [p.people]);
 
   return (
     <div className="no-print space-y-4">
@@ -111,8 +113,8 @@ export default function PeopleStep(p: Props) {
           {tab === "hand" && (
             <div className="flex flex-wrap items-end gap-3">
               <div className="w-56"><Select label="Add to team" value={p.valid(p.scanTeam)} onChange={p.setScanTeam} options={p.teamOpts} searchable={false} /></div>
-              <button type="button" className="btn" onClick={() => { p.addPerson(p.valid(p.scanTeam)); setTab("hand"); setOpen(null); }}>+ Add a person</button>
-              <p className="text-sm text-zinc-400">A blank person is added at the bottom of the list below. Open it to fill in the details.</p>
+              <button type="button" className="btn" onClick={() => { const id = p.addPerson(p.valid(p.scanTeam)); setQ(""); setTeamFilter("all"); setOpen(id); }}>+ Add a person</button>
+              <p className="text-sm text-zinc-400">A blank person is added at the bottom of the list below, with their details open to fill in.</p>
             </div>
           )}
         </div>
@@ -169,7 +171,7 @@ export default function PeopleStep(p: Props) {
                     </div>
                     <label className="block text-sm text-zinc-400">Date of birth<input className="field mt-1 !min-h-10" placeholder="dd/mm/yyyy" value={x.dob ?? ""} onChange={(e) => p.setPerson(x.id, { dob: e.target.value })} /></label>
                     <Select label="Gender" value={x.gender ?? ""} onChange={(v) => p.setPerson(x.id, { gender: v || undefined })} options={[{ value: "", label: "Not set" }, { value: "Male", label: "Male" }, { value: "Female", label: "Female" }, { value: "Transgender", label: "Transgender" }]} searchable={false} />
-                    <label className="block text-sm text-zinc-400">ID on the card<input className="field mt-1 !min-h-10" value={x.id} onChange={(e) => { const v = e.target.value; p.setPeople((l) => l.map((y) => (y === x ? { ...y, id: v } : y))); }} /></label>
+                    <label className="block text-sm text-zinc-400">ID on the card<input className="field mt-1 !min-h-10" value={x.id} aria-invalid={sameId.has(x.id.trim().toLowerCase()) || !x.id.trim()} onChange={(e) => { const v = e.target.value; setOpen(v); p.setPeople((l) => l.map((y) => (y === x ? { ...y, id: v } : y))); }} />{(sameId.has(x.id.trim().toLowerCase()) || !x.id.trim()) && <span role="alert" className="mt-1 block text-xs text-red-300">{x.id.trim() ? "Another person already has this ID. Every card needs its own." : "Every card needs an ID."}</span>}</label>
                     <div className="text-sm text-zinc-400">Aadhaar (last 4 only)<span className="mt-1 flex min-h-10 items-center justify-between gap-2 rounded-lg border border-white/10 px-3 font-mono text-sm text-zinc-300">{x.last4 ? maskAadhaar(x.last4) : "Not added"}{x.source && <Pill tone={x.verified === "invalid" ? "red" : x.source === "qr" ? "green" : "amber"} title={x.verified === "invalid" ? "The UIDAI signature on this QR did not match: it may have been edited" : x.verified === "valid" ? "Read from the QR code, and UIDAI's signature checks out" : x.source === "qr" ? "Read from the card's QR code: exact. UIDAI signature not checked (no certificate installed)" : "Read from printed text: please check"}>{x.verified === "invalid" ? "Signature ✗" : x.verified === "valid" ? "UIDAI ✓" : x.source === "qr" ? "QR" : "OCR"}</Pill>}</span></div>
                     <label className="block text-sm text-zinc-400 sm:col-span-2">Access zones<input className="field mt-1 !min-h-10" placeholder="For example: Main hall; Backstage" value={x.zones ?? ""} onChange={(e) => p.setPerson(x.id, { zones: e.target.value })} /></label>
                     <div className="flex flex-wrap items-end gap-2 sm:col-span-2 lg:pt-6">
@@ -183,7 +185,7 @@ export default function PeopleStep(p: Props) {
                     )}
                     <div className="flex items-center justify-end gap-2 sm:col-span-2 lg:col-span-4">
                       {x.review && <button type="button" className="btn !min-h-10 px-3 text-sm" onClick={() => p.setPerson(x.id, { review: false })}>Details are correct</button>}
-                      <button type="button" className="btn-ghost !min-h-10 px-3 text-sm text-red-300" onClick={() => { p.setPeople((l) => l.filter((y) => y !== x)); setOpen(null); }}>Remove person</button>
+                      <button type="button" className="btn-ghost !min-h-10 px-3 text-sm text-red-300" onClick={() => { if (!window.confirm(`Remove ${x.name || "this person"} from the roster? Their details and photo here are deleted.`)) return; p.setPeople((l) => l.filter((y) => y !== x)); setOpen(null); }}>Remove person</button>
                     </div>
                   </div>
                 )}

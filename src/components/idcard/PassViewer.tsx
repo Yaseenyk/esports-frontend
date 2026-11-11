@@ -13,7 +13,16 @@ export default function PassViewer({ open, onClose, tpl, ctx }: { open: boolean;
   const card = useRef<HTMLDivElement>(null);
   const [tilt, setTilt] = useState({ x: 0, y: 0, gx: 50, gy: 30 });
 
-  useEffect(() => { if (open) setSide("front"); }, [open]);
+  const dialog = useRef<HTMLDivElement>(null);
+  const [failed, setFailed] = useState(false);
+  useEffect(() => { if (open) { setSide("front"); setFailed(false); } }, [open]);
+  // Focus moves into the viewer when it opens and returns to the button that opened it when it closes.
+  useEffect(() => {
+    if (!open) return;
+    const opener = document.activeElement as HTMLElement | null;
+    const id = window.setTimeout(() => dialog.current?.focus(), 0);
+    return () => { window.clearTimeout(id); opener?.focus?.(); };
+  }, [open]);
   useEffect(() => {
     if (!open) return;
     const k = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
@@ -33,13 +42,16 @@ export default function PassViewer({ open, onClose, tpl, ctx }: { open: boolean;
   const save = async () => {
     const node = card.current?.querySelector<HTMLElement>(".idcard-box"); if (!node) return;
     setBusy(true);
-    try { download(await cardToPng(node), `${(ctx.person.name || ctx.person.id).replace(/\s+/g, "-")}-${side}.png`); } finally { setBusy(false); }
+    setFailed(false);
+    try { download(await cardToPng(node), `${((ctx.person.name || "").replace(/[^\p{L}\p{N}]+/gu, "-").replace(/^-|-$/g, "") || ctx.person.id.replace(/[^A-Za-z0-9_-]/g, "_"))}-${side}.png`); }
+    catch { setFailed(true); }
+    finally { setBusy(false); }
   };
 
   return (
     <AnimatePresence>
       {open && (
-        <motion.div role="dialog" aria-modal="true" aria-label={`Pass for ${ctx.person.name}`} className="no-print fixed inset-0 z-[80] grid place-items-center overflow-y-auto bg-black/80 p-4 backdrop-blur-md" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+        <motion.div ref={dialog} tabIndex={-1} role="dialog" aria-modal="true" aria-label={`Pass for ${ctx.person.name}`} className="outline-none no-print fixed inset-0 z-[80] grid place-items-center overflow-y-auto bg-black/80 p-4 backdrop-blur-md" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
           <div className="flex w-full max-w-md flex-col items-center gap-4 py-6">
             <div style={{ perspective: 900, width: tall ? "min(72vw, 320px)" : "min(92vw, 460px)" }} onPointerMove={move} onPointerLeave={() => setTilt({ x: 0, y: 0, gx: 50, gy: 30 })}>
               <motion.div initial={{ scale: 0.85, opacity: 0, rotateY: -40 }} animate={{ scale: 1, opacity: 1, rotateY: 0 }} transition={{ type: "spring", stiffness: 220, damping: 20 }}>
@@ -56,6 +68,7 @@ export default function PassViewer({ open, onClose, tpl, ctx }: { open: boolean;
               <button type="button" className="btn-ghost !min-h-10 px-4 text-sm" onClick={onClose}>Close</button>
             </div>
             <p className="text-xs text-zinc-400">{ctx.person.name} · {ctx.person.role}</p>
+            {failed && <p role="alert" className="text-sm text-red-300">Could not save the picture. Try again.</p>}
           </div>
         </motion.div>
       )}

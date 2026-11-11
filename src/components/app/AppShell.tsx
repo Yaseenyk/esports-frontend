@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { auth } from "@/lib/api/cloud";
+import { auth, sessionStore } from "@/lib/api/cloud";
 import { LangSwitch } from "@/components/useLang";
 import { useSession } from "@/components/cloud/useSession";
 import { Sk } from "@/components/skeleton/Sk";
@@ -28,7 +28,13 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const [ready, setReady] = useState(false);
   useEffect(() => setReady(true), []);
-  useEffect(() => { if (ready && !session) router.replace(`/login/?next=${encodeURIComponent(path)}`); }, [ready, session, path, router]);
+  // One place decides where a signed-out person goes, so the Sign out button and an expired sign-in cannot race each other:
+  // deleted account -> home page; chose to sign out -> plain sign-in page; sign-in ran out -> sign-in page that brings them back here.
+  useEffect(() => {
+    if (!ready || session) return;
+    const why = sessionStore.endedBy();
+    router.replace(why === "deleted" ? "/" : why === "signed-out" ? "/login/" : `/login/?next=${encodeURIComponent(path)}${why === "expired" ? "&expired=1" : ""}`);
+  }, [ready, session, path, router]);
 
   if (!ready || !session) {
     return (
@@ -50,7 +56,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           <div className="flex items-center gap-3">
             <LangSwitch className="hidden sm:flex" />
             <span className="hidden max-w-[10rem] truncate text-sm text-zinc-300 md:block">{session.user.name}</span>
-            <button type="button" className="btn-ghost !min-h-9 px-3 text-sm" onClick={() => { auth.logout(); router.replace("/"); }}>Sign out</button>
+            <button type="button" className="btn-ghost !min-h-9 px-3 text-sm" onClick={() => { if (path.startsWith("/app/id-cards") && !window.confirm("Sign out? The people and designs on this screen are not saved in this browser, so they will be lost unless you saved a project file or saved the event online.")) return; auth.logout(); }}>Sign out</button>
           </div>
         </div>
         <nav aria-label="App" className="mx-auto flex max-w-[1500px] gap-1 overflow-x-auto px-3 pb-2 [scrollbar-width:none]">

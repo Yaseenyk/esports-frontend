@@ -15,6 +15,7 @@ import { suggest, themeById } from "@/lib/idcard/themes";
 import { DEFAULT_INFO, FORMATS, ROLES, fmtOf, prettyDate, randomPassphrase, uid, type EventInfo, type Fmt, type Person, type Role, type Team, type Template } from "@/lib/idcard/types";
 import { type Ctx } from "./CardView";
 import type { Job } from "./PeopleStep";
+import { idPrefix, uniqueId } from "./ids";
 import SetupStep from "./SetupStep";
 import { StepSkeleton } from "@/components/skeleton/Scenes";
 import { LangSwitch, useLang } from "@/components/useLang";
@@ -53,7 +54,6 @@ const SAMPLE_PEOPLE: Person[] = [
   { id: "PUN-002", name: "Zoya Khan", teamId: "t3", role: "Player", dob: "21/08/2003", gender: "Female", last4: "7731", photo: "/samples/people/zoya-khan.webp", cutout: true },
   { id: "PUN-003", name: "Aditya Chavan", teamId: "t3", role: "Coach", dob: "16/02/1994", gender: "Male", last4: "1259", photo: "/samples/people/aditya-chavan.webp", cutout: true },
 ];
-const prefix = (name: string) => (name.replace(/[^A-Za-z0-9]/g, "").slice(0, 3) || "ID").toUpperCase();
 
 /** Photos are shrunk to a sensible size so a full roster stays light in memory and prints sharply. */
 async function shrink(file: File, max = 800): Promise<{ url: string; cutout: boolean }> {
@@ -154,9 +154,15 @@ export default function IdCardStudio() {
     })();
     return () => { off = true; };
   }, [people, event, info.sign, info.passphrase]);
-  const nextId = (teamId: string, extra = 0) => `${prefix(teamById(teamId)?.name ?? "")}-${String(peopleRef.current.filter((p) => p.teamId === teamId).length + 1 + extra).padStart(3, "0")}`;
   const setPerson = (id: string, patch: Partial<Person>) => setPeople((l) => l.map((p) => (p.id === id ? { ...p, ...patch } : p)));
-  const addPerson = (teamId = teams[0].id, o: Partial<Person> = {}) => setPeople((l) => [...l, { id: nextId(teamId), name: "", teamId, role: "Player", ...o }]);
+  /** Adds a blank person and returns their ID, so the list can open them straight away. */
+  const addPerson = (teamId = teams[0].id, o: Partial<Person> = {}): string => {
+    const taken = peopleRef.current;
+    const person: Person = { id: uniqueId(idPrefix(teamById(teamId)?.name ?? ""), taken.map((p) => p.id), taken.filter((p) => p.teamId === teamId).length + 1), name: "", teamId, role: "Player", ...o };
+    peopleRef.current = [...taken, person];
+    setPeople((l) => [...l, person]);
+    return person.id;
+  };
 
   // Aadhaar scanning: strictly one at a time, in the browser. A PDF is drawn to pictures first.
   const readFile = async (f: File, upd: (p: Partial<Job>) => void, password?: string): Promise<AadhaarRead> => {
@@ -184,7 +190,7 @@ export default function IdCardStudio() {
       try {
         const r = await readFile(f, upd, password);
         if (!r.name && !r.dob && !r.last4) { upd({ state: "error", note: "Could not read this card. Try a sharper, straight-on photo." }); continue; }
-        setPeople((l) => [...l, { id: nextId(target, l.filter((p) => p.teamId === target).length - peopleRef.current.filter((p) => p.teamId === target).length), name: r.name ?? "", teamId: target, role: "Player", dob: r.dob ?? (r.yob ? `Year ${r.yob}` : undefined), gender: r.gender, last4: r.last4, source: r.source, verified: r.verified, review: r.source !== "qr" || r.verified === "invalid" }]);
+        setPeople((l) => [...l, { id: uniqueId(idPrefix(teamById(target)?.name ?? ""), l.map((p) => p.id), l.filter((p) => p.teamId === target).length + 1), name: r.name ?? "", teamId: target, role: "Player", dob: r.dob ?? (r.yob ? `Year ${r.yob}` : undefined), gender: r.gender, last4: r.last4, source: r.source, verified: r.verified, review: r.source !== "qr" || r.verified === "invalid" }]);
         upd({ state: "done", pct: 100, note: r.source === "qr" ? (r.verified === "valid" ? "Read from the QR code. UIDAI signature verified." : r.verified === "invalid" ? "Read from the QR code, but the UIDAI signature did NOT match. The QR may have been edited: check this person." : "Read from the QR code: exact. (UIDAI signature not checked: no certificate installed.)") : "Read by OCR: please check the details." });
         setPdfAsk(null); setPdfPass("");
         addXp(5, r.source === "qr" ? "Card read from QR" : "Card read");
@@ -209,8 +215,10 @@ export default function IdCardStudio() {
   };
   const photo = async (id: string, f?: File) => {
     if (!f) return;
-    const r = await shrink(f); setPerson(id, { photo: r.url, cutout: r.cutout });
-    if (autoBg && !r.cutout) await cutOut(id, f);
+    try {
+      const r = await shrink(f); setPerson(id, { photo: r.url, cutout: r.cutout });
+      if (autoBg && !r.cutout) await cutOut(id, f);
+    } catch { setBgNote("That picture could not be read. Try a JPG or PNG."); }
   };
   const cutOutExisting = async (p: Person) => { if (!p.photo) return; const blob = await (await fetch(p.photo)).blob(); await cutOut(p.id, blob); };
 
@@ -271,8 +279,8 @@ export default function IdCardStudio() {
 
   // ---- design step helpers
   const changeFormat = (v: Fmt) => setTemplates((t) => { const cur = tplFor(dTeam); return { ...t, [dTeam.id]: withBack({ ...(themeById(cur.theme ?? "") ?? themeById(suggest(null, dTeam.name, v))!).make(v), id: dTeam.id }) }; });
-  const sameForAll = () => setTemplates((t) => { const n = { ...t }; teams.forEach((x) => { n[x.id] = { ...curTpl, id: x.id, els: curTpl.els.map((e) => ({ ...e })), back: curTpl.back ? { bg: curTpl.back.bg, els: curTpl.back.els.map((e) => ({ ...e })) } : undefined }; }); return n; });
-  const differentPerTeam = () => setTemplates((t) => { const n = { ...t }; teams.forEach((x, i) => { const id = suggest(vibe, x.name + i, fmtOf(tplFor(x))); n[x.id] = withBack({ ...themeById(id)!.make(fmtOf(tplFor(x))), id: x.id }); }); return n; });
+  const sameForAll = () => { if (teams.length > 1 && !window.confirm(`Copy this design to the other ${teams.length - 1} ${teams.length === 2 ? "team" : "teams"}? Their own designs are replaced.`)) return; setTemplates((t) => { const n = { ...t }; teams.forEach((x) => { n[x.id] = { ...curTpl, id: x.id, els: curTpl.els.map((e) => ({ ...e })), back: curTpl.back ? { bg: curTpl.back.bg, els: curTpl.back.els.map((e) => ({ ...e })) } : undefined }; }); return n; }); };
+  const differentPerTeam = () => { if (teams.length > 1 && !window.confirm("Give every team a different design? Designs you changed are replaced.")) return; setTemplates((t) => { const n = { ...t }; teams.forEach((x, i) => { const id = suggest(vibe, x.name + i, fmtOf(tplFor(x))); n[x.id] = withBack({ ...themeById(id)!.make(fmtOf(tplFor(x))), id: x.id }); }); return n; }); };
 
   const stepMeta = [`${teams.length} ${teams.length === 1 ? "team" : "teams"}`, `${people.length} ${people.length === 1 ? "person" : "people"}`, FORMATS[fmt].label, `${printable.length} ${printable.length === 1 ? "card" : "cards"}`];
   const hint = ["Next you will add the people on each team.", needReview > 0 ? `${needReview} ${needReview === 1 ? "person needs" : "people need"} a quick check.` : `${people.length} people ready.`, "Last step: print or download the cards.", ""][step];
@@ -319,7 +327,7 @@ export default function IdCardStudio() {
 
       <AnimatePresence mode="wait" initial={false}>
         <motion.div key={step} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.18 }}>
-          {step === 0 && <SetupStep event={event} setEvent={setEvent} game={game} setGame={setGame} organiser={organiser} setOrganiser={setOrganiser} fmt={fmt} onFmt={(f) => { setFmt(f); setTemplates({}); }} teams={teams} setTeams={setTeams} setPeople={setPeople} info={info} setInfo={setInfo} />}
+          {step === 0 && <SetupStep event={event} setEvent={setEvent} game={game} setGame={setGame} organiser={organiser} setOrganiser={setOrganiser} fmt={fmt} onFmt={(f) => { if (f === fmt) return; if (Object.keys(templates).length > 0 && !window.confirm("Changing the card shape starts every team's design again, because the layouts are different sizes. Continue?")) return; setFmt(f); setTemplates({}); }} teams={teams} setTeams={setTeams} people={people} setPeople={setPeople} info={info} setInfo={setInfo} />}
           {step === 1 && <PeopleStep ocrLang={ocrLang} setOcrLang={setOcrLang} people={people} teams={teams} teamOpts={teamOpts} valid={valid} scanTeam={scanTeam} setScanTeam={setScanTeam} consent={consent} setConsent={setConsent} jobs={jobs} scan={scan} trySample={trySample} pdfAsk={pdfAsk} pdfPass={pdfPass} setPdfPass={setPdfPass} setPeople={setPeople} setTeams={setTeams} setPerson={setPerson} addPerson={addPerson} minorOf={minorOf} duplicates={duplicates} photo={photo} cutOutExisting={cutOutExisting} bgBusy={bgBusy} bgNote={bgNote} autoBg={autoBg} setAutoBg={setAutoBg} />}
           {step === 2 && dTeam && <DesignStep teamOpts={teamOpts} dTeam={dTeam} setDesignTeam={setDesignTeam} curTpl={curTpl} editView={editView} onEdit={onEdit} ctxFor={ctxFor} sample={sample} teamPeople={teamPeople} setPreviewId={setPreviewId} side={side} setSide={setSide} vibe={vibe} setVibe={setVibe} onFormat={changeFormat} applyTheme={(id) => applyTheme(id, [dTeam.id])} surprise={() => applyTheme(suggest(vibe, dTeam.name, fmtOf(curTpl)), [dTeam.id])} sameForAll={sameForAll} differentPerTeam={differentPerTeam} addBack={() => setTemplates((t) => ({ ...t, [dTeam.id]: withBack(curTpl) }))} rebuildBack={() => setTemplates((t) => ({ ...t, [dTeam.id]: { ...curTpl, back: buildBack(curTpl) } }))} toggleRoleBar={toggleRoleBar} roleBarOn={curTpl.els.some((e) => e.id.startsWith("rolebar"))} recolourFromLogo={recolourFromLogo} setTeamLogo={(logo) => setTeams((l) => l.map((x) => (x.id === dTeam.id ? { ...x, logo } : x)))} photoForSample={(f) => photo(sample.id, f)} onSaveDesign={saveDesign} onLoadDesign={loadDesign} />}
           {step === 3 && (
@@ -341,7 +349,7 @@ export default function IdCardStudio() {
           onClose={() => setCloudOpen(false)}
           onCodes={(codes) => setCloudCodes(Object.fromEntries(Object.entries(codes).map(([id, code]) => [id, { code, role: peopleRef.current.find((p) => p.id === id)?.role ?? "Player" }])))}
           onPeople={(add) => setPeople((l) => [...l, ...add.filter((a) => !l.some((x) => x.id === a.id))])}
-          onLoaded={(l) => { setEvent(l.details.name); setGame(l.details.game || game); setOrganiser(l.details.organiser || organiser); setInfo((i) => ({ ...i, date: l.details.date || i.date, venue: l.details.venue || i.venue, emergency: l.details.emergency || i.emergency, rules: l.details.rules || i.rules })); setTeams(l.teams.length ? l.teams : teams); setPeople(l.people); setTemplates({}); setStep(0); }}
+          onLoaded={(l) => { setEvent(l.details.name); setGame(l.details.game || game); setOrganiser(l.details.organiser || organiser); setInfo((i) => ({ ...i, date: l.details.date || i.date, venue: l.details.venue || i.venue, emergency: l.details.emergency || i.emergency, rules: l.details.rules || i.rules })); setTeams(l.teams.length ? l.teams : teams); setPeople(l.people); setTemplates((t) => Object.fromEntries(Object.entries(t).filter(([id]) => l.teams.some((x) => x.id === id)))); setStep(0); }}
         />
       )}
     </div>

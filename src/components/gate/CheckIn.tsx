@@ -29,17 +29,25 @@ export default function CheckIn() {
   const video = useRef<HTMLVideoElement>(null);
   const stream = useRef<MediaStream | null>(null);
   const last = useRef({ code: "", at: 0 });
-  const state = useRef({ pack, pass, log });
-  state.current = { pack, pass, log };
+  // Refs, not state, so two scans in the same moment see each other: the second one of the same person must say "already checked in".
+  const state = useRef({ pack, pass });
+  state.current = { pack, pass };
+  const logRef = useRef<Log>({});
+  const awardRef = useRef(award); awardRef.current = award;
 
   useEffect(() => {
     try { const p = JSON.parse(localStorage.getItem(PACK) || "null"); if (p?.people) setPack(p); setPass(sessionStorage.getItem("eh-checkin-pass") || ""); } catch {}
   }, []);
-  useEffect(() => { if (pack) try { setLog(JSON.parse(localStorage.getItem(LOGKEY(pack.eventKey)) || "{}")); } catch { setLog({}); } }, [pack]);
+  useEffect(() => {
+    if (!pack) return;
+    let l: Log = {};
+    try { const raw = JSON.parse(localStorage.getItem(LOGKEY(pack.eventKey)) || "{}"); if (raw && typeof raw === "object" && !Array.isArray(raw)) l = raw; } catch { /* a damaged log starts empty */ }
+    logRef.current = l; setLog(l);
+  }, [pack]);
   useEffect(() => { try { sessionStorage.setItem("eh-checkin-pass", pass); } catch {} }, [pass]);
 
   const check = useCallback(async (code: string) => {
-    const { pack: pk, pass: pw, log: lg } = state.current;
+    const { pack: pk, pass: pw } = state.current;
     if (!pk) return;
     const parsed = parsePass(code);
     if (!parsed) { setRes({ kind: "bad", title: "Not a pass from this tool", sub: "The code is not in the pass format." }); return; }
@@ -50,16 +58,17 @@ export default function CheckIn() {
       const v = await verifyPass(pw, pk.eventKey, person.role, code);
       if (!v.ok) { setRes({ kind: "bad", title: v.reason === "wrong-event" ? "Pass is for another event" : "Fake or edited pass", sub: v.reason === "bad-signature" ? "The signature does not match. Either the passphrase is wrong or the card was copied or changed." : "This card belongs to a different event.", person }); try { navigator.vibrate?.([120, 60, 120]); } catch {} return; }
     }
+    const lg = logRef.current; // read after the (slow) signature check, so a scan that finished first is seen
     const prior = lg[person.id];
     if (prior) { setRes({ kind: "again", title: "Already checked in", sub: `Checked in at ${time(prior)}`, person, at: prior }); try { navigator.vibrate?.(80); } catch {} return; }
     const now = new Date().toISOString();
     const next = { ...lg, [person.id]: now };
-    setLog(next);
+    logRef.current = next; setLog(next);
     try { localStorage.setItem(LOGKEY(pk.eventKey), JSON.stringify(next)); } catch {}
     setRes({ kind: "ok", title: "Genuine pass", sub: `Checked in at ${time(now)}`, person, at: now });
     try { navigator.vibrate?.(40); } catch {}
-    award("gatekeeper", 15, "Gatekeeper: checked in your first guest");
-  }, [award]);
+    awardRef.current("gatekeeper", 15, "Gatekeeper: checked in your first guest");
+  }, []);
 
   // Camera scanning: look for a QR a few times a second.
   useEffect(() => {
@@ -88,7 +97,9 @@ export default function CheckIn() {
     if (!f) return;
     try {
       const p = JSON.parse(await f.text()) as Pack;
-      if (!p.people || !p.eventKey) throw new Error("bad");
+      if (!Array.isArray(p.people) || typeof p.eventKey !== "string" || !p.eventKey) throw new Error("bad");
+      // Keep only well-formed people, and only pictures that are embedded in the file (a pack must never make the phone fetch anything).
+      p.people = p.people.filter((x) => x && typeof x.id === "string" && typeof x.name === "string").map((x) => ({ ...x, team: String(x.team ?? ""), zones: String(x.zones ?? ""), thumb: typeof x.thumb === "string" && x.thumb.startsWith("data:image/") ? x.thumb : undefined }));
       setPack(p); setRes(null);
       try { localStorage.setItem(PACK, JSON.stringify(p)); } catch {}
     } catch { setRes({ kind: "bad", title: "That is not a check-in pack", sub: "Make one in the ID card tool, on the Print step." }); }
@@ -101,7 +112,9 @@ export default function CheckIn() {
   };
   const exportLog = () => {
     if (!pack) return;
-    const rows = pack.people.map((p) => [p.id, p.name, p.team, p.role, p.zones, log[p.id] ? new Date(log[p.id]).toLocaleString("en-GB") : ""].map((c) => `"${String(c).replace(/"/g, '""')}"`).join(","));
+    // A cell that starts with = + - or @ would run as a formula in Excel, so it gets a leading apostrophe.
+    const cell = (c: unknown) => { const t = String(c ?? ""); return `"${(/^[=+@\t\r-]/.test(t) ? `'${t}` : t).replace(/"/g, '""')}"`; };
+    const rows = pack.people.map((p) => [p.id, p.name, p.team, p.role, p.zones, log[p.id] ? new Date(log[p.id]!).toLocaleString("en-GB") : ""].map(cell).join(","));
     downloadBlob(new Blob([["id,name,team,role,zones,checked_in", ...rows].join("\r\n")], { type: "text/csv" }), `${pack.eventKey}-attendance.csv`);
   };
 
@@ -162,7 +175,7 @@ export default function CheckIn() {
           <section className="card space-y-3">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <h2 className="font-display text-lg font-bold text-white">Checked in: {done} of {pack.people.length}</h2>
-              <div className="flex gap-2"><button type="button" className="btn-ghost !min-h-9 px-3 text-sm" onClick={exportLog}>Download attendance (CSV)</button><button type="button" className="chip !min-h-9" onClick={() => { if (confirm("Clear all check-ins on this device?")) { setLog({}); try { localStorage.removeItem(LOGKEY(pack.eventKey)); } catch {} } }}>Clear</button></div>
+              <div className="flex gap-2"><button type="button" className="btn-ghost !min-h-9 px-3 text-sm" onClick={exportLog}>Download attendance (CSV)</button><button type="button" className="chip !min-h-9" onClick={() => { if (confirm(`Clear all ${done} check-ins on this device? Download the attendance first if you need it. This cannot be undone.`)) { logRef.current = {}; setLog({}); setRes(null); try { localStorage.removeItem(LOGKEY(pack.eventKey)); } catch {} } }}>Clear check-ins</button></div>
             </div>
             <div className="h-2 overflow-hidden rounded-full bg-white/10"><div className="h-full bg-gradient-to-r from-cyan to-purple transition-[width]" style={{ width: `${pack.people.length ? (done / pack.people.length) * 100 : 0}%` }} /></div>
             <ul className="grid gap-1.5 sm:grid-cols-2" aria-label="Guest list">

@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { SEARCH_INDEX, type Hit } from "@/lib/data";
 
 const KIND_STYLE: Record<Hit["kind"], string> = {
@@ -14,6 +15,8 @@ const KIND_STYLE: Record<Hit["kind"], string> = {
 
 /** One box that searches games, events, communities, guides and tools. Press / to focus it from anywhere. */
 export default function SearchBox({ large = false, placeholder = "Search games, events…" }: { large?: boolean; placeholder?: string }) {
+  const uid = useId();
+  const router = useRouter();
   const [q, setQ] = useState("");
   const [open, setOpen] = useState(false);
   const [i, setI] = useState(0);
@@ -51,25 +54,27 @@ export default function SearchBox({ large = false, placeholder = "Search games, 
         onChange={(e) => { setQ(e.target.value); setOpen(true); setI(0); }}
         onFocus={() => setOpen(true)}
         onKeyDown={(e) => {
-          if (e.key === "ArrowDown") { e.preventDefault(); setI((x) => Math.min(hits.length - 1, x + 1)); }
+          if (e.key === "ArrowDown") { e.preventDefault(); setI((x) => Math.max(0, Math.min(hits.length - 1, x + 1))); }
           else if (e.key === "ArrowUp") { e.preventDefault(); setI((x) => Math.max(0, x - 1)); }
-          else if (e.key === "Enter" && hits[i]) window.location.href = hits[i].href;
+          else if (e.key === "Enter" && hits[i]) { e.preventDefault(); setOpen(false); router.push(hits[i].href); }
           else if (e.key === "Escape") setOpen(false);
         }}
         placeholder={placeholder}
         autoComplete="off"
         role="combobox"
         aria-expanded={open && hits.length > 0}
-        aria-controls="search-results"
+        aria-controls={`${uid}-results`}
+        aria-activedescendant={open && hits[i] ? `${uid}-opt-${i}` : undefined}
+        aria-autocomplete="list"
         className={`field ${large ? "min-h-14 pl-12 text-lg" : "pl-10"}`}
       />
       <svg aria-hidden="true" viewBox="0 0 24 24" className={`pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 fill-none stroke-zinc-500 ${large ? "h-6 w-6 left-4" : "h-5 w-5"}`} strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" /></svg>
       {open && q.trim() && (
-        <ul id="search-results" role="listbox" className="absolute inset-x-0 top-full z-30 mt-2 overflow-hidden rounded-xl border border-white/[0.14] bg-[#0a0b0d]">
-          {hits.length === 0 && <li className="px-4 py-3 text-sm text-zinc-400">Nothing matches &ldquo;{q}&rdquo; in the sample data.</li>}
+        <ul id={`${uid}-results`} role="listbox" aria-label="Search results" className="absolute inset-x-0 top-full z-30 mt-2 overflow-hidden rounded-xl border border-white/[0.14] bg-[#0a0b0d]">
+          {hits.length === 0 && <li className="px-4 py-3 text-sm text-zinc-400">Nothing matches &ldquo;{q}&rdquo;. Try a game, a guide or a tool name.</li>}
           {hits.map((h, n) => (
-            <li key={h.href + h.title} role="option" aria-selected={n === i}>
-              <Link href={h.href} className={`flex items-center gap-3 px-4 py-3 outline-none ${n === i ? "bg-zinc-800" : "hover:bg-zinc-900"}`}>
+            <li key={h.href + h.title} id={`${uid}-opt-${n}`} role="option" aria-selected={n === i}>
+              <Link href={h.href} tabIndex={-1} className={`flex min-h-11 items-center gap-3 px-4 py-3 outline-none ${n === i ? "bg-zinc-800" : "hover:bg-zinc-900"}`}>
                 <span className={`w-20 shrink-0 rounded-md px-2 py-0.5 text-center text-[11px] font-semibold ${KIND_STYLE[h.kind]}`}>{h.kind}</span>
                 <span className="min-w-0">
                   <span className="block truncate text-zinc-50">{h.title}</span>

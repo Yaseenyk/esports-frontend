@@ -69,7 +69,9 @@ export function parseRoster(text: string): { rows: RosterRow[]; skipped: number;
   return { rows, skipped, trimmedAadhaar };
 }
 
-const q = (v: string) => (/[",\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v);
+/** A cell starting with = + - or @ runs as a formula when the file is opened in Excel, so a name like "=HYPERLINK(...)" gets a leading apostrophe. Plain numbers are left alone. */
+export const safeCell = (v: string): string => (/^[=+\-@\t\r]/.test(v) && !/^[-+]?[\d.]+$/.test(v) ? `'${v}` : v);
+const q = (raw: string) => { const v = safeCell(raw); return /[",\n\r]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v; };
 
 export function toCsv(people: Person[], teams: Team[], minorOf: (p: Person) => boolean): string {
   const head = ["id", "name", "team", "role", "dob", "gender", "zones", "aadhaar_last4", "photo", "minor", "guardian_consent"];

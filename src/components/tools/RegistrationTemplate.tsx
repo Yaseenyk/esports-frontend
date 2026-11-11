@@ -13,7 +13,7 @@ const PRESETS = [
 export default function RegistrationTemplate() {
   const [preset, setPreset] = useState<(typeof PRESETS)[number]["id"]>("squad");
   const [event, setEvent] = useState("Monsoon Clash Season 2");
-  const [copied, setCopied] = useState(false);
+  const [copied, setCopied] = useState<"" | "yes" | "no">("");
   const p = PRESETS.find((x) => x.id === preset)!;
 
   const text = useMemo(() => {
@@ -36,7 +36,10 @@ export default function RegistrationTemplate() {
           <label className="block text-sm text-zinc-200">Event name<input className="field mt-1" value={event} onChange={(e) => setEvent(e.target.value)} maxLength={80} /></label>
         </div>
         <pre className="max-h-72 overflow-auto whitespace-pre-wrap rounded-xl border border-white/[0.14] bg-[#0f1013] p-3 text-sm text-zinc-200" tabIndex={0} aria-label="Registration form text">{text}</pre>
-        <button type="button" className="btn !min-h-10 px-4 text-sm" onClick={() => { void navigator.clipboard?.writeText(text).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000); }); }}>{copied ? "Copied" : "Copy the form"}</button>
+        <div className="flex flex-wrap items-center gap-3">
+          <button type="button" className="btn px-4 text-sm" onClick={async () => { try { await navigator.clipboard.writeText(text); setCopied("yes"); } catch { setCopied("no"); } setTimeout(() => setCopied(""), 2500); }}>{copied === "yes" ? "Copied" : "Copy the form"}</button>
+          <span role="status" aria-live="polite" className="text-sm text-amber-200">{copied === "no" ? "Your browser did not allow copying. Select the text above and copy it yourself." : ""}</span>
+        </div>
         <p className="text-xs text-zinc-400">Typical team sizes: most squad modes use 4 players; 5 v 5 games use 5. Always follow the rules of your own event or the game&apos;s tournament rules.</p>
       </div>
       <div className="card space-y-2">

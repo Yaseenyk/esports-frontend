@@ -27,7 +27,7 @@ const Ctx = createContext<Api | null>(null);
 export const useXp = () => useContext(Ctx) ?? { xp: 0, level: 1, into: 0, span: 25, overdrive: false, award() {}, addXp() {} };
 
 function load(): Progress {
-  try { const p = JSON.parse(localStorage.getItem(KEY) || "null"); if (p && typeof p.xp === "number") return { xp: p.xp, done: Array.isArray(p.done) ? p.done : [], overdrive: !!p.overdrive }; } catch {}
+  try { const p = JSON.parse(localStorage.getItem(KEY) || "null"); if (p && typeof p.xp === "number" && Number.isFinite(p.xp)) return { xp: Math.max(0, Math.floor(p.xp)), done: Array.isArray(p.done) ? p.done.filter((x: unknown) => typeof x === "string") : [], overdrive: !!p.overdrive }; } catch {}
   return { xp: 0, done: [], overdrive: false };
 }
 
@@ -68,6 +68,12 @@ export default function XpProvider({ children }: { children: ReactNode }) {
   }, [commit, toast]);
 
   useEffect(() => { const l = load(); ref.current = l; setP(l); setReady(true); }, []);
+  // Progress made in another tab of this browser arrives here, so two open tabs never overwrite each other with stale numbers.
+  useEffect(() => {
+    const sync = (e: StorageEvent) => { if (e.key === KEY) { const l = load(); ref.current = l; setP(l); } };
+    window.addEventListener("storage", sync);
+    return () => window.removeEventListener("storage", sync);
+  }, []);
   useEffect(() => { document.documentElement.toggleAttribute("data-overdrive", p.overdrive); }, [p.overdrive]);
 
   // Exploring is rewarded: each section once, and a bonus for seeing them all.

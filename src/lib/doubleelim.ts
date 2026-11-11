@@ -2,7 +2,7 @@
  * Double elimination: a team is out after two losses. Builds the winners bracket, the losers bracket and the grand final,
  * and works out who is in each slot from the winners picked so far. Pure functions.
  */
-import { seedOrder } from "./seeding";
+import { seedOrder, uniqueTeams } from "./seeding";
 
 export type Ref =
   | { t: "team"; name: string; seed: number }
@@ -17,7 +17,7 @@ export type Slot = { kind: "team"; name: string; seed: number } | { kind: "bye" 
 
 /** "W2-3" is the third match of round 2 of the winners bracket. */
 export function build(teams: string[]): Bracket | null {
-  const list = teams.map((t) => t.trim()).filter(Boolean);
+  const list = uniqueTeams(teams);
   if (list.length < 3 || list.length > 64) return null;
   let size = 4;
   while (size < list.length) size *= 2;
@@ -87,4 +87,32 @@ export function champion(bracket: Bracket, picks: Record<string, 0 | 1 | undefin
   const gf = slots(bracket, bracket.matches.find((m) => m.id === "GF")!, picks);
   const r = first === 0 ? gf[0] : resolve(bracket, { t: "winner", of: "GF2" }, picks);
   return r.kind === "team" ? { name: r.name, seed: r.seed } : null;
+}
+
+/** Every match whose teams depend, directly or further down the bracket, on the result of match `id`. */
+export function dependents(bracket: Bracket, id: string): string[] {
+  const out = new Set<string>();
+  const queue = [id];
+  while (queue.length) {
+    const cur = queue.shift()!;
+    for (const m of bracket.matches) {
+      if (out.has(m.id)) continue;
+      if ((m.a.t === "winner" || m.a.t === "loser") && m.a.of === cur || (m.b.t === "winner" || m.b.t === "loser") && m.b.of === cur) { out.add(m.id); queue.push(m.id); }
+    }
+  }
+  // The reset final is played only after the first final, and takes the same two teams, so it depends on it too.
+  if (id === "GF" || out.has("GF")) out.add("GF2");
+  return [...out];
+}
+
+/**
+ * Sets (or, with `side` undefined, takes back) the result of one match and forgets every later result that was built on it,
+ * so changing your mind about an early match can never leave a later pick pointing at a different team.
+ */
+export function setPick(bracket: Bracket, picks: Record<string, 0 | 1 | undefined>, id: string, side: 0 | 1 | undefined): Record<string, 0 | 1 | undefined> {
+  if (picks[id] === side) return picks;
+  const next = { ...picks, [id]: side };
+  for (const d of dependents(bracket, id)) delete next[d];
+  if (side === undefined) delete next[id];
+  return next;
 }

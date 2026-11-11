@@ -29,7 +29,8 @@ export default function EventsPage() {
       {list.error && <p role="alert" className="text-sm text-red-300">{explain(list.error)}</p>}
       {!list.loading && !list.error && (list.data ?? []).length === 0 && <div className="card space-y-2"><p className="text-zinc-200">No events saved online yet.</p><p className="text-sm text-zinc-400">Make your cards in the ID card maker, then use <strong className="text-zinc-200">Save, open or share, then Online</strong> to save the event.</p></div>}
 
-      {chosen ? <Detail ev={chosen} onBack={() => select(null)} /> : (
+      {id && !chosen && !list.loading && !list.error && list.data && <p role="status" className="rounded-xl border border-amber-500/30 bg-[#0a0b0d] p-3 text-sm text-amber-100">That event was not found. It may have been deleted, or it belongs to another account.</p>}
+      {chosen ? <Detail key={chosen.id} ev={chosen} onBack={() => select(null)} onDeleted={() => { select(null); list.refetch(); }} /> : (
         (list.data ?? []).length > 0 && (
           <ul className="grid gap-3 md:grid-cols-2">
             {(list.data ?? []).map((ev) => (
@@ -46,9 +47,15 @@ export default function EventsPage() {
 function ScreenLauncher({ ev }: { ev: CloudEvent }) {
   const [names, setNames] = useState(false), [busy, setBusy] = useState(false), [err, setErr] = useState("");
   const open = async () => {
+    if (busy) return;
     setBusy(true); setErr("");
-    try { const k = await events.newGateKey(ev.id, "Check-in screen", 12); window.open(`/display/?v=checkin&k=${encodeURIComponent(k.key)}&title=${encodeURIComponent(ev.name)}${names ? "&names=1" : ""}`, "eh-screen"); }
-    catch (x) { setErr(explain(x)); } finally { setBusy(false); }
+    // The window is opened now, while the click still counts, and pointed at the screen once the key exists. Browsers block a window opened after waiting.
+    const w = window.open("about:blank", "eh-screen");
+    try {
+      const k = await events.newGateKey(ev.id, "Check-in screen", 12);
+      const url = `/display/?v=checkin&k=${encodeURIComponent(k.key)}&title=${encodeURIComponent(ev.name)}${names ? "&names=1" : ""}`;
+      if (w) w.location.href = url; else setErr("Your browser blocked the new window. Allow pop-ups for this site and try again.");
+    } catch (x) { w?.close(); setErr(explain(x)); } finally { setBusy(false); }
   };
   if (ev.role === "viewer") return null;
   return (
@@ -61,7 +68,26 @@ function ScreenLauncher({ ev }: { ev: CloudEvent }) {
   );
 }
 
-function Detail({ ev, onBack }: { ev: CloudEvent; onBack: () => void }) {
+/** Owner only. Asks first, and says what goes with it. */
+function DeleteEvent({ ev, onDeleted }: { ev: CloudEvent; onDeleted: () => void }) {
+  const [busy, setBusy] = useState(false), [err, setErr] = useState("");
+  const go = async () => {
+    if (busy) return;
+    if (!confirm(`Delete "${ev.name}" from the server? Its roster, photos, check-ins, registration form and every link are removed for everyone with access. This cannot be undone. Cards saved in your browser stay.`)) return;
+    setBusy(true); setErr("");
+    try { await events.remove(ev.id); onDeleted(); } catch (x) { setErr(explain(x)); setBusy(false); }
+  };
+  return (
+    <section aria-label="Delete event" className="space-y-2 rounded-2xl border border-red-400/30 bg-[#0a0b0d] p-4">
+      <h3 className="font-display text-lg font-bold text-white">Delete this event</h3>
+      <p className="text-sm text-zinc-300">Removes it from the server for you and for any organisers you added. Your own copy in the ID card maker stays.</p>
+      <button type="button" className="btn-ghost !min-h-11 px-4 text-sm !border-red-400/50 text-red-200" disabled={busy} onClick={go}>{busy ? "Deleting…" : "Delete event"}</button>
+      {err && <p role="alert" className="text-sm text-red-300">{err}</p>}
+    </section>
+  );
+}
+
+function Detail({ ev, onBack, onDeleted }: { ev: CloudEvent; onBack: () => void; onDeleted: () => void }) {
   const roster = useQuery<CloudRoster>(`/events/${ev.id}/roster`, { ttl: 20_000 });
   const live = useQuery<Live>(`/events/${ev.id}/checkins`, { pollMs: 30_000, maxPollMs: 120_000 });
   const people = roster.data?.people ?? [], teams = roster.data?.teams ?? [];
@@ -92,9 +118,10 @@ function Detail({ ev, onBack }: { ev: CloudEvent; onBack: () => void }) {
         <div className="card !p-4"><h3 className="font-display font-bold text-white">Teams</h3><ul className="mt-2 grid gap-1.5 text-sm sm:grid-cols-2">{teams.map((t) => <li key={t.id} className="flex justify-between gap-2 rounded-lg border border-white/10 px-3 py-2"><span className="truncate text-zinc-200">{t.name}</span><span className="text-zinc-400">{people.filter((p) => p.teamId === t.id).length} people</span></li>)}</ul></div>
       )}
       {ev.role === "viewer" && <p role="note" className="rounded-xl border border-amber-500/30 bg-[#0a0b0d] p-3 text-sm text-amber-100">You have view-only access to this event. You can look, but not change anything.</p>}
-      <RegistrationPanel eventId={ev.id} onApproved={() => { roster.refetch(); }} />
+      {ev.role !== "viewer" && <RegistrationPanel eventId={ev.id} onApproved={() => { roster.refetch(); }} />}
       {(ev.role === undefined || ev.role === "owner") && <MembersPanel eventId={ev.id} />}
       <ScreenLauncher ev={ev} />
+      {(ev.role === undefined || ev.role === "owner") && <DeleteEvent ev={ev} onDeleted={onDeleted} />}
       <div className="flex flex-wrap gap-2"><Link href={`/app/id-cards/?open=${encodeURIComponent(ev.id)}`} className="btn !min-h-10 px-4 text-sm">Open the cards</Link><Link href="/app/check-in/" className="btn-ghost !min-h-10 px-4 text-sm">Gate check-in</Link><Link href="/tools/points-table/" className="btn-ghost !min-h-10 px-4 text-sm">Points table</Link><Link href="/tools/certificates/" className="btn-ghost !min-h-10 px-4 text-sm">Certificates</Link></div>
     </section>
   );

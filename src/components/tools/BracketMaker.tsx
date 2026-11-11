@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useXp } from "@/components/XpProvider";
 import ScreenButtons from "@/components/display/ScreenButtons";
 import { singleElimView } from "@/lib/display-views";
-import { seedOrder } from "@/lib/seeding";
+import { seedOrder, uniqueTeams } from "@/lib/seeding";
 
 const SAMPLE = ["Sample Squad A", "Sample Squad B", "Sample Squad C", "Sample Squad D", "Sample Squad E", "Sample Squad F", "Sample Squad G", "Sample Squad H"].join("\n");
 
@@ -17,7 +17,9 @@ export default function BracketMaker() {
   const { award } = useXp();
   const [text, setText] = useState(SAMPLE);
   const [picks, setPicks] = useState<Record<string, 0 | 1>>({});
-  const teams = useMemo(() => Array.from(new Set(text.split(/\r?\n/).map((t) => t.trim()).filter(Boolean))).slice(0, 64), [text]);
+  const all = useMemo(() => uniqueTeams(text.split(/\r?\n/)), [text]);
+  const teams = useMemo(() => all.slice(0, 64), [all]);
+  const lines = useMemo(() => text.split(/\r?\n/).filter((t) => t.trim()).length, [text]);
 
   const { rounds, size } = useMemo(() => {
     const size = Math.max(2, 2 ** Math.ceil(Math.log2(Math.max(2, teams.length))));
@@ -56,16 +58,16 @@ export default function BracketMaker() {
       <aside className="card no-print h-fit space-y-3">
         <label className="block text-sm font-medium text-zinc-300" htmlFor="teams">Teams (one per line, best seed first)</label>
         <textarea id="teams" className="field min-h-56 py-2" value={text} onChange={(e) => { setText(e.target.value); setPicks({}); }} />
-        <p className="text-xs text-zinc-400">{teams.length} {teams.length === 1 ? "team" : "teams"} · bracket of {size}{teams.length > size ? "" : ""}{teams.length >= 64 ? " (max 64)" : ""}</p>
+        <p className="text-xs text-zinc-400" aria-live="polite">{teams.length} {teams.length === 1 ? "team" : "teams"} · bracket of {size}{size > teams.length ? ` (${size - teams.length} bye${size - teams.length === 1 ? "" : "s"})` : ""}{all.length > 64 ? `. The first 64 are used; ${all.length - 64} more were ignored.` : ""}{lines > all.length ? ` ${lines - all.length} repeated name${lines - all.length === 1 ? " was" : "s were"} ignored.` : ""}</p>
         <div className="flex gap-2">
-          <button type="button" className="btn-ghost flex-1 !min-h-10 text-sm" onClick={() => { const a = [...teams]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } setText(a.join("\n")); setPicks({}); }}>Shuffle seeds</button>
-          <button type="button" className="btn-ghost flex-1 !min-h-10 text-sm" onClick={() => setPicks({})}>Clear results</button>
+          <button type="button" className="btn-ghost flex-1 !min-h-11 text-sm" onClick={() => { const a = [...all]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } setText(a.join("\n")); setPicks({}); }}>Shuffle seeds</button>
+          <button type="button" className="btn-ghost flex-1 !min-h-11 text-sm" onClick={() => setPicks({})}>Clear results</button>
         </div>
         <button type="button" className="btn w-full" onClick={() => window.print()}>Print bracket</button>
       </aside>
 
       <div className="no-print lg:col-span-2 lg:order-last"><ScreenButtons payload={screen} what="bracket" /></div>
-      <div className="overflow-x-auto pb-4">
+      <div className="overflow-x-auto pb-4 outline-none focus-visible:ring-2 focus-visible:ring-cyan" role="region" aria-label="Bracket" tabIndex={0}>
         {teams.length < 2 ? <p className="card text-zinc-400">Add at least two teams.</p> : (
           <div className="flex min-w-max gap-6">
             {rounds.slice(0, -1).map((round, r) => (
@@ -83,7 +85,7 @@ export default function BracketMaker() {
                           const lost = !bye && won !== undefined && won !== side;
                           return (
                             <button key={side} type="button" disabled={!a || !b || bye} onClick={() => choose(r, m, side as 0 | 1)}
-                              className={`flex min-h-11 w-full items-center justify-between gap-2 px-3 text-left text-sm outline-none transition-colors focus-visible:bg-white/10 ${side ? "border-t border-white/10" : ""} ${winner ? "bg-cyan/15 font-semibold text-white" : lost ? "text-zinc-600 line-through" : "text-zinc-200 hover:bg-white/5"} disabled:cursor-default`}>
+                              className={`flex min-h-11 w-full items-center justify-between gap-2 px-3 text-left text-sm outline-none transition-colors focus-visible:bg-white/10 ${side ? "border-t border-white/10" : ""} ${winner ? "bg-cyan/15 font-semibold text-white" : lost ? "text-zinc-400 line-through" : "text-zinc-200 hover:bg-white/5"} disabled:cursor-default`}>
                               <span className="truncate">{t ?? (bye ? "Bye" : "TBD")}</span>
                               {winner && <span aria-hidden="true" className="text-cyan">✓</span>}
                             </button>

@@ -2,11 +2,10 @@
 
 import { Fragment, useMemo, useState } from "react";
 import ScreenButtons from "@/components/display/ScreenButtons";
+import NumberField from "./NumberField";
 import { scheduleView } from "@/lib/display-views";
 import { downloadBlob } from "@/lib/idcard/download";
 import { buildSchedule, summary, type ScheduleInput } from "@/lib/schedule";
-
-const toInt = (v: string, min: number, max: number) => Math.min(max, Math.max(min, Math.floor(Number(v) || 0)));
 
 /** Free match schedule and run-sheet maker. Everything is worked out in the browser. */
 export default function ScheduleMaker() {
@@ -15,7 +14,7 @@ export default function ScheduleMaker() {
   const sum = slots ? summary(i, slots) : null;
   const screen = useMemo(() => (slots ? scheduleView(slots) : null), [slots]);
   const field = (k: keyof ScheduleInput, label: string, min: number, max: number, hint?: string) => (
-    <label className="block text-sm text-zinc-200">{label}<input className="field mt-1" type="number" min={min} max={max} value={i[k] as number} onChange={(e) => setI({ ...i, [k]: toInt(e.target.value, min, max) })} />{hint && <span className="mt-1 block text-xs text-zinc-400">{hint}</span>}</label>
+    <NumberField label={label} value={i[k] as number} min={min} max={max} hint={hint} onChange={(n) => setI((x) => ({ ...x, [k]: n }))} />
   );
   const csv = () => {
     if (!slots) return;
@@ -29,7 +28,7 @@ export default function ScheduleMaker() {
       <section className="card space-y-4" aria-label="Schedule settings">
         <h3 className="font-display text-lg font-bold text-white">1. Your event</h3>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <label className="block text-sm text-zinc-200">First match starts at<input className="field mt-1" type="time" value={i.start} onChange={(e) => setI({ ...i, start: e.target.value })} /></label>
+          <label className="block text-sm text-zinc-200">First match starts at<input className="field mt-1" type="time" value={i.start} onChange={(e) => setI((x) => ({ ...x, start: e.target.value }))} /></label>
           {field("matches", "Number of matches", 1, 500)}
           {field("lobbies", "Matches at the same time", 1, 100, "Lobbies, rooms or stations")}
           {field("duration", "Minutes per match", 1, 600)}
@@ -42,13 +41,12 @@ export default function ScheduleMaker() {
       <section className="card space-y-3" aria-label="Schedule" aria-live="polite">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h3 className="font-display text-lg font-bold text-white">2. Your schedule</h3>
-          <div className="flex gap-2"><button type="button" className="btn-ghost !min-h-9 px-3 text-sm" disabled={!slots} onClick={csv}>Download (CSV)</button></div>
+          <div className="flex gap-2"><button type="button" className="btn-ghost !min-h-11 px-3 text-sm" disabled={!slots} onClick={csv}>Download (CSV)</button></div>
         </div>
-        {!slots || !sum ? <p role="alert" className="text-sm text-red-300">Check the start time and make sure every number is a whole number of at least 1 (gaps and breaks can be 0).</p> : (
+        {!slots || !sum ? <p role="alert" className="text-sm text-red-300">Choose a start time to see the schedule.</p> : (
           <>
-            <p className="text-sm text-zinc-200"><strong className="text-white">{sum.slots} rounds</strong>, finishing at <strong className="text-white">{sum.finish}</strong>. That is {Math.floor(sum.totalMinutes / 60)} h {sum.totalMinutes % 60} min from the first start.</p>
+            <p className="text-sm text-zinc-200"><strong className="text-white">{sum.slots} rounds</strong>, finishing at <strong className="text-white">{sum.finish}</strong>. That is {Math.floor(sum.totalMinutes / 60)} h {sum.totalMinutes % 60} min from the first start.{sum.finish.includes("(+") ? " A time marked (+1d) is after midnight, on the next day (+2d is the day after that)." : ""}</p>
             <div>
-              
               <div role="region" aria-label="Schedule table" tabIndex={0} className="overflow-x-auto rounded-xl border border-white/[0.14] outline-none focus-visible:ring-2 focus-visible:ring-cyan">
                 <table className="w-full min-w-[28rem] border-collapse text-left text-sm">
                   <thead><tr className="bg-[#0f1013] text-zinc-200"><th scope="col" className="px-3 py-2">Round</th><th scope="col" className="px-3 py-2">Start</th><th scope="col" className="px-3 py-2">End</th><th scope="col" className="px-3 py-2">Matches</th></tr></thead>

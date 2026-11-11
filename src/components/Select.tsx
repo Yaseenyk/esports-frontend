@@ -106,10 +106,10 @@ export default function Select({ value, onChange, options, label, ariaLabel, pla
       return;
     }
     if (e.key === "Escape") { e.preventDefault(); close(); }
-    else if (e.key === "ArrowDown") { e.preventDefault(); setActive((i) => Math.min(shown.length - 1, i + 1)); }
+    else if (e.key === "ArrowDown") { e.preventDefault(); setActive((i) => Math.max(0, Math.min(shown.length - 1, i + 1))); }
     else if (e.key === "ArrowUp") { e.preventDefault(); setActive((i) => Math.max(0, i - 1)); }
-    else if (e.key === "Home") { e.preventDefault(); setActive(0); }
-    else if (e.key === "End") { e.preventDefault(); setActive(shown.length - 1); }
+    else if (e.key === "Home" && !showSearch) { e.preventDefault(); setActive(0); }
+    else if (e.key === "End" && !showSearch) { e.preventDefault(); setActive(shown.length - 1); }
     else if (e.key === "Enter" || (e.key === " " && !showSearch)) { e.preventDefault(); if (shown[active]) pick(shown[active]); }
     else if (e.key === "Tab") close(false);
     else if (!showSearch && e.key.length === 1) {

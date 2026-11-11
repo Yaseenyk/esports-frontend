@@ -38,11 +38,13 @@ export default function GuidePage({ params }: { params: { slug: string } }) {
           author: { "@type": "Organization", name: "Esports Hub", url: SITE_URL }, publisher: { "@type": "Organization", name: "Esports Hub", url: SITE_URL, logo: { "@type": "ImageObject", url: `${SITE_URL}/icon-512.png` } },
         },
         { "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [{ "@type": "ListItem", position: 1, name: "Home", item: SITE_URL }, { "@type": "ListItem", position: 2, name: "Guides", item: `${SITE_URL}/guides/` }, { "@type": "ListItem", position: 3, name: g.title, item: url }] },
+        ...(g.faq?.length ? [{ "@context": "https://schema.org", "@type": "FAQPage", mainEntity: g.faq.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })) }] : []),
       ]} />
       <header>
         <nav aria-label="Breadcrumb" className="text-sm text-zinc-400"><Link href="/guides/" className="hover:text-zinc-200">Guides</Link> / {g.tag}</nav>
         <h1 className="mt-3 text-3xl font-black leading-tight text-zinc-50 sm:text-4xl">{g.title}</h1>
         <p className="mt-3 text-sm text-zinc-400">Updated {dateText(g.updated)} · {g.minutes} min read · By the Esports Hub team</p>
+        {g.answer && <div role="note" aria-label="Short answer" className="mt-5 rounded-xl border border-cyan/40 bg-[#0a0b0d] p-4"><p className="text-sm font-semibold uppercase tracking-wide text-cyan">Short answer</p><p className="mt-1 leading-relaxed text-zinc-100"><Inline text={g.answer} /></p></div>}
         <p className="mt-5 text-lg leading-relaxed text-zinc-200">{g.intro}</p>
       </header>
 
@@ -59,6 +61,12 @@ export default function GuidePage({ params }: { params: { slug: string } }) {
           <Blocks blocks={s.blocks} />
         </section>
       ))}
+
+      {g.faq && g.faq.length > 0 && (
+        <section aria-labelledby="faq"><h2 id="faq" className="font-display text-2xl font-bold text-white">Questions and answers</h2>
+          <div className="mt-4 space-y-3">{g.faq.map((f) => <details key={f.q} className="card !p-4"><summary className="cursor-pointer font-semibold text-white outline-none focus-visible:ring-2 focus-visible:ring-cyan">{f.q}</summary><p className="mt-2 text-sm text-zinc-300">{f.a}</p></details>)}</div>
+        </section>
+      )}
 
       <section className="card text-center"><h2 className="font-display text-xl font-bold text-white">Try it</h2><p className="mt-1 text-sm text-zinc-300">Free to use, no account needed.</p><div className="mt-4"><Link href={g.cta.href} className="btn">{g.cta.label}</Link></div></section>
 

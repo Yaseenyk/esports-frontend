@@ -4,7 +4,9 @@ import { useMemo, useState } from "react";
 import ScreenButtons from "@/components/display/ScreenButtons";
 import { leagueView } from "@/lib/display-views";
 import { downloadBlob } from "@/lib/idcard/download";
-import { BYE, DEFAULT_POINTS, fixtures, matchCount, table, type Score } from "@/lib/roundrobin";
+import { BYE, BYE_LABEL, DEFAULT_POINTS, fixtures, matchCount, table, type Fixture, type Score } from "@/lib/roundrobin";
+import { uniqueTeams } from "@/lib/seeding";
+import NumberField from "./NumberField";
 
 const EXAMPLE = "Konkan Kings\nPune Phantoms\nMumbai Mavericks\nNashik Ninjas\nGoa Gamers";
 const num = (v: string): number | null => { if (v.trim() === "") return null; const n = Math.floor(Number(v)); return Number.isFinite(n) && n >= 0 ? n : null; };
@@ -16,18 +18,22 @@ export default function RoundRobin() {
   const [pts, setPts] = useState(DEFAULT_POINTS);
   const [scores, setScores] = useState<Record<string, Score>>({});
 
-  const teams = useMemo(() => { const seen = new Set<string>(); return text.split("\n").map((t) => t.trim()).filter((t) => t && !seen.has(t.toLowerCase()) && seen.add(t.toLowerCase())); }, [text]);
-  const rounds = useMemo(() => fixtures(teams, double), [teams, double]);
-  const grid = useMemo(() => rounds.map((rd, ri) => rd.map((_, fi) => scores[`${ri}-${fi}`] ?? { a: null, b: null })), [rounds, scores]);
-  const rows = useMemo(() => table(teams, rounds, grid, pts), [teams, rounds, grid, pts]);
-  const setScore = (ri: number, fi: number, side: "a" | "b", v: string) => setScores((s) => ({ ...s, [`${ri}-${fi}`]: { ...(s[`${ri}-${fi}`] ?? { a: null, b: null }), [side]: num(v) } }));
+  const lines = useMemo(() => text.split(/\r?\n/).filter((t) => t.trim()).length, [text]);
+  const teams = useMemo(() => uniqueTeams(text.split(/\r?\n/)), [text]);
   const tooMany = teams.length > 40;
+  const rounds = useMemo(() => (tooMany ? [] : fixtures(teams, double)), [teams, double, tooMany]);
+  // Scores belong to a pairing, not to a position, so fixing a typo in a team name or adding a team never moves a score onto a different match.
+  const keyOf = (f: Fixture, ri: number) => `${double && ri >= rounds.length / 2 ? 2 : 1}\u0001${f.a}\u0001${f.b}`;
+  const grid = useMemo(() => rounds.map((rd, ri) => rd.map((f) => scores[keyOf(f, ri)] ?? { a: null, b: null })), [rounds, scores]); // eslint-disable-line react-hooks/exhaustive-deps
+  const rows = useMemo(() => table(teams, rounds, grid, pts), [teams, rounds, grid, pts]);
+  const setScore = (ri: number, fi: number, side: "a" | "b", v: string) => { const k = keyOf(rounds[ri]![fi]!, ri); setScores((s) => ({ ...s, [k]: { ...(s[k] ?? { a: null, b: null }), [side]: num(v) } })); };
+
   const screen = useMemo(() => (rows.length ? leagueView(rows) : null), [rows]);
 
   const csv = (kind: "fixtures" | "table") => {
     const q = (c: unknown) => `"${String(c).replace(/"/g, '""')}"`;
     const lines = kind === "fixtures"
-      ? [["Round", "Team A", "Team B"], ...rounds.flatMap((rd, ri) => rd.map((f) => [ri + 1, f.a, f.b]))]
+      ? [["Round", "Team A", "Team B"], ...rounds.flatMap((rd, ri) => rd.map((f) => [ri + 1, f.a === BYE ? BYE_LABEL : f.a, f.b === BYE ? BYE_LABEL : f.b]))]
       : [["Rank", "Team", "Played", "Won", "Drawn", "Lost", "For", "Against", "Difference", "Points"], ...rows.map((r) => [r.rank, r.team, r.played, r.won, r.drawn, r.lost, r.for, r.against, r.diff, r.points])];
     downloadBlob(new Blob([lines.map((l) => l.map(q).join(",")).join("\r\n")], { type: "text/csv" }), `round-robin-${kind}.csv`);
   };
@@ -40,17 +46,17 @@ export default function RoundRobin() {
         <div className="flex flex-wrap items-end gap-4">
           <label className="flex items-center gap-2 text-sm text-zinc-200"><input type="checkbox" checked={double} onChange={(e) => setDouble(e.target.checked)} className="h-5 w-5 accent-cyan" />Play everyone twice (home and away)</label>
           {(["win", "draw", "loss"] as const).map((k) => (
-            <label key={k} className="text-sm text-zinc-200">Points for a {k}<input className="field mt-1 !w-24" type="number" min={0} value={pts[k]} onChange={(e) => setPts({ ...pts, [k]: Math.max(0, Math.floor(Number(e.target.value) || 0)) })} /></label>
+            <NumberField key={k} className="block text-sm text-zinc-200" inputClassName="!w-24" label={`Points for a ${k}`} value={pts[k]} min={0} max={99} onChange={(n) => setPts((p) => ({ ...p, [k]: n }))} />
           ))}
         </div>
-        <p className="text-sm text-zinc-300" aria-live="polite">{teams.length < 2 ? "Enter at least two teams." : tooMany ? "That is a lot of teams for a round robin. Try groups instead (see the formats guide)." : `${teams.length} teams, ${rounds.length} rounds, ${matchCount(teams.length, double)} matches${teams.length % 2 ? ". With an odd number of teams one team has a bye each round." : "."}`}</p>
-        <div className="flex flex-wrap gap-2"><button type="button" className="chip" onClick={() => { setText(EXAMPLE); setScores({}); }}>Load the example</button><button type="button" className="chip" onClick={() => setScores({})}>Clear all scores</button></div>
+        <p className="text-sm text-zinc-300" aria-live="polite">{teams.length < 2 ? "Enter at least two different teams." : tooMany ? `${teams.length} teams is too many for a round robin (the limit is 40, and everyone would play ${teams.length - 1} matches). Try groups instead: see the formats guide.` : `${teams.length} teams, ${rounds.length} rounds, ${matchCount(teams.length, double)} matches${teams.length % 2 ? ". With an odd number of teams one team has a bye each round." : "."}`}{lines > teams.length && teams.length > 0 ? ` ${lines - teams.length} repeated name${lines - teams.length === 1 ? " was" : "s were"} ignored.` : ""}</p>
+        <div className="flex flex-wrap gap-2"><button type="button" className="chip !min-h-11" onClick={() => { setText(EXAMPLE); setScores({}); }}>Load the example</button><button type="button" className="chip !min-h-11" onClick={() => setScores({})}>Clear all scores</button></div>
       </section>
 
       {rounds.length > 0 && !tooMany && (
         <>
           <section className="card space-y-4" aria-label="Fixtures">
-            <div className="flex flex-wrap items-center justify-between gap-2"><h3 className="font-display text-lg font-bold text-white">2. Fixtures and results</h3><button type="button" className="btn-ghost !min-h-9 px-3 text-sm" onClick={() => csv("fixtures")}>Download fixtures (CSV)</button></div>
+            <div className="flex flex-wrap items-center justify-between gap-2"><h3 className="font-display text-lg font-bold text-white">2. Fixtures and results</h3><button type="button" className="btn-ghost !min-h-11 px-3 text-sm" onClick={() => csv("fixtures")}>Download fixtures (CSV)</button></div>
             <p className="text-xs text-zinc-400">Type each score as the match finishes. A match counts in the table once both scores are filled in.</p>
             <div className="grid gap-4 md:grid-cols-2">
               {rounds.map((rd, ri) => (
@@ -58,13 +64,13 @@ export default function RoundRobin() {
                   <legend className="px-2 font-display text-sm font-bold text-white">Round {ri + 1}</legend>
                   <ul className="space-y-2">
                     {rd.map((f, fi) => f.a === BYE || f.b === BYE
-                      ? <li key={fi} className="text-sm text-zinc-400">{f.a === BYE ? f.b : f.a} has a bye</li>
+                      ? <li key={fi} className="text-sm text-zinc-400">{f.a === BYE ? f.b : f.a} has a bye (sits out this round)</li>
                       : (
                         <li key={fi} className="flex items-center gap-2 text-sm">
                           <span className="min-w-0 flex-1 truncate text-right text-zinc-100">{f.a}</span>
-                          <input aria-label={`Round ${ri + 1}, ${f.a} score`} className="field !min-h-9 !w-14 !px-1 text-center" inputMode="numeric" value={grid[ri]![fi]!.a ?? ""} onChange={(e) => setScore(ri, fi, "a", e.target.value)} />
+                          <input aria-label={`Round ${ri + 1}, ${f.a} score`} className="field !min-h-11 !w-16 !px-1 text-center" inputMode="numeric" value={grid[ri]![fi]!.a ?? ""} onChange={(e) => setScore(ri, fi, "a", e.target.value)} />
                           <span aria-hidden="true" className="text-zinc-500">–</span>
-                          <input aria-label={`Round ${ri + 1}, ${f.b} score`} className="field !min-h-9 !w-14 !px-1 text-center" inputMode="numeric" value={grid[ri]![fi]!.b ?? ""} onChange={(e) => setScore(ri, fi, "b", e.target.value)} />
+                          <input aria-label={`Round ${ri + 1}, ${f.b} score`} className="field !min-h-11 !w-16 !px-1 text-center" inputMode="numeric" value={grid[ri]![fi]!.b ?? ""} onChange={(e) => setScore(ri, fi, "b", e.target.value)} />
                           <span className="min-w-0 flex-1 truncate text-zinc-100">{f.b}</span>
                         </li>
                       ))}
@@ -75,7 +81,7 @@ export default function RoundRobin() {
           </section>
 
           <section className="card space-y-3" aria-label="League table" aria-live="polite">
-            <div className="flex flex-wrap items-center justify-between gap-2"><h3 className="font-display text-lg font-bold text-white">3. League table</h3><button type="button" className="btn-ghost !min-h-9 px-3 text-sm" onClick={() => csv("table")}>Download table (CSV)</button></div>
+            <div className="flex flex-wrap items-center justify-between gap-2"><h3 className="font-display text-lg font-bold text-white">3. League table</h3><button type="button" className="btn-ghost !min-h-11 px-3 text-sm" onClick={() => csv("table")}>Download table (CSV)</button></div>
             <div role="region" aria-label="League table" tabIndex={0} className="overflow-x-auto outline-none focus-visible:ring-2 focus-visible:ring-cyan">
               <table className="w-full min-w-[32rem] border-collapse text-left text-sm">
                 <thead><tr className="bg-[#0f1013] text-zinc-200">{["#", "Team", "P", "W", "D", "L", "For", "Against", "Diff", "Pts"].map((h) => <th key={h} scope="col" className="px-3 py-2">{h}</th>)}</tr></thead>

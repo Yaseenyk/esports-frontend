@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { CHANNEL, DEFAULT_LOOK, decode, lookFrom, remaining, slotNow, type BracketData, type CountdownData, type Look, type Payload, type ScheduleData, type TableData } from "@/lib/display";
+import { CHANNEL, DEFAULT_LOOK, decode, lookFrom, remaining, secondsUntil, slotNow, validate, type BracketData, type CountdownData, type Look, type Payload, type ScheduleData, type TableData } from "@/lib/display";
 import { gateClient } from "@/lib/api/cloud";
 import { createPoller } from "@/lib/api/poller";
 
@@ -35,8 +35,8 @@ function TableView({ d, c }: { d: TableData; c: Theme }) {
   const scrolls = d.rows.length > 12;
   const medal = ["#facc15", "#d4d4d8", "#d97706"];
   const cols = `minmax(6vmin,.6fr) minmax(0,3fr) ${d.head.slice(2).map(() => "minmax(7vmin,1fr)").join(" ")}`;
-  const row = (r: string[], i: number, key: string) => (
-    <li key={key} className={up.has(r[nameCol] ?? "") ? "ds-flash" : ""} style={{ display: "grid", gridTemplateColumns: cols, alignItems: "center", gap: "1.2vmin", padding: "1.1vmin 1.6vmin", marginBottom: ".8vmin", borderRadius: "1.2vmin", background: c.row, borderLeft: `.7vmin solid ${i < 3 ? medal[i] : "transparent"}`, fontSize: "3.1vmin", animation: `dsIn .5s ${Math.min(i, 14) * 0.05}s both ease-out` }}>
+  const row = (r: string[], i: number, key: string, hidden = false) => (
+    <li key={key} aria-hidden={hidden || undefined} className={up.has(r[nameCol] ?? "") ? "ds-flash" : ""} style={{ display: "grid", gridTemplateColumns: cols, alignItems: "center", gap: "1.2vmin", padding: "1.1vmin 1.6vmin", marginBottom: ".8vmin", borderRadius: "1.2vmin", background: c.row, borderLeft: `.7vmin solid ${i < 3 ? medal[i] : "transparent"}`, fontSize: "3.1vmin", animation: `dsIn .5s ${Math.min(i, 14) * 0.05}s both ease-out` }}>
       {r.map((cell, j) => <span key={j} style={{ color: j === d.strong ? c.accent : j === 0 && i < 3 ? medal[i] : j === 1 ? c.fg : c.soft, fontWeight: j === d.strong || j <= 1 ? 800 : 500, textAlign: j >= 2 ? "right" : "left", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontVariantNumeric: "tabular-nums" }}>{cell}</span>)}
     </li>
   );
@@ -47,7 +47,7 @@ function TableView({ d, c }: { d: TableData; c: Theme }) {
       <div className="min-h-0 flex-1 overflow-hidden">
         <ul className={scrolls ? "ds-scroll" : ""} style={scrolls ? ({ ["--ds-dur" as string]: `${d.rows.length * 2.2}s` } as React.CSSProperties) : undefined}>
           {d.rows.map((r, i) => row(r, i, `a${i}`))}
-          {scrolls && d.rows.map((r, i) => row(r, i, `b${i}`))}
+          {scrolls && d.rows.map((r, i) => row(r, i, `b${i}`, true))}
         </ul>
       </div>
     </section>
@@ -60,10 +60,7 @@ function ScheduleView({ d, c }: { d: ScheduleData; c: Theme }) {
   const cur = useRef<HTMLLIElement>(null);
   useEffect(() => { cur.current?.scrollIntoView({ block: "center", behavior: "smooth" }); }, [current, next]);
   const target = current >= 0 ? current : next;
-  const nextStart = next >= 0 ? d.slots[next]!.start : "";
-  const t0 = new Date(now);
-  const day = d.date ?? `${t0.getFullYear()}-${pad(t0.getMonth() + 1)}-${pad(t0.getDate())}`; // the local day, the same one the slots are on
-  const toNext = next >= 0 && /^\d{2}:\d{2}/.test(nextStart) ? Math.max(0, Math.round((new Date(`${day}T${nextStart.slice(0, 5)}:00`).getTime() - now) / 1000)) : null;
+  const toNext = next >= 0 ? secondsUntil(d, d.slots[next]!.start, new Date(now)) : null;
   return (
     <section aria-label={d.title} className="flex h-full min-h-0 flex-col">
       <Title title={d.title} subtitle={current >= 0 ? `Now: round ${d.slots[current]!.n}${toNext !== null ? `   ·   Next in ${pad(Math.floor(toNext / 60))}:${pad(toNext % 60)}` : ""}` : toNext !== null ? `Next round starts in ${pad(Math.floor(toNext / 3600))}:${pad(Math.floor(toNext / 60) % 60)}:${pad(toNext % 60)}` : "Schedule finished"} c={c} />
@@ -187,15 +184,21 @@ export default function DisplayScreen() {
     setLook(l);
     document.body.style.background = l.bg === "transparent" ? "transparent" : l.bg === DEFAULT_LOOK.bg ? THEMES[l.theme].bg : l.bg;
     setExtra({ view: q.get("v") ?? "", key: q.get("k") ?? "", title: q.get("title") ?? "", at: q.get("t") ?? "", sub: q.get("sub") ?? "" });
-    const h = new URLSearchParams(location.hash.slice(1)).get("d");
-    if (h) decode(h).then((p) => { if (p) setPayload(p); else setBad(true); });
+    // The link can change while the screen stays open (the tool opens the same window again), so read it now and whenever it changes.
+    let alive = true;
+    const fromHash = () => {
+      const h = new URLSearchParams(location.hash.slice(1)).get("d");
+      if (h) void decode(h).then((p) => { if (!alive) return; if (p) { setPayload(p); setBad(false); } else setBad(true); });
+    };
+    fromHash();
+    window.addEventListener("hashchange", fromHash);
     let ch: BroadcastChannel | null = null;
-    if (typeof BroadcastChannel !== "undefined") { ch = new BroadcastChannel(CHANNEL); ch.onmessage = (e: MessageEvent) => { if (e.data?.payload) { setPayload(e.data.payload as Payload); setBad(false); } }; ch.postMessage({ ready: true }); }
-    return () => { ch?.close(); delete document.documentElement.dataset.display; document.body.style.background = ""; };
+    if (typeof BroadcastChannel !== "undefined") { ch = new BroadcastChannel(CHANNEL); ch.onmessage = (e: MessageEvent) => { const p = validate(e.data?.payload); if (p) { setPayload(p); setBad(false); } }; ch.postMessage({ ready: true }); }
+    return () => { alive = false; window.removeEventListener("hashchange", fromHash); ch?.close(); delete document.documentElement.dataset.display; document.body.style.background = ""; };
   }, []);
 
   const wake = useCallback(() => { setBar(true); if (idle.current) clearTimeout(idle.current); idle.current = setTimeout(() => setBar(false), 3000); }, []);
-  useEffect(() => { wake(); const k = (e: KeyboardEvent) => { if (e.key === "f" || e.key === "F") void toggleFull(); }; window.addEventListener("keydown", k); return () => window.removeEventListener("keydown", k); }, [wake]);
+  useEffect(() => { wake(); const k = (e: KeyboardEvent) => { if (e.key === "f" || e.key === "F") void toggleFull(); else wake(); }; window.addEventListener("keydown", k); return () => { window.removeEventListener("keydown", k); if (idle.current) clearTimeout(idle.current); }; }, [wake]);
   const toggleFull = async () => { try { if (document.fullscreenElement) await document.exitFullscreen(); else await document.documentElement.requestFullscreen(); } catch { /* not allowed here */ } };
 
   const c = THEMES[look.theme];
@@ -213,8 +216,8 @@ export default function DisplayScreen() {
           : payload?.v === "countdown" ? <CountdownView d={payload.d} c={c} />
           : <div className="flex h-full flex-col items-center justify-center text-center" role="status">{bad ? <><p style={{ fontSize: "5vmin", fontWeight: 800 }}>This screen link is damaged</p><p style={{ fontSize: "2.6vmin", color: c.soft, marginTop: "1vmin" }}>Open the screen again from the tool it came from.</p></> : <><p style={{ fontSize: "5vmin", fontWeight: 800 }}>Waiting for a view</p><p style={{ fontSize: "2.6vmin", color: c.soft, marginTop: "1vmin" }}>Open a screen from a tool such as the points table calculator, and it appears here.</p></>}</div>}
       </div>
-      <div aria-hidden={!bar} style={{ position: "fixed", right: "2vmin", bottom: "2vmin", opacity: bar ? 1 : 0, transition: "opacity .4s", display: "flex", gap: "1vmin", alignItems: "center", fontSize: "1.8vmin", color: c.soft, background: "rgba(0,0,0,.55)", padding: "1vmin 1.6vmin", borderRadius: "2vmin", pointerEvents: bar ? "auto" : "none" }}>
-        <button type="button" onClick={toggleFull} style={{ color: "#fff", border: "1px solid rgba(255,255,255,.3)", borderRadius: "1vmin", padding: ".5vmin 1.4vmin" }}>Full screen (F)</button>
+      <div style={{ position: "fixed", right: "2vmin", bottom: "2vmin", opacity: bar ? 1 : 0, visibility: bar ? "visible" : "hidden", transition: "opacity .4s, visibility .4s", display: "flex", gap: "1vmin", alignItems: "center", fontSize: "1.8vmin", color: c.soft, background: "rgba(0,0,0,.55)", padding: "1vmin 1.6vmin", borderRadius: "2vmin", pointerEvents: bar ? "auto" : "none" }}>
+        <button type="button" onClick={toggleFull} onFocus={wake} style={{ color: "#fff", border: "1px solid rgba(255,255,255,.3)", borderRadius: "1vmin", padding: ".5vmin 1.4vmin" }}>Full screen (F)</button>
       </div>
     </div>
   );

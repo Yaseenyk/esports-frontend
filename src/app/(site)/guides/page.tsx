@@ -7,7 +7,7 @@ import { SITE_URL } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Esports event guides for organisers",
-  description: "Practical guides for running esports and gaming events: tournament formats, points tables, rules templates, ID cards, gate check-in, streaming and sponsors.",
+  description: "Practical guides for running esports and gaming events: Free Fire, BGMI and Valorant tournaments, brackets, points tables, rules, ID cards, QR check-in and certificates.",
   alternates: { canonical: "/guides/" },
 };
 

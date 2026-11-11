@@ -13,6 +13,10 @@ export default function InvitesPanel({ eventId, teams, people, onApproved }: { e
   const [team, setTeam] = useState(teams[0]?.id ?? ""), [uses, setUses] = useState(10);
   const [fresh, setFresh] = useState(""), [err, setErr] = useState(""), [busy, setBusy] = useState("");
   const [who, setWho] = useState(people[0]?.id ?? ""), [pass, setPass] = useState("");
+  const [note, setNote] = useState("");
+  // The lists can change after this panel opens (a person is added, a team renamed): never keep pointing at one that is gone.
+  const teamId = teams.some((x) => x.id === team) ? team : teams[0]?.id ?? "";
+  const whoId = people.some((x) => x.id === who) ? who : people[0]?.id ?? "";
 
   const load = useCallback(() => {
     api.invalidate(`/events/${eventId}/submissions`); api.invalidate(`/events/${eventId}/invites`); // opening this tab or pressing Refresh always asks the server
@@ -22,16 +26,25 @@ export default function InvitesPanel({ eventId, teams, people, onApproved }: { e
   useEffect(load, [load]);
 
   const make = async (e: React.FormEvent) => {
-    e.preventDefault(); setErr("");
-    const t = teams.find((x) => x.id === team);
-    try { const r = await events.newInvite(eventId, { teamId: team, label: t?.name ?? "Team", maxUses: uses, expiresInHours: 24 * 14 }); setFresh(linkFor("/join/", r.token)); load(); } catch (x) { setErr(explain(x)); }
+    e.preventDefault(); setErr(""); setNote("");
+    if (busy === "make" || !teamId) return;
+    const t = teams.find((x) => x.id === teamId);
+    setBusy("make");
+    try { const r = await events.newInvite(eventId, { teamId, label: t?.name ?? "Team", maxUses: uses, expiresInHours: 24 * 14 }); setFresh(linkFor("/join/", r.token)); load(); } catch (x) { setErr(explain(x)); } finally { setBusy(""); }
+  };
+  const revoke = (i: Invite) => {
+    if (!confirm(`Switch off the invite link for ${i.label}? Anyone who has it will see that it is no longer active.`)) return;
+    events.revokeInvite(eventId, i.id).then(load).catch((x) => setErr(explain(x)));
   };
   const act = async (s: Submission, ok: boolean) => {
     setBusy(s.id); setErr("");
     try { if (ok) { await events.approve(eventId, s.id); await onApproved(); } else await events.reject(eventId, s.id); events_invalidate(); load(); } catch (x) { setErr(explain(x)); } finally { setBusy(""); }
   };
-  const share = async () => { setErr(""); try { const r = await events.share(eventId, who); setPass(linkFor("/pass/", r.token)); } catch (x) { setErr(explain(x)); } };
-  const copy = (t: string) => { void navigator.clipboard?.writeText(t); };
+  const share = async () => { setErr(""); setNote(""); try { const r = await events.share(eventId, whoId); setPass(linkFor("/pass/", r.token)); } catch (x) { setErr(explain(x)); } };
+  const copy = (t: string) => {
+    if (!navigator.clipboard) { setNote("Copying is not available here. Select the link and copy it by hand."); return; }
+    navigator.clipboard.writeText(t).then(() => setNote("Link copied."), () => setNote("Could not copy. Select the link and copy it by hand."));
+  };
 
   return (
     <div className="space-y-5">
@@ -39,12 +52,12 @@ export default function InvitesPanel({ eventId, teams, people, onApproved }: { e
         <h3 className="font-display font-bold text-white">Invite players</h3>
         <p className="text-sm text-zinc-300">Send a team one link. Each player opens it, types their name and adds a photo. Nothing reaches the roster until you approve it below. No Aadhaar details are asked for.</p>
         <form onSubmit={make} className="flex flex-wrap items-end gap-2">
-          <label className="text-sm text-zinc-300">Team<select className="field mt-1" value={team} onChange={(e) => setTeam(e.target.value)}>{teams.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}</select></label>
+          <label className="text-sm text-zinc-300">Team<select className="field mt-1" value={teamId} onChange={(e) => setTeam(e.target.value)}>{teams.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}</select></label>
           <label className="text-sm text-zinc-300">Up to<input className="field mt-1 w-24" type="number" min={1} max={200} value={uses} onChange={(e) => setUses(Math.max(1, Number(e.target.value) || 1))} /></label>
-          <button className="btn !min-h-11 px-4 text-sm">Make link (14 days)</button>
+          <button className="btn !min-h-11 px-4 text-sm" disabled={busy === "make" || !teamId}>{busy === "make" ? "Making…" : "Make link (14 days)"}</button>
         </form>
         {fresh && <div role="status" className="space-y-2 rounded-xl border border-cyan/40 bg-cyan/10 p-3 text-sm"><p className="break-all font-mono text-xs text-cyan">{fresh}</p><button type="button" className="btn-ghost !min-h-9 px-3 text-sm" onClick={() => copy(fresh)}>Copy link</button></div>}
-        {invites && invites.length > 0 && <ul className="space-y-1.5 text-sm">{invites.map((i) => <li key={i.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-white/10 px-3 py-2"><span className="text-zinc-200">{i.label} <span className="text-xs text-zinc-400">· used {i.uses}{i.maxUses ? ` of ${i.maxUses}` : ""}{i.revoked ? " · revoked" : ""}</span></span>{!i.revoked && <span className="flex gap-2"><button type="button" className="chip !min-h-8" onClick={() => copy(linkFor("/join/", i.token))}>Copy link</button><button type="button" className="chip !min-h-8" onClick={() => events.revokeInvite(eventId, i.id).then(load).catch((x) => setErr(explain(x)))}>Revoke</button></span>}</li>)}</ul>}
+        {invites && invites.length > 0 && <ul className="space-y-1.5 text-sm">{invites.map((i) => <li key={i.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-white/10 px-3 py-2"><span className="text-zinc-200">{i.label} <span className="text-xs text-zinc-400">· used {i.uses}{i.maxUses ? ` of ${i.maxUses}` : ""}{i.revoked ? " · revoked" : ""}</span></span>{!i.revoked && <span className="flex gap-2"><button type="button" className="chip !min-h-8" onClick={() => copy(linkFor("/join/", i.token))}>Copy link</button><button type="button" className="chip !min-h-8" onClick={() => revoke(i)}>Revoke</button></span>}</li>)}</ul>}
       </section>
 
       <section className="space-y-2 rounded-xl border border-white/10 p-3">
@@ -59,14 +72,14 @@ export default function InvitesPanel({ eventId, teams, people, onApproved }: { e
         <h3 className="font-display font-bold text-white">Send someone their pass</h3>
         <p className="text-sm text-zinc-300">A private link that shows one person their own pass and QR code on their phone. They need no account. You can switch it off any time.</p>
         <div className="flex flex-wrap items-end gap-2">
-          <label className="text-sm text-zinc-300">Person<select className="field mt-1 max-w-[16rem]" value={who} onChange={(e) => { setWho(e.target.value); setPass(""); }}>{people.map((p) => <option key={p.id} value={p.id}>{p.name || p.id}</option>)}</select></label>
-          <button type="button" className="btn !min-h-11 px-4 text-sm" onClick={share} disabled={!who}>Get link</button>
-          {pass && <button type="button" className="chip" onClick={() => events.unshare(eventId, who).then(() => setPass("")).catch((x) => setErr(explain(x)))}>Switch link off</button>}
+          <label className="text-sm text-zinc-300">Person<select className="field mt-1 max-w-[16rem]" value={whoId} onChange={(e) => { setWho(e.target.value); setPass(""); }}>{people.map((p) => <option key={p.id} value={p.id}>{p.name || p.id}</option>)}</select></label>
+          <button type="button" className="btn !min-h-11 px-4 text-sm" onClick={share} disabled={!whoId}>Get link</button>
+          {pass && <button type="button" className="chip" onClick={() => events.unshare(eventId, whoId).then(() => setPass("")).catch((x) => setErr(explain(x)))}>Switch link off</button>}
         </div>
         {pass && <div role="status" className="space-y-2 rounded-xl border border-cyan/40 bg-cyan/10 p-3 text-sm"><p className="break-all font-mono text-xs text-cyan">{pass}</p><button type="button" className="btn-ghost !min-h-9 px-3 text-sm" onClick={() => copy(pass)}>Copy link</button></div>}
         <p className="text-xs text-zinc-400">Save changes online first so the person exists on the server.</p>
       </section>
-      {err && <p role="alert" className="text-sm text-red-300">{err}</p>}
+      <div aria-live="polite">{note && <p className="text-sm text-emerald-300">{note}</p>}{err && <p role="alert" className="text-sm text-red-300">{err}</p>}</div>
     </div>
   );
 }

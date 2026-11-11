@@ -3,7 +3,8 @@
 import { useMemo, useState } from "react";
 import ScreenButtons from "@/components/display/ScreenButtons";
 import { doubleElimView } from "@/lib/display-views";
-import { build, champion as championOf, isPlayable, slots, type Match, type Slot } from "@/lib/doubleelim";
+import { build, champion as championOf, isPlayable, setPick, slots, type Match, type Slot } from "@/lib/doubleelim";
+import { uniqueTeams } from "@/lib/seeding";
 
 const EXAMPLE = "Konkan Kings\nPune Phantoms\nMumbai Mavericks\nNashik Ninjas\nGoa Gamers\nThane Titans";
 const label = (s: Slot) => (s.kind === "team" ? s.name : s.kind === "bye" ? "Bye" : s.label);
@@ -13,9 +14,11 @@ const roundTitle = (m: Match, rounds: number) => (m.bracket === "F" ? (m.round =
 export default function DoubleElimination() {
   const [text, setText] = useState(EXAMPLE);
   const [picks, setPicks] = useState<Record<string, 0 | 1 | undefined>>({});
-  const teams = useMemo(() => { const seen = new Set<string>(); return text.split("\n").map((t) => t.trim()).filter((t) => t && !seen.has(t.toLowerCase()) && seen.add(t.toLowerCase())); }, [text]);
+  const teams = useMemo(() => uniqueTeams(text.split(/\r?\n/)), [text]);
+  const lines = useMemo(() => text.split(/\r?\n/).filter((t) => t.trim()).length, [text]);
   const bracket = useMemo(() => build(teams), [teams]);
-  const pick = (id: string, side: 0 | 1) => setPicks((p) => ({ ...p, [id]: p[id] === side ? undefined : side }));
+  // Clicking the winner again takes the result back. Either way, results that were built on this match are cleared, so they can never point at a different team.
+  const pick = (id: string, side: 0 | 1) => setPicks((p) => (bracket ? setPick(bracket, p, id, p[id] === side ? undefined : side) : p));
 
   const group = (kind: "W" | "L") => {
     const ms = bracket!.matches.filter((m) => m.bracket === kind);
@@ -34,7 +37,7 @@ export default function DoubleElimination() {
           const won = picks[m.id] === side && played;
           return (
             <button key={side} type="button" disabled={!played || bye} aria-pressed={won} onClick={() => pick(m.id, side as 0 | 1)}
-              className={`mt-1 flex w-full items-center justify-between gap-2 rounded-md border px-2 py-1.5 text-left outline-none transition-colors focus-visible:ring-2 focus-visible:ring-cyan ${won ? "border-cyan bg-[#0c1d27] text-white" : "border-white/10 text-zinc-200"} ${!played ? "cursor-default text-zinc-400" : "hover:border-white/30"}`}>
+              className={`mt-1 flex min-h-11 w-full items-center justify-between gap-2 rounded-md border px-2 py-1.5 text-left outline-none transition-colors focus-visible:ring-2 focus-visible:ring-cyan ${won ? "border-cyan bg-[#0c1d27] text-white" : "border-white/10 text-zinc-200"} ${!played ? "cursor-default text-zinc-400" : "hover:border-white/30"}`}>
               <span className="truncate">{label(slot)}</span>{slot.kind === "team" && <span className="shrink-0 text-[11px] text-zinc-400">#{slot.seed}</span>}
             </button>
           );
@@ -53,8 +56,8 @@ export default function DoubleElimination() {
       <section className="card space-y-3" aria-label="Teams">
         <h3 className="font-display text-lg font-bold text-white">1. Teams, best seed first</h3>
         <label className="block text-sm text-zinc-200">One team per line (3 to 64)<textarea className="field mt-1 min-h-32 py-2 font-mono text-sm" value={text} onChange={(e) => { setText(e.target.value); setPicks({}); }} spellCheck={false} /></label>
-        <p className="text-sm text-zinc-300" aria-live="polite">{!bracket ? "Enter between 3 and 64 different teams." : `${teams.length} teams. A bracket for ${bracket.size} places, so ${bracket.size - teams.length} bye${bracket.size - teams.length === 1 ? "" : "s"}. Up to ${2 * teams.length - 2} matches, or ${2 * teams.length - 1} if the reset final is played.`}</p>
-        <div className="flex flex-wrap gap-2"><button type="button" className="chip" onClick={() => { setText(EXAMPLE); setPicks({}); }}>Load the example</button><button type="button" className="chip" onClick={() => setPicks({})}>Clear all results</button></div>
+        <p className="text-sm text-zinc-300" aria-live="polite">{!bracket ? `Enter between 3 and 64 different teams${teams.length > 64 ? ` (you have ${teams.length})` : ""}.` : `${teams.length} teams${lines > teams.length ? ` (${lines - teams.length} repeated name${lines - teams.length === 1 ? " was" : "s were"} ignored)` : ""}. A bracket for ${bracket.size} places, so ${bracket.size - teams.length} bye${bracket.size - teams.length === 1 ? "" : "s"}. Up to ${2 * teams.length - 2} matches, or ${2 * teams.length - 1} if the reset final is played.`}</p>
+        <div className="flex flex-wrap gap-2"><button type="button" className="chip !min-h-11" onClick={() => { setText(EXAMPLE); setPicks({}); }}>Load the example</button><button type="button" className="chip !min-h-11" onClick={() => setPicks({})}>Clear all results</button></div>
       </section>
 
       {bracket && (

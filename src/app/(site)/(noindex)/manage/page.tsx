@@ -23,7 +23,7 @@ export default function Manage() {
       </section>
       <section aria-labelledby="games" className="card">
         <h2 id="games" className="mb-3 font-bold text-zinc-50">Rosters by game</h2>
-        <div className="overflow-x-auto"><table className="w-full min-w-[28rem] text-left text-sm">
+        <div className="overflow-x-auto outline-none focus-visible:ring-2 focus-visible:ring-cyan" role="region" aria-label="Events table" tabIndex={0}><table className="w-full min-w-[28rem] text-left text-sm">
           <thead className="text-zinc-400"><tr><th className="py-2 pe-4 font-medium">Game</th><th className="py-2 pe-4 font-medium">Team size</th><th className="py-2 pe-4 font-medium">Roster</th><th className="py-2 font-medium">Next event</th></tr></thead>
           <tbody className="divide-y divide-zinc-800">
             {ME.games.map((s) => { const g = gameBySlug(s)!; const ev = EVENTS.find((e) => e.game === s); return (

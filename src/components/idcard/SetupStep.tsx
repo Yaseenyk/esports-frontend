@@ -10,9 +10,9 @@ const SHORT: Record<Fmt, string> = { wallet: "Wallet card", portrait: "Lanyard",
 const uidT = () => `t${Date.now().toString(36)}${Math.floor(Math.random() * 1e3).toString(36)}`;
 
 /** Step 1: just what is needed to start (the event, the card shape and the teams). The rest is folded under "More options". */
-export default function SetupStep({ event, setEvent, game, setGame, organiser, setOrganiser, fmt, onFmt, teams, setTeams, setPeople, info, setInfo }: {
+export default function SetupStep({ event, setEvent, game, setGame, organiser, setOrganiser, fmt, onFmt, teams, setTeams, people, setPeople, info, setInfo }: {
   event: string; setEvent: (v: string) => void; game: string; setGame: (v: string) => void; organiser: string; setOrganiser: (v: string) => void;
-  fmt: Fmt; onFmt: (f: Fmt) => void; teams: Team[]; setTeams: (f: (t: Team[]) => Team[]) => void; setPeople: (f: (p: Person[]) => Person[]) => void;
+  fmt: Fmt; onFmt: (f: Fmt) => void; teams: Team[]; setTeams: (f: (t: Team[]) => Team[]) => void; people: Person[]; setPeople: (f: (p: Person[]) => Person[]) => void;
   info: EventInfo; setInfo: (i: EventInfo) => void;
 }) {
   const F = FORMATS[fmt];
@@ -52,7 +52,7 @@ export default function SetupStep({ event, setEvent, game, setGame, organiser, s
               <li key={t.id} className="flex items-center gap-2">
                 <TeamLogoButton compact team={t} onLogo={(logo) => setTeams((l) => l.map((x) => (x.id === t.id ? { ...x, logo } : x)))} />
                 <input className="field" aria-label="Team name" value={t.name} onChange={(e) => setTeams((l) => l.map((x) => (x.id === t.id ? { ...x, name: e.target.value } : x)))} />
-                <button type="button" disabled={teams.length < 2} title={teams.length < 2 ? "You need at least one team" : `Remove ${t.name}. Its people move to another team.`} className="grid h-11 w-11 shrink-0 place-items-center rounded-lg border border-white/10 text-lg text-zinc-400 transition-colors hover:border-red-400/60 hover:text-red-300 disabled:opacity-30" aria-label={`Remove ${t.name}`} onClick={() => { const other = teams.find((x) => x.id !== t.id)!.id; setTeams((l) => l.filter((x) => x.id !== t.id)); setPeople((l) => l.map((p) => (p.teamId === t.id ? { ...p, teamId: other } : p))); }}>×</button>
+                <button type="button" disabled={teams.length < 2} title={teams.length < 2 ? "You need at least one team" : `Remove ${t.name}. Its people move to another team.`} className="grid h-11 w-11 shrink-0 place-items-center rounded-lg border border-white/10 text-lg text-zinc-400 transition-colors hover:border-red-400/60 hover:text-red-300 disabled:opacity-30" aria-label={`Remove ${t.name}`} onClick={() => { const other = teams.find((x) => x.id !== t.id)!.id; const n = people.filter((p) => p.teamId === t.id).length; if (n > 0 && !window.confirm(`Remove ${t.name || "this team"}? Its ${n} ${n === 1 ? "person moves" : "people move"} to ${teams.find((x) => x.id === other)?.name || "another team"}.`)) return; setTeams((l) => l.filter((x) => x.id !== t.id)); setPeople((l) => l.map((p) => (p.teamId === t.id ? { ...p, teamId: other } : p))); }}>×</button>
               </li>
             ))}
           </ul>

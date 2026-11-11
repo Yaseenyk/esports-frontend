@@ -55,8 +55,8 @@ export default function DisplayDemo() {
     <div className="card space-y-4">
       <div className="flex flex-wrap items-end gap-3">
         <div className="flex flex-wrap gap-2" role="group" aria-label="Screen type">{KINDS.map((k) => <button key={k.id} type="button" aria-pressed={kind === k.id} className={`chip ${kind === k.id ? "!border-cyan !text-cyan" : ""}`} onClick={() => setKind(k.id)}>{k.label}</button>)}</div>
-        <label className="text-sm text-zinc-200">Style<select className="field mt-1 !min-h-10" value={theme} onChange={(e) => setTheme(e.target.value as typeof theme)}><option value="neon">Neon</option><option value="dark">Dark</option><option value="light">Light</option></select></label>
-        <a href={url || undefined} target="eh-screen" className={`btn !min-h-10 px-4 text-sm ${url ? "" : "pointer-events-none opacity-50"}`}>Open full screen</a>
+        <label className="text-sm text-zinc-200">Style<select className="field mt-1" value={theme} onChange={(e) => setTheme(e.target.value as typeof theme)}><option value="neon">Neon</option><option value="dark">Dark</option><option value="light">Light</option></select></label>
+        <a href={url || undefined} rel="noopener" target="eh-screen" className={`btn px-4 text-sm ${url ? "" : "pointer-events-none opacity-50"}`} aria-disabled={!url}>Open full screen</a>
       </div>
       <div className="aspect-video w-full overflow-hidden rounded-xl border border-white/[0.14] bg-black">
         {url ? <iframe key={url} title={`Preview of the ${KINDS.find((k) => k.id === kind)!.label} screen`} src={url} className="h-full w-full" loading="lazy" /> : <div className="grid h-full place-items-center text-sm text-zinc-400">Loading the preview…</div>}

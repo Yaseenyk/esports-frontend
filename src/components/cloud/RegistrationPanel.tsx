@@ -15,26 +15,32 @@ export default function RegistrationPanel({ eventId, onApproved }: { eventId: st
   const [draft, setDraft] = useState({ title: "", intro: "", teamSize: 4, subs: 1, maxTeams: "", closes: "" });
   const [err, setErr] = useState(""), [msg, setMsg] = useState(""), [busy, setBusy] = useState("");
 
-  const load = useCallback(() => {
+  // `fill` copies the saved form into the edit boxes. It is only done on first load and after a save, so a refresh or an approval never wipes what is being typed.
+  const load = useCallback((fill = false) => {
     api.invalidate(`/events/${eventId}/registration`); api.invalidate(`/events/${eventId}/registrations`);
     events.registration(eventId).then((r) => {
       setForm(r.form); setCounts(r.counts);
-      if (r.form) setDraft({ title: r.form.title, intro: r.form.intro, teamSize: r.form.teamSize, subs: r.form.subs, maxTeams: r.form.maxTeams ? String(r.form.maxTeams) : "", closes: toLocalInput(r.form.closesAt) });
+      if (r.form && fill) setDraft({ title: r.form.title, intro: r.form.intro, teamSize: r.form.teamSize, subs: r.form.subs, maxTeams: r.form.maxTeams ? String(r.form.maxTeams) : "", closes: toLocalInput(r.form.closesAt) });
       if (r.form) events.registrations(eventId).then(setList).catch((e) => setErr(explain(e)));
     }).catch((e) => setErr(explain(e)));
   }, [eventId]);
-  useEffect(load, [load]);
+  useEffect(() => load(true), [load]);
 
   const link = form ? `${location.origin}/register/?t=${encodeURIComponent(form.token)}` : "";
   const save = async (e: React.FormEvent) => {
     e.preventDefault(); setErr(""); setMsg(""); setBusy("save");
     try {
       await events.saveRegistration(eventId, { title: draft.title, intro: draft.intro, teamSize: draft.teamSize, subs: draft.subs, maxTeams: draft.maxTeams ? Number(draft.maxTeams) : null, closesAt: draft.closes ? new Date(draft.closes).toISOString() : null });
-      setMsg(form ? "Saved." : "Registration link created."); load();
+      setMsg(form ? "Saved." : "Registration link created."); load(true);
     } catch (x) { setErr(explain(x)); } finally { setBusy(""); }
   };
-  const toggle = async () => { if (!form) return; try { await events.saveRegistration(eventId, { open: !form.open }); load(); } catch (x) { setErr(explain(x)); } };
+  const toggle = async () => {
+    if (!form || busy) return;
+    setBusy("toggle"); setErr(""); setMsg("");
+    try { await events.saveRegistration(eventId, { open: !form.open }); setMsg(form.open ? "Registration is closed." : "Registration is open again."); load(); } catch (x) { setErr(explain(x)); } finally { setBusy(""); }
+  };
   const act = async (r: Registration, ok: boolean) => {
+    if (!ok && !confirm(`Reject ${r.teamName}? They are not told, and this cannot be undone.`)) return;
     setBusy(r.id); setErr(""); setMsg("");
     try { if (ok) { const res = await events.approveRegistration(eventId, r.id); setMsg(`${r.teamName} added to the roster (${res.people} people). Open the ID card maker to see them.`); onApproved?.(); } else await events.rejectRegistration(eventId, r.id); load(); }
     catch (x) { setErr((x as { status?: number }).status === 409 ? "That could not be approved: the team name is already on the roster, or it was already handled." : explain(x)); } finally { setBusy(""); }
@@ -58,21 +64,21 @@ export default function RegistrationPanel({ eventId, onApproved }: { eventId: st
           <div role="status" className="space-y-2 rounded-xl border border-cyan/40 bg-[#0a0b0d] p-3 text-sm">
             <p className="text-zinc-200">Share this link with team captains. {form.open ? "Registration is open." : "Registration is closed."} {when(form.closesAt)}.</p>
             <p className="break-all font-mono text-xs text-cyan">{link}</p>
-            <div className="flex flex-wrap gap-2"><button type="button" className="btn-ghost !min-h-9 px-3 text-sm" onClick={() => { void navigator.clipboard?.writeText(link); setMsg("Link copied."); }}>Copy link</button><button type="button" className="chip" onClick={toggle}>{form.open ? "Close registration" : "Reopen registration"}</button></div>
+            <div className="flex flex-wrap gap-2"><button type="button" className="btn-ghost !min-h-9 px-3 text-sm" onClick={() => { if (!navigator.clipboard) { setErr("Copying is not available here. Select the link and copy it by hand."); return; } navigator.clipboard.writeText(link).then(() => { setErr(""); setMsg("Link copied."); }, () => setErr("Could not copy. Select the link and copy it by hand.")); }}>Copy link</button><button type="button" className="chip" disabled={busy === "toggle"} onClick={toggle}>{form.open ? "Close registration" : "Reopen registration"}</button></div>
           </div>
         )}
       </div>
 
       {form && (
         <div className="card space-y-3 !p-4">
-          <div className="flex flex-wrap items-center justify-between gap-2"><h3 className="font-display text-lg font-bold text-white">Waiting for approval {counts.pending ? `(${counts.pending})` : ""}</h3><button type="button" className="chip !min-h-8" onClick={load}>Refresh</button></div>
+          <div className="flex flex-wrap items-center justify-between gap-2"><h3 className="font-display text-lg font-bold text-white">Waiting for approval {counts.pending ? `(${counts.pending})` : ""}</h3><button type="button" className="chip !min-h-8" onClick={() => load()}>Refresh</button></div>
           <p className="text-xs text-zinc-400">{counts.approved} approved, {counts.rejected} rejected. A player marked under 18 needs a guardian&apos;s consent recorded before their card is printed.</p>
           {list.length === 0 ? <p className="text-sm text-zinc-400">Nobody is waiting.</p> : (
             <ul className="space-y-2">
               {list.map((r) => (
                 <li key={r.id} className="rounded-xl border border-white/10 p-3 text-sm">
                   <div className="flex flex-wrap items-start justify-between gap-2"><div className="min-w-0"><p className="font-semibold text-white">{r.teamName}</p><p className="text-xs text-zinc-400">Captain {r.captainName} · {r.captainContact}</p></div><div className="flex gap-2"><button type="button" className="btn !min-h-8 px-3 text-xs" disabled={busy === r.id} onClick={() => act(r, true)}>Approve</button><button type="button" className="chip !min-h-8" disabled={busy === r.id} onClick={() => act(r, false)}>Reject</button></div></div>
-                  <ul className="mt-2 grid gap-1 text-xs text-zinc-300 sm:grid-cols-2">{r.players.map((p, i) => <li key={i}>{p.name}{p.ign ? ` (${p.ign})` : ""}{p.minor ? " · under 18" : ""}{i >= draft.teamSize ? " · substitute" : ""}</li>)}</ul>
+                  <ul className="mt-2 grid gap-1 text-xs text-zinc-300 sm:grid-cols-2">{r.players.map((p, i) => <li key={i}>{p.name}{p.ign ? ` (${p.ign})` : ""}{p.minor ? " · under 18" : ""}{form && i >= form.teamSize ? " · substitute" : ""}</li>)}</ul>
                   {r.notes && <p className="mt-2 text-xs text-zinc-400">Note: {r.notes}</p>}
                 </li>
               ))}

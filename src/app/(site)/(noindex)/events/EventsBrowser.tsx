@@ -28,7 +28,7 @@ export default function EventsBrowser() {
             <p className="mt-4 flex flex-wrap justify-between gap-x-3 text-xs text-zinc-400"><span>{e.organiser}</span><span className="text-zinc-300">{e.date}</span></p>
           </TiltLink>
         ))}
-        {list.length === 0 && <p className="card text-zinc-400 md:col-span-2">No events match. Clear a filter.</p>}
+        {list.length === 0 && <p className="card text-zinc-300 md:col-span-2">No events match these filters. <button type="button" className="text-cyan underline" onClick={() => { setGame("all"); setMode("all"); setLevel("all"); }}>Clear the filters</button></p>}
       </div>
     </>
   );

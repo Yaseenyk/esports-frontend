@@ -40,7 +40,7 @@ export default function PassPage() {
         <div className="sk-pop space-y-4 text-center">
           <h1 className="font-display text-xl font-bold text-white">{data.event.name}</h1>
           <p className="text-sm text-zinc-300">{[data.event.date, data.event.venue].filter(Boolean).join(" · ")}</p>
-          <CardView tpl={tpl} ctx={{ event: data.event.name, game: "", teamName: data.person.team ?? "", person: { id: data.code.split(".")[2] ?? "", name: data.person.name, teamId: "", role: asRole(data.person.role), photo: data.photoUrl ? API_BASE + data.photoUrl : undefined, zones: Array.isArray(data.person.zones) ? (data.person.zones as string[]).join("; ") : String(data.person.zones ?? "") }, info: { organiser: "", date: data.event.date, venue: data.event.venue, emergency: "", rules: "" }, qr: data.code }} />
+          <CardView tpl={tpl} ctx={{ event: data.event.name, game: "", teamName: data.person.team ?? "", person: { id: data.code.split(".")[2] ?? "", name: data.person.name, teamId: "", role: asRole(data.person.role), photo: data.photoUrl && data.photoUrl.startsWith("/") && !data.photoUrl.startsWith("//") ? API_BASE + data.photoUrl : undefined, zones: Array.isArray(data.person.zones) ? (data.person.zones as string[]).join("; ") : String(data.person.zones ?? "") }, info: { organiser: "", date: data.event.date, venue: data.event.venue, emergency: "", rules: "" }, qr: data.code }} />
           <p className="text-xs text-zinc-400">{t("pass_note")}</p>
         </div>
       )}

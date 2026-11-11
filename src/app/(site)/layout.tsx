@@ -5,7 +5,7 @@ import { SITE_URL } from "@/lib/site";
 
 const FOOTER = [
   { title: "Tools", links: [["ID card maker", "/tools/id-cards/"], ["Bracket maker", "/tools/brackets/"], ["Points table calculator", "/tools/points-table/"], ["Double elimination bracket", "/tools/double-elimination/"], ["Registration form", "/tools/registration/"], ["Round robin generator", "/tools/round-robin/"], ["TV and OBS display", "/tools/display-screen/"], ["Match schedule maker", "/tools/schedule/"], ["Certificate maker", "/tools/certificates/"], ["Gate check-in scanner", "/tools/check-in/"]] },
-  { title: "Guides", links: [["Run a college tournament", "/guides/run-a-campus-tournament/"], ["Rules template", "/guides/esports-tournament-rules-template/"], ["Tournament formats", "/guides/choosing-a-tournament-format/"], ["All guides", "/guides/"]] },
+  { title: "Guides", links: [["Run a college tournament", "/guides/run-a-campus-tournament/"], ["Rules template", "/guides/esports-tournament-rules-template/"], ["Tournament formats", "/guides/choosing-a-tournament-format/"], ["Free Fire tournament guide", "/guides/free-fire-tournament-organiser/"], ["BGMI custom room tournament", "/guides/bgmi-custom-room-tournament/"], ["Valorant tournament guide", "/guides/valorant-tournament-organiser/"], ["Tournament bracket template", "/guides/tournament-bracket-template/"], ["ID card format and printing", "/guides/student-id-card-format/"], ["QR code attendance", "/guides/qr-code-attendance/"], ["All guides", "/guides/"]] },
   { title: "Esports Hub", links: [["About", "/about/"], ["Contact", "/contact/"], ["Privacy policy", "/privacy/"], ["Terms of use", "/terms/"]] },
 ];
 

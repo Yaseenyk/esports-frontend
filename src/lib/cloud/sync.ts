@@ -37,7 +37,8 @@ const writeMemo = (m: Memo) => { try { localStorage.setItem(MEM, JSON.stringify(
 export async function fitPhoto(dataUrl: string, limit = 380_000): Promise<Blob | null> {
   const src = await (await fetch(dataUrl)).blob();
   if (src.size <= limit && /^image\/(png|jpeg|webp)$/.test(src.type)) return src;
-  const bmp = await createImageBitmap(src);
+  let bmp: ImageBitmap;
+  try { bmp = await createImageBitmap(src); } catch { return null; } // a format the browser cannot read (for example a HEIC photo)
   for (const [max, q] of [[700, 0.86], [560, 0.78], [420, 0.7], [320, 0.6]] as const) {
     const k = Math.min(1, max / Math.max(bmp.width, bmp.height));
     const cv = document.createElement("canvas"); cv.width = Math.round(bmp.width * k); cv.height = Math.round(bmp.height * k);
@@ -52,7 +53,8 @@ export async function fitPhoto(dataUrl: string, limit = 380_000): Promise<Blob |
 /** The server keeps a team logo of at most 60 KB as a data URL, so a bigger one is shrunk first. */
 export async function fitLogo(dataUrl: string, limit = 58_000): Promise<string | null> {
   if (dataUrl.length <= limit && /^data:image\/(png|jpeg|webp);base64,/.test(dataUrl)) return dataUrl;
-  const bmp = await createImageBitmap(await (await fetch(dataUrl)).blob());
+  let bmp: ImageBitmap;
+  try { bmp = await createImageBitmap(await (await fetch(dataUrl)).blob()); } catch { return null; }
   for (const [max, q] of [[192, 0.85], [128, 0.8], [96, 0.7]] as const) {
     const k = Math.min(1, max / Math.max(bmp.width, bmp.height));
     const cv = document.createElement("canvas"); cv.width = Math.max(1, Math.round(bmp.width * k)); cv.height = Math.max(1, Math.round(bmp.height * k));
@@ -79,12 +81,13 @@ export async function hasAlpha(dataUrl: string): Promise<boolean> {
 
 export interface SaveResult { id: string; key: string; codes: Record<string, string>; sentRoster: boolean; photosSent: number; photosSkipped: string[] }
 
-export async function saveToCloud(s: Snapshot, existingId: string | null, minorOf: (p: Person) => boolean, say: (t: string) => void): Promise<SaveResult> {
+/** `onCreated` fires as soon as a new event exists on the server, so a failure later in the save does not leave an unlinked event behind and a retry makes a second one. */
+export async function saveToCloud(s: Snapshot, existingId: string | null, minorOf: (p: Person) => boolean, say: (t: string) => void, onCreated?: (id: string, key: string) => void): Promise<SaveResult> {
   const memo = readMemo();
   const details = { name: s.event, game: s.game, organiser: s.organiser, date: s.info.date, venue: s.info.venue, emergency: s.info.emergency, rules: s.info.rules };
   let ev: CloudEvent;
   say(existingId ? "Updating the event…" : "Creating the event…");
-  if (!existingId) ev = await events.create(details);
+  if (!existingId) { ev = await events.create(details); onCreated?.(ev.id, ev.key); }
   else {
     ev = { id: existingId } as CloudEvent;
     if (memo[existingId]?.details !== fingerprint(details)) ev = await events.update(existingId, details);
@@ -98,7 +101,7 @@ export async function saveToCloud(s: Snapshot, existingId: string | null, minorO
   const body = rosterPayload(teams, s.people, minorOf);
   const rf = fingerprint(body);
   let sentRoster = false;
-  if (m.roster !== rf) { say(`Saving ${s.people.length} people…`); await events.saveRoster(id, body); m.roster = rf; sentRoster = true; }
+  if (m.roster !== rf) { say(`Saving ${s.people.length} people…`); await events.saveRoster(id, body); m.roster = rf; sentRoster = true; writeMemo(memo); }
 
   const photos = (m.photos ??= {});
   const skipped: string[] = [];
@@ -109,7 +112,7 @@ export async function saveToCloud(s: Snapshot, existingId: string | null, minorO
     const blob = await fitPhoto(p.photo!);
     if (!blob) { skipped.push(p.name || p.id); continue; }
     await events.putPhoto(id, p.id, blob);
-    photos[p.id] = fingerprint(p.photo!); sent++;
+    photos[p.id] = fingerprint(p.photo!); sent++; writeMemo(memo);
   }
   writeMemo(memo);
 

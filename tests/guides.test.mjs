@@ -10,8 +10,11 @@ const slugs = new Set(GUIDES.map((g) => g.slug));
 const knownPaths = new Set(["/gate/", "/about/", "/contact/", "/privacy/", "/terms/", "/tools/", "/guides/", ...TOOLS.map((t) => t.href), ...GUIDES.map((g) => `/guides/${g.slug}/`)]);
 const textOf = (g) => [g.intro, ...g.sections.flatMap((s) => [s.h2, ...s.blocks.flatMap((b) => (b.t === "p" || b.t === "note" || b.t === "h3" ? [b.x] : b.t === "ul" || b.t === "ol" ? b.items : b.t === "table" ? [...b.head, ...b.rows.flat()] : []))])];
 
-test("there are nine guides with unique slugs and complete fields", () => {
-  assert.equal(GUIDES.length, 9);
+test("every guide has a unique slug, title and description and complete fields", () => {
+  assert.ok(GUIDES.length >= 21);
+  assert.equal(new Set(GUIDES.map((g) => g.title)).size, GUIDES.length, "duplicate title");
+  assert.equal(new Set(GUIDES.map((g) => g.seoTitle ?? g.title)).size, GUIDES.length, "duplicate tab title");
+  assert.equal(new Set(GUIDES.map((g) => g.description)).size, GUIDES.length, "duplicate description");
   assert.equal(slugs.size, GUIDES.length);
   for (const g of GUIDES) {
     assert.match(g.slug, /^[a-z0-9-]+$/);
@@ -42,8 +45,8 @@ test("every internal link and every related guide points at something that exist
 
 test("no guide contains placeholder wording or invented statistics markers", () => {
   for (const g of GUIDES) {
-    const all = textOf(g).join(" ");
-    for (const bad of ["TODO", "lorem", "coming soon", "made-up", "XXX"]) assert.ok(!all.toLowerCase().includes(bad.toLowerCase()), `${g.slug} contains ${bad}`);
+    const all = [...textOf(g), g.answer ?? "", ...(g.faq ?? []).flatMap((f) => [f.q, f.a])].join(" ");
+    for (const bad of ["TODO", "lorem", "coming soon", "made-up", "XXX", "TBD", "placeholder", "insert here"]) assert.ok(!all.toLowerCase().includes(bad.toLowerCase()), `${g.slug} contains ${bad}`);
   }
 });
 
@@ -93,4 +96,54 @@ test("the numbers shown on the home page match the code they describe", () => {
   assert.equal(CARD_DESIGNS, THEMES.length);
   assert.equal(CARD_SHAPES, Object.keys(FORMATS).length);
   assert.equal(LANGUAGES_COUNT, LANGS.length);
+});
+
+test("every guide has a short answer and real FAQ items, and links in them resolve", () => {
+  for (const g of GUIDES) {
+    assert.ok(g.answer && g.answer.length >= 120 && g.answer.length <= 420, `${g.slug} answer length ${g.answer?.length}`);
+    assert.ok(g.faq && g.faq.length >= 3 && g.faq.length <= 8, `${g.slug} needs 3 to 8 FAQ items`);
+    assert.equal(new Set(g.faq.map((f) => f.q)).size, g.faq.length, `${g.slug} repeats a question`);
+    for (const f of g.faq) {
+      assert.ok(f.q.length >= 15 && f.a.length >= 40, `${g.slug} FAQ too thin: ${f.q}`);
+      for (const m of (f.a + g.answer).matchAll(/\[([^\]]+)\]\(([^)]*)\)/g)) assert.ok(knownPaths.has(m[2]), `${g.slug} FAQ links to unknown ${m[2]}`);
+    }
+  }
+});
+
+test("every guide links to its matching tool and to at least two other guides, and is linked from somewhere", () => {
+  const inbound = new Map(GUIDES.map((g) => [g.slug, 0]));
+  for (const g of GUIDES) {
+    const body = textOf(g).join(" ");
+    assert.ok(/\]\(\/(tools|gate)\//.test(body) || g.cta.href.startsWith("/tools/") || g.cta.href === "/gate/", `${g.slug} has no link to a tool`);
+    const guideLinks = new Set([...g.related, ...[...body.matchAll(/\]\(\/guides\/([a-z0-9-]+)\//g)].map((m) => m[1])]);
+    guideLinks.delete(g.slug);
+    assert.ok(guideLinks.size >= 2, `${g.slug} links to only ${guideLinks.size} other guides`);
+    assert.ok(g.related.length >= 2 && g.related.length <= 4, `${g.slug} related count`);
+    for (const s of guideLinks) inbound.set(s, (inbound.get(s) ?? 0) + 1);
+  }
+  for (const [s, n] of TOOL_PAGES ? Object.values(TOOL_PAGES).flatMap((t) => (t.guides ?? []).map((s) => [s, 1])) : []) inbound.set(s, (inbound.get(s) ?? 0) + n);
+  for (const [s, n] of inbound) assert.ok(n >= 1, `no page links to guide ${s}`);
+});
+
+test("computed examples in the second batch match the tools' own code", async () => {
+  const { fixtures, matchCount } = await import("../src/lib/roundrobin.ts");
+  const { seedOrder } = await import("../src/lib/seeding.ts");
+  const rr = textOf(guideBySlug("round-robin-schedule")).join(" ");
+  assert.equal(matchCount(6), 15);
+  assert.equal(fixtures(["a", "b", "c", "d", "e", "f"]).length, 5);
+  assert.ok(rr.includes("15 matches") && rr.includes("28"));
+  assert.deepEqual(seedOrder(8), [1, 8, 4, 5, 2, 7, 3, 6]);
+  const tb = textOf(guideBySlug("tournament-bracket-template")).join(" ");
+  assert.ok(tb.includes("1 v 8, 4 v 5, 2 v 7, 3 v 6"));
+  const fc = textOf(guideBySlug("football-cricket-tournament-maker")).join(" ");
+  assert.equal(2 * matchCount(4) + 3, 15);
+  assert.ok(fc.includes("Total 15 matches"));
+});
+
+test("every public tool page links to guides that exist and has a rich how-to", () => {
+  for (const [slug, t] of Object.entries(TOOL_PAGES)) {
+    assert.ok((t.guides ?? []).length >= 3, `${slug} needs at least 3 guide links`);
+    assert.ok(t.faq.length >= 4, `${slug} needs at least 4 FAQ items`);
+    assert.ok(t.lead.length >= 120, `${slug} lead too short`);
+  }
 });

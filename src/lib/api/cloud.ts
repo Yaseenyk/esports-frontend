@@ -23,29 +23,56 @@ export type CheckResult = { status: "ok" | "again" | "bad"; reason?: string; per
 // ---- session: the sign-in token lives in this browser only ----
 const TOKEN_KEY = "eh-session-v1";
 type Listener = () => void;
+export type SessionEnd = "signed-out" | "expired" | "deleted";
+export type Session = { token: string; user: User };
 const listeners = new Set<Listener>();
-let session: { token: string; user: User } | null = null;
-try { const raw = typeof localStorage !== "undefined" ? localStorage.getItem(TOKEN_KEY) : null; if (raw) { session = JSON.parse(raw); setToken(session!.token); } } catch { session = null; }
+let session: Session | null = null;
+let endedBy: SessionEnd | null = null;
+
+/** Accepts only a saved sign-in that has the shape the app relies on, so a damaged or hand-edited entry cannot crash a screen. */
+export function parseSession(raw: string | null): Session | null {
+  if (!raw) return null;
+  try {
+    const s = JSON.parse(raw) as Partial<Session> | null;
+    if (!s || typeof s.token !== "string" || !s.token || !s.user || typeof s.user.id !== "string" || typeof s.user.email !== "string") return null;
+    return { token: s.token, user: { id: s.user.id, email: s.user.email, name: typeof s.user.name === "string" && s.user.name ? s.user.name : s.user.email } };
+  } catch { return null; }
+}
+const readStored = () => { try { return typeof localStorage !== "undefined" ? parseSession(localStorage.getItem(TOKEN_KEY)) : null; } catch { return null; } };
+session = readStored();
+if (session) setToken(session.token);
 const emit = () => listeners.forEach((l) => l());
 export const sessionStore = {
   get: () => session,
+  /** Why the last sign-in ended, so the app can say "your sign-in expired" instead of silently showing the sign-in page. */
+  endedBy: () => endedBy,
   subscribe: (l: Listener) => { listeners.add(l); return () => { listeners.delete(l); }; },
 };
-function setSession(s: typeof session) {
+function setSession(s: Session | null, why: SessionEnd = "signed-out", persist = true) {
   session = s; setToken(s?.token ?? null); api.clear();
-  try { if (s) localStorage.setItem(TOKEN_KEY, JSON.stringify(s)); else localStorage.removeItem(TOKEN_KEY); } catch { /* private mode: stay signed in for this tab only */ }
+  endedBy = s ? null : why;
+  if (persist) { try { if (s) localStorage.setItem(TOKEN_KEY, JSON.stringify(s)); else localStorage.removeItem(TOKEN_KEY); } catch { /* private mode: stay signed in for this tab only */ } }
   emit();
+}
+// Signing in or out in another tab of this browser is followed here too, so two tabs never disagree about who is signed in.
+if (typeof window !== "undefined") {
+  window.addEventListener("storage", (e) => {
+    if (e.key !== TOKEN_KEY) return;
+    const next = parseSession(e.newValue);
+    if ((next?.token ?? null) === (session?.token ?? null)) return;
+    setSession(next, "signed-out", false);
+  });
 }
 
 // An expired or revoked sign-in on any request signs the person out; the app shell then sends them to the sign-in page.
-setAuthFailHandler(() => setSession(null));
+setAuthFailHandler(() => { if (session) setSession(null, "expired"); });
 
 export const auth = {
   async register(email: string, name: string, password: string) { const r = await api.post<{ token: string; user: User }>("/auth/register", { email, name, password }); setSession(r); return r.user; },
   async login(email: string, password: string) { const r = await api.post<{ token: string; user: User }>("/auth/login", { email, password }); setSession(r); return r.user; },
   logout() { setSession(null); },
   changePassword: (current: string, next: string) => api.post<{ ok: true }>("/auth/change-password", { current, next }),
-  async deleteAccount(password: string) { await api.post<{ ok: true }>("/auth/delete-account", { password }); setSession(null); },
+  async deleteAccount(password: string) { await api.post<{ ok: true }>("/auth/delete-account", { password }); setSession(null, "deleted"); },
 };
 
 /** What the backend says when something is wrong, in words a person can act on. */
@@ -55,10 +82,26 @@ export function explain(e: unknown): string {
   if (s === 409) return "That email already has an account. Sign in instead.";
   if (s === 429) return "Too many tries. Wait a few minutes and try again.";
   if (s === 403) return "You do not have permission to do that. Ask the owner of the event.";
+  if (s === 413) return "That file is too large. Try a smaller one.";
   if (s === 404) return "That was not found. It may have been removed.";
   if (s && s >= 500) return "The server had a problem. Try again in a moment.";
   if (s) return "The server did not accept that. Check what you typed.";
   return "Could not reach the server. Check your connection.";
+}
+
+/** fetch that gives up after `ms`, so a dead connection ends in an error the screen can show instead of waiting for ever. */
+export async function fetchWithin(input: string, init: RequestInit = {}, ms = 15000): Promise<Response> {
+  const ctl = new AbortController();
+  const timer = setTimeout(() => ctl.abort(), ms);
+  try { return await fetch(input, { ...init, signal: ctl.signal }); } finally { clearTimeout(timer); }
+}
+
+/** The sentence shown when signing in or creating an account fails. A 401 here means a wrong password, not an expired session. */
+export function authMessage(e: unknown, mode: "login" | "register"): string {
+  const s = (e as { status?: number })?.status;
+  if (mode === "login" && (s === 401 || s === 400)) return "That email or password is not right. Check both and try again.";
+  if (mode === "register" && s === 400) return "The server did not accept those details. Use a real email and a password of at least 8 characters.";
+  return explain(e);
 }
 
 // ---- owner calls ----
@@ -93,15 +136,19 @@ export const events = {
   rejectRegistration: (id: string, rid: string) => api.post<{ ok: true }>(`/events/${id}/registrations/${rid}/reject`, {}),
   /** One photo, sent as the raw image. The backend keeps it separate from the roster so the roster stays small. */
   async putPhoto(id: string, personId: string, blob: Blob) {
-    const res = await fetch(`${API_BASE}/events/${id}/photos/${encodeURIComponent(personId)}`, { method: "PUT", headers: { "content-type": blob.type, authorization: `Bearer ${session?.token ?? ""}` }, body: blob });
+    const res = await fetchWithin(`${API_BASE}/events/${id}/photos/${encodeURIComponent(personId)}`, { method: "PUT", headers: { "content-type": blob.type, authorization: `Bearer ${session?.token ?? ""}` }, body: blob }, 30000);
+    if (res.status === 401) setSession(null, "expired");
     if (!res.ok) throw Object.assign(new Error("photo upload failed"), { status: res.status });
   },
   /** Fetches an image that needs the sign-in token, as a data URL the cards can use. */
   async photoAsDataUrl(path: string, gateKey?: string): Promise<string | null> {
-    const res = await fetch(API_BASE + path, { headers: gateKey ? { "x-gate-key": gateKey } : { authorization: `Bearer ${session?.token ?? ""}` } });
-    if (!res.ok) return null;
-    const b = await res.blob();
-    return new Promise((ok) => { const r = new FileReader(); r.onload = () => ok(String(r.result)); r.readAsDataURL(b); });
+    if (!gateKey && !session) return null;
+    try {
+      const res = await fetchWithin(API_BASE + path, { headers: gateKey ? { "x-gate-key": gateKey } : { authorization: `Bearer ${session!.token}` } }, 15000);
+      if (!res.ok) return null;
+      const b = await res.blob();
+      return await new Promise<string | null>((ok) => { const r = new FileReader(); r.onload = () => ok(String(r.result)); r.onerror = () => ok(null); r.readAsDataURL(b); });
+    } catch { return null; }
   },
 };
 
@@ -117,7 +164,8 @@ export const pub = {
 // ---- gate device (a gate key instead of a sign-in) ----
 export function gateClient(key: string) {
   const call = async <T>(path: string, body?: unknown): Promise<T> => {
-    const res = await fetch(API_BASE + path, { method: body === undefined ? "GET" : "POST", headers: { "x-gate-key": key, ...(body === undefined ? {} : { "content-type": "application/json" }) }, body: body === undefined ? undefined : JSON.stringify(body) });
+    // A gate phone on a bad signal must get an answer or an error within seconds: a request that hangs would freeze the scan queue.
+    const res = await fetchWithin(API_BASE + path, { method: body === undefined ? "GET" : "POST", headers: { "x-gate-key": key, ...(body === undefined ? {} : { "content-type": "application/json" }) }, body: body === undefined ? undefined : JSON.stringify(body) }, body === undefined ? 15000 : 10000);
     if (!res.ok) throw Object.assign(new Error(`gate ${res.status}`), { status: res.status });
     return res.json() as Promise<T>;
   };
@@ -129,11 +177,19 @@ export function gateClient(key: string) {
   };
 }
 
+/** Where a gate key's waiting scans are kept. Only a short fingerprint of the key goes into the name, never the key itself. */
+export function gateQueueKey(gateKey: string): string {
+  let h = 5381;
+  for (let i = 0; i < gateKey.length; i++) h = ((h << 5) + h + gateKey.charCodeAt(i)) | 0;
+  return `eh-gate-queue-${(h >>> 0).toString(36)}`;
+}
+
 /** Scans that could not be sent (no signal at the gate) wait here and go up together, 100 to a request. */
 export function offlineScanQueue(gateKey: string, storage: Storage | null, onSent: (r: (CheckResult & { code: string })[]) => void) {
   const g = gateClient(gateKey);
   return createBatchQueue<string>({
-    keyOf: (c) => c, storage, storageKey: "eh-gate-queue", maxBatch: 100, intervalMs: 8000,
+    // One saved queue per gate key: scans waiting for one door are never sent with another door's key.
+    keyOf: (c) => c, storage, storageKey: gateQueueKey(gateKey), maxBatch: 100, intervalMs: 8000,
     send: async (codes) => { const r = await g.batch(codes); onSent(r.results); },
   });
 }

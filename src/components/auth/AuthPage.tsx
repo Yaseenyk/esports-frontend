@@ -11,9 +11,15 @@ import { safeNext } from "@/lib/safe-next";
 export default function AuthPage({ mode }: { mode: "login" | "register" }) {
   const session = useSession();
   const router = useRouter();
-  const [next, setNext] = useState("/app/");
-  useEffect(() => setNext(safeNext(new URLSearchParams(location.search).get("next"))), []);
-  useEffect(() => { if (session) router.replace(next); }, [session, next, router]);
+  // Read from the address after load (the page is static). Until then nothing redirects, so a saved sign-in cannot beat the return address.
+  const [next, setNext] = useState<string | null>(null);
+  const [expired, setExpired] = useState(false);
+  useEffect(() => {
+    const q = new URLSearchParams(location.search);
+    setNext(safeNext(q.get("next")));
+    setExpired(q.get("expired") === "1");
+  }, []);
+  useEffect(() => { if (session && next) router.replace(next); }, [session, next, router]);
 
   return (
     <div className="mx-auto max-w-md space-y-6 py-4">
@@ -21,8 +27,9 @@ export default function AuthPage({ mode }: { mode: "login" | "register" }) {
         <h1 className="font-display text-3xl font-black text-white">{mode === "login" ? "Sign in" : "Create your account"}</h1>
         <p className="mt-2 text-sm text-zinc-300">{mode === "login" ? "Welcome back. Sign in to open the Esports Hub app." : "Free to start. Make player ID cards, signed passes and run live gate check-in."}</p>
       </div>
+      {expired && !session && <p role="status" className="rounded-xl border border-amber-500/30 bg-[#0a0b0d] p-3 text-center text-sm text-amber-100">Your sign-in ran out, so you were signed out. Sign in again to carry on where you were.</p>}
       <div className="card">
-        {hasBackend ? <AuthForm key={mode} initialMode={mode} /> : <p className="text-sm text-amber-100">Accounts are not connected in this build.</p>}
+        {hasBackend ? <AuthForm key={mode} initialMode={mode} showTabs={false} /> : <p className="text-sm text-amber-100">Accounts are not connected in this build.</p>}
       </div>
       <p className="text-center text-sm text-zinc-300">{mode === "login" ? <>New here? <Link className="text-cyan underline" href="/signup/">Create an account</Link></> : <>Already have an account? <Link className="text-cyan underline" href="/login/">Sign in</Link></>}</p>
     </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { explain, pub } from "@/lib/api/cloud";
 import { fitPhoto } from "@/lib/cloud/sync";
 import type { Key } from "@/lib/i18n";
@@ -29,11 +29,16 @@ export default function JoinPage() {
   }, []);
   useEffect(() => { if (!file) { setPreview(""); return; } const u = URL.createObjectURL(file); setPreview(u); return () => URL.revokeObjectURL(u); }, [file]);
 
+  const errBox = useRef<HTMLParagraphElement>(null);
+  useEffect(() => { if (err && !loading) { errBox.current?.scrollIntoView({ block: "center", behavior: "smooth" }); errBox.current?.focus({ preventScroll: true }); } }, [err, loading]);
+
   const send = async (e: React.FormEvent) => {
-    e.preventDefault(); setBusy(true); setErr("");
+    e.preventDefault();
+    if (busy) return;
+    setBusy(true); setErr("");
     try {
       let photo: string | undefined;
-      if (file) { const blob = await fitPhoto(await toDataUrl(file), 300_000); if (!blob) { setErr("That photo is too large. Try a smaller one."); setBusy(false); return; } photo = await toDataUrl(blob); }
+      if (file) { const blob = await fitPhoto(await toDataUrl(file), 300_000); if (!blob) { setErr("That photo could not be used. Try a JPG or PNG, or a smaller picture."); setBusy(false); return; } photo = await toDataUrl(blob); }
       await pub.submit(token, { name: name.trim(), role, minor, photo });
       setDone(true);
     } catch (x) { setErr((x as { status?: number }).status === 404 ? "This invite is no longer active." : explain(x)); } finally { setBusy(false); }
@@ -43,7 +48,7 @@ export default function JoinPage() {
     <div className="mx-auto max-w-md">
       <LangSwitch className="mb-4 justify-end" />
       <Waiting loading={loading} apiKey="/public/invite" label="Loading the invite"><div className="space-y-3"><Sk className="!h-8" w="70%" /><SkLines n={2} /><Sk className="!h-11" /><Sk className="!h-11" i={1} /></div></Waiting>
-      {err && !done && <p role="alert" className="mb-4 rounded-xl border border-red-400/40 bg-red-500/10 p-4 text-red-100">{err}</p>}
+      {err && !done && <p ref={errBox} tabIndex={-1} role="alert" className="mb-4 rounded-xl border border-red-400/40 bg-red-500/10 p-4 text-red-100">{err}</p>}
       {done ? (
         <div role="status" className="sk-pop space-y-2 rounded-2xl border border-emerald-400/40 bg-emerald-500/10 p-5 text-center"><p className="font-display text-xl font-bold text-white">{t("sent_title")}</p><p className="text-sm text-emerald-100">{t("sent_body", { team: info?.team.name ?? "" })}</p></div>
       ) : info && (

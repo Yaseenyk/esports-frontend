@@ -3,6 +3,12 @@
 import { prettyDate, randomPassphrase, type EventInfo, type Team } from "@/lib/idcard/types";
 
 /** Reads a small logo picture into a data URL, shrunk so saving it in the browser stays light. */
+/** Same as readLogo, but a picture the browser cannot read gives a plain message instead of nothing. */
+async function pickLogo(f: File | undefined, done: (url: string) => void) {
+  if (!f) return;
+  try { done(await readLogo(f)); } catch { window.alert("That picture could not be read. Try a PNG or JPG."); }
+}
+
 export async function readLogo(file: File, max = 320): Promise<string> {
   const bmp = await createImageBitmap(file);
   const k = Math.min(1, max / Math.max(bmp.width, bmp.height));
@@ -42,7 +48,7 @@ export function MoreOptions({ info, setInfo }: { info: EventInfo; setInfo: (i: E
           <Field label="Rules" hint="One per line, up to 8."><textarea className="field mt-1 min-h-20 py-2" value={info.rules} onChange={(e) => set({ rules: e.target.value })} /></Field>
           <div className="flex items-center gap-3">
             <span className="grid h-12 w-20 shrink-0 place-items-center overflow-hidden rounded-lg border border-white/10 bg-white/5">{info.sponsorLogo ? /* eslint-disable-next-line @next/next/no-img-element */ <img src={info.sponsorLogo} alt="" className="max-h-full max-w-full object-contain" /> : <span className="text-[11px] text-zinc-400">No logo</span>}</span>
-            <label className="btn-ghost !min-h-9 cursor-pointer px-3 text-sm">{info.sponsorLogo ? "Change sponsor logo" : "Add sponsor logo"}<input type="file" accept="image/*" className="sr-only" onChange={async (e) => { const f = e.target.files?.[0]; if (f) set({ sponsorLogo: await readLogo(f) }); e.target.value = ""; }} /></label>
+            <label className="btn-ghost !min-h-9 cursor-pointer px-3 text-sm">{info.sponsorLogo ? "Change sponsor logo" : "Add sponsor logo"}<input type="file" accept="image/*" className="sr-only" onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ""; void pickLogo(f, (u) => set({ sponsorLogo: u })); }} /></label>
             {info.sponsorLogo && <button type="button" className="chip !min-h-8" onClick={() => set({ sponsorLogo: undefined })}>Remove</button>}
           </div>
         </div>
@@ -75,7 +81,7 @@ export function TeamLogoButton({ team, onLogo, compact = false }: { team: Team; 
       <span className="relative inline-flex shrink-0">
         <label title={team.logo ? "Change this team's logo" : "Add a logo for this team"} className="grid h-11 w-11 cursor-pointer place-items-center overflow-hidden rounded-lg border border-dashed border-white/25 bg-white/5 text-lg text-zinc-400 transition-colors hover:border-cyan hover:text-cyan">
           {team.logo ? /* eslint-disable-next-line @next/next/no-img-element */ <img src={team.logo} alt={`${team.name} logo`} className="h-full w-full object-contain" /> : "+"}
-          <input type="file" accept="image/*" className="sr-only" aria-label={`Logo for ${team.name}`} onChange={async (e) => { const f = e.target.files?.[0]; if (f) onLogo(await readLogo(f)); e.target.value = ""; }} />
+          <input type="file" accept="image/*" className="sr-only" aria-label={`Logo for ${team.name}`} onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ""; void pickLogo(f, onLogo); }} />
         </label>
         {team.logo && <button type="button" aria-label="Remove logo" title="Remove logo" onClick={() => onLogo(undefined)} className="absolute -right-1.5 -top-1.5 grid h-5 w-5 place-items-center rounded-full bg-zinc-800 text-[11px] text-zinc-300 ring-1 ring-white/20 hover:bg-red-500 hover:text-white">×</button>}
       </span>
@@ -87,7 +93,7 @@ export function TeamLogoButton({ team, onLogo, compact = false }: { team: Team; 
         // eslint-disable-next-line @next/next/no-img-element
         ? <img src={team.logo} alt="" className="h-8 w-8 shrink-0 rounded-md border border-white/10 bg-white/5 object-contain" />
         : null}
-      <label className="chip cursor-pointer" title="Upload the team's logo. Designs can show it, and the card can take its colours from it.">{team.logo ? "Change team logo" : "Team logo"}<input type="file" accept="image/*" className="sr-only" onChange={async (e) => { const f = e.target.files?.[0]; if (f) onLogo(await readLogo(f)); e.target.value = ""; }} /></label>
+      <label className="chip cursor-pointer" title="Upload the team's logo. Designs can show it, and the card can take its colours from it.">{team.logo ? "Change team logo" : "Team logo"}<input type="file" accept="image/*" className="sr-only" onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ""; void pickLogo(f, onLogo); }} /></label>
       {team.logo && <button type="button" className="chip" onClick={() => onLogo(undefined)}>Remove</button>}
     </span>
   );

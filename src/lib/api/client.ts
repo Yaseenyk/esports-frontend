@@ -40,6 +40,17 @@ export class ApiError extends Error {
 
 interface Entry { data: unknown; at: number; etag?: string }
 
+/** Lets one caller stop waiting without cancelling a request other callers share. */
+function untilAborted<T>(p: Promise<T>, signal?: AbortSignal): Promise<T> {
+  if (!signal) return p;
+  return new Promise<T>((ok, fail) => {
+    const gone = () => fail(Object.assign(new Error("aborted"), { name: "AbortError" }));
+    if (signal.aborted) { p.catch(() => undefined); return gone(); }
+    signal.addEventListener("abort", gone, { once: true });
+    p.then((v) => { signal.removeEventListener("abort", gone); ok(v); }, (e) => { signal.removeEventListener("abort", gone); fail(e); });
+  });
+}
+
 export function createClient(o: ClientOptions) {
   const f = o.fetchImpl ?? ((...a: Parameters<typeof fetch>) => fetch(...a));
   const now = o.now ?? Date.now;
@@ -47,6 +58,8 @@ export function createClient(o: ClientOptions) {
   const online = o.isOnline ?? (() => (typeof navigator === "undefined" ? true : navigator.onLine));
   const cache = new Map<string, Entry>();
   const flying = new Map<string, Promise<unknown>>();
+  /** Bumped whenever cached answers are thrown away, so a read that started before cannot put an old answer back. */
+  let epoch = 0;
   const stats = { network: 0, cacheHits: 0, deduped: 0, notModified: 0, retried: 0 };
 
   const url = (p: string) => o.base.replace(/\/$/, "") + p;
@@ -59,7 +72,6 @@ export function createClient(o: ClientOptions) {
   async function once(path: string, opt: GetOptions, etag?: string): Promise<{ data?: unknown; etag?: string; notModified?: boolean }> {
     const ctl = new AbortController();
     const timer = setTimeout(() => ctl.abort(), opt.timeout ?? 10000);
-    opt.signal?.addEventListener("abort", () => ctl.abort(), { once: true });
     const t0 = now();
     try {
       stats.network++;
@@ -80,7 +92,7 @@ export function createClient(o: ClientOptions) {
     for (let n = 0; ; n++) {
       try { return await once(path, opt, etag); } catch (e) {
         const err = e as ApiError;
-        const retryable = !opt.signal?.aborted && (err instanceof ApiError ? err.status >= 500 || err.status === 429 : true);
+        const retryable = (err instanceof ApiError ? err.status >= 500 || err.status === 429 : true);
         if (!retryable || n >= max) throw err;
         stats.retried++;
         await sleep(err.retryAfterMs ?? Math.min(4000, 300 * 2 ** n) * (0.75 + 0.5 * Math.random()));
@@ -98,16 +110,17 @@ export function createClient(o: ClientOptions) {
     const refresh = (): Promise<T> => {
       const running = flying.get(path);
       if (running) { stats.deduped++; return running as Promise<T>; }
-      const p = fetchWithRetry(path, opt, hit?.etag).then((r) => {
-        if (r.notModified && hit) { hit.at = now(); return hit.data as T; }
-        cache.set(path, { data: r.data, at: now(), etag: r.etag });
+      const born = epoch;
+      const p: Promise<T> = fetchWithRetry(path, opt, hit?.etag).then((r) => {
+        if (r.notModified && hit) { if (born === epoch) hit.at = now(); return hit.data as T; }
+        if (born === epoch) cache.set(path, { data: r.data, at: now(), etag: r.etag });
         return r.data as T;
-      }).finally(() => flying.delete(path));
+      }).finally(() => { if (flying.get(path) === p) flying.delete(path); });
       flying.set(path, p);
       return p;
     };
     if (!opt.force && hit && age < ttl + swr) { refresh().catch(() => undefined); stats.cacheHits++; return hit.data as T; } // show now, refresh quietly
-    return refresh();
+    return untilAborted(refresh(), opt.signal);
   }
 
   /** Writes are never retried automatically: repeating a request that may have worked could do it twice. */
@@ -127,8 +140,12 @@ export function createClient(o: ClientOptions) {
 
   /** After a write, forget cached reads of the same collection so nobody sees stale data. */
   function invalidateRelated(path: string) {
-    const root = path.split("?")[0].split("/").slice(0, 3).join("/");
-    for (const k of [...cache.keys()]) if (k.startsWith(root)) cache.delete(k);
+    const segs = path.split("?")[0].split("/");
+    const root = segs.slice(0, 3).join("/");
+    epoch++;
+    for (const k of [...cache.keys()]) if (k === root || k.startsWith(root + "/") || k.startsWith(root + "?")) cache.delete(k);
+    // Creating, renaming or deleting one item changes the list it belongs to ("/events/7" -> "/events").
+    if (segs.length <= 3 && segs.length > 2) for (const k of [...cache.keys()]) { const kp = k.split("?")[0]; if (kp === segs.slice(0, 2).join("/")) cache.delete(k); }
   }
 
   return {
@@ -137,8 +154,9 @@ export function createClient(o: ClientOptions) {
     put: <T>(path: string, body?: unknown, extra?: Parameters<typeof send>[3]) => send<T>("PUT", path, body, extra),
     del: <T>(path: string, extra?: Parameters<typeof send>[3]) => send<T>("DELETE", path, undefined, extra),
     peek: <T>(path: string): T | undefined => cache.get(path)?.data as T | undefined,
-    invalidate: (prefix: string) => { for (const k of [...cache.keys()]) if (k.startsWith(prefix)) cache.delete(k); },
-    clear: () => cache.clear(),
+    invalidate: (prefix: string) => { epoch++; for (const k of [...cache.keys()]) if (k.startsWith(prefix)) cache.delete(k); },
+    /** Forget everything, including requests still in flight (used on sign-in and sign-out so nobody sees the previous person's data). */
+    clear: () => { epoch++; cache.clear(); flying.clear(); },
     stats,
   };
 }

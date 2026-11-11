@@ -87,7 +87,7 @@ export default function HubNav() {
       if (!open && !typing && (e.key === "m" || e.key === "M") && !e.metaKey && !e.ctrlKey && !e.altKey) { e.preventDefault(); show(); return; }
       if (!open) return;
       if (e.key === "Escape") { e.preventDefault(); hide(); return; }
-      if (!typing && /^[1-7]$/.test(e.key)) router.push(SECTIONS[Number(e.key) - 1].href);
+      if (!typing && /^[1-7]$/.test(e.key)) { const to = SECTIONS[Number(e.key) - 1]!.href; if (to === path || to === path + "/") hide(); else router.push(to); }
       if (e.key === "Tab" && panel.current) {
         const f = Array.from(panel.current.querySelectorAll<HTMLElement>("a[href],button,input"));
         if (!f.length) return;
@@ -98,7 +98,7 @@ export default function HubNav() {
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
-  }, [open, show, hide, router]);
+  }, [open, show, hide, router, path]);
   useEffect(() => {
     if (!open) return;
     const prev = document.body.style.overflow;

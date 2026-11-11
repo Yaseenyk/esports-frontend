@@ -1,4 +1,5 @@
 import { EXAMPLE_SCALE, standings, type TeamEntry } from "@/lib/points";
+import { MORE_GUIDES } from "./guides-more";
 
 /** Inline links are written as [text](/path/) inside paragraphs, lists and notes. */
 export type Block =
@@ -21,6 +22,9 @@ export interface Guide {
   published: string;
   updated: string;
   intro: string;
+  /** The direct answer shown in a box at the top and used as the first thing a search engine reads: 2 to 3 sentences. */
+  answer?: string;
+  faq?: { q: string; a: string }[];
   sections: { h2: string; blocks: Block[] }[];
   related: string[];
   cta: { label: string; href: string };
@@ -52,7 +56,7 @@ const scaleTable: Block = {
   rows: [["Points", ...EXAMPLE_SCALE.placement.map(String), "0"]],
 };
 
-export const GUIDES: Guide[] = [
+const BASE_GUIDES: Guide[] = [
   {
     slug: "run-a-campus-tournament",
     title: "How to run a college esports tournament in India",
@@ -134,6 +138,12 @@ export const GUIDES: Guide[] = [
         { t: "p", x: "You do not need a large budget, but write the costs down so nothing surprises you: venue and power, network, prizes, printing (cards, posters, certificates), refreshments, a first-aid contact, and a small reserve for things that go wrong. If a sponsor is paying, agree in writing what they get. See [writing a sponsor pitch](/guides/sponsor-pitch/)." },
       ] },
     ],
+    answer: "A college esports tournament needs permission, a game and format, written rules, a short registration form, ID cards or passes, a plan for the gate and a written schedule for the day. Do these in that order and start about four weeks ahead.",
+    faq: [
+      { q: "How long before the event should I start planning?", a: "About four weeks is comfortable: permission and format first, rules and registration three weeks out, cards and the gate test in the last week." },
+      { q: "Do I need permission from the college?", a: "Yes. Get written approval, a venue booking and a named faculty contact, and ask early whether outside participants may enter." },
+      { q: "What should the registration form ask?", a: "Team name, the captain's contact, each player's name and in-game ID, and the college or group. Get a guardian's consent for anyone under 18." },
+    ],
     related: ["esports-tournament-rules-template", "choosing-a-tournament-format", "event-gate-checkin"],
     cta: { label: "Make the ID cards for your event", href: "/tools/id-cards/" },
   },
@@ -210,6 +220,12 @@ export const GUIDES: Guide[] = [
         ] },
       ] },
     ],
+    answer: "A tournament rules document should cover who can play, team size and substitutes, the schedule and late rules, conduct, cheating and its penalty, how disputes are decided and who has the final say. Publish it with the registration link so nobody can say they did not know.",
+    faq: [
+      { q: "How long should the rules be?", a: "One or two pages is enough for a small or medium event. Short rules that people read are better than long ones they do not." },
+      { q: "Who should decide disputes?", a: "Name one referee or a small panel in the rules, and say their decision is final. The organiser should not argue with every captain." },
+      { q: "Can I copy the template?", a: "Yes. Copy it, replace the words in brackets with your details and delete what you do not need." },
+    ],
     related: ["run-a-campus-tournament", "event-gate-checkin", "points-table"],
     cta: { label: "Make passes for your players", href: "/tools/id-cards/" },
   },
@@ -282,6 +298,12 @@ export const GUIDES: Guide[] = [
           "Final totals are checked with the [calculator](/tools/points-table/) before they are announced.",
         ] },
       ] },
+    ],
+    answer: "A battle royale points table adds placement points and kill points for each squad over several matches and ranks squads by the total. Publish your scale and your tie-breakers before the first match, and use a calculator so the sums cannot be wrong.",
+    faq: [
+      { q: "How is a battle royale points table calculated?", a: "For every match a squad scores the points for its placement plus points for each kill. Add the matches together and rank by the total." },
+      { q: "How do I break a tie?", a: "A fair default is most first places, then most kills, then the better placement in the last match. Write the rule in your rulebook in advance." },
+      { q: "Can I use the official points scale?", a: "Only if you have checked the current published scale for that tournament. Official scales change, so most community events set their own and say so." },
     ],
     related: ["choosing-a-tournament-format", "esports-tournament-rules-template", "run-a-campus-tournament"],
     cta: { label: "Open the points table calculator", href: "/tools/points-table/" },
@@ -357,6 +379,12 @@ export const GUIDES: Guide[] = [
           "Not telling teams how many matches they are guaranteed. In single elimination a team may play only one match, so tell them before they travel.",
         ] },
       ] },
+    ],
+    answer: "Choose single elimination when time is short, double elimination when fairness matters, a round robin for small fields and groups followed by a knockout for bigger ones. Count the matches first: n − 1 for single elimination, n × (n − 1) ÷ 2 for a round robin.",
+    faq: [
+      { q: "Which tournament format is fastest?", a: "Single elimination. It needs n − 1 matches for n teams, but half the teams play only once." },
+      { q: "Which format is fairest?", a: "A round robin, where every team plays every other team, or double elimination, where a team is out only after two losses." },
+      { q: "What should I use for 16 teams?", a: "Single elimination needs 15 matches. Four groups of four plus a knockout needs 31. A full round robin needs 120, which is usually too many." },
     ],
     related: ["points-table", "run-a-campus-tournament", "esports-tournament-rules-template"],
     cta: { label: "Build a bracket for free", href: "/tools/brackets/" },
@@ -437,6 +465,12 @@ export const GUIDES: Guide[] = [
         ] },
       ] },
     ],
+    answer: "A player ID card should show a photo, the full name, the team, the role and a QR code that the gate can scan, on a standard card size. Make the cards a few days ahead, print a proof first and keep sensitive numbers off the card.",
+    faq: [
+      { q: "What should be on a player ID card?", a: "Photo, full name, team, role, event name and a QR code. Leave off government ID numbers and home addresses." },
+      { q: "Why add a QR code?", a: "A signed QR code lets the gate scanner tell a genuine card from a copy or an edited one." },
+      { q: "Can I make the cards free?", a: "Yes. The ID card maker is free and runs in the browser without an account." },
+    ],
     related: ["event-gate-checkin", "run-a-campus-tournament", "esports-tournament-rules-template"],
     cta: { label: "Make ID cards for free", href: "/tools/id-cards/" },
   },
@@ -504,6 +538,12 @@ export const GUIDES: Guide[] = [
           "A named person who can approve exceptions.",
         ] },
       ] },
+    ],
+    answer: "To run check-in at the gate, decide how many doors you need, give each a volunteer and a phone, test the scanner on the real network or use an offline pack, and keep a manual list as backup. Scan signed passes so copies are caught.",
+    faq: [
+      { q: "How many people do I need at a door?", a: "Two is a good start: one to scan and one to handle problems. Add doors when the queue grows." },
+      { q: "What if there is no mobile signal?", a: "Use an offline pack, or scan in live mode: scans are stored on the phone, marked as not verified, and sent when the signal returns." },
+      { q: "What do I do when a pass is rejected?", a: "Send the person to a help desk with the manual list. Do not argue at the door." },
     ],
     related: ["player-id-cards", "run-a-campus-tournament", "esports-tournament-rules-template"],
     cta: { label: "Open the gate scanner", href: "/gate/" },
@@ -591,6 +631,12 @@ export const GUIDES: Guide[] = [
         ] },
       ] },
     ],
+    answer: "To stream your own esports event on a small budget, you need a stable upload connection, a capture setup, a scoreboard overlay, a plan for who does what and a test run. The free display screen can show standings and brackets over your stream.",
+    faq: [
+      { q: "What do I need to stream an event?", a: "A reliable upload connection, a PC or phone to capture the game or the room, a platform account, an overlay and a person who only watches the stream." },
+      { q: "How do I add a scoreboard to the stream?", a: "Open the display screen from a tool, choose a transparent background and capture it in OBS as a browser source or a window capture." },
+      { q: "Do I need permission to stream a game?", a: "Check the publisher's current policy for streaming and tournaments, and ask your college for permission to stream on campus." },
+    ],
     related: ["run-a-campus-tournament", "points-table", "sponsor-pitch"],
     cta: { label: "Build a bracket to show on stream", href: "/tools/brackets/" },
   },
@@ -666,6 +712,12 @@ export const GUIDES: Guide[] = [
         ] },
       ] },
     ],
+    answer: "A sponsor pitch for a community esports event should say who the audience is, what the event is, what the sponsor gets and what it costs, in one or two pages. Be honest about numbers: use real past attendance and reach, never estimates presented as facts.",
+    faq: [
+      { q: "What should a sponsor pitch include?", a: "A short description of the event, the audience, what the sponsor receives, the cost and how you will report back afterwards." },
+      { q: "Should I quote numbers?", a: "Only real ones, with their source. If you have not run an event yet, say so and offer a smaller package." },
+      { q: "What can a sponsor get?", a: "A logo on cards, passes and the stream overlay, a mention in announcements, a stall or a prize in their name, depending on your event." },
+    ],
     related: ["run-a-campus-tournament", "stream-your-event", "player-id-cards"],
     cta: { label: "Put a sponsor logo on your cards", href: "/tools/id-cards/" },
   },
@@ -737,9 +789,18 @@ export const GUIDES: Guide[] = [
         { t: "p", x: "A short group-chat rule helps too: one chat per team for match talk, one announcement chat for the whole community where only admins post." },
       ] },
     ],
+    answer: "When a community plays more than one game, keep one master list of people, one roster per game, a clear captain for each, and a single announcement channel. Update the lists after every event so cards, brackets and check-in all use the same data.",
+    faq: [
+      { q: "How do I keep rosters for several games?", a: "Keep one master list of people and a roster per game that points to it, so a person is entered once and can play in several." },
+      { q: "Who should own each roster?", a: "A named captain or admin per game, with one overall organiser who can see all of them." },
+      { q: "What about people who leave?", a: "Mark them as left, remove them from the rosters and group chats, and delete personal details you no longer need." },
+    ],
     related: ["run-a-campus-tournament", "player-id-cards", "sponsor-pitch"],
     cta: { label: "Make cards for your roster", href: "/tools/id-cards/" },
   },
 ];
+
+/** The nine original guides, then the second batch (guides-more.ts). */
+export const GUIDES: Guide[] = [...BASE_GUIDES, ...MORE_GUIDES];
 
 export const guideBySlug = (slug: string) => GUIDES.find((g) => g.slug === slug);

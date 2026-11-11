@@ -46,6 +46,9 @@ const rows = (x: unknown, cols: number): string[][] | null => (Array.isArray(x) 
 
 /** Checks the shape and trims everything, so whatever is in a link can only ever be shown as plain text. */
 export function validate(x: unknown): Payload | null {
+  try { return validateShape(x); } catch { return null; } // a hand-made object with the wrong shapes inside must never crash a screen
+}
+function validateShape(x: unknown): Payload | null {
   if (!x || typeof x !== "object") return null;
   const p = x as { v?: unknown; d?: Record<string, unknown> };
   const d = p.d;
@@ -97,14 +100,46 @@ export function remaining(at: string, now = Date.now()) {
   return { ms, days: Math.floor(ms / 86_400_000), hours: Math.floor(ms / 3_600_000) % 24, minutes: Math.floor(ms / 60_000) % 60, seconds: Math.floor(ms / 1000) % 60, done: ms === 0 };
 }
 
+const ymd = (x: Date) => `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, "0")}-${String(x.getDate()).padStart(2, "0")}`;
+
+/**
+ * The moment a schedule time label means on a given day (yyyy-mm-dd, local time). Labels past midnight carry "(+1d)", as the schedule maker writes them,
+ * so "00:10 (+1d)" is ten past midnight on the next day. Returns NaN for a label that is not a time.
+ */
+export function slotTime(day: string, label: string): number {
+  const dm = /^(\d{4})-(\d{2})-(\d{2})$/.exec(day), m = /^(\d{1,2}):(\d{2})(?:\s*\(\+(\d{1,3})d\))?/.exec(label.trim());
+  if (!dm || !m) return NaN;
+  return new Date(Number(dm[1]), Number(dm[2]) - 1, Number(dm[3]) + Number(m[3] ?? 0), Number(m[1]), Number(m[2]), 0, 0).getTime();
+}
+
+/** The day a schedule's times are on: the one named in it, or else today (or yesterday, if the schedule started yesterday and is still running past midnight). */
+function scheduleDays(d: ScheduleData, now: Date): string[] {
+  if (d.date) return [d.date];
+  const y = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
+  return [ymd(now), ymd(y)];
+}
+
 /** Which schedule slot is on now and which is next, from clock times on a given day. */
 export function slotNow(d: ScheduleData, now = new Date()): { current: number; next: number } {
-  const day = d.date ?? `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
-  const at = (t: string) => { const m = /^(\d{2}):(\d{2})/.exec(t); return m ? new Date(`${day}T${m[1]}:${m[2]}:00`).getTime() : NaN; };
   const t = now.getTime();
-  let current = -1, next = -1;
-  d.slots.forEach((s, i) => { const a = at(s.start), b = at(s.end); if (t >= a && t < b) current = i; else if (a > t && next === -1) next = i; });
-  return { current, next };
+  let first: { current: number; next: number } | null = null;
+  for (const day of scheduleDays(d, now)) {
+    let current = -1, next = -1;
+    d.slots.forEach((s, i) => { const a = slotTime(day, s.start), b = slotTime(day, s.end); if (t >= a && t < b) current = i; else if (a > t && next === -1) next = i; });
+    if (current !== -1) return { current, next };
+    first ??= { current, next };
+  }
+  return first ?? { current: -1, next: -1 };
+}
+
+/** Seconds from `now` until a slot starts, using the same day logic as slotNow. Null when the label is not a time. */
+export function secondsUntil(d: ScheduleData, label: string, now = new Date()): number | null {
+  const t = now.getTime();
+  const days = scheduleDays(d, now);
+  const times = days.map((day) => slotTime(day, label)).filter((x) => !Number.isNaN(x));
+  if (!times.length) return null;
+  const ahead = times.filter((x) => x >= t);
+  return Math.max(0, Math.round(((ahead.length ? Math.min(...ahead) : times[0]!) - t) / 1000));
 }
 
 export const CHANNEL = "eh-display";

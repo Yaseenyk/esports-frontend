@@ -1,27 +1,35 @@
+import { uniqueTeams } from "./seeding";
+
 /** Round-robin fixtures (everyone plays everyone) using the circle method, and the league table that goes with them. Pure functions. */
 export interface Fixture { a: string; b: string }
 export type Round = Fixture[];
 
-export const BYE = "Bye";
+/** Marks the empty seat when the number of teams is odd. It is not a name anyone can type, so a team called "Bye" cannot be mistaken for it. Show it as BYE_LABEL. */
+export const BYE = "\u0000bye";
+export const BYE_LABEL = "Bye";
 
 /**
  * Builds the rounds. With an odd number of teams one team sits out each round (shown as a match against "Bye").
  * With `double` every pairing is played twice, the second time with sides swapped.
  */
 export function fixtures(teams: string[], double = false): Round[] {
-  const list = teams.map((t) => t.trim()).filter(Boolean);
+  const list = uniqueTeams(teams);
   if (list.length < 2) return [];
   const ring = list.length % 2 ? [...list, BYE] : [...list];
   const n = ring.length;
   const rounds: Round[] = [];
   let arr = [...ring];
+  const first = new Map<string, number>();
   for (let r = 0; r < n - 1; r++) {
     const round: Round = [];
     for (let i = 0; i < n / 2; i++) {
       const a = arr[i]!, b = arr[n - 1 - i]!;
-      // Swap sides now and then so no team is always listed first.
-      const flip = i === 0 ? r % 2 === 1 : (r + i) % 2 === 1;
-      round.push(flip ? { a: b, b: a } : { a, b });
+      // The team listed first (home, or the side that picks first) goes to whoever has had it less often, so nobody is always second.
+      const ha = first.get(a) ?? 0, hb = first.get(b) ?? 0;
+      const flip = a === BYE || b === BYE ? a === BYE : ha !== hb ? ha > hb : (r + i) % 2 === 1;
+      const f = flip ? { a: b, b: a } : { a, b };
+      if (f.a !== BYE && f.b !== BYE) first.set(f.a, (first.get(f.a) ?? 0) + 1);
+      round.push(f);
     }
     rounds.push(round);
     // Keep the first team in place and rotate the rest by one.
@@ -45,7 +53,7 @@ export const DEFAULT_POINTS: Points = { win: 3, draw: 1, loss: 0 };
  * Order: points, then score difference, then scores for, then wins, then name, so the same results always give the same table.
  */
 export function table(teams: string[], rounds: Round[], scores: Score[][], pts: Points = DEFAULT_POINTS): Row[] {
-  const rows = new Map(teams.map((t) => [t.trim(), { team: t.trim(), played: 0, won: 0, drawn: 0, lost: 0, for: 0, against: 0, points: 0 }]));
+  const rows = new Map(uniqueTeams(teams).map((t) => [t, { team: t, played: 0, won: 0, drawn: 0, lost: 0, for: 0, against: 0, points: 0 }]));
   rounds.forEach((rd, ri) => rd.forEach((f, fi) => {
     const s = scores[ri]?.[fi];
     if (!s || s.a === null || s.b === null || f.a === BYE || f.b === BYE) return;

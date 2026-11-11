@@ -26,7 +26,29 @@ export function useScreen(payload: Payload | null) {
 
   const query = useCallback(() => { const q = new URLSearchParams(); if (opts.theme !== "dark") q.set("theme", opts.theme); if (opts.transparent) q.set("bg", "transparent"); const s = q.toString(); return s ? `?${s}` : ""; }, [opts]);
   const link = useCallback(async () => (payload ? `${location.origin}/display/${query()}#d=${await encode(payload)}` : ""), [payload, query]);
-  const open = useCallback(async () => { const url = await link(); if (url) window.open(url, "eh-screen"); }, [link]);
-  const copy = useCallback(async () => { const url = await link(); if (url) { await navigator.clipboard?.writeText(url); return true; } return false; }, [link]);
+  /**
+   * Opens (or reuses) the screen window. The window is opened first, in the click itself, because browsers block a pop-up that is opened after
+   * waiting; the link is worked out afterwards and sent to it. Returns false when the browser blocked the window or the link could not be made.
+   */
+  const open = useCallback(async (): Promise<boolean> => {
+    const w = window.open("", "eh-screen");
+    if (!w) return false;
+    try {
+      const url = await link();
+      if (!url) { w.close(); return false; }
+      w.location.href = url;
+      w.focus();
+      return true;
+    } catch { w.close(); return false; }
+  }, [link]);
+  /** Copies the link. Returns false when the browser would not allow it (for example on a page that is not secure). */
+  const copy = useCallback(async (): Promise<boolean> => {
+    try {
+      const url = await link();
+      if (!url || !navigator.clipboard) return false;
+      await navigator.clipboard.writeText(url);
+      return true;
+    } catch { return false; }
+  }, [link]);
   return { opts, setOpts, open, copy, link };
 }

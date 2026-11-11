@@ -18,14 +18,14 @@ export default function GamesBrowser() {
       <label className="sr-only" htmlFor="game-filter">Filter games by name</label>
       <input id="game-filter" type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Filter games by name…" className="field mt-6 max-w-md" />
       <div className="mt-4 flex flex-wrap gap-2" role="group" aria-label="Platform">
-        {PLATFORMS.map((x) => (<button key={x} type="button" className="chip" aria-pressed={p === x} onClick={() => setP(x)}>{x}</button>))}
+        {PLATFORMS.map((x) => (<button key={x} type="button" className="chip !min-h-11" aria-pressed={p === x} onClick={() => setP(x)}>{x}</button>))}
       </div>
       <div className="mt-2 flex flex-wrap gap-2" role="group" aria-label="Genre">
-        {GENRES.map((x) => (<button key={x} type="button" className="chip" aria-pressed={genre === x} onClick={() => setGenre(x)}>{x === "All" ? "All genres" : x}</button>))}
+        {GENRES.map((x) => (<button key={x} type="button" className="chip !min-h-11" aria-pressed={genre === x} onClick={() => setGenre(x)}>{x === "All" ? "All genres" : x}</button>))}
       </div>
       <p className="mt-4 text-sm text-zinc-400" aria-live="polite">{list.length} {list.length === 1 ? "game" : "games"}</p>
       <div className="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {list.length === 0 && <p className="card text-zinc-400 sm:col-span-2 lg:col-span-3">No games match. Clear a filter.</p>}
+        {list.length === 0 && <p className="card text-zinc-300 sm:col-span-2 lg:col-span-3">No games match. <button type="button" className="text-cyan underline" onClick={() => { setP("All"); setGenre("All"); setQ(""); }}>Clear the filters</button></p>}
         {list.map((g) => {
           const n = EVENTS.filter((e) => e.game === g.slug).length;
           return (
