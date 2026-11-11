@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRef, useState } from "react";
 import { auth, authMessage } from "@/lib/api/cloud";
 
@@ -41,6 +42,7 @@ export default function AuthForm({ initialMode = "login", onDone, intro, showTab
           <label className="flex min-h-11 cursor-pointer items-center gap-2 text-xs text-zinc-300"><input type="checkbox" className="h-5 w-5 accent-cyan" checked={show} onChange={(e) => setShow(e.target.checked)} />Show characters</label>
         </div>
       </div>
+      {mode === "login" && <p className="-mt-1"><Link className="inline-flex min-h-11 items-center text-sm text-cyan underline" href={email.trim() ? `/forgot-password/?email=${encodeURIComponent(email.trim())}` : "/forgot-password/"}>Forgot password?</Link></p>}
       <div aria-live="polite">{err && <p role="alert" className="text-sm text-red-300">{err}</p>}</div>
       <button className="btn w-full" disabled={busy}>{busy ? "Please wait…" : mode === "login" ? "Sign in" : "Create account"}</button>
     </form>

@@ -35,7 +35,7 @@ export interface GetOptions {
 }
 
 export class ApiError extends Error {
-  constructor(public status: number, message: string, public retryAfterMs?: number) { super(message); }
+  constructor(public status: number, message: string, public retryAfterMs?: number, public serverError?: string) { super(message); }
 }
 
 interface Entry { data: unknown; at: number; etag?: string }
@@ -132,7 +132,11 @@ export function createClient(o: ClientOptions) {
       stats.network++;
       const res = await f(url(path), { method, headers: headers(body === undefined ? undefined : { "content-type": "application/json" }), body: body === undefined ? undefined : JSON.stringify(body), signal: ctl.signal, keepalive: extra?.keepalive });
       if (res.status === 401 && o.token?.() && !path.startsWith("/auth/")) o.onUnauthorized?.();
-      if (!res.ok) throw new ApiError(res.status, `Request failed (${res.status})`);
+      if (!res.ok) {
+        let why: string | undefined;
+        try { const b = (await res.json()) as { error?: unknown }; if (typeof b?.error === "string") why = b.error.slice(0, 200); } catch { /* no JSON body */ }
+        throw new ApiError(res.status, `Request failed (${res.status})`, undefined, why);
+      }
       invalidateRelated(path);
       return (res.status === 204 ? undefined : await res.json()) as T;
     } finally { clearTimeout(timer); }

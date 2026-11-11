@@ -71,6 +71,10 @@ export const auth = {
   async register(email: string, name: string, password: string) { const r = await api.post<{ token: string; user: User }>("/auth/register", { email, name, password }); setSession(r); return r.user; },
   async login(email: string, password: string) { const r = await api.post<{ token: string; user: User }>("/auth/login", { email, password }); setSession(r); return r.user; },
   logout() { setSession(null); },
+  /** Asks for a reset link. The server answers the same whether or not the account exists. Sent once, never retried. */
+  async forgot(email: string) { await api.post<{ ok: true }>("/auth/forgot", { email }); return { ok: true as const }; },
+  /** Sets a new password with the emailed token. No session is returned; the person signs in again. */
+  async reset(token: string, password: string) { await api.post<{ ok: true }>("/auth/reset", { token, password }); return { ok: true as const }; },
   async changePassword(current: string, next: string) {
     const r = await api.post<{ ok: true; token?: string }>("/auth/change-password", { current, next });
     // The server issues a fresh sign-in because every older one stops working when the password changes.
