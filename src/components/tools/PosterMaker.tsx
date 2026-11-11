@@ -7,6 +7,7 @@ import { logoFromFile } from "@/lib/extras-store";
 import { downloadBlob } from "@/lib/idcard/download";
 import { EMPTY_POSTER, MAX_POSTER_SPONSORS, POSTER_FORMATS, POSTER_SIZES, POSTER_TEMPLATES, posterFileName, posterWhatsappLink, renderPoster, templateById, type PosterData, type PosterFormat, type PosterSponsor } from "@/lib/poster-cards";
 import { themeById } from "@/lib/display-themes";
+import { useBrand } from "@/lib/brand";
 import ToolStep from "./ToolStep";
 
 const SAMPLE: PosterData = { event: "Inter-College Cup", date: "", venue: "", game: "Free Fire", prize: "", organiser: "", sponsors: [] };
@@ -33,6 +34,13 @@ export default function PosterMaker() {
   };
   const setSponsor = (i: number, s: PosterSponsor) => setData((d) => ({ ...d, sponsors: d.sponsors.map((x, k) => (k === i ? s : x)) }));
   const ready = data.event.trim().length > 0;
+  const brand = useBrand(); // your account brand kit; null when signed out or none saved
+  const applyBrand = () => {
+    if (!brand) return;
+    const mine: PosterSponsor = { name: (brand.name || "My brand").slice(0, 40), ...(brand.logo ? { logo: brand.logo } : null) };
+    setData((d) => ({ ...d, organiser: d.organiser.trim() ? d.organiser : (brand.name ?? "").slice(0, 60), sponsors: [mine, ...d.sponsors.filter((x) => x.name !== mine.name)].slice(0, MAX_POSTER_SPONSORS) }));
+    setMsg({ ok: true, text: "Added your brand name as organiser (if empty) and your logo to the sponsor row. The look keeps its own colours." });
+  };
 
   // Redraw the preview shortly after the last change.
   useEffect(() => {
@@ -84,6 +92,7 @@ export default function PosterMaker() {
         </div>
         <div className="space-y-3">
           <p className="text-sm font-medium text-zinc-200">Sponsors (up to {MAX_POSTER_SPONSORS}, optional)</p>
+          {brand && <button type="button" className="btn-ghost !min-h-11 px-4 text-sm" onClick={applyBrand}>Use my brand</button>}
           <ul className="space-y-3">
             {data.sponsors.map((s, i) => (
               <li key={i} className="flex flex-wrap items-center gap-3 rounded-lg border border-white/10 p-3">

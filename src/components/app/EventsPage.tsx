@@ -9,8 +9,8 @@ import { Sk } from "@/components/skeleton/Sk";
 import Checklist from "@/components/app/Checklist";
 import MembersPanel from "@/components/cloud/MembersPanel";
 import RegistrationPanel from "@/components/cloud/RegistrationPanel";
-import LivePagePanel from "@/components/app/LivePagePanel";
-import EventReportPanel from "@/components/app/EventReportPanel";
+import EventToolbox from "@/components/app/EventToolbox";
+import DuplicateEventButton from "@/components/features/duplicate/DuplicateEventButton";
 
 /** Saved events: a list, and for one event its numbers (people, teams, minors, checked in) with shortcuts to the tools. */
 export default function EventsPage() {
@@ -103,7 +103,7 @@ function Detail({ ev, onBack, onDeleted }: { ev: CloudEvent; onBack: () => void;
   );
   return (
     <section aria-label={ev.name} className="space-y-5">
-      <div><button type="button" onClick={onBack} className="text-sm text-cyan hover:underline">← All events</button><h2 className="mt-2 font-display text-2xl font-bold text-white">{ev.name}</h2><p className="text-sm text-zinc-300">{[ev.game, ev.organiser, ev.date, ev.venue].filter(Boolean).join(" · ")}</p></div>
+      <div><button type="button" onClick={onBack} className="text-sm text-cyan hover:underline">← All events</button><div className="mt-2 flex flex-wrap items-center justify-between gap-3"><h2 className="font-display text-2xl font-bold text-white">{ev.name}</h2>{canEdit && <DuplicateEventButton eventId={ev.id} eventName={ev.name} />}</div><p className="text-sm text-zinc-300">{[ev.game, ev.organiser, ev.date, ev.venue].filter(Boolean).join(" · ")}</p></div>
       {canEdit && roster.data && (
         <Checklist
           heading="Your next steps"
@@ -138,8 +138,7 @@ function Detail({ ev, onBack, onDeleted }: { ev: CloudEvent; onBack: () => void;
       )}
       {ev.role === "viewer" && <p role="note" className="rounded-xl border border-amber-500/30 bg-[#0a0b0d] p-3 text-sm text-amber-100">You have view-only access to this event. You can look, but not change anything.</p>}
       {ev.role !== "viewer" && <RegistrationPanel eventId={ev.id} onApproved={() => { roster.refetch(); }} />}
-      {ev.role !== "viewer" && <LivePagePanel eventId={ev.id} />}
-      <EventReportPanel eventId={ev.id} eventName={ev.name} />
+      <EventToolbox eventId={ev.id} eventName={ev.name} role={ev.role ?? "owner"} />
       {(ev.role === undefined || ev.role === "owner") && <MembersPanel eventId={ev.id} />}
       {(
         <details className="group rounded-2xl border border-white/10 bg-zinc-900/40">

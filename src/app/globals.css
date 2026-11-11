@@ -173,7 +173,7 @@ html[data-display] .aurora, html[data-display] canvas.hexfield, html[data-displa
 .fx-comb { --w: 6.2rem; --g: .25rem; flex-direction: column; align-items: flex-start; }
 .fx-comb-wide { display: none; }
 .fx-comb-narrow { display: flex; --w: 5.6rem; align-items: center; }
-@media (min-width: 640px) { .fx-comb-wide { display: flex; } .fx-comb-narrow { display: none; } }
+@media (min-width: 640px) { .fx-comb-wide { display: flex; --w: 5.4rem; } .fx-comb-narrow { display: none; } }
 .fx-row { display: flex; gap: var(--g); }
 .fx-row + .fx-row { margin-top: calc(var(--w) * -.2887 + var(--g) * .6); }
 .fx-comb-wide .fx-row:nth-child(even) { margin-left: calc((var(--w) + var(--g)) / 2); }

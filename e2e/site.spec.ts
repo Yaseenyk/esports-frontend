@@ -389,9 +389,12 @@ test("the countdown, transparent background and look settings work from the addr
 });
 
 test("the schedule screen marks the round on now and the next round", async ({ page }) => {
-  const d = new Date(); const hh = (x: Date) => `${String(x.getHours()).padStart(2, "0")}:${String(x.getMinutes()).padStart(2, "0")}`;
+  const d = new Date();
+  const ymd = (x: Date) => `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, "0")}-${String(x.getDate()).padStart(2, "0")}`;
   const a = new Date(d.getTime() - 10 * 60_000), b = new Date(d.getTime() + 30 * 60_000), c = new Date(d.getTime() + 40 * 60_000), e = new Date(d.getTime() + 80 * 60_000);
-  const day = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  // The schedule is on the day it starts. A time on the next day is written with "(+1d)", so the test also holds when it runs just after midnight.
+  const day = ymd(a);
+  const hh = (x: Date) => `${String(x.getHours()).padStart(2, "0")}:${String(x.getMinutes()).padStart(2, "0")}${ymd(x) === day ? "" : " (+1d)"}`;
   const payload = { v: "schedule", d: { title: "Run-sheet", date: day, slots: [{ n: 1, start: hh(a), end: hh(b), label: "M1, M2", breakAfter: 0 }, { n: 2, start: hh(c), end: hh(e), label: "M3, M4", breakAfter: 0 }] } };
   await page.goto("/tools/display-screen/");
   const hash = await page.evaluate(async (p) => { const bytes = new TextEncoder().encode(JSON.stringify(p)); let s = ""; for (const x of bytes) s += String.fromCharCode(x); return "p." + btoa(s).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, ""); }, payload);

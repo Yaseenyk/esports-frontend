@@ -5,7 +5,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { live } from "@/lib/api/cloud";
 import { createPoller } from "@/lib/api/poller";
 import { KIND_LABEL, agoText, formatLocalTime, isLogo, nextMatches, orderedViews, teamsOf, type LiveKind, type PublicLive } from "@/lib/live";
+import { nextMatchFor, opponentText, stageLabel, teamNames } from "@/lib/matches";
+import { sendHit } from "@/lib/hits";
+import { brandTheme, fetchPublicBrand, readableOn, type Brand } from "@/lib/brand";
 import ViewRenderer from "./ViewRenderer";
+import MatchesView from "./MatchesView";
 
 type Status = "loading" | "ready" | "missing" | "error";
 const SLUG = /^[a-z0-9-]{3,40}$/;
@@ -34,10 +38,12 @@ export default function LivePage() {
   const [okAt, setOkAt] = useState(0);
   const [now, setNow] = useState(() => Date.now());
   const [offline, setOffline] = useState(false);
-  const [tab, setTab] = useState<LiveKind | "">("");
+  const [tab, setTab] = useState<LiveKind | "matches" | "">("");
   const [team, setTeam] = useState("");
   const [msg, setMsg] = useState("");
   const tabs = useRef<HTMLDivElement>(null);
+  const [brand, setBrand] = useState<Brand | null>(null);
+  useEffect(() => { if (!slug) return; let on = true; void fetchPublicBrand(slug).then((b) => { if (on) setBrand(b); }); return () => { on = false; }; }, [slug]); // the organiser's logo and colours; the page looks right without them
 
   useEffect(() => { const e = new URLSearchParams(location.search).get("e") ?? ""; if (SLUG.test(e)) { setSlug(e); setTeam(readTeam(e)); } else { setSlug(""); setStatus("missing"); } }, []);
   useEffect(() => { const id = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(id); }, []);
@@ -57,13 +63,21 @@ export default function LivePage() {
     return () => { p.stop(); document.removeEventListener("visibilitychange", wake); window.removeEventListener("online", wake); window.removeEventListener("offline", wake); window.removeEventListener("focus", wake); };
   }, [slug]);
 
+  useEffect(() => { if (slug && status === "ready") sendHit(slug, "live"); }, [slug, status]); // sponsor report: one page-load count, once per load
   const snap = data?.snapshot ?? null;
   const views = useMemo(() => (snap ? orderedViews(snap) : []), [snap]);
-  const teams = useMemo(() => teamsOf(snap), [snap]);
-  const current = views.find((v) => v.kind === tab) ?? views[0];
+  const matchList = useMemo(() => (Array.isArray(data?.matches) ? data!.matches! : []), [data]);
+  const teams = useMemo(() => { const base = teamsOf(snap), seen = new Set(base.map((t) => t.toLowerCase())); return [...base, ...teamNames(matchList).filter((t) => !seen.has(t.toLowerCase()))]; }, [snap, matchList]);
+  const tabKeys = useMemo<(LiveKind | "matches")[]>(() => [...views.map((v) => v.kind), ...(matchList.length ? (["matches"] as const) : [])], [views, matchList]);
+  const tabKey = tabKeys.includes(tab as LiveKind | "matches") ? (tab as LiveKind | "matches") : tabKeys[0];
+  const current = tabKey === "matches" ? undefined : views.find((v) => v.kind === tabKey);
   const mine = useMemo(() => (team && teams.some((t) => t.toLowerCase() === team.toLowerCase()) ? team : ""), [team, teams]);
   const nowMin = Math.floor(now / 60_000);
-  const next = useMemo(() => nextMatches(snap, mine, new Date(nowMin * 60_000)), [snap, mine, nowMin]);
+  const next = useMemo(() => {
+    const n = nextMatches(snap, mine, new Date(nowMin * 60_000));
+    const m = n.length === 0 && mine ? nextMatchFor(matchList, mine) : null;
+    return m ? [{ source: "schedule" as const, title: "Your next match", detail: `${stageLabel(m.stage)}, round ${m.round}: ${opponentText(m, mine)}${m.status === "live" ? " (on now)" : ""}.` }] : n;
+  }, [snap, mine, nowMin, matchList]);
   const news = useMemo(() => [...(snap?.announcements ?? [])].sort((x, y) => Date.parse(y.at) - Date.parse(x.at)), [snap]);
 
   const pick = (t: string) => { setTeam(t); if (slug) saveTeam(slug, t); };
@@ -76,10 +90,10 @@ export default function LivePage() {
 
   const onTabKey = (e: React.KeyboardEvent) => {
     if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
-    const i = views.findIndex((v) => v.kind === current?.kind), n = views.length;
+    const i = tabKeys.findIndex((k) => k === tabKey), n = tabKeys.length;
     if (!n) return;
     const j = (i + (e.key === "ArrowRight" ? 1 : n - 1)) % n;
-    setTab(views[j]!.kind);
+    setTab(tabKeys[j]!);
     requestAnimationFrame(() => tabs.current?.querySelectorAll<HTMLElement>('[role="tab"]')[j]?.focus());
   };
 
@@ -106,9 +120,11 @@ export default function LivePage() {
   const bar = snap.ticker;
   const when = (at: string) => <time dateTime={at}>{agoText(Math.max(0, now - Date.parse(at)))} · {formatLocalTime(at, now)}</time>;
   return (
-    <section aria-label={`Live page for ${ev.name}`} className={`lv-root mx-auto max-w-3xl space-y-4 ${bar.length ? "pb-20" : "pb-6"}`}>
+    <section aria-label={`Live page for ${ev.name}`} className={`lv-root mx-auto max-w-3xl space-y-4 ${bar.length ? "pb-20" : "pb-6"}`} style={brandTheme(brand) as React.CSSProperties}>
       <style>{`@keyframes lvRun{from{transform:translateX(100%)}to{transform:translateX(-100%)}}.lv-run{animation:lvRun var(--lv-dur,30s) linear infinite;white-space:nowrap;display:inline-block}@media (prefers-reduced-motion:reduce){.lv-run{animation:none;white-space:normal}}footer.no-print{display:none}div.no-print.sticky.top-3{display:none}main:has(.lv-root){padding-top:0}`}</style>
-      <header className="sticky top-0 z-30 -mx-4 flex h-14 items-center gap-3 border-b border-white/10 bg-[#05070a]/95 px-4 backdrop-blur">
+      <header className="sticky top-0 z-30 -mx-4 flex h-14 items-center gap-3 border-b border-white/10 bg-[#05070a]/95 px-4 backdrop-blur" style={brand ? { borderBottomColor: brand.secondary } : undefined}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        {brand?.logo && <img src={brand.logo} alt={brand.name ? `${brand.name} logo` : "Organiser logo"} className="h-9 w-auto max-w-[96px] shrink-0 object-contain" />}
         <div className="min-w-0 flex-1">
           <h1 className="truncate font-display text-base font-bold leading-tight text-white">{ev.name}</h1>
           <p className="flex items-center gap-2 text-xs leading-tight text-zinc-300">
@@ -116,7 +132,7 @@ export default function LivePage() {
             <span className="truncate">{okAt ? `Updated ${agoText(now - okAt)}` : ""}</span>
           </p>
         </div>
-        <button type="button" onClick={share} className="btn-ghost shrink-0 px-4 text-sm font-semibold">Share</button>
+        <button type="button" onClick={share} className="btn-ghost shrink-0 px-4 text-sm font-semibold" style={brand ? { background: brand.primary, color: readableOn(brand.primary), borderColor: brand.primary } : undefined}>Share</button>
       </header>
       <p className="text-sm text-zinc-300">{[ev.date, ev.venue].filter(Boolean).join(" · ")}</p>
       <div role="status" aria-live="polite" className="empty:hidden">
@@ -127,7 +143,7 @@ export default function LivePage() {
 
       {news.length > 0 && (
         <section aria-label="Announcements" className="rounded-2xl border-2 border-cyan/60 bg-[#0a0b0d] p-4">
-          <p className="text-xs font-bold uppercase tracking-widest text-cyan">Announcement</p>
+          <p className="text-xs font-bold uppercase tracking-widest text-cyan" style={brand ? { color: "var(--brand-accent)" } : undefined}>Announcement</p>
           <p className="mt-2 break-words text-lg font-semibold leading-snug text-white">{news[0]!.text}</p>
           <p className="mt-2 text-sm text-zinc-300">{when(news[0]!.at)}</p>
           {news.length > 1 && (
@@ -143,12 +159,12 @@ export default function LivePage() {
       {mine && next.map((n, i) => <div key={i} className="rounded-2xl border-2 border-cyan/60 bg-[#0a0b0d] p-4" role="note"><p className="text-xs font-bold uppercase tracking-widest text-cyan">{n.title}</p><p className="mt-1 text-lg font-semibold leading-snug text-white">{n.detail}</p></div>)}
       {mine && next.length === 0 && <p className="text-sm text-zinc-300">{mine} is highlighted below. The published pages do not say when its next match is yet.</p>}
 
-      {views.length === 0 ? <p role="status" className="card text-zinc-300">Nothing has been added to this page yet. Check back soon.</p> : (
+      {tabKeys.length === 0 ? <p role="status" className="card text-zinc-300">Nothing has been added to this page yet. Check back soon.</p> : (
         <>
           <div ref={tabs} role="tablist" aria-label="Views" onKeyDown={onTabKey} className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
-            {views.map((v) => <button key={v.kind} type="button" role="tab" id={`lv-tab-${v.kind}`} aria-selected={current?.kind === v.kind} aria-controls="lv-panel" tabIndex={current?.kind === v.kind ? 0 : -1} onClick={() => setTab(v.kind)} className={`min-h-11 shrink-0 rounded-full border px-5 text-[15px] font-semibold outline-none focus-visible:ring-2 focus-visible:ring-cyan ${current?.kind === v.kind ? "border-cyan bg-cyan text-ink" : "border-zinc-700 text-zinc-100 hover:border-zinc-500"}`}>{KIND_LABEL[v.kind]}</button>)}
+            {tabKeys.map((k) => <button key={k} type="button" role="tab" id={`lv-tab-${k}`} aria-selected={tabKey === k} aria-controls="lv-panel" tabIndex={tabKey === k ? 0 : -1} onClick={() => setTab(k)} className={`min-h-11 shrink-0 rounded-full border px-5 text-[15px] font-semibold outline-none focus-visible:ring-2 focus-visible:ring-cyan ${tabKey === k ? "border-cyan bg-cyan text-ink" : "border-zinc-700 text-zinc-100 hover:border-zinc-500"}`}>{k === "matches" ? "Matches" : KIND_LABEL[k]}</button>)}
           </div>
-          {current && <div role="tabpanel" id="lv-panel" aria-labelledby={`lv-tab-${current.kind}`}><ViewRenderer key={current.kind} payload={current.payload} team={mine} /></div>}
+          {tabKey && <div role="tabpanel" id="lv-panel" aria-labelledby={`lv-tab-${tabKey}`}>{tabKey === "matches" ? <MatchesView matches={matchList} team={mine} /> : current && <ViewRenderer key={current.kind} payload={current.payload} team={mine} />}</div>}
         </>
       )}
 

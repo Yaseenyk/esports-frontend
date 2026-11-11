@@ -14,6 +14,8 @@ const TILE: Record<string, { label: string; d: string }> = {
   "round-robin": { label: "Round robin", d: "M12 4a8 8 0 018 8M20 12l-2.5-2.5M12 20a8 8 0 01-8-8M4 12l2.5 2.5M12 8v4l3 2" },
   "display-screen": { label: "TV screens", d: "M3 5h18v11H3zM8 20h8M12 16v4M7 9h5M7 12h8" },
   schedule: { label: "Schedule", d: "M4 6h16v14H4zM4 10h16M8 3v4M16 3v4M8 14h3M13 14h3M8 17h3" },
+  groups: { label: "Groups", d: "M3 5h6v4H3zM3 15h6v4H3zM15 10h6v4h-6zM9 7h3v10H9M12 12h3" },
+  "print-kits": { label: "Print kits", d: "M7 9V4h10v5M7 17H5a2 2 0 01-2-2v-4a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2h-2M7 14h10v6H7z" },
   poster: { label: "Posters", d: "M5 3h14v18H5zM8 7h8M8 11h8M8 15h5M15 17l2-2" },
   certificates: { label: "Certificates", d: "M5 4h14v12H5zM9 20l3-3 3 3V16M8 8h8M8 12h5" },
   "check-in": { label: "Check-in", d: "M4 7V5h3M17 5h3v2M20 17v2h-3M7 19H4v-2M8 12l3 3 5-6" },
@@ -51,8 +53,8 @@ export default function SiteFooter() {
       <div className="mx-auto grid max-w-6xl grid-cols-[minmax(0,1fr)] gap-10 pt-10 lg:grid-cols-2 lg:gap-14">
         <nav aria-label="Tools" className="min-w-0">
           <p className="fx-kicker"><span>{slugs.length} free tools</span></p>
-          <div className="fx-comb fx-comb-wide">{chunk(slugs, [4, 4, 4]).map((row, i) => <div key={i} className="fx-row">{row.map((s) => <Hex key={s} slug={s} />)}</div>)}</div>
-          <div className="fx-comb fx-comb-narrow">{chunk(slugs, [2, 3, 2, 3, 2]).map((row, i) => <div key={i} className="fx-row">{row.map((s) => <Hex key={s} slug={s} />)}</div>)}</div>
+          <div className="fx-comb fx-comb-wide">{chunk(slugs, [5, 5, 4]).map((row, i) => <div key={i} className="fx-row">{row.map((s) => <Hex key={s} slug={s} />)}</div>)}</div>
+          <div className="fx-comb fx-comb-narrow">{chunk(slugs, [2, 3, 2, 3, 2, 2]).map((row, i) => <div key={i} className="fx-row">{row.map((s) => <Hex key={s} slug={s} />)}</div>)}</div>
           <p className="mt-4 text-xs text-zinc-400">No account needed. They run in your browser.</p>
         </nav>
 

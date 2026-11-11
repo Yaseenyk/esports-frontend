@@ -1,7 +1,7 @@
 // Event report panel and certificates pre-filled from results. The server is mocked; no real data is touched.
 import { expect, test } from "@playwright/test";
 import fs from "node:fs";
-import { json, signedIn } from "./helpers";
+import { json, openPanel, signedIn } from "./helpers";
 
 const A = "**/esports-api.yaseenyk.workers.dev";
 const ev = { id: "e1", key: "cup", name: "Spring Cup", game: "BGMI", organiser: "", date: "2026-12-01", venue: "Pune", emergency: "", rules: "", settings: {}, updatedAt: "" };
@@ -25,6 +25,7 @@ test("the event report shows the numbers, an accessible chart, and downloads a o
   ];
   await mockEvent(page, people, checkins);
   await page.goto("/app/events/?id=e1");
+  await openPanel(page, "share", "report");
   const panel = page.getByRole("region", { name: "Event report" });
   await expect(panel.getByText(/3 of 4 people \(75%\) checked in/)).toBeVisible();
   await expect(panel.getByRole("img", { name: /Arrivals every 15 minutes/ })).toBeVisible();
@@ -39,6 +40,7 @@ test("the event report shows the numbers, an accessible chart, and downloads a o
 test("the event report button is off, with a plain reason, when the event has no people", async ({ page }) => {
   await mockEvent(page, [], []);
   await page.goto("/app/events/?id=e1");
+  await openPanel(page, "share", "report");
   const panel = page.getByRole("region", { name: "Event report" });
   await expect(panel.getByRole("button", { name: "Download the report (PDF)" })).toBeDisabled();
   await expect(panel.getByText(/Add people to this event first/)).toBeVisible();
@@ -51,6 +53,7 @@ test("the event report says so when the numbers cannot be loaded", async ({ page
   await page.route(`${A}/events/e1/registration`, (r) => r.fulfill(json({ form: null, counts: { pending: 0, approved: 0, rejected: 0 } })));
   await page.route(`${A}/events/e1/members`, (r) => r.fulfill(json({ owner: null, members: [] })));
   await page.goto("/app/events/?id=e1");
+  await openPanel(page, "share", "report");
   const panel = page.getByRole("region", { name: "Event report" });
   await expect(panel.getByRole("button", { name: "Download the report (PDF)" })).toBeDisabled({ timeout: 20_000 });
 });

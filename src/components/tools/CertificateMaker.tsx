@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { downloadBlob } from "@/lib/idcard/download";
+import { fixContrast, useBrand } from "@/lib/brand";
 import ToolStep from "./ToolStep";
 import TeamsInput from "./TeamsInput";
 import { awardFor, entriesToText, parseAwardLines, parseCertQuery, type CertEntry } from "@/lib/certificates";
@@ -20,9 +21,9 @@ const SAMPLE_NAMES = "Aarav Mehta\nDiya Kulkarni\nRohan Deshmukh";
 const fill = (t: string, f: Fields) => t.replaceAll("{award}", f.award).replaceAll("{event}", f.event).replaceAll("{date}", f.date).replace(/\s+/g, " ").replace(/\s+([.,])/g, "$1");
 
 /** One certificate, drawn at a fixed A4 landscape size so that what you see is what prints. */
-function Cert({ f, name, design, logo }: { f: Fields; name: string; design: Design; logo: string }) {
+function Cert({ f, name, design, logo, brandAccent }: { f: Fields; name: string; design: Design; logo: string; brandAccent?: string }) {
   const dark = design === "dark";
-  const ink = dark ? "#f4f4f5" : "#111827", soft = dark ? "#a1a1aa" : "#4b5563", accent = dark ? "#22d3ee" : design === "classic" ? "#0e7490" : "#7c3aed";
+  const ink = dark ? "#f4f4f5" : "#111827", soft = dark ? "#a1a1aa" : "#4b5563", accent = brandAccent ? fixContrast(brandAccent, dark ? "#0a0b0d" : "#ffffff") : dark ? "#22d3ee" : design === "classic" ? "#0e7490" : "#7c3aed";
   const frame: React.CSSProperties = design === "classic" ? { border: `10px double ${accent}`, margin: 28 } : design === "dark" ? { border: `3px solid ${accent}`, margin: 36, boxShadow: `inset 0 0 0 10px #0a0b0d, inset 0 0 0 12px #a855f7` } : { borderLeft: `18px solid ${accent}`, margin: 0 };
   return (
     <div style={{ width: W, height: H, background: dark ? "#0a0b0d" : "#ffffff", color: ink, position: "relative", fontFamily: design === "minimal" ? "system-ui, 'Segoe UI', sans-serif" : "Georgia, 'Times New Roman', serif", boxSizing: "border-box" }}>
@@ -55,6 +56,8 @@ export default function CertificateMaker() {
   const [mode, setMode] = useState<"list" | "awards">("list");
   const [awardText, setAwardText] = useState("Winner: Team A\nRunner-up: Team B\nThird place: Team C");
   const [prefilled, setPrefilled] = useState(false);
+  const brand = useBrand(); // your account brand kit; null when signed out or none saved
+  const [useBrandColour, setUseBrandColour] = useState(false);
   const list = useMemo<CertEntry[]>(() => (mode === "awards"
     ? parseAwardLines(awardText).map((r) => ({ name: r.name, award: awardFor(r, f.award) }))
     : names.split("\n").map((n) => n.trim()).filter(Boolean).map((name) => ({ name, award: f.award }))), [mode, awardText, names, f.award]);
@@ -120,6 +123,12 @@ export default function CertificateMaker() {
           <label className="block text-sm text-zinc-200">Organiser<input className="field mt-1" value={f.org} onChange={set("org")} /></label>
           <label className="block text-sm text-zinc-200 sm:col-span-2">Design<select className="field mt-1" value={design} onChange={(e) => setDesign(e.target.value as Design)}>{DESIGNS.map((d) => <option key={d.id} value={d.id}>{d.label}</option>)}</select></label>
         </div>
+        {brand && (
+          <div className="flex flex-wrap items-center gap-3">
+            <button type="button" className="btn-ghost !min-h-11 px-4 text-sm" aria-pressed={useBrandColour && !!brand} onClick={() => { setUseBrandColour((v) => !v); if (!useBrandColour && brand.logo) setLogo(brand.logo); }}>{useBrandColour ? "Stop using my brand colour" : "Use my brand (colour and logo)"}</button>
+            <span className="text-xs text-zinc-400">Takes your main colour (made darker or lighter if it would be hard to read) and your logo. Change the logo under More options.</span>
+          </div>
+        )}
         <details className="group rounded-xl border border-white/10 bg-[#0a0b0d]">
           <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-sm font-semibold text-white outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-cyan [&::-webkit-details-marker]:hidden">
             <span>More options <span className="font-normal text-zinc-300">· heading, sentence, signatures, logo</span></span>
@@ -141,7 +150,7 @@ export default function CertificateMaker() {
 
       <ToolStep n={3} id="ce-preview" title="Check the preview" hint={list.length ? "This is the first certificate. Every other name gets the same page with their own name." : "Add a name in step 1 and your certificate appears here."}>
         <div ref={box} className="w-full overflow-hidden rounded-xl border border-white/[0.14]" style={{ height: H * scale }}>
-          <div style={{ transform: `scale(${scale})`, transformOrigin: "top left", width: W, height: H }}><Cert f={{ ...f, award: list[0]?.award ?? f.award }} name={list[0]?.name ?? ""} design={design} logo={logo} /></div>
+          <div style={{ transform: `scale(${scale})`, transformOrigin: "top left", width: W, height: H }}><Cert f={{ ...f, award: list[0]?.award ?? f.award }} name={list[0]?.name ?? ""} design={design} logo={logo} brandAccent={useBrandColour ? brand?.primary : undefined} /></div>
         </div>
       </ToolStep>
 
@@ -149,7 +158,7 @@ export default function CertificateMaker() {
         <div className="flex flex-wrap items-center gap-3"><button type="button" className="btn" disabled={!list.length || busy} onClick={make}>{busy ? "Working…" : `Download PDF (${list.length})`}</button><span role="status" aria-live="polite" className={`text-sm ${status.startsWith("Done") ? "text-emerald-300" : "text-zinc-300"}`}>{status || (list.length ? "" : "Add at least one name in step 1 first.")}</span></div>
       </ToolStep>
       {/* Off-screen copy used to draw each page */}
-      <div aria-hidden="true" style={{ position: "fixed", left: -99999, top: 0 }}><div ref={off}><Cert f={{ ...f, award: live?.award ?? f.award }} name={live?.name ?? ""} design={design} logo={logo} /></div></div>
+      <div aria-hidden="true" style={{ position: "fixed", left: -99999, top: 0 }}><div ref={off}><Cert f={{ ...f, award: live?.award ?? f.award }} name={live?.name ?? ""} design={design} logo={logo} brandAccent={useBrandColour ? brand?.primary : undefined} /></div></div>
     </div>
   );
 }

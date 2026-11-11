@@ -128,6 +128,8 @@ export const TOOLS: Tool[] = [
   { slug: "round-robin", name: "Round robin generator", blurb: "Fixtures for every team playing every other team, with results entry and a league table.", href: "/tools/round-robin/" },
   { slug: "schedule", name: "Match schedule maker", blurb: "Turn a number of matches, lobbies and break times into a timed run-sheet you can download.", href: "/tools/schedule/" },
   { slug: "poster", name: "Tournament poster maker", blurb: "Type your event name, date, venue, prize and sponsors, pick a Free Fire, BGMI, Valorant, cricket or football look, and download a poster, story or square post.", href: "/tools/poster/" },
+  { slug: "groups", name: "Groups and knockout maker", blurb: "Split teams into groups, enter scores, then get a knockout bracket that keeps group mates apart.", href: "/tools/groups/" },
+  { slug: "print-kits", name: "Printable tournament kits", blurb: "Score sheets, a referee checklist, gate signs and a bracket poster as a PDF, for events with weak internet.", href: "/tools/print-kits/" },
   { slug: "certificates", name: "Certificate maker", blurb: "Winner and participation certificates, one per name, as a single print-ready PDF.", href: "/tools/certificates/" },
   { slug: "display-screen", name: "Display screen for TV and OBS", blurb: "Show standings, tables, the schedule or a countdown full screen on a TV, projector, OBS or YouTube stream.", href: "/tools/display-screen/" },
   { slug: "check-in", name: "Gate check-in scanner", blurb: "Scan QR passes at the gate, online or offline. Fake and copied passes are rejected.", href: "/tools/check-in/" },

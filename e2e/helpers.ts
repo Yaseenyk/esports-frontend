@@ -12,3 +12,11 @@ export async function signedIn(page: Page, events: unknown[] = []) {
   await preflight(page);
   await page.route("**/esports-api.yaseenyk.workers.dev/events", (r) => (r.request().method() === "GET" ? r.fulfill(json(events)) : r.fallback()));
 }
+
+/** Opens one panel of the event toolbox (group, then panel) and waits until it is open. Panels load only when opened. */
+export async function openPanel(page: Page, group: "run" | "share" | "settings", id: string) {
+  const g = page.locator(`details[data-group="${group}"]`);
+  if (!(await g.evaluate((d) => (d as HTMLDetailsElement).open))) await g.locator("> summary").click();
+  const p = g.locator(`details[data-panel="${id}"]`);
+  if (!(await p.evaluate((d) => (d as HTMLDetailsElement).open))) await p.locator("> summary").click();
+}

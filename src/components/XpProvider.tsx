@@ -42,7 +42,7 @@ export default function XpProvider({ children }: { children: ReactNode }) {
 
   const commit = useCallback((n: Progress) => { ref.current = n; setP(n); try { localStorage.setItem(KEY, JSON.stringify(n)); } catch {} }, []);
   const toast = useCallback((title: string, sub: string) => {
-    if (typeof location !== "undefined" && /^\/(live|display)\//.test(location.pathname)) return; // visitors of a live page and TV screens are not playing the hub game
+    if (typeof location !== "undefined" && /^\/(live|display|overlay|embed|score|report|ready|run|unsubscribe|league|team|tournaments)\//.test(location.pathname)) return; // visitors of these pages and TV screens are not playing the hub game
     const id = ++seq.current;
     setToasts((t) => [...t.slice(-2), { id, title, sub }]);
     setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), 4200);

@@ -2,7 +2,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page, type Route } from "@playwright/test";
 import zlib from "node:zlib";
-import { json, preflight, signedIn } from "./helpers";
+import { json, openPanel, preflight, signedIn } from "./helpers";
 
 const API = "**/esports-api.yaseenyk.workers.dev";
 const table = (title: string, head: string[], rows: string[][]) => ({ v: "table", d: { title, head, rows } });
@@ -118,6 +118,44 @@ test("on a phone: team picker first, no site footer, cards that open, round chip
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
 });
 
+const MATCHES = [
+  { id: "g1", stage: "group:A", round: 1, slot: 1, a: "Alpha", b: "Bravo", status: "finished", scoreA: 2, scoreB: 1, startsAt: null },
+  { id: "g2", stage: "group:A", round: 2, slot: 1, a: "Charlie", b: "Alpha", status: "live", scoreA: 0, scoreB: 0, startsAt: null },
+  { id: "k1", stage: "knockout", round: 1, slot: 1, a: "", b: "", status: "scheduled", scoreA: null, scoreB: null, startsAt: null },
+];
+
+test("a Matches tab appears when the server sends matches, grouped by stage and round, with My team highlighted", async ({ page }) => {
+  await page.setViewportSize({ width: 360, height: 740 });
+  await preflight(page);
+  await publicLive(page, () => ({ ...publicBody({ views: [] }), matches: MATCHES }));
+  await page.goto("/live/?e=demo");
+  await expect(page.getByRole("tab")).toHaveCount(1);
+  await page.getByRole("tab", { name: "Matches", exact: true }).click();
+  const panel = page.getByRole("tabpanel");
+  await expect(panel.getByRole("heading", { name: "Group A" })).toBeVisible();
+  await expect(panel.getByRole("heading", { name: "Knockout" })).toBeVisible();
+  await expect(panel.getByRole("heading", { name: "Round 2" })).toBeVisible();
+  await expect(panel.getByText("Live now")).toBeVisible();
+  await expect(panel.getByText("Finished")).toBeVisible();
+  await expect(panel.getByText("2 - 1")).toBeVisible();
+  await expect(panel.getByText("To be decided").first()).toBeVisible();
+  await page.getByLabel("My team").selectOption("Charlie");
+  await expect(panel.locator("li[data-mine]")).toHaveCount(1);
+  await expect(panel.getByText("Your team")).toBeVisible();
+  await expect(page.getByRole("note").filter({ hasText: "Your next match" })).toContainText("Group A, round 2: vs Alpha");
+  await panel.getByLabel(/Show only Charlie/).check();
+  await expect(panel.locator("li")).toHaveCount(1);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+});
+
+test("without matches in the response there is no Matches tab", async ({ page }) => {
+  await preflight(page);
+  await publicLive(page, () => publicBody());
+  await page.goto("/live/?e=demo");
+  await expect(page.getByRole("tab")).toHaveCount(5);
+  await expect(page.getByRole("tab", { name: "Matches" })).toHaveCount(0);
+});
+
 // ---- the panel on the event page ----
 const EVENT = { id: "e1", key: "cup", name: "Spring Cup", game: "BGMI", organiser: "", date: "2026-12-01", venue: "", emergency: "", rules: "", settings: {}, updatedAt: "", role: "owner" };
 
@@ -156,6 +194,7 @@ test("the live page panel publishes and unpublishes after asking, and shows the 
   await signedIn(page, [EVENT]);
   const st = await mockEvent(page, { slug: null, published: false, snapshot: null });
   await page.goto("/app/events/?id=e1");
+  await openPanel(page, "share", "live");
   const panel = page.getByRole("region", { name: "Live page", exact: true });
   await expect(panel.getByText("Not published")).toBeVisible();
   const sw = panel.getByRole("switch");
@@ -179,6 +218,7 @@ test("announcements, sponsors with a shrunk logo and ticker lines are saved toge
   await signedIn(page, [EVENT]);
   const st = await mockEvent(page, { slug: "abcd1234efgh", published: true, snapshot: snapshot({ announcements: [{ text: "Old news", at: "2026-01-01T08:00:00Z" }], sponsors: [], ticker: [] }) });
   await page.goto("/app/events/?id=e1");
+  await openPanel(page, "share", "live");
   const panel = page.getByRole("region", { name: "Live page", exact: true });
   await expect(panel.getByText("Old news")).toBeVisible();
   await panel.getByLabel("New announcement").fill("Lunch at 1 pm");

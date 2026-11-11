@@ -2,6 +2,7 @@
  * Pure logic for the live page: what an organiser publishes (a snapshot), how a tool's view is merged into it, how limits are kept,
  * which teams and next match can be worked out, and how times are written. No browser or network code, so all of it is unit tested.
  */
+import type { PublicMatch } from "./matches";
 import { secondsUntil, slotNow, slotTime, validate, type BracketData, type Payload, type ScheduleData, type TableData } from "./display";
 
 export type LiveKind = "standings" | "league" | "schedule" | "bracket" | "countdown";
@@ -10,7 +11,8 @@ export interface Announcement { text: string; at: string }
 export interface Sponsor { name: string; logo?: string }
 export interface LiveSnapshot { views: LiveView[]; announcements: Announcement[]; sponsors: Sponsor[]; ticker: string[] }
 export interface LiveState { slug: string | null; published: boolean; snapshot: LiveSnapshot | null; updatedAt: string | null }
-export interface PublicLive { event: { name: string; date: string; venue: string }; snapshot: LiveSnapshot; updatedAt: string | null }
+/** `matches` is present when the organiser has matches (public subset only). */
+export interface PublicLive { event: { name: string; date: string; venue: string }; snapshot: LiveSnapshot; updatedAt: string | null; matches?: PublicMatch[] }
 
 export const LIMITS = { views: 5, announcements: 10, announcementText: 140, sponsors: 4, sponsorName: 40, logoChars: 60000, ticker: 5, tickerLine: 80, bytes: 250_000 } as const;
 

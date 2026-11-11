@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { explain, pub, type PublicReg, type RegPlayer } from "@/lib/api/cloud";
+import { submitRegistration } from "@/lib/api/f-reminders";
+import { CONSENT_TEXT, isEmail } from "@/lib/reminders";
 import { Waiting } from "@/components/skeleton/Scenes";
 import { Sk, SkLines } from "@/components/skeleton/Sk";
 import { LangSwitch, useLang } from "@/components/useLang";
@@ -16,6 +18,7 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<{ key: Parameters<typeof t>[0]; vars?: Record<string, string | number> } | { raw: string } | null>(null);
   const [done, setDone] = useState(false), [busy, setBusy] = useState(false);
+  const [email, setEmail] = useState(""), [agree, setAgree] = useState(false);
   const [team, setTeam] = useState(""), [captain, setCaptain] = useState(""), [contact, setContact] = useState(""), [notes, setNotes] = useState("");
   const [players, setPlayers] = useState<RegPlayer[]>([]);
 
@@ -37,8 +40,10 @@ export default function RegisterPage() {
   const send = async (e: React.FormEvent) => {
     e.preventDefault();
     if (busy) return;
+    if (email.trim() && !isEmail(email)) { setErr({ raw: "That email address does not look right. Check it, or leave it empty." }); return; }
+    if (email.trim() && !agree) { setErr({ raw: "Tick the box to agree to emails, or leave the email empty." }); return; }
     setBusy(true); setErr(null);
-    try { await pub.register(token, { teamName: team.trim(), captainName: captain.trim(), captainContact: contact.trim(), players: filled.map((p) => ({ name: p.name.trim(), ign: p.ign.trim(), minor: p.minor })), notes: notes.trim() }); setDone(true); }
+    try { await submitRegistration(token, { teamName: team.trim(), captainName: captain.trim(), captainContact: contact.trim(), players: filled.map((p) => ({ name: p.name.trim(), ign: p.ign.trim(), minor: p.minor })), notes: notes.trim(), ...(email.trim() ? { captainEmail: email.trim(), emailConsent: true, emailConsentText: CONSENT_TEXT } : {}) }); setDone(true); }
     catch (x) { const s = (x as { status?: number }).status; setErr(s === 409 ? { key: "reg_conflict" } : s === 429 ? { key: "reg_toomany" } : s === 400 ? { key: "reg_count", vars: { size: need } } : { raw: explain(x) }); }
     finally { setBusy(false); }
   };
@@ -74,6 +79,10 @@ export default function RegisterPage() {
                     <label className="flex items-center gap-2 pb-2 text-xs text-zinc-300"><input type="checkbox" className="h-5 w-5 accent-cyan" checked={p.minor} onChange={(e) => setP(i, { minor: e.target.checked })} />{t("reg_minor")}</label>
                   </div>
                 ))}
+              </fieldset>
+              <fieldset className="space-y-2 rounded-xl border border-white/[0.14] bg-[#0f1013] p-3"><legend className="px-1 text-sm font-semibold text-white">Email updates (optional)</legend>
+                <label className="block text-sm text-zinc-200">Email me updates about this event<input type="email" className="field mt-1" value={email} onChange={(e) => { setEmail(e.target.value); if (!e.target.value.trim()) setAgree(false); }} maxLength={120} autoComplete="email" /></label>
+                <label className="flex items-start gap-2 text-xs text-zinc-300"><input type="checkbox" className="mt-0.5 h-5 w-5 shrink-0 accent-cyan" checked={agree} onChange={(e) => setAgree(e.target.checked)} disabled={!email.trim()} />{CONSENT_TEXT}</label>
               </fieldset>
               <label className="block text-sm text-zinc-200">{t("reg_notes")}<textarea className="field mt-1 min-h-20 py-2" value={notes} onChange={(e) => setNotes(e.target.value)} maxLength={500} /></label>
               <p className="text-xs text-zinc-400">{t("reg_privacy")}</p>
