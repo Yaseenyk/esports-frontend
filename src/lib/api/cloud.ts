@@ -82,7 +82,8 @@ export const auth = {
     if (r.token && session) setSession({ token: r.token, user: session.user });
     return { ok: true as const };
   },
-  async deleteAccount(password: string) { await api.post<{ ok: true }>("/auth/delete-account", { password }); setSession(null, "deleted"); },
+  /** `deleteEvents` is the explicit "delete my events too" confirmation the server asks for when an event has only viewers. */
+  async deleteAccount(password: string, deleteEvents = false) { await api.post<{ ok: true }>("/auth/delete-account", deleteEvents ? { password, deleteEvents: true } : { password }); setSession(null, "deleted"); },
 };
 
 /** What the backend says when something is wrong, in words a person can act on. */

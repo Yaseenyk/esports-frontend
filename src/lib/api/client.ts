@@ -35,7 +35,7 @@ export interface GetOptions {
 }
 
 export class ApiError extends Error {
-  constructor(public status: number, message: string, public retryAfterMs?: number, public serverError?: string) { super(message); }
+  constructor(public status: number, message: string, public retryAfterMs?: number, public serverError?: string, /** Machine-readable extras the server sent with the error: a `code` and, for some, a list of events. */ public detail?: { code?: string; events?: { id: string; name: string; newOwnerName?: string }[] }) { super(message); }
 }
 
 interface Entry { data: unknown; at: number; etag?: string }
@@ -134,8 +134,16 @@ export function createClient(o: ClientOptions) {
       if (res.status === 401 && o.token?.() && !path.startsWith("/auth/")) o.onUnauthorized?.();
       if (!res.ok) {
         let why: string | undefined;
-        try { const b = (await res.json()) as { error?: unknown }; if (typeof b?.error === "string") why = b.error.slice(0, 200); } catch { /* no JSON body */ }
-        throw new ApiError(res.status, `Request failed (${res.status})`, undefined, why);
+        let detail: ApiError["detail"];
+        try {
+          const b = (await res.json()) as { error?: unknown; code?: unknown; events?: unknown };
+          if (typeof b?.error === "string") why = b.error.slice(0, 200);
+          if (typeof b?.code === "string") {
+            const list = Array.isArray(b.events) ? (b.events as { id?: unknown; name?: unknown; newOwnerName?: unknown }[]).slice(0, 50).filter((e) => typeof e?.id === "string" && typeof e?.name === "string") : [];
+            detail = { code: b.code.slice(0, 60), events: list.map((e) => ({ id: String(e.id), name: String(e.name).slice(0, 120), ...(typeof e.newOwnerName === "string" ? { newOwnerName: e.newOwnerName.slice(0, 80) } : {}) })) };
+          }
+        } catch { /* no JSON body */ }
+        throw new ApiError(res.status, `Request failed (${res.status})`, undefined, why, detail);
       }
       invalidateRelated(path);
       return (res.status === 204 ? undefined : await res.json()) as T;

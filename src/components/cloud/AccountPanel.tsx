@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { auth, explain } from "@/lib/api/cloud";
+import { deleteBlock, type DeleteBlock } from "@/lib/account-delete";
 
 const Note = ({ msg, err }: { msg: string; err: string }) => <div aria-live="polite">{msg && <p className="text-sm text-emerald-300">{msg}</p>}{err && <p role="alert" className="text-sm text-red-300">{err}</p>}</div>;
 
@@ -10,6 +11,7 @@ export default function AccountPanel({ onDone }: { onDone: () => void }) {
   const [cur, setCur] = useState(""), [next, setNext] = useState(""), [del, setDel] = useState("");
   const [msg, setMsg] = useState(""), [err, setErr] = useState(""), [busy, setBusy] = useState(false);
   const [derr, setDerr] = useState(""), [dbusy, setDbusy] = useState(false);
+  const [block, setBlock] = useState<DeleteBlock | null>(null), [alsoEvents, setAlsoEvents] = useState(false);
   const working = useRef(false);
 
   const change = async (e: React.FormEvent) => {
@@ -24,10 +26,14 @@ export default function AccountPanel({ onDone }: { onDone: () => void }) {
   const remove = async (e: React.FormEvent) => {
     e.preventDefault();
     if (working.current) return;
-    if (!confirm("Delete your account and every event, roster, photo and check-in saved online? This cannot be undone. Your copies in this browser stay.")) return;
+    if (!confirm("Delete your account and everything saved online? Events that have a co-organiser are handed over to them; your other events, rosters, photos and check-ins are deleted. This cannot be undone. Your copies in this browser stay.")) return;
     working.current = true; setDbusy(true); setDerr("");
-    try { await auth.deleteAccount(del); onDone(); }
-    catch (x) { setDerr((x as { status?: number }).status === 401 ? "That password is wrong." : explain(x)); }
+    try { await auth.deleteAccount(del, block?.kind === "confirm" && alsoEvents); onDone(); }
+    catch (x) {
+      const b = deleteBlock(x);
+      setBlock(b); setAlsoEvents(false);
+      setDerr(b ? b.text : (x as { status?: number }).status === 401 ? "That password is wrong." : explain(x));
+    }
     finally { working.current = false; setDbusy(false); }
   };
   return (
@@ -43,7 +49,8 @@ export default function AccountPanel({ onDone }: { onDone: () => void }) {
         <h3 className="font-display font-bold text-white">Delete my account</h3>
         <p className="text-sm text-zinc-300">Removes everything saved online: events, rosters, photos, check-ins, invite and pass links. Cards you made in this browser are not touched.</p>
         <label className="block text-sm text-zinc-300">Password to confirm<input className="field mt-1" type="password" name="confirm-password" autoComplete="current-password" value={del} onChange={(e) => setDel(e.target.value)} required /></label>
-        <button className="btn-ghost !min-h-11 px-4 text-sm !border-red-400/50 text-red-200" disabled={dbusy || !del}>{dbusy ? "Deleting…" : "Delete account"}</button>
+        <button className="btn-ghost !min-h-11 px-4 text-sm !border-red-400/50 text-red-200" disabled={dbusy || !del || (block?.kind === "confirm" && !alsoEvents)}>{dbusy ? "Deleting…" : "Delete account"}</button>
+        {block?.kind === "confirm" && <label className="flex items-start gap-2 text-sm text-zinc-200"><input type="checkbox" className="mt-1" checked={alsoEvents} onChange={(e) => setAlsoEvents(e.target.checked)} />Yes, also delete my events that nobody can take over</label>}
         <Note msg="" err={derr} />
       </form>
       <p className="text-xs text-zinc-400">Forgot your password? Sign out, then press &ldquo;Forgot password?&rdquo; on the sign-in page. We email you a link to choose a new one.</p>
