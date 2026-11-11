@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import ScreenButtons from "@/components/display/ScreenButtons";
+import WinnersBlock from "@/components/display/WinnersBlock";
 import { doubleElimView } from "@/lib/display-views";
 import { build, champion as championOf, isPlayable, setPick, slots, type Match, type Slot } from "@/lib/doubleelim";
 import { uniqueTeams } from "@/lib/seeding";
@@ -49,6 +50,17 @@ export default function DoubleElimination() {
 
   const champion = bracket ? championOf(bracket, picks) : null;
   const screen = useMemo(() => (bracket ? doubleElimView(bracket, picks) : null), [bracket, picks]);
+  // Second: the other team in the deciding final. Third: whoever lost the losers final.
+  const podium = useMemo(() => {
+    if (!bracket || !champion) return null;
+    const team = (s: Slot) => (s.kind === "team" ? s.name : undefined);
+    const deciding = bracket.matches.find((m) => m.id === (picks["GF"] === 1 ? "GF2" : "GF"));
+    const fin = deciding ? slots(bracket, deciding, picks).map(team) : [];
+    const lastL = bracket.matches.filter((m) => m.bracket === "L").sort((a, b) => b.round - a.round)[0];
+    const lp = lastL ? picks[lastL.id] : undefined;
+    const third = lastL && lp !== undefined ? team(slots(bracket, lastL, picks)[lp === 0 ? 1 : 0]) : undefined;
+    return { second: fin.find((n) => n && n !== champion.name), third };
+  }, [bracket, champion, picks]);
   const wRounds = bracket ? Math.max(...bracket.matches.filter((m) => m.bracket === "W").map((m) => m.round)) : 0;
   const resetNeeded = picks["GF"] === 1;
   const decided = Object.values(picks).filter((v) => v !== undefined).length;
@@ -96,6 +108,8 @@ export default function DoubleElimination() {
           </>
         )}
       </ToolStep>
+
+      {bracket && champion && <WinnersBlock first={champion.name} second={podium?.second} third={podium?.third} />}
 
       <ScreenButtons payload={screen} what="bracket" step={3} />
     </div>

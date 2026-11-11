@@ -1,8 +1,10 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import { EXAMPLE_SCALE, parsePlacement, standings, type TeamEntry } from "@/lib/points";
 import ScreenButtons from "@/components/display/ScreenButtons";
+import WinnersBlock from "@/components/display/WinnersBlock";
 import { pointsView } from "@/lib/display-views";
 import { downloadBlob } from "@/lib/idcard/download";
 import NumberField from "./NumberField";
@@ -17,8 +19,12 @@ const EXAMPLE: TeamEntry[] = [
 const num = (v: string) => { const n = Math.floor(Number(v)); return Number.isFinite(n) && n >= 0 ? Math.min(n, 9999) : 0; };
 const ord = (n: number) => `${n}${n % 100 >= 11 && n % 100 <= 13 ? "th" : ["th", "st", "nd", "rd"][n % 10] ?? "th"}`;
 
+const PRESETS = { bgmi: { game: "BGMI", guide: "/guides/bgmi-custom-room-tournament/", guideLabel: "BGMI custom room guide" }, "free-fire": { game: "Free Fire", guide: "/guides/free-fire-tournament-organiser/", guideLabel: "Free Fire tournament guide" } } as const;
+export type PointsPreset = keyof typeof PRESETS;
+
 /** Four steps: set the points, enter each team's results, read the standings, optionally show them on a TV. Nothing is sent anywhere. */
-export default function PointsTable() {
+export default function PointsTable({ preset }: { /** A game landing page: the same tool, with a note that the starting scale is only an example. */ preset?: PointsPreset } = {}) {
+  const pre = preset ? PRESETS[preset] : null;
   const [scaleText, setScaleText] = useState(EXAMPLE_SCALE.placement.join(", "));
   const [kill, setKill] = useState(EXAMPLE_SCALE.perKill);
   const [matches, setMatches] = useState(3);
@@ -56,6 +62,7 @@ export default function PointsTable() {
           <button type="button" className="btn-ghost !min-h-10 px-4 text-sm" onClick={loadExampleScale}>Use a common example scale</button>
           <span className="text-xs text-zinc-400">The example is only a sample. Use your own rulebook&apos;s scale for a real event.</span>
         </div>
+        {pre && <p className="rounded-lg border border-amber-300/30 bg-amber-300/5 p-3 text-sm leading-6 text-amber-100" data-testid="preset-note">Example only: the scale above is a sample often used in custom rooms, not {pre.game}&apos;s official scale, and it may not match the current rules. For an official event follow the publisher&apos;s own rulebook; for a custom room use your own rules. See the <Link href={pre.guide} className="underline">{pre.guideLabel}</Link> and the <Link href="/guides/esports-tournament-rules-template/" className="underline">rules template</Link>.</p>}
       </ToolStep>
 
       <ToolStep n={2} id="pt-results" title="Enter each team's results" done={cells > 0 && filled >= cells}
@@ -110,6 +117,8 @@ export default function PointsTable() {
           )}
         </section>
       </ToolStep>
+
+      {table.length > 0 && filled > 0 && <WinnersBlock first={table[0]!.name} second={table[1]?.name} third={table[2]?.name} title={`Winners after ${matches} match${matches === 1 ? "" : "es"}`} />}
 
       <ScreenButtons payload={screen} what="standings" step={4} />
     </div>

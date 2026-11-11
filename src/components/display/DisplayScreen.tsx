@@ -1,10 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { CHANNEL, DEFAULT_LOOK, decode, lookFrom, remaining, secondsUntil, slotNow, validate, type BracketData, type CountdownData, type Look, type Payload, type ScheduleData, type TableData } from "@/lib/display";
+import { CHANNEL, DEFAULT_LOOK, decode, lookFrom, remaining, sanitizeExtras, secondsUntil, slotNow, validate, type BracketData, type CountdownData, type Look, type Payload, type ScheduleData, type TableData } from "@/lib/display";
 import { gateClient } from "@/lib/api/cloud";
 import { createPoller } from "@/lib/api/poller";
 import { cardFontVars } from "@/components/idcard/fonts";
+import ExtrasBar, { extrasReserve } from "./ExtrasBar";
 import { fontCss, rankStyle, surface, themeById, type DisplayTheme } from "@/lib/display-themes";
 
 type Theme = DisplayTheme;
@@ -24,7 +25,7 @@ function Title({ title, subtitle, c }: { title: string; subtitle?: string; c: Th
 }
 
 /** A table that fills the screen. Long tables scroll by themselves, rows that move up flash, and the top three get medals. */
-function TableView({ d, c }: { d: TableData; c: Theme }) {
+export function TableView({ d, c }: { d: TableData; c: Theme }) {
   const prev = useRef<Map<string, number>>(new Map());
   const [up, setUp] = useState<Set<string>>(new Set());
   const nameCol = d.head.findIndex((h) => /team|name|player/i.test(h)) >= 0 ? d.head.findIndex((h) => /team|name|player/i.test(h)) : 1;
@@ -57,7 +58,7 @@ function TableView({ d, c }: { d: TableData; c: Theme }) {
   );
 }
 
-function ScheduleView({ d, c }: { d: ScheduleData; c: Theme }) {
+export function ScheduleView({ d, c }: { d: ScheduleData; c: Theme }) {
   const now = useNow(1000);
   const { current, next } = useMemo(() => slotNow(d, new Date(now)), [d, now]);
   const cur = useRef<HTMLLIElement>(null);
@@ -86,7 +87,7 @@ function ScheduleView({ d, c }: { d: ScheduleData; c: Theme }) {
 }
 
 /** A knockout bracket that fits the screen. Text size follows how many matches the widest round has, winners are lit, the champion gets a card. */
-function BracketView({ d, c }: { d: BracketData; c: Theme }) {
+export function BracketView({ d, c }: { d: BracketData; c: Theme }) {
   const weight = (sec: BracketData["sections"][number]) => Math.max(1, ...sec.rounds.map((r) => r.matches.length));
   const total = d.sections.reduce((n, sec) => n + weight(sec), 0);
   const fs = Math.max(1.15, Math.min(2.7, (d.sections.length > 1 ? 52 : 60) / (total * 2.7)));
@@ -123,7 +124,7 @@ function BracketView({ d, c }: { d: BracketData; c: Theme }) {
   );
 }
 
-function CountdownView({ d, c }: { d: CountdownData; c: Theme }) {
+export function CountdownView({ d, c }: { d: CountdownData; c: Theme }) {
   const now = useNow(250);
   const r = remaining(d.at, now);
   const cell = (n: number, label: string) => <div style={{ textAlign: "center", padding: "2vmin 3vmin", ...surface(c, 0) }}><div style={{ fontSize: "17vmin", fontWeight: 800, lineHeight: 1, color: c.fg, fontVariantNumeric: "tabular-nums", textShadow: `0 0 4vmin ${c.accent}55` }}>{pad(n)}</div><div style={{ fontSize: "2.4vmin", color: c.soft, textTransform: "uppercase", letterSpacing: ".2em", marginTop: "1vmin" }}>{label}</div></div>;
@@ -176,6 +177,8 @@ export default function DisplayScreen() {
   const [payload, setPayload] = useState<Payload | null>(null);
   const [look, setLook] = useState<Look>(DEFAULT_LOOK);
   const [extra, setExtra] = useState<{ view: string; key: string; title: string; at: string; sub: string }>({ view: "", key: "", title: "", at: "", sub: "" });
+  const [tickX, setTickX] = useState<Payload["x"]>(undefined);
+  const [noExtras, setNoExtras] = useState(false);
   const [bad, setBad] = useState(false);
   const [bar, setBar] = useState(true);
   const idle = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -185,6 +188,8 @@ export default function DisplayScreen() {
     const q = new URLSearchParams(location.search);
     const l = lookFrom(q);
     setLook(l);
+    setNoExtras(q.get("extras") === "0"); // OBS users can switch the ticker and sponsor strip off with ?extras=0
+    setTickX(sanitizeExtras({ ticker: (q.get("tick") ?? "").split("|") })); // ?tick=a|b|c gives the check-in and countdown views a ticker
     document.body.style.background = l.bg === "transparent" ? "transparent" : l.bg === DEFAULT_LOOK.bg ? themeById(l.theme).bg : l.bg;
     setExtra({ view: q.get("v") ?? "", key: q.get("k") ?? "", title: q.get("title") ?? "", at: q.get("t") ?? "", sub: q.get("sub") ?? "" });
     // The link can change while the screen stays open (the tool opens the same window again), so read it now and whenever it changes.
@@ -206,12 +211,14 @@ export default function DisplayScreen() {
 
   const c = themeById(look.theme);
   const transparent = look.bg === "transparent";
+  const x = noExtras ? undefined : (payload?.x ?? tickX);
+  const reserve = extrasReserve(x);
   const countdown: CountdownData | null = extra.view === "countdown" && !Number.isNaN(Date.parse(extra.at)) ? { title: extra.title || "Starting soon", subtitle: extra.sub, at: extra.at } : null;
 
   return (
     <div className={`ds-root ${cardFontVars}`} onPointerMove={wake} style={{ fontFamily: fontCss(c), fontSynthesis: "none",  position: "fixed", top: 0, left: 0, width: "100vw", height: "100dvh", boxSizing: "border-box", overflow: "hidden", padding: `${look.safe}vmin`, fontSize: `${look.scale}rem`, zoom: look.scale === 1 ? undefined : look.scale, color: c.fg, background: transparent ? "transparent" : undefined, cursor: bar ? "default" : "none" }}>
       {!transparent && c.deco && <div aria-hidden="true" style={{ position: "absolute", inset: 0, backgroundImage: c.deco, backgroundSize: c.decoSize, pointerEvents: "none" }} />}
-      <div style={{ height: "100%", width: "100%", position: "relative" }}>
+      <div style={{ height: reserve ? `calc(100% - ${reserve}vmin)` : "100%", width: "100%", position: "relative" }}>
         {extra.view === "checkin" && extra.key ? <CheckinView gateKey={extra.key} title={extra.title} look={look} c={c} />
           : countdown ? <CountdownView d={countdown} c={c} />
           : payload?.v === "table" ? <TableView d={payload.d} c={c} />
@@ -220,6 +227,7 @@ export default function DisplayScreen() {
           : payload?.v === "countdown" ? <CountdownView d={payload.d} c={c} />
           : <div className="flex h-full flex-col items-center justify-center text-center" role="status">{bad ? <><p style={{ fontSize: "5vmin", fontWeight: 800 }}>This screen link is damaged</p><p style={{ fontSize: "2.6vmin", color: c.soft, marginTop: "1vmin" }}>Open the screen again from the tool it came from.</p></> : <><p style={{ fontSize: "5vmin", fontWeight: 800 }}>Waiting for a view</p><p style={{ fontSize: "2.6vmin", color: c.soft, marginTop: "1vmin" }}>Open a screen from a tool such as the points table calculator, and it appears here.</p></>}</div>}
       </div>
+      <ExtrasBar x={x} c={c} inset={look.safe} />
       <div style={{ position: "fixed", right: "2vmin", bottom: "2vmin", opacity: bar ? 1 : 0, visibility: bar ? "visible" : "hidden", transition: "opacity .4s, visibility .4s", display: "flex", gap: "1vmin", alignItems: "center", fontSize: "1.8vmin", color: c.soft, background: "rgba(0,0,0,.55)", padding: "1vmin 1.6vmin", borderRadius: "2vmin", pointerEvents: bar ? "auto" : "none" }}>
         <button type="button" onClick={toggleFull} onFocus={wake} style={{ color: "#fff", border: "1px solid rgba(255,255,255,.3)", borderRadius: "1vmin", padding: ".5vmin 1.4vmin" }}>Full screen (F)</button>
       </div>

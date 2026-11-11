@@ -1,6 +1,7 @@
 /** Typed calls to the Esports Hub backend (Cloudflare Worker). Every call goes through the shared client, so it is cached, de-duplicated and batched where it can be. */
 import { api, API_BASE, setAuthFailHandler, setToken } from "./index";
 import { createBatchQueue } from "./queue";
+import type { LiveSnapshot, LiveState, PublicLive } from "../live";
 
 export interface User { id: string; email: string; name: string }
 export interface CloudEvent { role?: "owner" | "editor" | "viewer"; id: string; key: string; name: string; game: string; organiser: string; date: string; venue: string; emergency: string; rules: string; settings: unknown; updatedAt: string }
@@ -168,6 +169,16 @@ export const pub = {
   pass: (token: string) => api.get<PassData>(`/public/pass/${encodeURIComponent(token)}`, { ttl: 60000, swr: 600000 }),
   invite: (token: string) => api.get<{ event: { name: string; date: string }; team: { name: string } }>(`/public/invite/${encodeURIComponent(token)}`, { ttl: 60000 }),
   submit: (token: string, b: { name: string; role?: string; minor?: boolean; photo?: string }) => api.post<{ ok: true }>(`/public/invite/${encodeURIComponent(token)}/submit`, b),
+};
+
+// ---- live page ----
+export const live = {
+  /** Owner, editor or viewer. Never cached: the panel must show what is really published. */
+  get: (eventId: string) => api.get<LiveState>(`/events/${encodeURIComponent(eventId)}/live`, { ttl: 0, swr: 0 }),
+  /** Owner or editor. Either part is optional; a snapshot replaces the old one whole. */
+  put: (eventId: string, body: { published?: boolean; snapshot?: LiveSnapshot }) => api.put<LiveState>(`/events/${encodeURIComponent(eventId)}/live`, body),
+  /** No sign-in. The shared client sends the saved ETag, so an unchanged page costs one tiny 304 answer. */
+  public: (slug: string) => api.get<PublicLive>(`/public/live/${encodeURIComponent(slug)}`, { ttl: 0, swr: 0, retries: 1 }),
 };
 
 // ---- gate device (a gate key instead of a sign-in) ----

@@ -4,6 +4,9 @@ import { useState } from "react";
 import type { Payload } from "@/lib/display";
 import { themeById } from "@/lib/display-themes";
 import ToolStep from "@/components/tools/ToolStep";
+import PublishToLive from "./PublishToLive";
+import ShareCardButtons from "./ShareCardButtons";
+import SponsorEditor from "./SponsorEditor";
 import ThemePicker from "./ThemePicker";
 import { useScreen } from "./useScreen";
 
@@ -32,6 +35,9 @@ export default function ScreenButtons({ payload, what, step }: { payload: Payloa
             <p className="text-xs leading-5 text-zinc-400">A copied link is a snapshot of right now. To keep a stream updating, capture the open screen window in OBS instead of using the link.</p>
           </div>
         </details>
+        <SponsorEditor value={s.extras} onChange={s.setExtras} />
+        <ShareCardButtons payload={s.payload} what={what} theme={s.opts.theme} extras={s.extras} />
+        <PublishToLive payload={payload} what={what} />
         <p role="status" aria-live="polite" className={`min-h-5 text-xs ${msg.startsWith("Link") ? "text-emerald-300" : "text-amber-200"}`}>{msg}</p>
       </ToolStep>
     </div>

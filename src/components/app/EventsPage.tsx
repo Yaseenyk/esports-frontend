@@ -9,6 +9,8 @@ import { Sk } from "@/components/skeleton/Sk";
 import Checklist from "@/components/app/Checklist";
 import MembersPanel from "@/components/cloud/MembersPanel";
 import RegistrationPanel from "@/components/cloud/RegistrationPanel";
+import LivePagePanel from "@/components/app/LivePagePanel";
+import EventReportPanel from "@/components/app/EventReportPanel";
 
 /** Saved events: a list, and for one event its numbers (people, teams, minors, checked in) with shortcuts to the tools. */
 export default function EventsPage() {
@@ -136,6 +138,8 @@ function Detail({ ev, onBack, onDeleted }: { ev: CloudEvent; onBack: () => void;
       )}
       {ev.role === "viewer" && <p role="note" className="rounded-xl border border-amber-500/30 bg-[#0a0b0d] p-3 text-sm text-amber-100">You have view-only access to this event. You can look, but not change anything.</p>}
       {ev.role !== "viewer" && <RegistrationPanel eventId={ev.id} onApproved={() => { roster.refetch(); }} />}
+      {ev.role !== "viewer" && <LivePagePanel eventId={ev.id} />}
+      <EventReportPanel eventId={ev.id} eventName={ev.name} />
       {(ev.role === undefined || ev.role === "owner") && <MembersPanel eventId={ev.id} />}
       {(
         <details className="group rounded-2xl border border-white/10 bg-zinc-900/40">

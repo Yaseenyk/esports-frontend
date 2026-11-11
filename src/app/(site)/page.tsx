@@ -9,12 +9,16 @@ import TiltLink from "@/components/TiltLink";
 import { GUIDES } from "@/content/guides";
 import { HOME_FAQ } from "@/content/home-faq";
 import { GAMES, TOOLS } from "@/lib/data";
-import { CARD_DESIGNS, CARD_SHAPES, LANGUAGES_COUNT } from "@/lib/facts";
+import { CARD_DESIGNS, CARD_SHAPES, LANGUAGES_COUNT, SCREEN_DESIGNS, SITE_DESCRIPTION } from "@/lib/facts";
+import { SITE_URL } from "@/lib/site";
 
+const HOME_TITLE = "Esports Hub: free tournament tools, from sign-up to trophy";
 export const metadata: Metadata = {
-  title: { absolute: "Esports Hub: free tools and guides for esports event organisers" },
-  description: "Free ID card maker, bracket maker, points table calculator and gate check-in scanner, plus practical guides for running college and community esports events in India.",
+  title: { absolute: HOME_TITLE },
+  description: SITE_DESCRIPTION,
   alternates: { canonical: "/" },
+  openGraph: { type: "website", siteName: "Esports Hub", url: SITE_URL, locale: "en_IN", title: HOME_TITLE, description: SITE_DESCRIPTION, images: [{ url: "/og.png", width: 1200, height: 630, alt: "Esports Hub: free tournament tools, from sign-up to trophy" }] },
+  twitter: { card: "summary_large_image", title: HOME_TITLE, description: SITE_DESCRIPTION, images: ["/og.png"] },
 };
 
 const FAQ = HOME_FAQ;
@@ -47,15 +51,15 @@ export default function Home() {
       <section className="relative grid items-center gap-12 pt-4 lg:grid-cols-[1.1fr_.9fr]">
         <div>
           <p className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-[#0a0b0d] px-3 py-1 text-xs font-semibold uppercase tracking-widest text-cyan">
-            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-cyan" /> For organisers of esports and gaming events
+            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-cyan" /> From sign-up to trophy. Free.
           </p>
-          <h1 className="mt-5 text-4xl font-bold leading-[1.08] text-white sm:text-6xl">Free tools and guides for running <span className="text-sheen">esports events</span></h1>
-          <p className="mt-6 max-w-xl text-lg leading-relaxed text-zinc-200">Make player ID cards with QR passes, build a tournament bracket, work out a battle royale points table and check guests in at the gate. Then read the plain, practical guides that explain how to run the whole event, from the first idea to the results.</p>
+          <h1 className="mt-5 text-4xl font-bold leading-[1.08] text-white sm:text-6xl">Free <span className="text-sheen">tournament tools</span> for organisers: from <span className="whitespace-nowrap">sign-up</span> to trophy</h1>
+          <p className="mt-6 max-w-xl text-lg leading-relaxed text-zinc-200">{SITE_DESCRIPTION}</p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Link href="/tools/id-cards/" className="btn">Make ID cards</Link>
-            <Link href="/guides/run-a-campus-tournament/" className="btn-ghost">How to run a college tournament</Link>
+            <Link href="/tools/" className="btn-ghost">Pick the job you need</Link>
           </div>
-          <p className="mt-4 text-sm text-zinc-400">Free. Works in your browser. No account needed to use the tools.</p>
+          <p className="mt-4 text-sm text-zinc-400">New here? <Link href="/tools/" className="text-cyan underline underline-offset-2 hover:text-white">Pick the job you need done</Link>, or read <Link href="/guides/run-a-campus-tournament/" className="text-cyan hover:underline">how to run a college tournament</Link>. Free, in your browser, no account for the tools.</p>
           <dl className="mt-10 grid max-w-lg grid-cols-4 gap-4">
             {([["Free tools", TOOLS.length], ["Guides", GUIDES.length], ["Card designs", CARD_DESIGNS], ["Languages", LANGUAGES_COUNT]] as const).map(([k, v]) => (
               <div key={k}><dd className="font-display text-3xl font-bold text-white"><Counter to={v} /></dd><dt className="text-xs text-zinc-400">{k}</dt></div>
@@ -91,6 +95,23 @@ export default function Home() {
             </Item>
           ))}
         </Stagger>
+      </section>
+
+      <section aria-labelledby="proof">
+        <Reveal><h2 id="proof" className="text-3xl font-bold text-white">What it really does</h2><p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-300">Plain facts about the product, nothing we cannot show you. Open any tool and check.</p></Reveal>
+        <Stagger className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {[
+            ["Runs in the browser", "No install. Phone, tablet or computer."],
+            ["No account for the tools", "Make cards, brackets and tables without signing up. An account only adds saving online, registration links and live check-in."],
+            ["Signed QR passes", "A forged code is rejected at the gate, and a copied pass is flagged the second time it is scanned."],
+            ["Check-in works offline", "Scans wait on the phone and are sent when the signal returns."],
+            ["Hindi and Marathi for players", "The pages players open (registration and pass links) can be read in English, Hindi and Marathi."],
+            ["Ready-made designs", `${CARD_DESIGNS} ID card designs and ${SCREEN_DESIGNS} TV screen designs, all editable.`],
+          ].map(([t, d]) => (
+            <Item key={t} className="h-full"><div className="card h-full"><h3 className="font-display font-bold text-white">{t}</h3><p className="mt-1 text-sm text-zinc-300">{d}</p></div></Item>
+          ))}
+        </Stagger>
+        <p className="mt-4 text-sm text-zinc-400">Not affiliated with any game publisher. <Link href="/about/" className="text-cyan underline underline-offset-2 hover:text-white">About Esports Hub</Link></p>
       </section>
 
       <section aria-labelledby="how">

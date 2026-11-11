@@ -1,6 +1,7 @@
 import HubNav from "@/components/HubNav";
 import SiteFooter from "@/components/SiteFooter";
 import JsonLd from "@/components/seo/JsonLd";
+import { SITE_DESCRIPTION } from "@/lib/facts";
 import { SITE_URL } from "@/lib/site";
 
 /** The public website: server-rendered at build time (static HTML), so every page is fully readable by search engines. */
@@ -8,8 +9,8 @@ export default function SiteLayout({ children }: { children: React.ReactNode }) 
   return (
     <>
       <JsonLd data={[
-        { "@context": "https://schema.org", "@type": "Organization", name: "Esports Hub", url: SITE_URL, logo: `${SITE_URL}/icon-512.png` },
-        { "@context": "https://schema.org", "@type": "WebSite", name: "Esports Hub", url: SITE_URL, inLanguage: "en-IN" },
+        { "@context": "https://schema.org", "@type": "Organization", name: "Esports Hub", url: SITE_URL, description: SITE_DESCRIPTION, logo: `${SITE_URL}/icon-512.png` },
+        { "@context": "https://schema.org", "@type": "WebSite", name: "Esports Hub", url: SITE_URL, description: SITE_DESCRIPTION, inLanguage: "en-IN" },
       ]} />
       <div id="top" />
       <HubNav />

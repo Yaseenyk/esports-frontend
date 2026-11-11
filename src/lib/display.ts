@@ -8,7 +8,9 @@ export interface ScheduleData { title: string; /** The day the times are on, yyy
 export interface CountdownData { title: string; subtitle?: string; /** ISO date and time. */ at: string }
 /** A knockout bracket: one section for single elimination, three (winners, losers, grand final) for double. `w` is the side that won, 0 or 1. */
 export interface BracketData { title: string; sections: { name: string; rounds: { name: string; matches: { a: string; b: string; w?: 0 | 1 }[] }[] }[]; champion?: string }
-export type Payload = { v: "table"; d: TableData } | { v: "schedule"; d: ScheduleData } | { v: "countdown"; d: CountdownData } | { v: "bracket"; d: BracketData };
+/** Optional extras that ride along with any view: lines for a scrolling ticker and up to four sponsors (a name and a small logo as an image data URL). */
+export interface Extras { ticker?: string[]; sponsors?: { name: string; logo?: string }[] }
+export type Payload = ({ v: "table"; d: TableData } | { v: "schedule"; d: ScheduleData } | { v: "countdown"; d: CountdownData } | { v: "bracket"; d: BracketData }) & { x?: Extras };
 
 export interface Look { /** A design id from lib/display-themes. */ theme: string; /** "transparent" for OBS, or a hex colour. */ bg: string; /** Margin as a percentage of the screen, for TV overscan. */ safe: number; /** Text size multiplier. */ scale: number; names: boolean }
 export const DEFAULT_LOOK: Look = { theme: "dark", bg: "#05070a", safe: 3, scale: 1, names: false };
@@ -48,8 +50,33 @@ const rows = (x: unknown, cols: number): string[][] | null => (Array.isArray(x) 
 
 /** Checks the shape and trims everything, so whatever is in a link can only ever be shown as plain text. */
 export function validate(x: unknown): Payload | null {
-  try { return validateShape(x); } catch { return null; } // a hand-made object with the wrong shapes inside must never crash a screen
+  try { // a hand-made object with the wrong shapes inside must never crash a screen
+    const p = validateShape(x);
+    if (!p) return null;
+    const ex = sanitizeExtras((x as { x?: unknown }).x);
+    return ex ? { ...p, x: ex } : p;
+  } catch { return null; }
 }
+
+export const LOGO_MAX = 60000;
+const LOGO_RE = /^data:image\/(?:png|jpeg|webp);base64,[A-Za-z0-9+/]+={0,2}$/;
+/** True for a png, jpeg or webp image data URL small enough to carry in a link. Anything else (svg, http, script) is refused. */
+export const isLogo = (s: unknown): s is string => typeof s === "string" && s.length <= LOGO_MAX && LOGO_RE.test(s);
+// eslint-disable-next-line no-control-regex
+const oneLine = (x: unknown, max: number) => (typeof x === "string" ? x.replace(/[\x00-\x1f\x7f]+/g, " ").replace(/\s+/g, " ").trim().slice(0, max).trim() : "");
+
+/** Trims and caps the extras: ticker 5 lines of 80 characters, sponsors 4 with a name of 40 and an optional safe logo. Returns undefined when nothing is left. */
+export function sanitizeExtras(x: unknown): Extras | undefined {
+  if (!x || typeof x !== "object") return undefined;
+  const e = x as { ticker?: unknown; sponsors?: unknown };
+  const ticker = Array.isArray(e.ticker) ? e.ticker.map((t) => oneLine(t, 80)).filter(Boolean).slice(0, 5) : [];
+  const sponsors = Array.isArray(e.sponsors)
+    ? (e.sponsors as unknown[]).map((s) => { const r = (s && typeof s === "object" ? s : {}) as { name?: unknown; logo?: unknown }; const name = oneLine(r.name, 40); return name ? (isLogo(r.logo) ? { name, logo: r.logo } : { name }) : null; }).filter((s): s is { name: string; logo?: string } => s !== null).slice(0, 4)
+    : [];
+  if (!ticker.length && !sponsors.length) return undefined;
+  return { ...(ticker.length ? { ticker } : null), ...(sponsors.length ? { sponsors } : null) };
+}
+
 function validateShape(x: unknown): Payload | null {
   if (!x || typeof x !== "object") return null;
   const p = x as { v?: unknown; d?: Record<string, unknown> };

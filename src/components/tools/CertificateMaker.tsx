@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { downloadBlob } from "@/lib/idcard/download";
 import ToolStep from "./ToolStep";
 import TeamsInput from "./TeamsInput";
+import { awardFor, entriesToText, parseAwardLines, parseCertQuery, type CertEntry } from "@/lib/certificates";
 
 type Design = "classic" | "dark" | "minimal";
 const DESIGNS: { id: Design; label: string }[] = [{ id: "classic", label: "Classic (white, for printing)" }, { id: "dark", label: "Dark esports" }, { id: "minimal", label: "Minimal (white)" }];
@@ -51,8 +52,19 @@ export default function CertificateMaker() {
   const [design, setDesign] = useState<Design>("classic");
   const [logo, setLogo] = useState("");
   const [status, setStatus] = useState(""), [busy, setBusy] = useState(false);
-  const list = useMemo(() => names.split("\n").map((n) => n.trim()).filter(Boolean), [names]);
-  const [live, setLive] = useState<string>("");
+  const [mode, setMode] = useState<"list" | "awards">("list");
+  const [awardText, setAwardText] = useState("Winner: Team A\nRunner-up: Team B\nThird place: Team C");
+  const [prefilled, setPrefilled] = useState(false);
+  const list = useMemo<CertEntry[]>(() => (mode === "awards"
+    ? parseAwardLines(awardText).map((r) => ({ name: r.name, award: awardFor(r, f.award) }))
+    : names.split("\n").map((n) => n.trim()).filter(Boolean).map((name) => ({ name, award: f.award }))), [mode, awardText, names, f.award]);
+  const [live, setLive] = useState<CertEntry | null>(null);
+  // Results tools link here with ?awards=Winner:Team A|Runner-up:Team B (or ?names=A|B). Read once, defensively, after the page loads.
+  useEffect(() => {
+    const q = parseCertQuery(location.search);
+    if (!q.rows.length) return;
+    setAwardText(entriesToText(q.rows)); setMode("awards"); setPrefilled(true);
+  }, []);
   const off = useRef<HTMLDivElement>(null);
   const box = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(0.5);
@@ -77,7 +89,7 @@ export default function CertificateMaker() {
       }
       downloadBlob(doc.output("blob"), "certificates.pdf");
       setStatus(`Done: ${list.length} certificate${list.length === 1 ? "" : "s"} in certificates.pdf.`);
-    } catch { setStatus("Could not make the PDF. Try fewer names at a time."); } finally { setBusy(false); setLive(""); }
+    } catch { setStatus("Could not make the PDF. Try fewer names at a time."); } finally { setBusy(false); setLive(null); }
   }, [list, busy]);
 
   return (
@@ -85,7 +97,19 @@ export default function CertificateMaker() {
       <ToolStep n={1} id="ce-names" title="Who gets a certificate?" done={list.length > 0}
         hint="Add one name for each certificate. Each person gets their own page in one PDF."
         status={list.length ? `${list.length} certificate${list.length === 1 ? "" : "s"}` : undefined}>
-        <TeamsInput value={names} onChange={setNames} noun="name" min={1} max={500} example={SAMPLE_NAMES.split("\n")} label="Names, one per line" help="Type one name per line. Or copy a column from Excel, Google Sheets or WhatsApp and paste it here. Up to 100 per file works well." />
+        {prefilled && <p role="status" className="rounded-xl border border-cyan/30 bg-[#0a0b0d] p-3 text-sm text-zinc-200">Pre-filled from your results. Check the names and press Download.</p>}
+        <div role="group" aria-label="How to add names" className="flex flex-wrap gap-2">
+          <button type="button" className="chip" aria-pressed={mode === "list"} onClick={() => setMode("list")}>Names only</button>
+          <button type="button" className="chip" aria-pressed={mode === "awards"} onClick={() => setMode("awards")}>Name + award</button>
+        </div>
+        {mode === "list"
+          ? <TeamsInput value={names} onChange={setNames} noun="name" min={1} max={500} example={SAMPLE_NAMES.split("\n")} label="Names, one per line" help="Type one name per line. Or copy a column from Excel, Google Sheets or WhatsApp and paste it here. Up to 100 per file works well." />
+          : <div className="space-y-2">
+              <label htmlFor="ce-awards" className="block text-sm font-semibold text-white">Award and name, one per line</label>
+              <p id="ce-awards-help" className="text-sm leading-6 text-zinc-300">Write the award, a colon, then the name. For example <span className="font-mono text-zinc-100">Winner: Team A</span>. Each certificate says its own award. A line with no award uses the box &quot;Award or result&quot; in step 2. Up to 100 lines.</p>
+              <textarea id="ce-awards" aria-describedby="ce-awards-help" className="field min-h-40 py-2" spellCheck={false} value={awardText} onChange={(e) => { setPrefilled(false); setAwardText(e.target.value); }} placeholder={"Winner: Team A\nRunner-up: Team B\nParticipation: Team C"} />
+              <button type="button" className="btn-ghost !min-h-10 px-4 text-sm" onClick={() => { setPrefilled(false); setAwardText(""); }}>Clear</button>
+            </div>}
       </ToolStep>
 
       <ToolStep n={2} id="ce-look" title="Choose the wording and the look" hint="Change the event details below. The preview in step 3 updates as you type. The sample text already works, so you can keep what you like.">
@@ -117,7 +141,7 @@ export default function CertificateMaker() {
 
       <ToolStep n={3} id="ce-preview" title="Check the preview" hint={list.length ? "This is the first certificate. Every other name gets the same page with their own name." : "Add a name in step 1 and your certificate appears here."}>
         <div ref={box} className="w-full overflow-hidden rounded-xl border border-white/[0.14]" style={{ height: H * scale }}>
-          <div style={{ transform: `scale(${scale})`, transformOrigin: "top left", width: W, height: H }}><Cert f={f} name={list[0] ?? ""} design={design} logo={logo} /></div>
+          <div style={{ transform: `scale(${scale})`, transformOrigin: "top left", width: W, height: H }}><Cert f={{ ...f, award: list[0]?.award ?? f.award }} name={list[0]?.name ?? ""} design={design} logo={logo} /></div>
         </div>
       </ToolStep>
 
@@ -125,7 +149,7 @@ export default function CertificateMaker() {
         <div className="flex flex-wrap items-center gap-3"><button type="button" className="btn" disabled={!list.length || busy} onClick={make}>{busy ? "Working…" : `Download PDF (${list.length})`}</button><span role="status" aria-live="polite" className={`text-sm ${status.startsWith("Done") ? "text-emerald-300" : "text-zinc-300"}`}>{status || (list.length ? "" : "Add at least one name in step 1 first.")}</span></div>
       </ToolStep>
       {/* Off-screen copy used to draw each page */}
-      <div aria-hidden="true" style={{ position: "fixed", left: -99999, top: 0 }}><div ref={off}><Cert f={f} name={live} design={design} logo={logo} /></div></div>
+      <div aria-hidden="true" style={{ position: "fixed", left: -99999, top: 0 }}><div ref={off}><Cert f={{ ...f, award: live?.award ?? f.award }} name={live?.name ?? ""} design={design} logo={logo} /></div></div>
     </div>
   );
 }

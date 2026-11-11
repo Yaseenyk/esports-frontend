@@ -6,7 +6,7 @@ test("the footer is a honeycomb of every tool plus a guide log, with working lin
   await footer.scrollIntoViewIfNeeded();
   const tools = footer.getByRole("navigation", { name: "Tools" });
   const visible = await tools.locator(".fx-hex:visible").count();
-  expect(visible).toBe(10); // one tile per tool, and only one of the two layouts shows at a time
+  expect(visible).toBe(12); // one tile per tool, and only one of the two layouts shows at a time
   await expect(footer.getByRole("navigation", { name: "Guides" }).getByRole("link", { name: /^All \d+ guides/ })).toBeVisible();
   expect(await footer.getByRole("navigation", { name: "Guides" }).locator("li a").count()).toBe(10);
   // The page never scrolls sideways because of the footer.

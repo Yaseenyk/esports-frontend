@@ -160,7 +160,11 @@ html[data-display] .aurora, html[data-display] canvas.hexfield, html[data-displa
 .ds-scroll { animation: dsScroll var(--ds-dur, 30s) linear infinite; }
 .ds-flash { animation: dsFlash 3.4s ease-out 1 !important; }
 .ds-pulse { animation: dsPulse 1.6s ease-in-out infinite; }
-@media (prefers-reduced-motion: reduce) { .ds-scroll, .ds-flash, .ds-pulse { animation: none !important; } }
+@keyframes dsTicker { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+.ds-ticker-track { display: flex; width: max-content; animation: dsTicker var(--ds-tick, 30s) linear infinite; }
+.ds-ticker-copy { display: flex; flex: none; align-items: center; min-width: 100vw; justify-content: space-around; gap: 6vmin; padding-right: 6vmin; }
+.ds-ticker-copy > span { white-space: nowrap; }
+@media (prefers-reduced-motion: reduce) { .ds-scroll, .ds-flash, .ds-pulse, .ds-ticker-track { animation: none !important; } .ds-ticker-track { width: 100%; } .ds-ticker-copy { min-width: 0; width: 100%; padding-right: 0; } .ds-ticker-copy > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; } .ds-ticker-dup { display: none !important; } }
 
 /* Footer: a honeycomb of tools (the shape of the menu), a numbered guide log, and a gradient seam. */
 .fx-seam { height: 1px; background: linear-gradient(90deg, transparent, #22d3ee, #a855f7, transparent); background-size: 200% 100%; animation: sheen 7s linear infinite; }

@@ -17,6 +17,10 @@ export interface ToolPage {
   guides?: string[];
   /** The label for the section that holds the tool itself. */
   useHeading?: string;
+  /** The page address when it is not /tools/<slug>/ (the game points table pages). */
+  path?: string;
+  /** The parent in the breadcrumb when it is not the tools index. */
+  crumb?: { name: string; href: string };
 }
 
 /**
@@ -24,17 +28,17 @@ export interface ToolPage {
  * It is plain server-rendered HTML, so search engines read the full text; the tool loads on top of it.
  */
 export default function ToolLanding({ t, children }: { t: ToolPage; children?: React.ReactNode }) {
-  const url = `${SITE_URL}/tools/${t.slug}/`;
+  const path = t.path ?? `/tools/${t.slug}/`, url = `${SITE_URL}${path}`, crumb = t.crumb ?? { name: "Tools", href: "/tools/" };
   const guides = (t.guides ?? []).map((s) => GUIDES.find((g) => g.slug === s)).filter((g): g is NonNullable<typeof g> => !!g);
   return (
     <article className="space-y-12">
       <JsonLd data={[
         { "@context": "https://schema.org", "@type": "SoftwareApplication", name: t.name, applicationCategory: "BusinessApplication", operatingSystem: "Web", url, description: t.lead, inLanguage: "en-IN", offers: { "@type": "Offer", price: "0", priceCurrency: "INR" } },
         { "@context": "https://schema.org", "@type": "FAQPage", mainEntity: t.faq.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })) },
-        { "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [{ "@type": "ListItem", position: 1, name: "Home", item: SITE_URL }, { "@type": "ListItem", position: 2, name: "Tools", item: `${SITE_URL}/tools/` }, { "@type": "ListItem", position: 3, name: t.name, item: url }] },
+        { "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [{ "@type": "ListItem", position: 1, name: "Home", item: SITE_URL }, { "@type": "ListItem", position: 2, name: crumb.name, item: `${SITE_URL}${crumb.href}` }, { "@type": "ListItem", position: 3, name: t.name, item: url }] },
       ]} />
       <header className="no-print">
-        <nav aria-label="Breadcrumb" className="text-sm text-zinc-400"><Link href="/tools/" className="hover:text-zinc-200">Tools</Link> / {t.name}</nav>
+        <nav aria-label="Breadcrumb" className="text-sm text-zinc-400"><Link href={crumb.href} className="hover:text-zinc-200">{crumb.name}</Link> / {t.name}</nav>
         <h1 className="mt-3 text-3xl font-black text-zinc-50 sm:text-5xl">{t.h1}</h1>
         <p className="mt-4 max-w-2xl text-lg text-zinc-200">{t.lead}</p>
       </header>

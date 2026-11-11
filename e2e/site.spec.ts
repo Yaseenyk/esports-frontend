@@ -2,7 +2,7 @@ import fs from "node:fs";
 import { expect, test } from "@playwright/test";
 import { json, preflight, signedIn } from "./helpers";
 
-const PAGES = ["/", "/games/", "/events/", "/communities/", "/arcade/", "/guides/", "/tools/", "/tools/id-cards/", "/tools/check-in/", "/tools/brackets/", "/tools/points-table/", "/tools/round-robin/", "/tools/double-elimination/", "/tools/display-screen/", "/tools/registration/", "/tools/schedule/", "/tools/certificates/", "/manage/", "/login/", "/signup/", "/gate/", "/about/", "/privacy/", "/terms/", "/contact/", "/guides/points-table/", "/guides/run-a-campus-tournament/"];
+const PAGES = ["/", "/games/", "/events/", "/communities/", "/arcade/", "/guides/", "/tools/", "/tools/id-cards/", "/tools/check-in/", "/tools/brackets/", "/tools/points-table/", "/tools/round-robin/", "/tools/double-elimination/", "/tools/display-screen/", "/tools/registration/", "/tools/schedule/", "/tools/plan/", "/tools/poster/", "/points-table/bgmi/", "/points-table/free-fire/", "/compare/free-tournament-software-india/", "/tools/certificates/", "/manage/", "/login/", "/signup/", "/gate/", "/about/", "/privacy/", "/terms/", "/contact/", "/guides/points-table/", "/guides/run-a-campus-tournament/"];
 
 for (const path of PAGES) {
   test(`${path} loads with no errors and no sideways scroll`, async ({ page }) => {
@@ -40,7 +40,7 @@ test("games can be searched", async ({ page }) => {
 });
 
 test("the public tool pages are real, readable pages for search engines", async ({ page }) => {
-  for (const [path, h1] of [["/tools/id-cards/", /ID card maker/i], ["/tools/check-in/", /Gate check-in/i], ["/tools/brackets/", /bracket/i], ["/tools/points-table/", /points table/i]] as const) {
+  for (const [path, h1] of [["/tools/id-cards/", /ID card maker/i], ["/tools/check-in/", /attendance|check-in/i], ["/tools/brackets/", /bracket/i], ["/tools/points-table/", /points table/i]] as const) {
     await page.goto(path);
     await expect(page.getByRole("heading", { level: 1 })).toContainText(h1);
     await expect(page.getByRole("link", { name: /Create a free account/ }).first()).toHaveAttribute("href", "/signup/");
@@ -69,7 +69,7 @@ test("the website is open to search engines, but demo-data pages and the app are
 
 test("the home page and the guides carry real content, not demo data", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { level: 1 })).toContainText(/Free tools and guides/);
+  await expect(page.getByRole("heading", { level: 1 })).toContainText(/Free tournament tools for organisers/);
   await expect(page.locator("body")).not.toContainText(/made-up|sample data|Monsoon Clash/i);
   await page.goto("/guides/");
   await expect(page.locator("article, a.card").first()).toBeVisible();
@@ -335,7 +335,7 @@ test("a view-only organiser sees the event with a notice and no access controls"
 test("the home page keeps its motion and imagery, and the content is in the page before any script runs", async ({ page, request }) => {
   // What a search engine reads first: the plain HTML, with the real numbers and no placeholder zeros.
   const html = await (await request.get("/")).text();
-  expect(html).toContain("Free tools and guides for running");
+  expect(html).toContain("for organisers: from"); // the headline text, with the highlighted words in their own span
   expect(html).toMatch(/<dd[^>]*><span>23<\/span><\/dd>/);
   expect(html).not.toMatch(/<dd[^>]*><span>0<\/span><\/dd>/);
   // What a person sees: the game strip, the floating game icons and the animated hero cards arrive after the page has settled.
@@ -402,7 +402,7 @@ test("the schedule screen marks the round on now and the next round", async ({ p
 
 test("the display screen page explains itself and previews each screen", async ({ page }) => {
   await page.goto("/tools/display-screen/");
-  await expect(page.getByRole("heading", { level: 1 })).toContainText(/scoreboard display/i);
+  await expect(page.getByRole("heading", { level: 1 })).toContainText(/scoreboard/i);
   for (const name of ["Battle royale standings", "League table", "Run-sheet", "Countdown", "Knockout bracket"]) {
     await page.getByRole("button", { name }).click();
     await expect(page.locator("iframe")).toHaveAttribute("src", /\/display\//);

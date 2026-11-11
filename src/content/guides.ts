@@ -1,5 +1,6 @@
 import { EXAMPLE_SCALE, standings, type TeamEntry } from "@/lib/points";
 import { MORE_GUIDES } from "./guides-more";
+import { GROWTH_GUIDES } from "./guides-growth";
 
 /** Inline links are written as [text](/path/) inside paragraphs, lists and notes. */
 export type Block =
@@ -845,7 +846,7 @@ const BASE_GUIDES: Guide[] = [
   },
 ];
 
-/** The nine original guides, then the second batch (guides-more.ts). */
-export const GUIDES: Guide[] = [...BASE_GUIDES, ...MORE_GUIDES];
+/** The nine original guides, the second batch (guides-more.ts), then the growth batch (guides-growth.ts). */
+export const GUIDES: Guide[] = [...BASE_GUIDES, ...MORE_GUIDES, ...GROWTH_GUIDES];
 
 export const guideBySlug = (slug: string) => GUIDES.find((g) => g.slug === slug);

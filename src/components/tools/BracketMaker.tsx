@@ -4,6 +4,7 @@ import { AnimatePresence, m as motion } from "framer-motion";
 import { useEffect, useMemo, useState } from "react";
 import { useXp } from "@/components/XpProvider";
 import ScreenButtons from "@/components/display/ScreenButtons";
+import WinnersBlock from "@/components/display/WinnersBlock";
 import { singleElimView } from "@/lib/display-views";
 import { seedOrder, uniqueTeams } from "@/lib/seeding";
 import TeamsInput from "./TeamsInput";
@@ -44,6 +45,8 @@ export default function BracketMaker() {
 
   const champion = rounds[rounds.length - 1][0];
   const ready = teams.length >= 2;
+  const finalists = rounds.length > 1 ? rounds[rounds.length - 2] : undefined; // the two teams in the final
+  const runnerUp = champion ? (finalists?.find((t) => t && t !== champion) ?? null) : null;
   const total = Math.max(0, teams.length - 1); // a knockout of n teams always has n - 1 matches to play
   const decided = Object.keys(picks).length;
   const screen = useMemo(() => (ready ? singleElimView(rounds, picks, rounds.slice(0, -1).map((_, r) => roundName(r, rounds.length - 1))) : null), [rounds, picks, ready]);
@@ -137,6 +140,8 @@ export default function BracketMaker() {
           <button type="button" className="btn px-5" disabled={!ready} onClick={() => window.print()}>Print the bracket</button>
         </ToolStep>
       </div>
+
+      {champion && ready && <WinnersBlock first={champion} second={runnerUp ?? undefined} />}
 
       <div className="no-print"><ScreenButtons payload={screen} what="bracket" step={4} /></div>
     </div>

@@ -119,6 +119,7 @@ export interface Tool {
 }
 /** The free tools. Only tools that work today are listed. */
 export const TOOLS: Tool[] = [
+  { slug: "plan", name: "Plan my tournament", blurb: "Answer a few questions and get a format, match counts, a timed schedule, draft rules and a sign-up form, as one pack to copy or download.", href: "/tools/plan/" },
   { slug: "id-cards", name: "ID card maker", blurb: "Make player and event ID cards with signed QR passes. Free, in your browser, no account.", href: "/tools/id-cards/" },
   { slug: "brackets", name: "Bracket maker", blurb: "Paste your teams, get a seeded single-elimination bracket with byes, and click winners forward.", href: "/tools/brackets/" },
   { slug: "points-table", name: "Points table calculator", blurb: "Battle royale placement and kill points with tie-breakers, ranked standings and CSV export.", href: "/tools/points-table/" },
@@ -126,6 +127,7 @@ export const TOOLS: Tool[] = [
   { slug: "registration", name: "Registration form", blurb: "A ready-to-copy team registration form, or a link that collects teams and adds approved ones to your roster.", href: "/tools/registration/" },
   { slug: "round-robin", name: "Round robin generator", blurb: "Fixtures for every team playing every other team, with results entry and a league table.", href: "/tools/round-robin/" },
   { slug: "schedule", name: "Match schedule maker", blurb: "Turn a number of matches, lobbies and break times into a timed run-sheet you can download.", href: "/tools/schedule/" },
+  { slug: "poster", name: "Tournament poster maker", blurb: "Type your event name, date, venue, prize and sponsors, pick a Free Fire, BGMI, Valorant, cricket or football look, and download a poster, story or square post.", href: "/tools/poster/" },
   { slug: "certificates", name: "Certificate maker", blurb: "Winner and participation certificates, one per name, as a single print-ready PDF.", href: "/tools/certificates/" },
   { slug: "display-screen", name: "Display screen for TV and OBS", blurb: "Show standings, tables, the schedule or a countdown full screen on a TV, projector, OBS or YouTube stream.", href: "/tools/display-screen/" },
   { slug: "check-in", name: "Gate check-in scanner", blurb: "Scan QR passes at the gate, online or offline. Fake and copied passes are rejected.", href: "/tools/check-in/" },
