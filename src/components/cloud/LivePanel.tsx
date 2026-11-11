@@ -46,7 +46,7 @@ export default function LivePanel({ eventId }: { eventId: string }) {
     try { const k = await events.newGateKey(eventId, label.trim() || "Gate", hours); setFresh({ key: k.key, label: k.label }); setCopied(false); loadKeys(); } catch (x) { setErr(explain(x)); } finally { setBusy(false); }
   };
   const revoke = async (k: GateKey) => {
-    if (!confirm(`Switch off the key for ${k.label}? The phone using it stops checking guests in straight away.`)) return;
+    if (!confirm(`Switch off the code for ${k.label}? The phone using it stops checking guests in straight away.`)) return;
     try { await events.revokeGateKey(eventId, k.id); loadKeys(); } catch (x) { setErr(explain(x)); }
   };
   const reset = async () => {
@@ -63,20 +63,20 @@ export default function LivePanel({ eventId }: { eventId: string }) {
         <div className="h-2 overflow-hidden rounded-full bg-white/10"><div className="h-full bg-gradient-to-r from-cyan to-purple transition-[width]" style={{ width: `${pct}%` }} /></div>
         <p className="text-xs text-zinc-400">Updates about every {every} seconds, and pauses while this tab is in the background.</p>
         {rows.length > 0 && <ul className="max-h-48 space-y-1 overflow-y-auto text-sm" aria-label="Recent arrivals">{rows.map((r) => <li key={r.personId + r.at} className="flex justify-between gap-2 rounded-lg border border-white/10 px-3 py-1.5"><span className="truncate text-zinc-200">{r.name} <span className="text-zinc-400">· {r.team ?? "No team"} · {r.role}{r.door ? ` · ${r.door}` : ""}</span></span><span className="shrink-0 text-emerald-300">{time(r.at)}</span></li>)}</ul>}
-        <button type="button" className="chip" onClick={reset}>Reset all check-ins</button>
+        <details className="text-sm"><summary className="inline-flex min-h-11 cursor-pointer items-center text-cyan">More options</summary><p className="mb-2 text-xs text-zinc-400">Only for starting over, for example after a test run.</p><button type="button" className="chip !min-h-11" onClick={reset}>Reset all check-ins</button></details>
       </section>
 
       <section className="space-y-3 rounded-xl border border-white/10 p-3">
-        <h3 className="font-display font-bold text-white">Gate keys</h3>
-        <p className="text-sm text-zinc-300">Give each door its own key. A gate phone opens <strong className="text-zinc-100">Gate check-in</strong>, picks <em>Live</em>, and pastes the key. It can only check guests in; it cannot see or change anything else. Revoke a key if a phone is lost.</p>
+        <h3 className="font-display font-bold text-white">Door codes (gate keys)</h3>
+        <p className="text-sm text-zinc-300">To check guests in on a phone: 1. Press Create key below. 2. Copy the code. 3. On the gate phone open <strong className="text-zinc-100">Gate check-in</strong>, choose <em>Live</em>, paste the code and press Connect. Make one per door. The phone can only check guests in; it cannot see or change anything else. If a phone is lost, press Revoke.</p>
         <form onSubmit={make} className="flex flex-wrap items-end gap-2">
-          <label className="text-sm text-zinc-300">Door name<input className="field mt-1 w-44" value={label} onChange={(e) => setLabel(e.target.value)} maxLength={40} /></label>
+          <label className="text-sm text-zinc-300">Door name (for example Main door)<input className="field mt-1 w-44" value={label} onChange={(e) => setLabel(e.target.value)} maxLength={40} /></label>
           <label className="text-sm text-zinc-300">Valid for<select className="field mt-1" value={hours} onChange={(e) => setHours(Number(e.target.value))}>{[[6, "6 hours"], [24, "1 day"], [72, "3 days"], [168, "1 week"]].map(([h, l]) => <option key={h} value={h}>{l}</option>)}</select></label>
           <button className="btn !min-h-11 px-4 text-sm" disabled={busy}>{busy ? "Creating…" : "Create key"}</button>
         </form>
         {fresh && (
           <div role="status" className="space-y-2 rounded-xl border border-cyan/40 bg-cyan/10 p-3 text-sm">
-            <p className="text-zinc-100">Key for <strong>{fresh.label}</strong>. This is the only time it is shown, so copy it now.</p>
+            <p className="text-zinc-100">Code for <strong>{fresh.label}</strong>. This is the only time it is shown, so copy it now. Next: paste it on the gate phone.</p>
             <p className="break-all rounded-lg bg-black/40 p-2 font-mono text-xs text-cyan">{fresh.key}</p>
             <button type="button" className="btn-ghost !min-h-9 px-3 text-sm" onClick={() => { if (!navigator.clipboard) { setErr("Copying is not available here. Select the key and copy it by hand."); return; } navigator.clipboard.writeText(fresh.key).then(() => setCopied(true), () => setErr("Could not copy. Select the key and copy it by hand.")); }}>{copied ? "Copied" : "Copy key"}</button>
           </div>

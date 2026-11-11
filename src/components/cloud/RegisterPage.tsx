@@ -54,6 +54,7 @@ export default function RegisterPage() {
       ) : info && f && (
         <form onSubmit={send} className="space-y-4">
           <div><h1 className="font-display text-2xl font-bold text-white">{f.title || t("reg_default_title", { event: info.event.name })}</h1><p className="text-sm text-zinc-300">{[info.event.name, info.event.date, info.event.venue].filter(Boolean).join(" · ")}</p></div>
+          <p className="rounded-xl border border-white/[0.14] bg-[#0a0b0d] p-3 text-sm text-zinc-200">{t("reg_intro")}</p>
           {f.intro && <p className="rounded-xl border border-white/[0.14] bg-[#0a0b0d] p-3 text-sm text-zinc-200">{f.intro}</p>}
           {f.status !== "open" ? (
             <p role="status" className="rounded-xl border border-amber-500/30 bg-[#0a0b0d] p-4 text-amber-100">{f.status === "full" ? t("reg_full") : t("reg_closed")}</p>

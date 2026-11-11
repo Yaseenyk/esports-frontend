@@ -6,6 +6,7 @@ import ScreenButtons from "@/components/display/ScreenButtons";
 import { pointsView } from "@/lib/display-views";
 import { downloadBlob } from "@/lib/idcard/download";
 import NumberField from "./NumberField";
+import ToolStep from "./ToolStep";
 
 const EXAMPLE: TeamEntry[] = [
   { name: "Alpha", matches: [{ placement: 1, kills: 5 }, { placement: 4, kills: 2 }, { placement: 2, kills: 3 }] },
@@ -14,8 +15,9 @@ const EXAMPLE: TeamEntry[] = [
   { name: "Delta", matches: [{ placement: 4, kills: 3 }, { placement: 3, kills: 1 }, { placement: 3, kills: 6 }] },
 ];
 const num = (v: string) => { const n = Math.floor(Number(v)); return Number.isFinite(n) && n >= 0 ? Math.min(n, 9999) : 0; };
+const ord = (n: number) => `${n}${n % 100 >= 11 && n % 100 <= 13 ? "th" : ["th", "st", "nd", "rd"][n % 10] ?? "th"}`;
 
-/** Free battle royale points table calculator. Everything is worked out in the browser; nothing is sent anywhere. */
+/** Four steps: set the points, enter each team's results, read the standings, optionally show them on a TV. Nothing is sent anywhere. */
 export default function PointsTable() {
   const [scaleText, setScaleText] = useState(EXAMPLE_SCALE.placement.join(", "));
   const [kill, setKill] = useState(EXAMPLE_SCALE.perKill);
@@ -27,6 +29,8 @@ export default function PointsTable() {
   const table = useMemo(() => (placement ? standings(normalised.filter((t) => t.name.trim()), { placement, perKill: kill }) : []), [normalised, placement, kill]);
 
   const screen = useMemo(() => (table.length ? pointsView(table, matches) : null), [table, matches]);
+  const cells = normalised.length * matches;
+  const filled = normalised.reduce((n, t) => n + t.matches.filter((m) => m.placement > 0).length, 0);
   const setCell = (ti: number, mi: number, key: "placement" | "kills", v: string) =>
     setTeams(normalised.map((t, i) => (i === ti ? { ...t, matches: t.matches.map((m, j) => (j === mi ? { ...m, [key]: num(v) } : m)) } : t)));
   const csv = () => {
@@ -34,64 +38,80 @@ export default function PointsTable() {
     const rows = table.map((s) => [s.rank, s.name, ...s.perMatch, s.placementPoints, s.killPoints, s.total]);
     downloadBlob(new Blob([[head, ...rows].map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\r\n")], { type: "text/csv" }), "points-table.csv");
   };
+  const loadExampleScale = () => { setScaleText(EXAMPLE_SCALE.placement.join(", ")); setKill(EXAMPLE_SCALE.perKill); };
+  const scaleSample = placement ? placement.slice(0, 3).map((p, i) => `${ord(i + 1)} place gets ${p} point${p === 1 ? "" : "s"}`).join(", ") : "";
 
   return (
-    <div className="space-y-6">
-      <section className="card space-y-4" aria-label="Points scale">
-        <h3 className="font-display text-lg font-bold text-white">1. Points scale</h3>
+    <div className="space-y-5">
+      <ToolStep n={1} id="pt-scale" title="Set how points work" done={Boolean(placement)}
+        hint="In battle royale, a team earns points for where it finished (placement) plus points for every kill. Tell the tool your rulebook's numbers, or just tap the example button."
+        status={placement ? `${placement.length} places score` : undefined}>
         <div className="grid gap-4 sm:grid-cols-[1fr_9rem_9rem]">
           <label className="block text-sm text-zinc-200">Placement points, 1st place first<input className="field mt-1 font-mono" value={scaleText} onChange={(e) => setScaleText(e.target.value)} aria-invalid={!placement} aria-describedby="scale-help" /></label>
           <NumberField label="Points per kill" value={kill} min={0} max={1000} decimal onChange={setKill} />
           <NumberField label="Matches played" value={matches} min={1} max={12} onChange={setMatches} />
         </div>
-        <p id="scale-help" className={`text-xs ${placement ? "text-zinc-400" : "text-red-300"}`} role={placement ? undefined : "alert"}>{placement ? "Separate the numbers with commas. A team placed below the end of the list gets 0 placement points. The numbers shown are an example: use your own rulebook's scale." : "Enter numbers only, separated by commas, for example 10, 6, 5, 4, 3, 2, 1, 1."}</p>
-      </section>
-
-      <section className="card space-y-3" aria-label="Results entry">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <h3 className="font-display text-lg font-bold text-white">2. Enter each team&apos;s placement and kills</h3>
-          <div className="flex flex-wrap gap-2">
-            <button type="button" className="chip !min-h-11" onClick={() => setTeams([...normalised, { name: `Team ${normalised.length + 1}`, matches: [] }])}>Add a team</button>
-            <button type="button" className="chip !min-h-11" onClick={() => setTeams(normalised.map((t) => ({ ...t, matches: t.matches.map(() => ({ placement: 0, kills: 0 })) })))}>Clear results</button>
-            <button type="button" className="chip !min-h-11" onClick={() => { setTeams(EXAMPLE); setMatches(3); setScaleText(EXAMPLE_SCALE.placement.join(", ")); setKill(EXAMPLE_SCALE.perKill); }}>Load the example</button>
-          </div>
+        <p id="scale-help" className={`text-sm leading-6 ${placement ? "text-zinc-300" : "text-red-300"}`} role={placement ? undefined : "alert"}>{placement ? `Type the points for each finishing position, separated by commas. With this list, ${scaleSample}${placement.length > 3 ? ", and so on" : ""}. A team below the end of the list gets 0 placement points.` : "Enter numbers only, separated by commas, for example 10, 6, 5, 4, 3, 2, 1, 1."}</p>
+        <div className="flex flex-wrap items-center gap-2">
+          <button type="button" className="btn-ghost !min-h-10 px-4 text-sm" onClick={loadExampleScale}>Use a common example scale</button>
+          <span className="text-xs text-zinc-400">The example is only a sample. Use your own rulebook&apos;s scale for a real event.</span>
         </div>
-        <ul className="space-y-3">
-          {normalised.map((t, ti) => (
-            <li key={ti} className="rounded-xl border border-white/[0.14] bg-[#0f1013] p-3">
-              <div className="flex items-center gap-2">
-                <input aria-label={`Team ${ti + 1} name`} className="field !min-h-11 min-w-0 flex-1 font-semibold" value={t.name} onChange={(e) => setTeams(normalised.map((x, i) => (i === ti ? { ...x, name: e.target.value } : x)))} />
-                <button type="button" className="chip !min-h-11 shrink-0" aria-label={`Remove ${t.name || `team ${ti + 1}`}`} onClick={() => setTeams(normalised.filter((_, i) => i !== ti))}>Remove</button>
-              </div>
-              <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
-                {t.matches.map((m, mi) => (
-                  <fieldset key={mi} className="min-w-0 rounded-lg border border-white/[0.1] p-2">
-                    <legend className="px-1 text-xs font-medium text-zinc-300">Match {mi + 1}</legend>
-                    <div className="flex gap-2">
-                      <label className="block min-w-0 flex-1 text-[11px] text-zinc-400">Place<input aria-label={`${t.name || `Team ${ti + 1}`}, match ${mi + 1}, placement`} className="field !min-h-11 mt-0.5 !px-2 text-center" inputMode="numeric" value={m.placement || ""} onChange={(e) => setCell(ti, mi, "placement", e.target.value)} /></label>
-                      <label className="block min-w-0 flex-1 text-[11px] text-zinc-400">Kills<input aria-label={`${t.name || `Team ${ti + 1}`}, match ${mi + 1}, kills`} className="field !min-h-11 mt-0.5 !px-2 text-center" inputMode="numeric" value={m.kills || ""} onChange={(e) => setCell(ti, mi, "kills", e.target.value)} /></label>
-                    </div>
-                  </fieldset>
-                ))}
-              </div>
-            </li>
-          ))}
-        </ul>
-      </section>
+      </ToolStep>
 
-      <section className="card space-y-3" aria-label="Standings" aria-live="polite">
-        <div className="flex flex-wrap items-center justify-between gap-2"><h3 className="font-display text-lg font-bold text-white">3. Standings</h3><button type="button" className="btn-ghost !min-h-11 px-3 text-sm" disabled={!table.length} onClick={csv}>Download as CSV</button></div>
-        {table.length === 0 ? <p className="text-sm text-zinc-300" role={placement ? undefined : "alert"}>{placement ? "Add a team with a name to see the standings." : "Fix the points scale above to see the table."}</p> : (
-          <div role="region" aria-label="Standings table" tabIndex={0} className="overflow-x-auto outline-none focus-visible:ring-2 focus-visible:ring-cyan">
-            <table className="w-full min-w-[30rem] border-collapse text-left text-sm">
-              <thead><tr className="bg-[#0f1013] text-zinc-200"><th scope="col" className="px-3 py-2">Rank</th><th scope="col" className="px-3 py-2">Team</th>{Array.from({ length: matches }, (_, i) => <th key={i} scope="col" className="px-3 py-2">M{i + 1}</th>)}<th scope="col" className="px-3 py-2">Kills</th><th scope="col" className="px-3 py-2">Wins</th><th scope="col" className="px-3 py-2">Total</th></tr></thead>
-              <tbody>{table.map((s) => <tr key={s.name + s.rank} className="border-t border-white/[0.08]"><th scope="row" className="px-3 py-2 font-bold text-cyan">{s.rank}</th><td className="px-3 py-2 font-medium text-white">{s.name}{s.tied && <span className="ml-2 text-xs text-amber-300" title="Same points as another team; the tie-breakers decided the order">tie-break</span>}</td>{s.perMatch.map((p, i) => <td key={i} className="px-3 py-2 text-zinc-300">{p}</td>)}<td className="px-3 py-2 text-zinc-300">{s.kills}</td><td className="px-3 py-2 text-zinc-300">{s.wins}</td><td className="px-3 py-2 font-bold text-white">{s.total}</td></tr>)}</tbody>
-            </table>
-          </div>
+      <ToolStep n={2} id="pt-results" title="Enter each team's results" done={cells > 0 && filled >= cells}
+        hint="Add a row per team. For every match write Place (where the team finished) and Kills (how many kills it got) once the match ends."
+        status={normalised.length ? `${filled} of ${cells} results entered` : undefined}
+        actions={<>
+          <button type="button" className="btn-ghost !min-h-10 px-3 text-sm" onClick={() => setTeams([...normalised, { name: `Team ${normalised.length + 1}`, matches: [] }])}>Add a team</button>
+          <button type="button" className="btn-ghost !min-h-10 px-3 text-sm" onClick={() => { setTeams(EXAMPLE); setMatches(3); loadExampleScale(); }}>Use an example</button>
+          {filled > 0 && <button type="button" className="btn-ghost !min-h-10 px-3 text-sm" onClick={() => setTeams(normalised.map((t) => ({ ...t, matches: t.matches.map(() => ({ placement: 0, kills: 0 })) })))}>Clear results</button>}
+        </>}>
+        {normalised.length === 0 ? <p className="rounded-xl border border-dashed border-white/15 p-6 text-center text-zinc-300">No teams yet. Press Add a team, or Use an example to see how it works.</p> : (
+          <ul className="space-y-3">
+            {normalised.map((t, ti) => (
+              <li key={ti} className="rounded-xl border border-white/[0.14] bg-[#0f1013] p-3">
+                <div className="flex items-center gap-2">
+                  <input aria-label={`Team ${ti + 1} name`} className="field !min-h-11 min-w-0 flex-1 font-semibold" value={t.name} onChange={(e) => setTeams(normalised.map((x, i) => (i === ti ? { ...x, name: e.target.value } : x)))} />
+                  <button type="button" className="chip !min-h-11 shrink-0" aria-label={`Remove ${t.name || `team ${ti + 1}`}`} onClick={() => setTeams(normalised.filter((_, i) => i !== ti))}>Remove</button>
+                </div>
+                <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
+                  {t.matches.map((m, mi) => (
+                    <fieldset key={mi} className="min-w-0 rounded-lg border border-white/[0.1] p-2">
+                      <legend className="px-1 text-xs font-medium text-zinc-300">Match {mi + 1}</legend>
+                      <div className="flex gap-2">
+                        <label className="block min-w-0 flex-1 text-[11px] text-zinc-300">Place<input aria-label={`${t.name || `Team ${ti + 1}`}, match ${mi + 1}, placement`} className="field !min-h-11 mt-0.5 !px-2 text-center" inputMode="numeric" value={m.placement || ""} onChange={(e) => setCell(ti, mi, "placement", e.target.value)} /></label>
+                        <label className="block min-w-0 flex-1 text-[11px] text-zinc-300">Kills<input aria-label={`${t.name || `Team ${ti + 1}`}, match ${mi + 1}, kills`} className="field !min-h-11 mt-0.5 !px-2 text-center" inputMode="numeric" value={m.kills || ""} onChange={(e) => setCell(ti, mi, "kills", e.target.value)} /></label>
+                      </div>
+                    </fieldset>
+                  ))}
+                </div>
+              </li>
+            ))}
+          </ul>
         )}
-        <p className="text-xs text-zinc-400">Ties are broken by most wins, then most kills, then the better placement in the last match, then team name. Put your own tie-breakers in your rules before the event.</p>
-      </section>
-      <ScreenButtons payload={screen} what="standings" />
+      </ToolStep>
+
+      <ToolStep n={3} id="pt-standings" title="Read the standings" done={table.length > 0 && filled > 0}
+        hint="Teams are ranked by total points, best first. It updates by itself as you type, so there is nothing to press."
+        status={table.length && filled > 0 ? `Leading: ${table[0]!.name}, ${table[0]!.total} points` : undefined}
+        actions={<button type="button" className="btn-ghost !min-h-10 px-3 text-sm" disabled={!table.length} onClick={csv}>Download as CSV</button>}>
+        <section aria-label="Standings" aria-live="polite" className="space-y-3">
+          {table.length === 0 ? <p className="rounded-xl border border-dashed border-white/15 p-6 text-center text-zinc-300" role={placement ? undefined : "alert"}>{placement ? "No standings yet. Add a team with a name in step 2." : "Fix the points scale in step 1 to see the table."}</p> : (
+            <>
+              {filled === 0 && <p className="text-sm text-zinc-300">No results yet, so every team is on 0. Enter a Place for each match in step 2.</p>}
+              <div role="region" aria-label="Standings table" tabIndex={0} className="overflow-x-auto outline-none focus-visible:ring-2 focus-visible:ring-cyan">
+                <table className="w-full min-w-[30rem] border-collapse text-left text-sm">
+                  <thead><tr className="bg-[#0f1013] text-zinc-200"><th scope="col" className="px-3 py-2">Rank</th><th scope="col" className="px-3 py-2">Team</th>{Array.from({ length: matches }, (_, i) => <th key={i} scope="col" className="px-3 py-2">M{i + 1}</th>)}<th scope="col" className="px-3 py-2">Kills</th><th scope="col" className="px-3 py-2">Wins</th><th scope="col" className="px-3 py-2">Total</th></tr></thead>
+                  <tbody>{table.map((s) => <tr key={s.name + s.rank} className="border-t border-white/[0.08]"><th scope="row" className="px-3 py-2 font-bold text-cyan">{s.rank}</th><td className="px-3 py-2 font-medium text-white">{s.name}{s.tied && <span className="ml-2 text-xs text-amber-300" title="Same points as another team; the tie-breakers decided the order">tie-break</span>}</td>{s.perMatch.map((p, i) => <td key={i} className="px-3 py-2 text-zinc-300">{p}</td>)}<td className="px-3 py-2 text-zinc-300">{s.kills}</td><td className="px-3 py-2 text-zinc-300">{s.wins}</td><td className="px-3 py-2 font-bold text-white">{s.total}</td></tr>)}</tbody>
+                </table>
+              </div>
+              <p className="text-xs leading-5 text-zinc-400">M1, M2... = points earned in each match. Wins = matches finished 1st. A tie-break is the rule that orders teams on the same total: most wins, then most kills, then the better place in the last match, then team name. Put your own tie-breakers in your rules before the event.</p>
+            </>
+          )}
+        </section>
+      </ToolStep>
+
+      <ScreenButtons payload={screen} what="standings" step={4} />
     </div>
   );
 }

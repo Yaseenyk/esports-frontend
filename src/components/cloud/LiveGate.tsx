@@ -103,7 +103,7 @@ export default function LiveGate() {
     return (
       <form className="card mt-8 max-w-md space-y-3" onSubmit={(e) => { e.preventDefault(); if (typed.trim()) connect(typed.trim()); }}>
         <h2 className="font-display text-lg font-bold text-white">Gate key</h2>
-        <p className="text-sm text-zinc-300">The organiser makes a key for each door in the ID card maker (Online, then Live check-in). Paste it here. It only lets this phone check guests in.</p>
+        <p className="text-sm text-zinc-300">Ask the organiser for your door's code. They make it in the app: open the event, then Online, then Live check-in. Paste it here and press Connect. It only lets this phone check guests in.</p>
         <input className="field font-mono text-sm" value={typed} onChange={(e) => setTyped(e.target.value)} placeholder="gk_…" aria-label="Gate key" autoComplete="off" autoCapitalize="none" autoCorrect="off" spellCheck={false} />
         <button className="btn w-full" disabled={loading || !typed.trim()}>{loading ? "Connecting…" : "Connect"}</button>
         <Waiting loading={loading} apiKey="/gate/roster" label="Connecting"><div className="space-y-2"><Sk className="sk-line" w="60%" /><Sk className="sk-line" w="40%" i={1} /></div></Waiting>
@@ -148,7 +148,7 @@ export default function LiveGate() {
                     <p className="truncate font-display text-2xl font-bold text-white">{shown.person.name}</p>
                     <p className="text-zinc-200">{shown.person.team ?? ""}</p>
                     <p className="mt-2 flex flex-wrap items-center gap-2"><span className="rounded-full px-3 py-1 text-sm font-bold text-ink" style={{ background: roleColour(shown.person.role) }}>{shown.person.role}</span>{shown.person.minor && <span className="rounded-full bg-amber-300 px-3 py-1 text-sm font-bold text-ink">MINOR{shown.person.guardian ? " · CONSENT" : " · NO CONSENT"}</span>}</p>
-                    {zonesText(shown.person.zones) && <p className="mt-1 text-sm text-zinc-200">Zones: {zonesText(shown.person.zones)}</p>}
+                    {zonesText(shown.person.zones) && <p className="mt-1 text-sm text-zinc-200">Can enter: {zonesText(shown.person.zones)}</p>}
                   </div>
                 </div>
               )}

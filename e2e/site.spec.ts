@@ -163,6 +163,7 @@ test("the round robin generator makes fixtures, takes scores and ranks teams", a
   await page.getByRole("group").filter({ hasText: "Round 1" }).locator("input").nth(1).fill("1");
   const table = page.getByRole("region", { name: "League table" }).last();
   await expect(table.getByRole("row").nth(1)).toContainText("3"); // a win is worth 3 points
+  await page.getByText("More options", { exact: true }).click(); // the home-and-away option is tucked under More options
   await page.getByLabel(/Play everyone twice/).check();
   await expect(page.getByText(/20 matches/).first()).toBeVisible();
   const [dl] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Download fixtures (CSV)" }).click()]);
@@ -173,6 +174,7 @@ test("the schedule maker works out the finish time and refuses bad input", async
   await page.goto("/tools/schedule/");
   await expect(page.getByText(/5 rounds/)).toBeVisible();
   await page.getByLabel("Number of matches").fill("8");
+  await page.getByText("More options").first().click(); // lobbies and breaks are tucked away until asked for
   await page.getByLabel("Matches at the same time").fill("2");
   await expect(page.getByText(/4 rounds/)).toBeVisible();
   const table = page.getByRole("region", { name: "Schedule table" });
@@ -223,7 +225,7 @@ test("the registration page copies a form and adapts it to the team size", async
   const form = page.getByLabel("Registration form text");
   await expect(form).toContainText("Player 4");
   await expect(form).toContainText("Substitute 1");
-  await page.getByLabel("Team size").selectOption("solo");
+  await page.getByRole("combobox", { name: /^Team size/ }).selectOption("solo");
   await expect(form).not.toContainText("Player 2");
   await page.getByLabel("Event name").fill("Spring Cup");
   await expect(form).toContainText("Spring Cup: team registration");

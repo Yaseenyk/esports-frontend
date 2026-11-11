@@ -126,13 +126,13 @@ export default function CheckIn() {
       <div className="space-y-4">
         <section className="card space-y-3">
           <h2 className="font-display text-lg font-bold text-white">1. Event pack</h2>
-          {pack ? <p className="text-sm text-zinc-300"><strong className="text-white">{pack.event}</strong><br />{pack.people.length} people · {pack.signed ? "signed passes" : "unsigned passes"}</p> : <p className="text-sm text-zinc-400">Load the check-in pack file made on the Print step of the ID card tool.</p>}
+          {pack ? <p className="text-sm text-zinc-300"><strong className="text-white">{pack.event}</strong><br />{pack.people.length} people · {pack.signed ? "signed passes" : "unsigned passes"}</p> : <p className="text-sm text-zinc-400">Load the check-in pack file. The organiser makes it on the Print step of the ID card maker.</p>}
           <label className="btn-ghost !min-h-10 cursor-pointer px-4 text-sm">{pack ? "Load a different pack" : "Load check-in pack"}<input type="file" accept="application/json,.json" className="sr-only" onChange={(e) => { loadPack(e.target.files?.[0]); e.target.value = ""; }} /></label>
         </section>
         <section className="card space-y-3">
-          <h2 className="font-display text-lg font-bold text-white">2. Passphrase</h2>
-          <input type="password" autoComplete="off" className="field font-mono" value={pass} onChange={(e) => setPass(e.target.value)} placeholder="Event passphrase" aria-label="Event passphrase" />
-          <p className="text-xs text-zinc-400">Kept on this device for this session only.</p>
+          <h2 className="font-display text-lg font-bold text-white">2. Secret word</h2>
+          <input type="password" autoComplete="off" className="field font-mono" value={pass} onChange={(e) => setPass(e.target.value)} placeholder="Secret word (passphrase)" aria-label="Event passphrase" />
+          <p className="text-xs text-zinc-400">{pack && !pack.signed ? "This pack is not signed, so you can leave this empty." : "The secret word the organiser chose for this event. Leave it empty if you were not given one. Kept on this device for this session only."}</p>
         </section>
         <section className="card space-y-3">
           <h2 className="font-display text-lg font-bold text-white">3. Scan</h2>
@@ -167,7 +167,7 @@ export default function CheckIn() {
                   </div>
                 )}
               </motion.section>
-            ) : <section className="card text-zinc-400">Scan a card and the result shows here.</section>}
+            ) : <section className="card text-zinc-400">Nothing scanned yet. Press Start camera and point it at a pass; the result shows here in big letters.</section>}
           </AnimatePresence>
         </div>
 

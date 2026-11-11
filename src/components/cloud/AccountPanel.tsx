@@ -46,7 +46,7 @@ export default function AccountPanel({ onDone }: { onDone: () => void }) {
         <button className="btn-ghost !min-h-11 px-4 text-sm !border-red-400/50 text-red-200" disabled={dbusy || !del}>{dbusy ? "Deleting…" : "Delete account"}</button>
         <Note msg="" err={derr} />
       </form>
-      <p className="text-xs text-zinc-400">Forgot your password? Password reset by email is not set up yet. Until it is, keep your password somewhere safe.</p>
+      <p className="text-xs text-zinc-400">Forgot your password? Sign out, then press &ldquo;Forgot password?&rdquo; on the sign-in page. We email you a link to choose a new one.</p>
     </div>
   );
 }

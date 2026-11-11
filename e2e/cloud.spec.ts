@@ -153,12 +153,15 @@ test("an event can be deleted from its page, after a confirmation, and leaves th
   await page.route(`${A}/events/e1/members`, (r) => r.fulfill(json({ owner: null, members: [] })));
   await page.goto("/app/events/?id=e1");
   await expect(page.getByRole("heading", { name: "Spring Cup", level: 2 })).toBeVisible();
+  await expect(page.getByRole("region", { name: "Getting started checklist" })).toBeVisible();
+  await page.locator("summary", { hasText: "venue screen" }).click(); // deleting is tucked away on purpose
   page.once("dialog", (d) => d.dismiss()); // saying no keeps everything
   await page.getByRole("button", { name: "Delete event" }).click();
   expect(deletes).toBe(0);
   page.once("dialog", (d) => d.accept());
   await page.getByRole("button", { name: "Delete event" }).click();
   await expect(page.getByText("No events saved online yet.")).toBeVisible();
+  await expect(page.getByRole("link", { name: "Create your first event" })).toBeVisible(); // an empty page always has one clear next step
   expect(deletes).toBe(1);
 });
 
@@ -186,4 +189,36 @@ test("live gate: a key the server refuses says so, a refused code is not queued,
   await page.getByLabel("Pass code").fill("EH1.x.A-2.sig");
   await page.getByRole("button", { name: "Check", exact: true }).click();
   await expect(page.getByRole("status").filter({ hasText: /1 scan waiting for signal/ })).toBeVisible();
+});
+
+test("the app home shows a start-here checklist with one clear next step", async ({ page }) => {
+  await signedIn(page, []);
+  await page.goto("/app/");
+  const list = page.getByRole("region", { name: "Getting started checklist" });
+  await expect(list.getByRole("listitem")).toHaveCount(5);
+  await expect(list.getByText("0 of 5 done")).toBeVisible();
+  await expect(list.getByRole("link", { name: "Create an event" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Create your first event" })).toBeVisible();
+});
+
+test("the event page ticks off steps as the teams and people arrive", async ({ page }) => {
+  const ev = { id: "e1", key: "cup", name: "Spring Cup", game: "BGMI", organiser: "", date: "2026-12-01", venue: "", emergency: "", rules: "", settings: {}, updatedAt: "", role: "owner" };
+  await signedIn(page, [ev]);
+  const A = "**/esports-api.yaseenyk.workers.dev";
+  await page.route(`${A}/events/e1/roster`, (r) => r.fulfill(json({ teams: [{ id: "t1", name: "Kings" }], people: [{ id: "p1", name: "Asha", teamId: "t1", role: "Player", minor: false, photoUrl: null }] })));
+  await page.route(`${A}/events/e1/checkins**`, (r) => r.fulfill(json({ checkins: [], total: 1, checkedIn: 0 })));
+  await page.route(`${A}/events/e1/registration`, (r) => r.fulfill(json({ form: null, counts: { pending: 0, approved: 0, rejected: 0 } })));
+  await page.route(`${A}/events/e1/members`, (r) => r.fulfill(json({ owner: null, members: [] })));
+  await page.goto("/app/events/?id=e1");
+  const list = page.getByRole("region", { name: "Getting started checklist" });
+  await expect(list.locator("li[data-done=true]")).toHaveCount(2); // teams and people are done
+  await expect(list.getByText("2 of 5 done")).toBeVisible();
+  await expect(list.getByRole("link", { name: "Design cards" })).toBeVisible(); // the first unfinished step is the one big button
+});
+
+test("the invite and pass pages open with a plain what-to-do line", async ({ page }) => {
+  await preflight(page);
+  await page.route("**/public/invite/tok", (r) => r.fulfill(json({ event: { name: "Spring Cup", date: "2026-12-01" }, team: { name: "Konkan Kings" } })));
+  await page.goto("/join/?t=tok");
+  await expect(page.getByText(/asked you to fill this in/)).toBeVisible();
 });

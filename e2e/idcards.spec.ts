@@ -11,7 +11,7 @@ test("demo event: teams, people and cards are all there", async ({ page }) => {
   await expect(page.locator("ol")).toContainText("3 teams");
   await expect(page.locator("ol")).toContainText("12 people");
   await step(page, "People");
-  await expect(page.getByText("Aarav Mehta").first()).toBeVisible();
+  await expect(page.getByRole("textbox", { name: "Full name" }).first()).toHaveValue("Aarav Mehta");
   await step(page, "Design");
   await expect(page.locator(".idcard-box, [data-card]").first().or(page.locator("[style*='container-type']").first())).toBeVisible();
   await step(page, "Print");
@@ -33,6 +33,8 @@ test("the next and back buttons walk through the four steps", async ({ page }) =
 test("scanning a dummy Aadhaar card adds the person, keeping only the last 4 digits", async ({ page }) => {
   await open(page);
   await step(page, "People");
+  await page.getByText("More ways to add people").click(); // scanning is an extra way, not the first thing a new organiser sees
+  await page.getByRole("button", { name: /Scan Aadhaar cards/ }).click();
   const chip = page.getByRole("button", { name: "Aarav Mehta", exact: true });
   await expect(chip).toBeDisabled(); // permission first
   await page.getByRole("checkbox", { name: /permission/i }).check();
@@ -134,4 +136,21 @@ test("two people with the same ID are flagged where the ID is typed", async ({ p
   await page.getByLabel("ID on the card").fill("KON-002");
   await expect(page.getByRole("alert").filter({ hasText: /already has this ID/ }).first()).toBeVisible();
   await expect(page.getByLabel("ID on the card").first()).toHaveValue("KON-002"); // typing does not close the row
+});
+
+test("the People step offers two plain ways to add people and keeps the rest under More ways", async ({ page }) => {
+  await open(page);
+  await step(page, "People");
+  const tabs = page.getByRole("tablist", { name: "How to add people" });
+  await expect(tabs.getByRole("tab")).toHaveCount(2);
+  await expect(page.getByRole("tab", { name: /By hand|Add one by hand/ })).toHaveAttribute("aria-selected", "true");
+  await expect(page.getByRole("checkbox", { name: /permission/i })).toHaveCount(0); // the scan form is not in the way
+  await expect(page.getByText(/Choose one way to add people/)).toBeVisible();
+  await page.getByText("More ways to add people").click();
+  await expect(page.getByRole("button", { name: /Send players an invite link/ })).toBeVisible();
+});
+
+test("the step intro says what to do in plain words", async ({ page }) => {
+  await open(page);
+  await expect(page.getByText(/Type your event name and list your teams/)).toBeVisible();
 });

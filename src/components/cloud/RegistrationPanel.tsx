@@ -31,7 +31,7 @@ export default function RegistrationPanel({ eventId, onApproved }: { eventId: st
     e.preventDefault(); setErr(""); setMsg(""); setBusy("save");
     try {
       await events.saveRegistration(eventId, { title: draft.title, intro: draft.intro, teamSize: draft.teamSize, subs: draft.subs, maxTeams: draft.maxTeams ? Number(draft.maxTeams) : null, closesAt: draft.closes ? new Date(draft.closes).toISOString() : null });
-      setMsg(form ? "Saved." : "Registration link created."); load(true);
+      setMsg(form ? "Saved. Your changes are on the link already." : "Registration link created. Next: copy it and send it to team captains."); load(true);
     } catch (x) { setErr(explain(x)); } finally { setBusy(""); }
   };
   const toggle = async () => {
@@ -40,25 +40,30 @@ export default function RegistrationPanel({ eventId, onApproved }: { eventId: st
     try { await events.saveRegistration(eventId, { open: !form.open }); setMsg(form.open ? "Registration is closed." : "Registration is open again."); load(); } catch (x) { setErr(explain(x)); } finally { setBusy(""); }
   };
   const act = async (r: Registration, ok: boolean) => {
-    if (!ok && !confirm(`Reject ${r.teamName}? They are not told, and this cannot be undone.`)) return;
+    if (!ok && !confirm(`Reject ${r.teamName}? Their registration is deleted, they are not told, and this cannot be undone.`)) return;
     setBusy(r.id); setErr(""); setMsg("");
-    try { if (ok) { const res = await events.approveRegistration(eventId, r.id); setMsg(`${r.teamName} added to the roster (${res.people} people). Open the ID card maker to see them.`); onApproved?.(); } else await events.rejectRegistration(eventId, r.id); load(); }
+    try { if (ok) { const res = await events.approveRegistration(eventId, r.id); setMsg(`${r.teamName} added to the roster (${res.people} people). Next: open the cards to design and print theirs.`); onApproved?.(); } else await events.rejectRegistration(eventId, r.id); load(); }
     catch (x) { setErr((x as { status?: number }).status === 409 ? "That could not be approved: the team name is already on the roster, or it was already handled." : explain(x)); } finally { setBusy(""); }
   };
 
   return (
     <section aria-label="Team registration" className="space-y-4">
       <div className="card space-y-3 !p-4">
-        <h3 className="font-display text-lg font-bold text-white">Team registration</h3>
-        <p className="text-sm text-zinc-300">Send captains one link. They enter the team, captain contact and players; you approve each team and it is added to your roster as a team with its players and substitutes.</p>
+        <h3 className="font-display text-lg font-bold text-white">Let teams sign themselves up (optional)</h3>
+        <p className="text-sm text-zinc-300">{form ? "Your link is ready below. Copy it and send it to team captains. Each team they send appears under Waiting for approval." : "1. Choose how many players a team has. 2. Press the button to make a link. 3. Send the link to team captains. You approve each team before it joins your event."}</p>
         <form onSubmit={save} className="grid gap-3 sm:grid-cols-2">
+          <label className="block text-sm text-zinc-200">Players per team<input className="field mt-1" type="number" min={1} max={20} value={draft.teamSize} onChange={(e) => setDraft({ ...draft, teamSize: Math.max(1, Math.min(20, Number(e.target.value) || 1)) })} /></label>
+          <label className="block text-sm text-zinc-200">Substitutes allowed per team<input className="field mt-1" type="number" min={0} max={10} value={draft.subs} onChange={(e) => setDraft({ ...draft, subs: Math.max(0, Math.min(10, Number(e.target.value) || 0)) })} /></label>
+          <details className="rounded-xl border border-white/10 sm:col-span-2">
+            <summary className="flex min-h-11 cursor-pointer items-center px-3 text-sm text-cyan outline-none focus-visible:ring-2 focus-visible:ring-cyan">More options: title, message, team limit, closing time</summary>
+            <div className="grid gap-3 border-t border-white/10 p-3 sm:grid-cols-2">
           <label className="block text-sm text-zinc-200 sm:col-span-2">Form title<input className="field mt-1" value={draft.title} onChange={(e) => setDraft({ ...draft, title: e.target.value })} maxLength={120} placeholder="Spring Cup team registration" /></label>
           <label className="block text-sm text-zinc-200 sm:col-span-2">Message for captains (optional)<textarea className="field mt-1 min-h-16 py-2" value={draft.intro} onChange={(e) => setDraft({ ...draft, intro: e.target.value })} maxLength={1000} /></label>
-          <label className="block text-sm text-zinc-200">Players per team<input className="field mt-1" type="number" min={1} max={20} value={draft.teamSize} onChange={(e) => setDraft({ ...draft, teamSize: Math.max(1, Math.min(20, Number(e.target.value) || 1)) })} /></label>
-          <label className="block text-sm text-zinc-200">Substitutes allowed<input className="field mt-1" type="number" min={0} max={10} value={draft.subs} onChange={(e) => setDraft({ ...draft, subs: Math.max(0, Math.min(10, Number(e.target.value) || 0)) })} /></label>
-          <label className="block text-sm text-zinc-200">Maximum teams (empty for no limit)<input className="field mt-1" type="number" min={1} max={500} value={draft.maxTeams} onChange={(e) => setDraft({ ...draft, maxTeams: e.target.value })} /></label>
+          <label className="block text-sm text-zinc-200">Maximum teams (leave empty for no limit)<input className="field mt-1" type="number" min={1} max={500} value={draft.maxTeams} onChange={(e) => setDraft({ ...draft, maxTeams: e.target.value })} /></label>
           <label className="block text-sm text-zinc-200">Closes at (optional)<input className="field mt-1" type="datetime-local" value={draft.closes} onChange={(e) => setDraft({ ...draft, closes: e.target.value })} /></label>
-          <div className="sm:col-span-2"><button className="btn !min-h-10 px-4 text-sm" disabled={busy === "save"}>{form ? "Save changes" : "Create the registration link"}</button></div>
+            </div>
+          </details>
+          <div className="sm:col-span-2"><button className="btn !min-h-11 px-4 text-sm" disabled={busy === "save"}>{form ? "Save changes" : "Create the registration link"}</button></div>
         </form>
         {form && (
           <div role="status" className="space-y-2 rounded-xl border border-cyan/40 bg-[#0a0b0d] p-3 text-sm">
@@ -72,12 +77,12 @@ export default function RegistrationPanel({ eventId, onApproved }: { eventId: st
       {form && (
         <div className="card space-y-3 !p-4">
           <div className="flex flex-wrap items-center justify-between gap-2"><h3 className="font-display text-lg font-bold text-white">Waiting for approval {counts.pending ? `(${counts.pending})` : ""}</h3><button type="button" className="chip !min-h-8" onClick={() => load()}>Refresh</button></div>
-          <p className="text-xs text-zinc-400">{counts.approved} approved, {counts.rejected} rejected. A player marked under 18 needs a guardian&apos;s consent recorded before their card is printed.</p>
-          {list.length === 0 ? <p className="text-sm text-zinc-400">Nobody is waiting.</p> : (
+          <p className="text-xs text-zinc-400">{counts.approved} approved, {counts.rejected} rejected. Approving adds the team and its players to your event. A player marked under 18 needs a guardian&apos;s consent recorded before their card is printed.</p>
+          {list.length === 0 ? <p className="text-sm text-zinc-400">Nobody is waiting. When a captain sends the form, their team shows up here with Approve and Reject buttons.</p> : (
             <ul className="space-y-2">
               {list.map((r) => (
                 <li key={r.id} className="rounded-xl border border-white/10 p-3 text-sm">
-                  <div className="flex flex-wrap items-start justify-between gap-2"><div className="min-w-0"><p className="font-semibold text-white">{r.teamName}</p><p className="text-xs text-zinc-400">Captain {r.captainName} · {r.captainContact}</p></div><div className="flex gap-2"><button type="button" className="btn !min-h-8 px-3 text-xs" disabled={busy === r.id} onClick={() => act(r, true)}>Approve</button><button type="button" className="chip !min-h-8" disabled={busy === r.id} onClick={() => act(r, false)}>Reject</button></div></div>
+                  <div className="flex flex-wrap items-start justify-between gap-2"><div className="min-w-0"><p className="font-semibold text-white">{r.teamName}</p><p className="text-xs text-zinc-400">Captain {r.captainName} · {r.captainContact}</p></div><div className="flex gap-2"><button type="button" className="btn !min-h-11 px-3 text-sm" disabled={busy === r.id} onClick={() => act(r, true)}>Approve</button><button type="button" className="chip !min-h-11" disabled={busy === r.id} onClick={() => act(r, false)}>Reject</button></div></div>
                   <ul className="mt-2 grid gap-1 text-xs text-zinc-300 sm:grid-cols-2">{r.players.map((p, i) => <li key={i}>{p.name}{p.ign ? ` (${p.ign})` : ""}{p.minor ? " · under 18" : ""}{form && i >= form.teamSize ? " · substitute" : ""}</li>)}</ul>
                   {r.notes && <p className="mt-2 text-xs text-zinc-400">Note: {r.notes}</p>}
                 </li>

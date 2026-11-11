@@ -25,7 +25,7 @@ export default function AuthPage({ mode }: { mode: "login" | "register" }) {
     <div className="mx-auto max-w-md space-y-6 py-4">
       <div className="text-center">
         <h1 className="font-display text-3xl font-black text-white">{mode === "login" ? "Sign in" : "Create your account"}</h1>
-        <p className="mt-2 text-sm text-zinc-300">{mode === "login" ? "Welcome back. Sign in to open the Esports Hub app." : "Free to start. Make player ID cards, signed passes and run live gate check-in."}</p>
+        <p className="mt-2 text-sm text-zinc-300">{mode === "login" ? "Welcome back. Enter your email and password; you will go straight to your events." : "Free to start. Fill in your name, email and a password. You go straight into the app, where a short checklist shows what to do first."}</p>
       </div>
       {expired && !session && <p role="status" className="rounded-xl border border-amber-500/30 bg-[#0a0b0d] p-3 text-center text-sm text-amber-100">Your sign-in ran out, so you were signed out. Sign in again to carry on where you were.</p>}
       <div className="card">

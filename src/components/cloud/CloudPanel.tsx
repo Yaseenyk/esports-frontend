@@ -20,13 +20,15 @@ export interface CloudProps {
   onClose: () => void;
   /** Open this saved event as soon as the list has loaded (used by the dashboard's "Open cards" link). */
   autoOpenId?: string | null;
+  /** Which tab to land on (for example "Player invites" from the People step). */
+  initialTab?: string;
 }
 
 const TABS = ["Save & sync", "Live check-in", "Player invites", "Account"] as const;
 
 export default function CloudPanel(p: CloudProps) {
   const session = useSession();
-  const [tab, setTab] = useState<(typeof TABS)[number]>("Save & sync");
+  const [tab, setTab] = useState<(typeof TABS)[number]>((TABS as readonly string[]).includes(p.initialTab ?? "") ? (p.initialTab as (typeof TABS)[number]) : "Save & sync");
   const [link, setLink] = useState<{ id: string; key: string } | null>(null);
   const [list, setList] = useState<CloudEvent[] | null>(null);
   const [busy, setBusy] = useState(false), [msg, setMsg] = useState(""), [err, setErr] = useState("");
@@ -93,12 +95,12 @@ export default function CloudPanel(p: CloudProps) {
             {tab === "Save & sync" && (
               <div className="space-y-4">
                 <div className="rounded-xl border border-white/10 p-3 text-sm text-zinc-300">
-                  <p>{link ? <>This event is saved online as <strong className="text-white">{p.snapshot.event}</strong>.</> : <>Not saved online yet.</>} Only names, teams, roles, access zones, minor flags and photos are sent. <strong className="text-zinc-100">Birth dates and Aadhaar digits stay in your browser.</strong></p>
+                  <p>{link ? <>This event is saved online as <strong className="text-white">{p.snapshot.event}</strong>.</> : <>Not saved online yet. Press the button below to save it; then you can invite players and check guests in from several phones.</>} Only names, teams, roles, areas they can enter, under-18 flags and photos are sent. <strong className="text-zinc-100">Birth dates and Aadhaar digits stay in your browser.</strong></p>
                   <div className="mt-3 flex flex-wrap items-center gap-2"><button type="button" className="btn !min-h-10 px-4 text-sm" disabled={busy} onClick={save}>{busy ? "Working…" : link ? "Save changes online" : "Save this event online"}</button>{link && <button type="button" className="chip" onClick={() => { writeLink(null); setLink(null); }}>Save as a new event instead</button>}</div>
                 </div>
                 <div>
                   <h3 className="mb-2 font-display font-bold text-white">Your online events</h3>
-                  {list === null ? <p className="text-sm text-zinc-400">Loading…</p> : list.length === 0 ? <p className="text-sm text-zinc-400">None yet.</p> : (
+                  {list === null ? <p className="text-sm text-zinc-400">Loading…</p> : list.length === 0 ? <p className="text-sm text-zinc-400">None yet. Press &ldquo;Save this event online&rdquo; above to add this one.</p> : (
                     <ul className="space-y-2">{list.map((ev) => (
                       <li key={ev.id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-white/10 px-3 py-2 text-sm"><span className="min-w-0"><span className="block truncate font-semibold text-white">{ev.name}</span><span className="text-xs text-zinc-400">{ev.game || "No game"} · {ev.date || "No date"}{link?.id === ev.id ? " · linked" : ""}</span></span><span className="flex gap-2"><button type="button" className="btn-ghost !min-h-9 px-3 text-sm" disabled={busy} onClick={() => open(ev)}>Open here</button><button type="button" className="chip !min-h-9" disabled={busy} onClick={() => del(ev)}>Delete</button></span></li>
                     ))}</ul>
@@ -106,8 +108,8 @@ export default function CloudPanel(p: CloudProps) {
                 </div>
               </div>
             )}
-            {tab === "Live check-in" && (link ? <LivePanel eventId={link.id} /> : <p className="text-sm text-zinc-300">Save the event online first (Save &amp; sync), then come back here.</p>)}
-            {tab === "Player invites" && (link ? <InvitesPanel eventId={link.id} teams={p.snapshot.teams} people={p.snapshot.people} onApproved={async () => { const r = await events.roster(link.id); const have = new Set(p.snapshot.people.map((x) => x.id)); const add = r.people.filter((x) => !have.has(x.id)).map((x) => ({ id: x.id, name: x.name, teamId: x.teamId, role: (ROLES as readonly string[]).includes(x.role) ? (x.role as Person["role"]) : "Player" })); if (add.length) p.onPeople(add); }} /> : <p className="text-sm text-zinc-300">Save the event online first (Save &amp; sync), then come back here.</p>)}
+            {tab === "Live check-in" && (link ? <LivePanel eventId={link.id} /> : <p className="text-sm text-zinc-300">Save the event online first: open the Save &amp; sync tab and press the Save button. Then come back here.</p>)}
+            {tab === "Player invites" && (link ? <InvitesPanel eventId={link.id} teams={p.snapshot.teams} people={p.snapshot.people} onApproved={async () => { const r = await events.roster(link.id); const have = new Set(p.snapshot.people.map((x) => x.id)); const add = r.people.filter((x) => !have.has(x.id)).map((x) => ({ id: x.id, name: x.name, teamId: x.teamId, role: (ROLES as readonly string[]).includes(x.role) ? (x.role as Person["role"]) : "Player" })); if (add.length) p.onPeople(add); }} /> : <p className="text-sm text-zinc-300">Save the event online first: open the Save &amp; sync tab and press the Save button. Then come back here.</p>)}
             {tab === "Account" && <AccountPanel onDone={p.onClose} />}
             <div aria-live="polite" className="mt-4 space-y-1">{msg && <p className="text-sm text-emerald-300">{msg}</p>}{err && <p role="alert" className="text-sm text-red-300">{err}</p>}</div>
           </>

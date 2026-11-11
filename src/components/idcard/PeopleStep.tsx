@@ -17,6 +17,7 @@ const DEMO_CARDS = [
 ];
 
 interface Props {
+  onInvite?: () => void;
   ocrLang: string; setOcrLang: (v: string) => void;
   people: Person[]; teams: Team[]; teamOpts: { value: string; label: string }[]; valid: (id: string) => string;
   scanTeam: string; setScanTeam: (v: string) => void; consent: boolean; setConsent: (v: boolean) => void;
@@ -44,7 +45,7 @@ function Avatar({ p }: { p: Person }) {
 }
 
 export default function PeopleStep(p: Props) {
-  const [tab, setTab] = useState<"scan" | "sheet" | "hand">("scan");
+  const [tab, setTab] = useState<"scan" | "sheet" | "hand">("hand");
   const [q, setQ] = useState("");
   const [teamFilter, setTeamFilter] = useState("all");
   const [open, setOpen] = useState<string | null>(null);
@@ -57,18 +58,30 @@ export default function PeopleStep(p: Props) {
     <div className="no-print space-y-4">
       {/* ------------------------------------------------------------ add people */}
       <section className="card !p-0" aria-label="Add people">
-        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/10 px-4 py-3">
-          <h2 className="font-display text-lg font-bold text-white">Add people</h2>
-          <div className="flex gap-1 rounded-xl bg-white/5 p-1" role="tablist" aria-label="How to add people">
-            {([["scan", "Scan Aadhaar cards", "Scan"], ["sheet", "Import a sheet", "Import"], ["hand", "Add one by hand", "By hand"]] as const).map(([k, l, short]) => (
-              <button key={k} type="button" role="tab" aria-selected={tab === k} onClick={() => setTab(k)} className={`min-h-9 rounded-lg px-3 text-sm font-semibold outline-none transition-colors focus-visible:ring-2 focus-visible:ring-cyan ${tab === k ? "bg-cyan text-ink" : "text-zinc-300 hover:bg-white/5"}`}><span className="sm:hidden">{short}</span><span className="hidden sm:inline">{l}</span></button>
+        <div className="space-y-2 border-b border-white/10 px-4 py-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h2 className="font-display text-lg font-bold text-white">Add people</h2>
+            <span className="rounded-full border border-white/15 px-3 py-1 text-xs font-semibold text-zinc-200">{p.people.length === 0 ? "No one added yet" : `${p.people.length} ${p.people.length === 1 ? "person" : "people"} added`}</span>
+          </div>
+          <p className="text-sm text-zinc-300">Choose one way to add people. Everyone you add appears in the list below, where you can fix their details.</p>
+          <div className="flex gap-1 rounded-xl bg-white/5 p-1 sm:w-fit" role="tablist" aria-label="How to add people">
+            {([["hand", "Add one by hand", "By hand"], ["sheet", "Import a sheet", "Import"]] as const).map(([k, l, short]) => (
+              <button key={k} type="button" role="tab" aria-selected={tab === k} onClick={() => setTab(k)} className={`min-h-11 flex-1 rounded-lg px-4 text-sm font-semibold outline-none transition-colors focus-visible:ring-2 focus-visible:ring-cyan ${tab === k ? "bg-cyan text-ink" : "text-zinc-300 hover:bg-white/5"}`}><span className="sm:hidden">{short}</span><span className="hidden sm:inline">{l}</span></button>
             ))}
           </div>
+          <details className="text-sm" open={tab === "scan" || undefined}>
+            <summary className="inline-flex min-h-11 cursor-pointer items-center text-cyan outline-none focus-visible:ring-2 focus-visible:ring-cyan">More ways to add people</summary>
+            <div className="mt-1 grid gap-2 sm:grid-cols-2">
+              <button type="button" onClick={() => setTab("scan")} aria-pressed={tab === "scan"} className={`min-h-11 rounded-xl border px-4 py-2 text-left outline-none focus-visible:ring-2 focus-visible:ring-cyan ${tab === "scan" ? "border-cyan bg-[#0c1d27]" : "border-white/10 hover:border-white/30"}`}><span className="block font-semibold text-white">Scan Aadhaar cards</span><span className="block text-xs text-zinc-400">Read a photo of the card on this device. Needs the holder&apos;s permission.</span></button>
+              {p.onInvite && <button type="button" onClick={p.onInvite} className="min-h-11 rounded-xl border border-white/10 px-4 py-2 text-left outline-none hover:border-white/30 focus-visible:ring-2 focus-visible:ring-cyan"><span className="block font-semibold text-white">Send players an invite link</span><span className="block text-xs text-zinc-400">They type their own name and add a photo. You approve each one. Needs a free account.</span></button>}
+            </div>
+          </details>
         </div>
 
         <div className="p-4">
           {tab === "scan" && (
             <div className="space-y-3">
+              <p className="text-sm text-zinc-300">1. Tick the permission box. 2. Choose the team. 3. Drop or choose the card photos. Each card becomes one person in the list below.</p>
               <label className="flex items-start gap-2.5 text-sm text-zinc-200">
                 <input type="checkbox" checked={p.consent} onChange={(e) => p.setConsent(e.target.checked)} className="mt-0.5 h-5 w-5 shrink-0 accent-cyan" />
                 <span>I have the card holder&apos;s permission to read their Aadhaar card for this event.<span className="block text-xs text-zinc-400">Cards are read inside your browser. The picture is never uploaded or saved, and only the last 4 digits of the number are kept.</span></span>
@@ -114,7 +127,7 @@ export default function PeopleStep(p: Props) {
             <div className="flex flex-wrap items-end gap-3">
               <div className="w-56"><Select label="Add to team" value={p.valid(p.scanTeam)} onChange={p.setScanTeam} options={p.teamOpts} searchable={false} /></div>
               <button type="button" className="btn" onClick={() => { const id = p.addPerson(p.valid(p.scanTeam)); setQ(""); setTeamFilter("all"); setOpen(id); }}>+ Add a person</button>
-              <p className="text-sm text-zinc-400">A blank person is added at the bottom of the list below, with their details open to fill in.</p>
+              <p className="text-sm text-zinc-400">Press the button, then type their name in the list below. Their details open so you can fill in the rest.</p>
             </div>
           )}
         </div>
@@ -134,7 +147,7 @@ export default function PeopleStep(p: Props) {
         {p.bgNote && <p className="border-b border-white/10 px-4 py-2 text-xs text-zinc-400" role="status">{p.bgNote}{p.bgBusy ? " (the first time downloads a small model, then it works offline)" : ""}</p>}
 
         <ul className="divide-y divide-white/10">
-          {shown.length === 0 && <li className="px-4 py-6 text-center text-sm text-zinc-400">{p.people.length === 0 ? "No one yet. Scan a card, import a sheet or add someone by hand above." : "No one matches this search."}</li>}
+          {shown.length === 0 && <li className="px-4 py-6 text-center text-sm text-zinc-400">{p.people.length === 0 ? "No one yet. Press \"+ Add a person\" above, or open \"Import a sheet\" to paste a whole list at once." : "No one matches this search."}</li>}
           {shown.map((x) => {
             const isOpen = open === x.id;
             const minor = p.minorOf(x), dup = p.duplicates.get(x.id);
@@ -151,7 +164,7 @@ export default function PeopleStep(p: Props) {
                     {dup && <Pill tone="amber" title={`Looks like ${dup.map((id) => p.people.find((y) => y.id === id)?.name || id).join(", ")}`}>Duplicate?</Pill>}
                     {!x.photo && <Pill tone="grey" title="No photo yet. Open the row to add one.">No photo</Pill>}
                   </div>
-                  <button type="button" aria-expanded={isOpen} aria-label={isOpen ? `Close details for ${x.name || "person"}` : `Open details for ${x.name || "person"}`} title="Birth date, ID, zones, photo and more" onClick={() => setOpen(isOpen ? null : x.id)} className="grid h-10 w-10 place-items-center rounded-lg border border-white/10 text-zinc-300 transition-colors hover:border-white/30">
+                  <button type="button" aria-expanded={isOpen} aria-label={isOpen ? `Close details for ${x.name || "person"}` : `Open details for ${x.name || "person"}`} title="Birth date, ID, areas, photo and more" onClick={() => setOpen(isOpen ? null : x.id)} className="grid h-10 w-10 place-items-center rounded-lg border border-white/10 text-zinc-300 transition-colors hover:border-white/30">
                     <svg aria-hidden="true" viewBox="0 0 24 24" className={`h-4 w-4 fill-none stroke-current transition-transform ${isOpen ? "rotate-180" : ""}`} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9l6 6 6-6" /></svg>
                   </button>
                 </div>
@@ -173,7 +186,7 @@ export default function PeopleStep(p: Props) {
                     <Select label="Gender" value={x.gender ?? ""} onChange={(v) => p.setPerson(x.id, { gender: v || undefined })} options={[{ value: "", label: "Not set" }, { value: "Male", label: "Male" }, { value: "Female", label: "Female" }, { value: "Transgender", label: "Transgender" }]} searchable={false} />
                     <label className="block text-sm text-zinc-400">ID on the card<input className="field mt-1 !min-h-10" value={x.id} aria-invalid={sameId.has(x.id.trim().toLowerCase()) || !x.id.trim()} onChange={(e) => { const v = e.target.value; setOpen(v); p.setPeople((l) => l.map((y) => (y === x ? { ...y, id: v } : y))); }} />{(sameId.has(x.id.trim().toLowerCase()) || !x.id.trim()) && <span role="alert" className="mt-1 block text-xs text-red-300">{x.id.trim() ? "Another person already has this ID. Every card needs its own." : "Every card needs an ID."}</span>}</label>
                     <div className="text-sm text-zinc-400">Aadhaar (last 4 only)<span className="mt-1 flex min-h-10 items-center justify-between gap-2 rounded-lg border border-white/10 px-3 font-mono text-sm text-zinc-300">{x.last4 ? maskAadhaar(x.last4) : "Not added"}{x.source && <Pill tone={x.verified === "invalid" ? "red" : x.source === "qr" ? "green" : "amber"} title={x.verified === "invalid" ? "The UIDAI signature on this QR did not match: it may have been edited" : x.verified === "valid" ? "Read from the QR code, and UIDAI's signature checks out" : x.source === "qr" ? "Read from the card's QR code: exact. UIDAI signature not checked (no certificate installed)" : "Read from printed text: please check"}>{x.verified === "invalid" ? "Signature ✗" : x.verified === "valid" ? "UIDAI ✓" : x.source === "qr" ? "QR" : "OCR"}</Pill>}</span></div>
-                    <label className="block text-sm text-zinc-400 sm:col-span-2">Access zones<input className="field mt-1 !min-h-10" placeholder="For example: Main hall; Backstage" value={x.zones ?? ""} onChange={(e) => p.setPerson(x.id, { zones: e.target.value })} /></label>
+                    <label className="block text-sm text-zinc-400 sm:col-span-2">Areas they can enter (optional)<input className="field mt-1 !min-h-10" placeholder="For example: Main hall; Backstage" value={x.zones ?? ""} onChange={(e) => p.setPerson(x.id, { zones: e.target.value })} /></label>
                     <div className="flex flex-wrap items-end gap-2 sm:col-span-2 lg:pt-6">
                       <label className="btn-ghost !min-h-10 cursor-pointer px-3 text-sm">{x.photo ? (x.cutout ? "Change photo (cut-out)" : "Change photo") : "Add photo"}<input type="file" accept="image/*" className="sr-only" onChange={(e) => p.photo(x.id, e.target.files?.[0])} /></label>
                       {x.photo && !x.cutout && <button type="button" className="btn-ghost !min-h-10 px-3 text-sm" disabled={p.bgBusy === x.id} title="Cut the person out of the photo's background, on this device" onClick={() => p.cutOutExisting(x)}>{p.bgBusy === x.id ? "Cutting out…" : "Remove background"}</button>}

@@ -63,7 +63,7 @@ export default function PrintPanel({ people, allPeople, teams, teamOpts, printTe
       const fronts = await gather("front");
       const bk = showBacks ? await gather("back") : [];
       setStatus("Building the PDF…");
-      downloadBlob(buildPdf(fronts, bk, { marks: layout === "tight" ? false : marks, bleedMm: bleed ? 3 : 0, paper, ...(layout === "tight" ? { gapMm: 0, marginMm: 5 } : layout === "custom" ? { gapMm: gap, marginMm: margin } : {}) }), `${eventKey(event)}-cards.pdf`);
+      downloadBlob(buildPdf(fronts, bk, { marks: layout === "tight" ? false : marks, bleedMm: bleed ? 3 : 0, paper, ...(layout === "tight" ? { gapMm: 0, marginMm: 5 } : layout === "custom" ? { gapMm: gap, marginMm: margin } : {}) }), `${eventKey(event)}-cards.pdf`); onPrinted();
       setStatus("PDF downloaded.");
     } catch { setStatus("Could not make the PDF. Try Print, then choose Save as PDF."); }
   });
@@ -83,7 +83,7 @@ export default function PrintPanel({ people, allPeople, teams, teamOpts, printTe
         }
       }
       setStatus("Zipping…");
-      downloadBlob(await zip.generateAsync({ type: "blob" }), `${eventKey(event)}-cards-png.zip`);
+      downloadBlob(await zip.generateAsync({ type: "blob" }), `${eventKey(event)}-cards-png.zip`); onPrinted();
       setStatus("Zip downloaded.");
     } catch { setStatus("Could not make the zip."); }
   });

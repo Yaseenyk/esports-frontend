@@ -5,17 +5,18 @@ import ScreenButtons from "@/components/display/ScreenButtons";
 import { doubleElimView } from "@/lib/display-views";
 import { build, champion as championOf, isPlayable, setPick, slots, type Match, type Slot } from "@/lib/doubleelim";
 import { uniqueTeams } from "@/lib/seeding";
+import TeamsInput from "./TeamsInput";
+import ToolStep from "./ToolStep";
 
-const EXAMPLE = "Konkan Kings\nPune Phantoms\nMumbai Mavericks\nNashik Ninjas\nGoa Gamers\nThane Titans";
+const EXAMPLE = ["Konkan Kings", "Pune Phantoms", "Mumbai Mavericks", "Nashik Ninjas", "Goa Gamers", "Thane Titans"];
 const label = (s: Slot) => (s.kind === "team" ? s.name : s.kind === "bye" ? "Bye" : s.label);
 const roundTitle = (m: Match, rounds: number) => (m.bracket === "F" ? (m.round === 1 ? "Grand final" : "Reset final") : m.bracket === "W" ? (m.round === rounds ? "Winners final" : `Winners round ${m.round}`) : `Losers round ${m.round}`);
 
-/** Free double elimination bracket: winners and losers brackets, a grand final and a reset final. Click a team to say it won. */
+/** Three steps: add the teams, tap the winners, optionally show it on a TV. Double elimination: nobody is out until they lose twice. */
 export default function DoubleElimination() {
-  const [text, setText] = useState(EXAMPLE);
+  const [text, setText] = useState(EXAMPLE.join("\n"));
   const [picks, setPicks] = useState<Record<string, 0 | 1 | undefined>>({});
   const teams = useMemo(() => uniqueTeams(text.split(/\r?\n/)), [text]);
-  const lines = useMemo(() => text.split(/\r?\n/).filter((t) => t.trim()).length, [text]);
   const bracket = useMemo(() => build(teams), [teams]);
   // Clicking the winner again takes the result back. Either way, results that were built on this match are cleared, so they can never point at a different team.
   const pick = (id: string, side: 0 | 1) => setPicks((p) => (bracket ? setPick(bracket, p, id, p[id] === side ? undefined : side) : p));
@@ -50,41 +51,53 @@ export default function DoubleElimination() {
   const screen = useMemo(() => (bracket ? doubleElimView(bracket, picks) : null), [bracket, picks]);
   const wRounds = bracket ? Math.max(...bracket.matches.filter((m) => m.bracket === "W").map((m) => m.round)) : 0;
   const resetNeeded = picks["GF"] === 1;
+  const decided = Object.values(picks).filter((v) => v !== undefined).length;
+  const byes = bracket ? bracket.size - teams.length : 0;
 
   return (
-    <div className="space-y-6">
-      <section className="card space-y-3" aria-label="Teams">
-        <h3 className="font-display text-lg font-bold text-white">1. Teams, best seed first</h3>
-        <label className="block text-sm text-zinc-200">One team per line (3 to 64)<textarea className="field mt-1 min-h-32 py-2 font-mono text-sm" value={text} onChange={(e) => { setText(e.target.value); setPicks({}); }} spellCheck={false} /></label>
-        <p className="text-sm text-zinc-300" aria-live="polite">{!bracket ? `Enter between 3 and 64 different teams${teams.length > 64 ? ` (you have ${teams.length})` : ""}.` : `${teams.length} teams${lines > teams.length ? ` (${lines - teams.length} repeated name${lines - teams.length === 1 ? " was" : "s were"} ignored)` : ""}. A bracket for ${bracket.size} places, so ${bracket.size - teams.length} bye${bracket.size - teams.length === 1 ? "" : "s"}. Up to ${2 * teams.length - 2} matches, or ${2 * teams.length - 1} if the reset final is played.`}</p>
-        <div className="flex flex-wrap gap-2"><button type="button" className="chip !min-h-11" onClick={() => { setText(EXAMPLE); setPicks({}); }}>Load the example</button><button type="button" className="chip !min-h-11" onClick={() => setPicks({})}>Clear all results</button></div>
-      </section>
+    <div className="space-y-5">
+      <ToolStep n={1} id="de-teams" title="Add your teams" done={Boolean(bracket)}
+        hint="List the best team first. The order you type is the seed (the starting rank): strong teams are kept apart until the later rounds."
+        status={bracket ? `Bracket of ${bracket.size}${byes ? `, ${byes} bye${byes === 1 ? "" : "s"}` : ""}` : undefined}>
+        <TeamsInput value={text} onChange={(v) => { setText(v); setPicks({}); }} min={3} max={64} example={EXAMPLE} label="One team per line" />
+        <p className="text-sm text-zinc-300" aria-live="polite">
+          {!bracket ? `Add between 3 and 64 different teams to see your bracket${teams.length > 64 ? ` (you have ${teams.length})` : ""}.` : `${teams.length} teams. A bracket for ${bracket.size} places, so ${byes} bye${byes === 1 ? "" : "s"}. Up to ${2 * teams.length - 2} matches, or ${2 * teams.length - 1} if the reset final is played.`}
+        </p>
+        <p className="text-xs leading-5 text-zinc-400">A bye means a team goes straight to the next round without playing. In double elimination a team is only out after losing twice.</p>
+      </ToolStep>
 
-      {bracket && (
-        <>
-          <ScreenButtons payload={screen} what="bracket" />
-          {champion && <p role="status" className="rounded-xl border border-emerald-400/40 bg-[#0a0b0d] p-4 text-center font-display text-xl font-bold text-white">Champion: {champion.name}</p>}
-          {(["W", "L"] as const).map((kind) => (
-            <section key={kind} className="card space-y-3" aria-label={kind === "W" ? "Winners bracket" : "Losers bracket"}>
-              <h3 className="font-display text-lg font-bold text-white">{kind === "W" ? "2. Winners bracket" : "3. Losers bracket"}</h3>
-              <p className="text-xs text-zinc-400">{kind === "W" ? "Click a team after its match to say it won. Teams that lose drop to the losers bracket." : "Teams here have lost once. Lose again and you are out."}</p>
-              <div role="region" aria-label={`${kind === "W" ? "Winners" : "Losers"} bracket rounds`} tabIndex={0} className="overflow-x-auto outline-none focus-visible:ring-2 focus-visible:ring-cyan">
-                <div className="flex gap-4 pb-2">
-                  {group(kind).map((ms, i) => <ul key={i} className="w-56 shrink-0 space-y-2">{ms.map((m) => rowOf(m, wRounds))}</ul>)}
+      <ToolStep n={2} id="de-pick" title="Tap the team that won" done={Boolean(champion)}
+        hint={bracket ? "After each match, tap the team that won. Winners move on and losers drop down. Tapped the wrong one? Tap it again to undo." : "Your bracket appears here as soon as you add three teams in step 1."}
+        status={bracket ? (champion ? "Champion decided" : `${decided} result${decided === 1 ? "" : "s"} entered`) : undefined}
+        actions={bracket && decided > 0 ? <button type="button" className="btn-ghost !min-h-10 px-3 text-sm" onClick={() => setPicks({})}>Clear all results</button> : undefined}>
+        {!bracket ? <p className="rounded-xl border border-dashed border-white/15 p-6 text-center text-zinc-300">No bracket yet. Add at least three teams above.</p> : (
+          <>
+            {champion && <p role="status" className="rounded-xl border border-emerald-400/40 bg-[#0a0b0d] p-4 text-center font-display text-xl font-bold text-white">Champion: {champion.name}</p>}
+            <p className="text-xs text-zinc-400 sm:hidden">Swipe sideways to see every round.</p>
+            {(["W", "L"] as const).map((kind) => (
+              <section key={kind} className="space-y-2" aria-label={kind === "W" ? "Winners bracket" : "Losers bracket"}>
+                <h4 className="font-display text-base font-bold text-white">{kind === "W" ? "Winners bracket" : "Losers bracket"}</h4>
+                <p className="text-sm text-zinc-300">{kind === "W" ? "Everyone starts here. Win and you stay up; lose and you drop to the losers bracket." : "Teams here have lost once. Lose again and you are out."}</p>
+                <div role="region" aria-label={`${kind === "W" ? "Winners" : "Losers"} bracket rounds`} tabIndex={0} className="overflow-x-auto outline-none focus-visible:ring-2 focus-visible:ring-cyan">
+                  <div className="flex gap-4 pb-2">
+                    {group(kind).map((ms, i) => <ul key={i} className="w-56 shrink-0 space-y-2">{ms.map((m) => rowOf(m, wRounds))}</ul>)}
+                  </div>
                 </div>
-              </div>
+              </section>
+            ))}
+            <section className="space-y-2" aria-label="Grand final">
+              <h4 className="font-display text-base font-bold text-white">Grand final</h4>
+              <p className="text-sm text-zinc-300">The last match: the winners-bracket champion against the losers-bracket champion. The first has not lost yet, so if the second wins, the final is played once more (the reset final).</p>
+              <ul className="grid gap-3 sm:grid-cols-2">
+                {rowOf(bracket.matches.find((m) => m.id === "GF")!, wRounds)}
+                {resetNeeded ? rowOf(bracket.matches.find((m) => m.id === "GF2")!, wRounds) : <li className="rounded-lg border border-dashed border-white/10 p-2 text-sm text-zinc-400">Reset final: only played if the losers-bracket team wins the grand final.</li>}
+              </ul>
             </section>
-          ))}
-          <section className="card space-y-3" aria-label="Grand final">
-            <h3 className="font-display text-lg font-bold text-white">4. Grand final</h3>
-            <p className="text-xs text-zinc-400">The winners-bracket champion has not lost yet, so if the losers-bracket team wins the first final, the final is played once more (the reset).</p>
-            <ul className="grid gap-3 sm:grid-cols-2">
-              {rowOf(bracket.matches.find((m) => m.id === "GF")!, wRounds)}
-              {resetNeeded ? rowOf(bracket.matches.find((m) => m.id === "GF2")!, wRounds) : <li className="rounded-lg border border-dashed border-white/10 p-2 text-sm text-zinc-400">Reset final: only played if the losers-bracket team wins the grand final.</li>}
-            </ul>
-          </section>
-        </>
-      )}
+          </>
+        )}
+      </ToolStep>
+
+      <ScreenButtons payload={screen} what="bracket" step={3} />
     </div>
   );
 }

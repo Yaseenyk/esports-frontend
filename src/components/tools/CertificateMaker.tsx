@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { downloadBlob } from "@/lib/idcard/download";
+import ToolStep from "./ToolStep";
+import TeamsInput from "./TeamsInput";
 
 type Design = "classic" | "dark" | "minimal";
 const DESIGNS: { id: Design; label: string }[] = [{ id: "classic", label: "Classic (white, for printing)" }, { id: "dark", label: "Dark esports" }, { id: "minimal", label: "Minimal (white)" }];
@@ -79,37 +81,49 @@ export default function CertificateMaker() {
   }, [list, busy]);
 
   return (
-    <div className="space-y-6">
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)]">
-        <section className="card min-w-0 space-y-3" aria-label="Certificate details">
-          <h3 className="font-display text-lg font-bold text-white">1. Details</h3>
-          <label className="block text-sm text-zinc-200">Names, one per line<textarea className="field mt-1 min-h-28 py-2" value={names} onChange={(e) => setNames(e.target.value)} spellCheck={false} /></label>
-          <p className="text-xs text-zinc-400" aria-live="polite">{list.length === 0 ? "Type or paste at least one name above." : `${list.length} certificate${list.length === 1 ? "" : "s"}. Up to 100 per file works well.`}</p>
-          <label className="block text-sm text-zinc-200">Design<select className="field mt-1" value={design} onChange={(e) => setDesign(e.target.value as Design)}>{DESIGNS.map((d) => <option key={d.id} value={d.id}>{d.label}</option>)}</select></label>
-          <label className="block text-sm text-zinc-200">Heading<input className="field mt-1" value={f.heading} onChange={set("heading")} /></label>
-          <label className="block text-sm text-zinc-200">Award or result<input className="field mt-1" value={f.award} onChange={set("award")} /></label>
-          <label className="block text-sm text-zinc-200">Wording<textarea className="field mt-1 min-h-20 py-2" value={f.body} onChange={set("body")} /><span className="mt-1 block text-xs text-zinc-400">{"{award}"}, {"{event}"} and {"{date}"} are filled in for you.</span></label>
+    <div className="space-y-5">
+      <ToolStep n={1} id="ce-names" title="Who gets a certificate?" done={list.length > 0}
+        hint="Add one name for each certificate. Each person gets their own page in one PDF."
+        status={list.length ? `${list.length} certificate${list.length === 1 ? "" : "s"}` : undefined}>
+        <TeamsInput value={names} onChange={setNames} noun="name" min={1} max={500} example={SAMPLE_NAMES.split("\n")} label="Names, one per line" help="Type one name per line. Or copy a column from Excel, Google Sheets or WhatsApp and paste it here. Up to 100 per file works well." />
+      </ToolStep>
+
+      <ToolStep n={2} id="ce-look" title="Choose the wording and the look" hint="Change the event details below. The preview in step 3 updates as you type. The sample text already works, so you can keep what you like.">
+        <div className="grid gap-3 sm:grid-cols-2">
           <label className="block text-sm text-zinc-200">Event<input className="field mt-1" value={f.event} onChange={set("event")} /></label>
           <label className="block text-sm text-zinc-200">Date<input className="field mt-1" value={f.date} onChange={set("date")} /></label>
+          <label className="block text-sm text-zinc-200">Award or result<input className="field mt-1" value={f.award} onChange={set("award")} placeholder="Winner, Runner-up, Participant" /></label>
           <label className="block text-sm text-zinc-200">Organiser<input className="field mt-1" value={f.org} onChange={set("org")} /></label>
-          <div className="grid grid-cols-2 gap-2">
-            <label className="block text-sm text-zinc-200">Signed by<input className="field mt-1" value={f.sign1} onChange={set("sign1")} /></label>
-            <label className="block text-sm text-zinc-200">Title<input className="field mt-1" value={f.role1} onChange={set("role1")} /></label>
-            <label className="block text-sm text-zinc-200">Signed by<input className="field mt-1" value={f.sign2} onChange={set("sign2")} /></label>
-            <label className="block text-sm text-zinc-200">Title<input className="field mt-1" value={f.role2} onChange={set("role2")} /></label>
+          <label className="block text-sm text-zinc-200 sm:col-span-2">Design<select className="field mt-1" value={design} onChange={(e) => setDesign(e.target.value as Design)}>{DESIGNS.map((d) => <option key={d.id} value={d.id}>{d.label}</option>)}</select></label>
+        </div>
+        <details className="group rounded-xl border border-white/10 bg-[#0a0b0d]">
+          <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-sm font-semibold text-white outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-cyan [&::-webkit-details-marker]:hidden">
+            <span>More options <span className="font-normal text-zinc-300">· heading, sentence, signatures, logo</span></span>
+            <svg aria-hidden="true" viewBox="0 0 16 16" className="h-4 w-4 shrink-0 fill-none stroke-current text-zinc-400 transition-transform group-open:rotate-180" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6l5 5 5-5" /></svg>
+          </summary>
+          <div className="space-y-3 border-t border-white/10 p-4">
+            <label className="block text-sm text-zinc-200">Heading<input className="field mt-1" value={f.heading} onChange={set("heading")} /></label>
+            <label className="block text-sm text-zinc-200">Wording<textarea className="field mt-1 min-h-20 py-2" value={f.body} onChange={set("body")} /><span className="mt-1 block text-xs text-zinc-400">{"{award}"}, {"{event}"} and {"{date}"} are filled in for you from the boxes above.</span></label>
+            <div className="grid gap-2 sm:grid-cols-2">
+              <label className="block text-sm text-zinc-200">First signature: name<input className="field mt-1" value={f.sign1} onChange={set("sign1")} /></label>
+              <label className="block text-sm text-zinc-200">First signature: title<input className="field mt-1" value={f.role1} onChange={set("role1")} /></label>
+              <label className="block text-sm text-zinc-200">Second signature: name<input className="field mt-1" value={f.sign2} onChange={set("sign2")} /></label>
+              <label className="block text-sm text-zinc-200">Second signature: title<input className="field mt-1" value={f.role2} onChange={set("role2")} /></label>
+            </div>
+            <div className="flex flex-wrap items-center gap-2"><label className="btn-ghost cursor-pointer px-3 text-sm focus-within:ring-2 focus-within:ring-cyan">{logo ? "Change logo" : "Add a logo"}<input type="file" accept="image/*" className="sr-only" onChange={(e) => { readLogo(e.target.files?.[0]); e.target.value = ""; }} /></label>{logo && <button type="button" className="chip !min-h-11" onClick={() => setLogo("")}>Remove logo</button>}</div>
           </div>
-          <div className="flex flex-wrap items-center gap-2"><label className="btn-ghost cursor-pointer px-3 text-sm focus-within:ring-2 focus-within:ring-cyan">{logo ? "Change logo" : "Add a logo"}<input type="file" accept="image/*" className="sr-only" onChange={(e) => { readLogo(e.target.files?.[0]); e.target.value = ""; }} /></label>{logo && <button type="button" className="chip !min-h-11" onClick={() => setLogo("")}>Remove logo</button>}</div>
-        </section>
+        </details>
+      </ToolStep>
 
-        <section className="min-w-0 space-y-3" aria-label="Preview">
-          <h3 className="font-display text-lg font-bold text-white">2. Preview</h3>
-          <div ref={box} className="w-full overflow-hidden rounded-xl border border-white/[0.14]" style={{ height: H * scale }}>
-            <div style={{ transform: `scale(${scale})`, transformOrigin: "top left", width: W, height: H }}><Cert f={f} name={list[0] ?? ""} design={design} logo={logo} /></div>
-          </div>
-          <p className="text-xs text-zinc-400">The preview shows the first name. Each name gets its own page. Print at 100% on A4, landscape.</p>
-          <div className="flex flex-wrap items-center gap-3"><button type="button" className="btn" disabled={!list.length || busy} onClick={make}>{busy ? "Working…" : `Download PDF (${list.length})`}</button><span role="status" aria-live="polite" className="text-sm text-zinc-300">{status}</span></div>
-        </section>
-      </div>
+      <ToolStep n={3} id="ce-preview" title="Check the preview" hint={list.length ? "This is the first certificate. Every other name gets the same page with their own name." : "Add a name in step 1 and your certificate appears here."}>
+        <div ref={box} className="w-full overflow-hidden rounded-xl border border-white/[0.14]" style={{ height: H * scale }}>
+          <div style={{ transform: `scale(${scale})`, transformOrigin: "top left", width: W, height: H }}><Cert f={f} name={list[0] ?? ""} design={design} logo={logo} /></div>
+        </div>
+      </ToolStep>
+
+      <ToolStep n={4} id="ce-pdf" title="Save it as a PDF" done={status.startsWith("Done")} hint="Press the button. A PDF with one page per name downloads. Print it at 100% size on A4 paper, landscape.">
+        <div className="flex flex-wrap items-center gap-3"><button type="button" className="btn" disabled={!list.length || busy} onClick={make}>{busy ? "Working…" : `Download PDF (${list.length})`}</button><span role="status" aria-live="polite" className={`text-sm ${status.startsWith("Done") ? "text-emerald-300" : "text-zinc-300"}`}>{status || (list.length ? "" : "Add at least one name in step 1 first.")}</span></div>
+      </ToolStep>
       {/* Off-screen copy used to draw each page */}
       <div aria-hidden="true" style={{ position: "fixed", left: -99999, top: 0 }}><div ref={off}><Cert f={f} name={live} design={design} logo={logo} /></div></div>
     </div>

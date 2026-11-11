@@ -6,7 +6,7 @@ export default function GateScreen() {
     <div>
       <p className="text-sm font-semibold uppercase tracking-widest text-cyan">Event day</p>
       <h1 className="mt-1 text-3xl font-bold text-white sm:text-5xl">Gate check-in</h1>
-      <p className="mt-3 max-w-2xl text-zinc-300">Scan cards with the phone camera. Genuine passes show the person&apos;s photo, role and zones; copied or edited cards are rejected. Use an offline pack from the ID card maker, or Live mode with a gate key so every door shares one list.</p>
+      <p className="mt-3 max-w-2xl text-zinc-300">Point a phone camera at each guest&apos;s pass. A green tick means let them in; a red cross means stop. First choose how this phone gets the guest list, below.</p>
       <GateModes />
     </div>
   );

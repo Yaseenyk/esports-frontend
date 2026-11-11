@@ -33,7 +33,7 @@ export function MoreOptions({ info, setInfo }: { info: EventInfo; setInfo: (i: E
       <summary className="flex cursor-pointer list-none flex-wrap items-center justify-between gap-2 px-4 py-3 outline-none focus-visible:ring-2 focus-visible:ring-cyan">
         <span>
           <span className="font-display text-base font-bold text-white">More options</span>
-          <span className="ml-2 text-sm text-zinc-400">optional: back of the card, age check, signed QR</span>
+          <span className="ml-2 text-sm text-zinc-400">optional: back of the card, under-18 check, stop fake cards</span>
         </span>
         <span className="flex items-center gap-2 text-xs text-zinc-400">
           <span>{prettyDate(info.date)}</span><span aria-hidden="true">·</span><span>{info.sign ? "signed QR on" : "signed QR off"}</span><span aria-hidden="true">·</span><span>{rules} {rules === 1 ? "rule" : "rules"}</span>
@@ -53,18 +53,18 @@ export function MoreOptions({ info, setInfo }: { info: EventInfo; setInfo: (i: E
           </div>
         </div>
         <div className="space-y-3">
-          <h3 className="text-sm font-bold text-white">Age check</h3>
+          <h3 className="text-sm font-bold text-white">Under-18 check</h3>
           <Field label="Event date" hint="Anyone under 18 on this date is flagged, so you can collect a guardian's consent before printing."><input type="date" className="field mt-1" value={info.date} onChange={(e) => set({ date: e.target.value })} /></Field>
         </div>
         <div className="space-y-3">
-          <h3 className="text-sm font-bold text-white">Signed QR codes</h3>
+          <h3 className="text-sm font-bold text-white">Stop fake cards (signed QR)</h3>
           <label className="flex items-start gap-3 text-sm text-zinc-300">
             <input type="checkbox" checked={info.sign} onChange={(e) => set({ sign: e.target.checked, passphrase: e.target.checked && !info.passphrase ? randomPassphrase() : info.passphrase })} className="mt-0.5 h-5 w-5 accent-cyan" />
-            <span>Make copied or edited cards fail at the gate. The Check-in tool needs the same passphrase.</span>
+            <span>Make copied or edited cards fail at the gate. The gate phone needs the same secret word (passphrase) to check them.</span>
           </label>
           {info.sign && (
             <div className="space-y-2">
-              <Field label="Passphrase" hint="Keep it among the organisers. Anyone with it can make valid passes."><input className="field mt-1 font-mono" value={info.passphrase} onChange={(e) => set({ passphrase: e.target.value })} spellCheck={false} /></Field>
+              <Field label="Secret word (passphrase)" hint="Keep it among the organisers. Anyone who knows it can make passes that look real."><input className="field mt-1 font-mono" value={info.passphrase} onChange={(e) => set({ passphrase: e.target.value })} spellCheck={false} /></Field>
               <button type="button" className="chip" onClick={() => set({ passphrase: randomPassphrase() })}>Make a new one</button>
             </div>
           )}

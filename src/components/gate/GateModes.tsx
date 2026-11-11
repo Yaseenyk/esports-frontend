@@ -19,6 +19,7 @@ export default function GateModes() {
           <button type="button" role="tab" aria-selected={mode === "live"} onClick={() => setMode("live")} onPointerEnter={() => void import("@/components/cloud/LiveGate")} className={`chip ${mode === "live" ? "!border-cyan !text-cyan" : ""}`}>Live (online, several doors)</button>
         </div>
       )}
+      {hasBackend && <p className="mt-3 max-w-2xl text-sm text-zinc-300">{mode === "offline" ? "Offline pack: works with no internet. You load a file made on the Print step of the ID card maker. Best for one door." : "Live: every phone shares one list over the internet, so a pass cannot be used at two doors. You need a door code from the organiser."}</p>}
       {mode === "offline" ? <CheckIn /> : <LiveGate />}
     </>
   );

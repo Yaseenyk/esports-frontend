@@ -25,7 +25,8 @@ export default function ContactForm() {
     <form onSubmit={send} className="space-y-4 !text-zinc-200">
       <label className="block text-sm">Your name (optional)<input className="field mt-1" value={name} onChange={(e) => setName(e.target.value)} maxLength={80} autoComplete="name" /></label>
       <label className="block text-sm">Your email (optional, needed for a reply)<input className="field mt-1" type="email" value={email} onChange={(e) => setEmail(e.target.value)} maxLength={254} autoComplete="email" /></label>
-      <label className="block text-sm">Message<textarea className="field mt-1 min-h-32 py-2" value={message} onChange={(e) => setMessage(e.target.value)} minLength={10} maxLength={2000} required /></label>
+      <label className="block text-sm">Message<textarea className="field mt-1 min-h-32 py-2" value={message} onChange={(e) => setMessage(e.target.value)} minLength={10} maxLength={2000} required aria-describedby="cf-msg-help" /></label>
+      <p id="cf-msg-help" className="-mt-2 text-xs text-zinc-400">Say what you were doing and what went wrong or what you need. {message.trim().length < 10 ? `The Send button turns on after ${10 - message.trim().length} more character${10 - message.trim().length === 1 ? "" : "s"}.` : "Ready to send."}</p>
       <div aria-hidden="true" className="absolute -left-[9999px] h-0 w-0 overflow-hidden"><label>Leave this empty<input tabIndex={-1} autoComplete="off" value={website} onChange={(e) => setWebsite(e.target.value)} /></label></div>
       {state === "error" && <p role="alert" className="text-sm text-red-300">{err}</p>}
       <button className="btn" disabled={state === "sending" || message.trim().length < 10}>{state === "sending" ? "Sending…" : "Send message"}</button>

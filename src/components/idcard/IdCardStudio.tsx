@@ -33,10 +33,10 @@ const PRELOAD = [() => undefined, loadPeople, loadDesign, loadPrint];
 const STORE = "eh-idstudio-v3"; // designs and team names only; people and photos are never saved
 const STEPS = ["Event & teams", "People", "Design", "Print"];
 const GUIDE = [
-  "Name your event, pick the game and the shape of the card, and list your teams. Then tap Next.",
-  "Add everyone who needs a card: scan Aadhaar cards, import a sheet, or add by hand. Demo people are already here to try.",
-  "Choose how the cards look for each team. Tap a design to use it, then change anything you like.",
-  "Download the PDF to print at real size, or the PNG zip to share. Read the warnings first.",
+  "Type your event name and list your teams. Everything else on this screen can stay as it is. Then press Next.",
+  "Add the people who need a card. The easiest ways: add one by hand, or import a spreadsheet. Demo people are already here so you can try the next steps.",
+  "Pick a design for each team. Tap one to use it; you can change colours and text after. Not sure? Press Next and keep the default.",
+  "Last step: download the PDF to print at real size, or the PNG zip to share online. Read any warnings on this screen first.",
 ];
 const SAMPLE_TEAMS: Team[] = [{ id: "t1", name: "Konkan Kings" }, { id: "t2", name: "Deadly Duos" }, { id: "t3", name: "Pune Phantoms" }];
 /** Demo roster: invented names, dates and card numbers. */
@@ -103,6 +103,7 @@ export default function IdCardStudio() {
   // Passes signed by the server once the event is saved online. A code is only trusted while the person still has the role it was signed for.
   const [cloudCodes, setCloudCodes] = useState<Record<string, { code: string; role: Role }>>({});
   const [cloudOpen, setCloudOpen] = useState(false);
+  const [cloudTab, setCloudTab] = useState<string | undefined>(undefined); // which Online tab to land on
   const [projMenu, setProjMenu] = useState(false);
   const [openId, setOpenId] = useState<string | null>(null);
   // The dashboard links here with ?open=<event id>: open the Online panel and load that event.
@@ -290,7 +291,7 @@ export default function IdCardStudio() {
       <header className="no-print mb-4 flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
         <div>
         <h1 className="font-display text-2xl font-bold text-white sm:text-3xl">ID cards <span className="text-cyan">&amp;</span> passes</h1>
-        <p className="text-sm text-zinc-400"><span className="sm:hidden">Teams, people, design, print. Runs in your browser; demo data is loaded.</span><span className="hidden sm:inline">Set up your teams, add people (scan Aadhaar cards or import a sheet), design a card for each team, then print or download. Everything stays in your browser. Demo data is loaded so you can try it.</span></p>
+        <p className="text-sm text-zinc-400"><span className="sm:hidden">Four steps: teams, people, design, print. Demo data is loaded so you can try it.</span><span className="hidden sm:inline">Four steps: list your teams, add the people, pick a design, then print or download. Everything stays in your browser until you choose to save it online. Demo data is loaded so you can try it.</span></p>
         </div>
         <div className="w-full sm:w-auto">
           <LangSwitch className="mb-2 sm:hidden" />
@@ -328,10 +329,10 @@ export default function IdCardStudio() {
       <AnimatePresence mode="wait" initial={false}>
         <motion.div key={step} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.18 }}>
           {step === 0 && <SetupStep event={event} setEvent={setEvent} game={game} setGame={setGame} organiser={organiser} setOrganiser={setOrganiser} fmt={fmt} onFmt={(f) => { if (f === fmt) return; if (Object.keys(templates).length > 0 && !window.confirm("Changing the card shape starts every team's design again, because the layouts are different sizes. Continue?")) return; setFmt(f); setTemplates({}); }} teams={teams} setTeams={setTeams} people={people} setPeople={setPeople} info={info} setInfo={setInfo} />}
-          {step === 1 && <PeopleStep ocrLang={ocrLang} setOcrLang={setOcrLang} people={people} teams={teams} teamOpts={teamOpts} valid={valid} scanTeam={scanTeam} setScanTeam={setScanTeam} consent={consent} setConsent={setConsent} jobs={jobs} scan={scan} trySample={trySample} pdfAsk={pdfAsk} pdfPass={pdfPass} setPdfPass={setPdfPass} setPeople={setPeople} setTeams={setTeams} setPerson={setPerson} addPerson={addPerson} minorOf={minorOf} duplicates={duplicates} photo={photo} cutOutExisting={cutOutExisting} bgBusy={bgBusy} bgNote={bgNote} autoBg={autoBg} setAutoBg={setAutoBg} />}
+          {step === 1 && <PeopleStep ocrLang={ocrLang} setOcrLang={setOcrLang} people={people} teams={teams} teamOpts={teamOpts} valid={valid} onInvite={() => { setCloudTab("Player invites"); setCloudOpen(true); }} scanTeam={scanTeam} setScanTeam={setScanTeam} consent={consent} setConsent={setConsent} jobs={jobs} scan={scan} trySample={trySample} pdfAsk={pdfAsk} pdfPass={pdfPass} setPdfPass={setPdfPass} setPeople={setPeople} setTeams={setTeams} setPerson={setPerson} addPerson={addPerson} minorOf={minorOf} duplicates={duplicates} photo={photo} cutOutExisting={cutOutExisting} bgBusy={bgBusy} bgNote={bgNote} autoBg={autoBg} setAutoBg={setAutoBg} />}
           {step === 2 && dTeam && <DesignStep teamOpts={teamOpts} dTeam={dTeam} setDesignTeam={setDesignTeam} curTpl={curTpl} editView={editView} onEdit={onEdit} ctxFor={ctxFor} sample={sample} teamPeople={teamPeople} setPreviewId={setPreviewId} side={side} setSide={setSide} vibe={vibe} setVibe={setVibe} onFormat={changeFormat} applyTheme={(id) => applyTheme(id, [dTeam.id])} surprise={() => applyTheme(suggest(vibe, dTeam.name, fmtOf(curTpl)), [dTeam.id])} sameForAll={sameForAll} differentPerTeam={differentPerTeam} addBack={() => setTemplates((t) => ({ ...t, [dTeam.id]: withBack(curTpl) }))} rebuildBack={() => setTemplates((t) => ({ ...t, [dTeam.id]: { ...curTpl, back: buildBack(curTpl) } }))} toggleRoleBar={toggleRoleBar} roleBarOn={curTpl.els.some((e) => e.id.startsWith("rolebar"))} recolourFromLogo={recolourFromLogo} setTeamLogo={(logo) => setTeams((l) => l.map((x) => (x.id === dTeam.id ? { ...x, logo } : x)))} photoForSample={(f) => photo(sample.id, f)} onSaveDesign={saveDesign} onLoadDesign={loadDesign} />}
           {step === 3 && (
-            <PrintPanel people={printable} allPeople={people} teams={teams} teamOpts={teamOpts} printTeam={printTeam === "all" ? "all" : valid(printTeam)} setPrintTeam={setPrintTeam} tplFor={tplFor} teamById={teamById} ctxFor={ctxFor} event={event} info={info} minorOf={minorOf} duplicates={duplicates} needReview={needReview} onPrinted={() => award("card-shark", 20, "Card shark: printed your first ID cards")} />
+            <PrintPanel people={printable} allPeople={people} teams={teams} teamOpts={teamOpts} printTeam={printTeam === "all" ? "all" : valid(printTeam)} setPrintTeam={setPrintTeam} tplFor={tplFor} teamById={teamById} ctxFor={ctxFor} event={event} info={info} minorOf={minorOf} duplicates={duplicates} needReview={needReview} onPrinted={() => { try { localStorage.setItem("eh-idcards-printed", "1"); } catch {} award("card-shark", 20, "Card shark: printed your first ID cards"); }} />
           )}
         </motion.div>
       </AnimatePresence>
@@ -346,7 +347,8 @@ export default function IdCardStudio() {
           autoOpenId={openId}
           snapshot={{ event, game, organiser, info, teams, people }}
           minorOf={minorOf}
-          onClose={() => setCloudOpen(false)}
+          initialTab={cloudTab}
+          onClose={() => { setCloudOpen(false); setCloudTab(undefined); }}
           onCodes={(codes) => setCloudCodes(Object.fromEntries(Object.entries(codes).map(([id, code]) => [id, { code, role: peopleRef.current.find((p) => p.id === id)?.role ?? "Player" }])))}
           onPeople={(add) => setPeople((l) => [...l, ...add.filter((a) => !l.some((x) => x.id === a.id))])}
           onLoaded={(l) => { setEvent(l.details.name); setGame(l.details.game || game); setOrganiser(l.details.organiser || organiser); setInfo((i) => ({ ...i, date: l.details.date || i.date, venue: l.details.venue || i.venue, emergency: l.details.emergency || i.emergency, rules: l.details.rules || i.rules })); setTeams(l.teams.length ? l.teams : teams); setPeople(l.people); setTemplates((t) => Object.fromEntries(Object.entries(t).filter(([id]) => l.teams.some((x) => x.id === id)))); setStep(0); }}

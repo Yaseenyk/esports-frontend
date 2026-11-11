@@ -33,7 +33,7 @@ export default function InvitesPanel({ eventId, teams, people, onApproved }: { e
     try { const r = await events.newInvite(eventId, { teamId, label: t?.name ?? "Team", maxUses: uses, expiresInHours: 24 * 14 }); setFresh(linkFor("/join/", r.token)); load(); } catch (x) { setErr(explain(x)); } finally { setBusy(""); }
   };
   const revoke = (i: Invite) => {
-    if (!confirm(`Switch off the invite link for ${i.label}? Anyone who has it will see that it is no longer active.`)) return;
+    if (!confirm(`Switch off (revoke) the invite link for ${i.label}? Anyone who has it will see that it is no longer active.`)) return;
     events.revokeInvite(eventId, i.id).then(load).catch((x) => setErr(explain(x)));
   };
   const act = async (s: Submission, ok: boolean) => {
@@ -50,20 +50,20 @@ export default function InvitesPanel({ eventId, teams, people, onApproved }: { e
     <div className="space-y-5">
       <section className="space-y-3 rounded-xl border border-white/10 p-3">
         <h3 className="font-display font-bold text-white">Invite players</h3>
-        <p className="text-sm text-zinc-300">Send a team one link. Each player opens it, types their name and adds a photo. Nothing reaches the roster until you approve it below. No Aadhaar details are asked for.</p>
+        <p className="text-sm text-zinc-300">1. Choose the team and press Make link. 2. Copy the link and send it to the team (WhatsApp works well). 3. Each player opens it, types their name and adds a photo. 4. You approve each one below. Nobody joins the list until you approve. No Aadhaar details are asked for.</p>
         <form onSubmit={make} className="flex flex-wrap items-end gap-2">
           <label className="text-sm text-zinc-300">Team<select className="field mt-1" value={teamId} onChange={(e) => setTeam(e.target.value)}>{teams.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}</select></label>
-          <label className="text-sm text-zinc-300">Up to<input className="field mt-1 w-24" type="number" min={1} max={200} value={uses} onChange={(e) => setUses(Math.max(1, Number(e.target.value) || 1))} /></label>
-          <button className="btn !min-h-11 px-4 text-sm" disabled={busy === "make" || !teamId}>{busy === "make" ? "Making…" : "Make link (14 days)"}</button>
+          <label className="text-sm text-zinc-300">How many players can use it<input className="field mt-1 w-24" type="number" min={1} max={200} value={uses} onChange={(e) => setUses(Math.max(1, Number(e.target.value) || 1))} /></label>
+          <button className="btn !min-h-11 px-4 text-sm" disabled={busy === "make" || !teamId}>{busy === "make" ? "Making…" : "Make link (works for 14 days)"}</button>
         </form>
-        {fresh && <div role="status" className="space-y-2 rounded-xl border border-cyan/40 bg-cyan/10 p-3 text-sm"><p className="break-all font-mono text-xs text-cyan">{fresh}</p><button type="button" className="btn-ghost !min-h-9 px-3 text-sm" onClick={() => copy(fresh)}>Copy link</button></div>}
+        {fresh && <div role="status" className="space-y-2 rounded-xl border border-cyan/40 bg-cyan/10 p-3 text-sm"><p className="text-zinc-100">Link ready. Next: copy it and send it to the team.</p><p className="break-all font-mono text-xs text-cyan">{fresh}</p><button type="button" className="btn-ghost !min-h-9 px-3 text-sm" onClick={() => copy(fresh)}>Copy link</button></div>}
         {invites && invites.length > 0 && <ul className="space-y-1.5 text-sm">{invites.map((i) => <li key={i.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-white/10 px-3 py-2"><span className="text-zinc-200">{i.label} <span className="text-xs text-zinc-400">· used {i.uses}{i.maxUses ? ` of ${i.maxUses}` : ""}{i.revoked ? " · revoked" : ""}</span></span>{!i.revoked && <span className="flex gap-2">{i.token && <button type="button" className="chip !min-h-8" onClick={() => copy(linkFor("/join/", i.token))}>Copy link</button>}<button type="button" className="chip !min-h-8" onClick={() => revoke(i)}>Revoke</button></span>}</li>)}</ul>}
       </section>
 
       <section className="space-y-2 rounded-xl border border-white/10 p-3">
         <div className="flex items-center justify-between gap-2"><h3 className="font-display font-bold text-white">Waiting for approval {subs && subs.length > 0 ? `(${subs.length})` : ""}</h3><button type="button" className="chip !min-h-8" onClick={load}>Refresh</button></div>
-        {subs === null ? <p className="text-sm text-zinc-400">Loading…</p> : subs.length === 0 ? <p className="text-sm text-zinc-400">Nobody is waiting.</p> : (
-          <ul className="space-y-1.5 text-sm">{subs.map((s) => <li key={s.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-white/10 px-3 py-2"><span className="text-zinc-200">{s.name} <span className="text-xs text-zinc-400">· {s.team ?? "No team"} · {s.role}{s.minor ? " · minor" : ""}</span></span><span className="flex gap-2"><button type="button" className="btn !min-h-8 px-3 text-xs" disabled={busy === s.id} onClick={() => act(s, true)}>Approve</button><button type="button" className="chip !min-h-8" disabled={busy === s.id} onClick={() => act(s, false)}>Reject</button></span></li>)}</ul>
+        {subs === null ? <p className="text-sm text-zinc-400">Loading…</p> : subs.length === 0 ? <p className="text-sm text-zinc-400">Nobody is waiting. When a player sends their details, they show up here with Approve and Reject buttons.</p> : (
+          <ul className="space-y-1.5 text-sm">{subs.map((s) => <li key={s.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-white/10 px-3 py-2"><span className="text-zinc-200">{s.name} <span className="text-xs text-zinc-400">· {s.team ?? "No team"} · {s.role}{s.minor ? " · minor" : ""}</span></span><span className="flex gap-2"><button type="button" className="btn !min-h-11 px-3 text-sm" disabled={busy === s.id} onClick={() => act(s, true)}>Approve</button><button type="button" className="chip !min-h-11" disabled={busy === s.id} onClick={() => act(s, false)}>Reject</button></span></li>)}</ul>
         )}
         <p className="text-xs text-zinc-400">A minor needs a guardian&apos;s consent recorded on the person&apos;s details before their card is printed.</p>
       </section>
@@ -77,7 +77,7 @@ export default function InvitesPanel({ eventId, teams, people, onApproved }: { e
           {pass && <button type="button" className="chip" onClick={() => events.unshare(eventId, whoId).then(() => setPass("")).catch((x) => setErr(explain(x)))}>Switch link off</button>}
         </div>
         {pass && <div role="status" className="space-y-2 rounded-xl border border-cyan/40 bg-cyan/10 p-3 text-sm"><p className="break-all font-mono text-xs text-cyan">{pass}</p><button type="button" className="btn-ghost !min-h-9 px-3 text-sm" onClick={() => copy(pass)}>Copy link</button></div>}
-        <p className="text-xs text-zinc-400">Save changes online first so the person exists on the server.</p>
+        <p className="text-xs text-zinc-400">The person must be saved online first: use the Save &amp; sync tab if the list is empty or out of date.</p>
       </section>
       <div aria-live="polite">{note && <p className="text-sm text-emerald-300">{note}</p>}{err && <p role="alert" className="text-sm text-red-300">{err}</p>}</div>
     </div>

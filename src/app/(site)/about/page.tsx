@@ -19,6 +19,7 @@ export default function Page() {
           <li><Link href="/tools/brackets/">Build a tournament bracket</Link> with seeds and byes.</li>
           <li><Link href="/tools/points-table/">Work out a battle royale points table</Link> with tie-breakers.</li>
           <li><Link href="/tools/check-in/">Check guests in at the gate</Link>, online or offline.</li>
+          <li><Link href="/tools/schedule/">Plan the day</Link>, <Link href="/tools/certificates/">print certificates</Link> and <Link href="/tools/registration/">collect team sign-ups</Link>. Not sure where to start? <Link href="/tools/">Pick the job you need done</Link>.</li>
           <li>Read the <Link href="/guides/">guides</Link> that explain how to run the whole event.</li>
         </ul>
       </section>
