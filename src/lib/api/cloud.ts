@@ -71,7 +71,12 @@ export const auth = {
   async register(email: string, name: string, password: string) { const r = await api.post<{ token: string; user: User }>("/auth/register", { email, name, password }); setSession(r); return r.user; },
   async login(email: string, password: string) { const r = await api.post<{ token: string; user: User }>("/auth/login", { email, password }); setSession(r); return r.user; },
   logout() { setSession(null); },
-  changePassword: (current: string, next: string) => api.post<{ ok: true }>("/auth/change-password", { current, next }),
+  async changePassword(current: string, next: string) {
+    const r = await api.post<{ ok: true; token?: string }>("/auth/change-password", { current, next });
+    // The server issues a fresh sign-in because every older one stops working when the password changes.
+    if (r.token && session) setSession({ token: r.token, user: session.user });
+    return { ok: true as const };
+  },
   async deleteAccount(password: string) { await api.post<{ ok: true }>("/auth/delete-account", { password }); setSession(null, "deleted"); },
 };
 

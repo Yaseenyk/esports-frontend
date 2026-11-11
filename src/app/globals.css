@@ -22,6 +22,7 @@
   .field { @apply min-h-11 w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 text-zinc-100 outline-none placeholder:text-zinc-500 focus:border-cyan focus-visible:ring-2 focus-visible:ring-cyan/40; }
   .chip { @apply inline-flex min-h-9 items-center rounded-full border border-zinc-700 px-3 text-sm text-zinc-300 transition-colors hover:border-zinc-500 hover:text-zinc-50; }
   .chip[aria-pressed="true"] { @apply border-cyan bg-cyan/10 text-cyan; }
+  @media (pointer: coarse) { .chip { @apply min-h-11; } }
   .btn { @apply inline-flex min-h-11 items-center justify-center rounded-lg bg-cyan px-4 font-semibold text-ink outline-none transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-white/60; }
   .btn-ghost { @apply inline-flex min-h-11 items-center justify-center rounded-lg border border-zinc-700 px-4 text-zinc-100 outline-none transition-colors hover:border-zinc-500 focus-visible:ring-2 focus-visible:ring-cyan; }
   .tag { @apply inline-flex items-center rounded-md bg-zinc-800 px-2 py-0.5 text-xs text-zinc-300; }
