@@ -8,6 +8,7 @@ import { LangSwitch } from "@/components/useLang";
 import { useSession } from "@/components/cloud/useSession";
 import { Sk } from "@/components/skeleton/Sk";
 import HubNav, { type Section } from "@/components/HubNav";
+import VerifyScreen from "@/components/auth/VerifyScreen";
 import { useOrg } from "@/components/org/OrgContext";
 import { orgNav } from "@/lib/org";
 
@@ -32,7 +33,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const session = useSession();
   const path = usePathname() ?? "/app/";
   const router = useRouter();
-  const clubTab = orgNav(useOrg().ctx); // null until /me/context says clubs are on: the tabs are then exactly today's
+  const org = useOrg();
+  const clubTab = orgNav(org.ctx); // null until /me/context says clubs are on: the tabs are then exactly today's
   const [ready, setReady] = useState(false);
   useEffect(() => setReady(true), []);
   // One place decides where a signed-out person goes, so the Sign out button and an expired sign-in cannot race each other:
@@ -74,7 +76,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           <button type="button" onClick={signOut} className="btn-ghost !min-h-11 px-6">Sign out</button>
         </>}
       />
-      <main className="mx-auto max-w-[1500px] px-4 pb-16 pt-8">{children}</main>
+      <main className="mx-auto max-w-[1500px] px-4 pb-16 pt-8">{org.ctx?.user.verifyRequired ? <VerifyScreen email={org.ctx.user.email} refresh={org.refresh} /> : children}</main>
     </div>
   );
 }

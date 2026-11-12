@@ -11,7 +11,7 @@ test("the sign-in page explains a wrong password plainly and passes the accessib
   await page.getByLabel("Email").fill("a@example.com");
   await page.getByLabel("Password").fill("wrong-password");
   await page.getByRole("button", { name: "Sign in", exact: true }).last().click();
-  await expect(page.getByRole("alert").filter({ hasText: /email or password is not right/i })).toBeVisible();
+  await expect(page.getByRole("alert").filter({ hasText: /email and password do not match/i })).toBeVisible();
   const bad = (await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze()).violations.filter((v) => v.impact === "serious" || v.impact === "critical");
   expect(bad.map((v) => v.id)).toEqual([]);
 });
@@ -106,7 +106,7 @@ test("the sign-in form can show the password and does not offer a second Sign in
   const pw = page.getByLabel("Password", { exact: true });
   await pw.fill("correct horse");
   await expect(pw).toHaveAttribute("type", "password");
-  await page.getByLabel("Show characters").check();
+  await page.getByRole("button", { name: "Show characters" }).click(); // an eye button now, not a checkbox
   await expect(pw).toHaveAttribute("type", "text");
   await expect(pw).toHaveAttribute("autocomplete", "current-password");
   await expect(page.getByLabel("Email")).toHaveAttribute("autocomplete", "username");

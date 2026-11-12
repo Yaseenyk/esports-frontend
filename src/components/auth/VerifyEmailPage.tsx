@@ -49,7 +49,7 @@ export default function VerifyEmailPage() {
   else if (phase === "reading" || phase === "working") body = <p role="status" className="text-zinc-300">Checking your link...</p>;
   else if (phase === "missing") body = <p role="alert" className="text-zinc-200">This page needs the link from your email. Open the link in the email again.</p>;
   else if (phase === "signin") body = <div><p role="alert" className="text-zinc-200">Sign in with the account you made, then this page confirms your email.</p><Link className="btn mt-4 w-full" href="/login/">Sign in</Link></div>;
-  else if (phase === "done") body = <p role="status" className="text-emerald-100">Your email is confirmed. You can close this page.</p>;
+  else if (phase === "done") body = <div><p role="status" className="text-emerald-100">Your email is confirmed.</p><Link className="btn mt-4 w-full" href="/app/">Open the app</Link></div>;
   else if (phase === "expired") body = (
     <div>
       <p role="alert" className="text-zinc-200">This link has expired or was already used. Links work once, for 30 minutes.</p>
