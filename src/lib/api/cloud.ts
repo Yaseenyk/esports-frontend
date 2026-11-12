@@ -70,6 +70,8 @@ setAuthFailHandler(() => { if (session) setSession(null, "expired"); });
 
 export const auth = {
   async register(email: string, name: string, password: string) { const r = await api.post<{ token: string; user: User }>("/auth/register", { email, name, password }); setSession(r); return r.user; },
+  /** Google sign-in: the server checks the ID token. A new account also needs the 18+ confirmation (adult). */
+  async google(credential: string, adult: boolean) { const r = await api.post<{ token: string; user: User; passwordReset?: boolean }>("/auth/google", { credential, ...(adult ? { adult: true } : {}) }); setSession({ token: r.token, user: r.user }); return r; },
   async login(email: string, password: string) { const r = await api.post<{ token: string; user: User }>("/auth/login", { email, password }); setSession(r); return r.user; },
   logout() { setSession(null); },
   /** Asks for a reset link. The server answers the same whether or not the account exists. Sent once, never retried. */

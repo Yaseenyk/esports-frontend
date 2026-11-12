@@ -98,3 +98,31 @@ test("signup asks for the 18+ confirmation and sends nothing until it is ticked"
   await page.getByRole("button", { name: "Create account" }).click();
   await expect.poll(() => sent).toBe(1);
 });
+
+test("Continue with Google: needs the 18+ tick to create an account, sends the token, and a missing account explains itself on sign-in", async ({ page }) => {
+  await preflight(page);
+  await page.addInitScript(() => {
+    const w = window as unknown as { __cb?: (r: { credential: string }) => void; google: unknown };
+    w.google = { accounts: { id: { initialize: (o: { callback: (r: { credential: string }) => void }) => { w.__cb = o.callback; }, renderButton: () => {} } } };
+  });
+  const bodies: Record<string, unknown>[] = [];
+  let reply: { status: number; body: unknown } = { status: 201, body: { token: "t", user: { id: "u", email: "a@example.com", name: "A" }, created: true } };
+  await page.route("**/auth/google", (r) => { bodies.push(r.request().postDataJSON()); return r.fulfill(json(reply.body, reply.status)); });
+
+  await page.goto("/signup/");
+  const wrap = page.getByTestId("google-button");
+  await expect(wrap).toHaveAttribute("aria-disabled", "true");
+  await page.getByLabel(/I am 18 or older/).check();
+  await expect(wrap).not.toHaveAttribute("aria-disabled", "true");
+  await page.evaluate(() => (window as unknown as { __cb: (r: { credential: string }) => void }).__cb({ credential: "tok" }));
+  await expect.poll(() => bodies.length).toBe(1);
+  expect(bodies[0]).toEqual({ credential: "tok", adult: true });
+
+  reply = { status: 400, body: { error: "Confirm that you are 18 or older to create an account", code: "adult_required" } };
+  await page.evaluate(() => { localStorage.clear(); sessionStorage.clear(); });
+  await page.goto("/login/");
+  await expect(page.getByTestId("google-button")).not.toHaveAttribute("aria-disabled", "true");
+  await page.evaluate(() => (window as unknown as { __cb: (r: { credential: string }) => void }).__cb({ credential: "tok2" }));
+  await expect(page.getByRole("alert").filter({ hasText: /[^ ]/ }).filter({ hasText: /no account for that Google address/i })).toBeVisible();
+  expect(bodies[1]).toEqual({ credential: "tok2" });
+});

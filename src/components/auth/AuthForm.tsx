@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useRef, useState } from "react";
-import { auth, authMessage } from "@/lib/api/cloud";
+import { auth, authMessage, explain } from "@/lib/api/cloud";
+import GoogleButton from "./GoogleButton";
 
 /**
  * Sign in or create an account. Used by the /login and /signup pages and by the Online panel.
@@ -23,6 +24,20 @@ export default function AuthForm({ initialMode = "login", onDone, intro, showTab
       if (mode === "login") await auth.login(email.trim(), pw); else await auth.register(email.trim(), name.trim() || "Organiser", pw);
       onDone?.();
     } catch (x) { setErr(authMessage(x, mode)); } finally { sending.current = false; setBusy(false); }
+  };
+
+  const withGoogle = async (credential: string) => {
+    if (sending.current) return;
+    sending.current = true; setBusy(true); setErr("");
+    try {
+      await auth.google(credential, mode === "register" && adult);
+      onDone?.();
+    } catch (x) {
+      const code = (x as { detail?: { code?: string } })?.detail?.code;
+      setErr(code === "adult_required"
+        ? "There is no account for that Google address yet. Choose Create account, tick the box that says you are 18 or older, then continue with Google."
+        : explain(x));
+    } finally { sending.current = false; setBusy(false); }
   };
 
   return (
@@ -51,6 +66,9 @@ export default function AuthForm({ initialMode = "login", onDone, intro, showTab
       {mode === "login" && <p className="-mt-1"><Link className="inline-flex min-h-11 items-center text-sm text-cyan underline" href={email.trim() ? `/forgot-password/?email=${encodeURIComponent(email.trim())}` : "/forgot-password/"}>Forgot password?</Link></p>}
       <div aria-live="polite">{err && <p role="alert" className="text-sm text-red-300">{err}</p>}</div>
       <button className="btn w-full" disabled={busy}>{busy ? "Please wait…" : mode === "login" ? "Sign in" : "Create account"}</button>
+      <div className="flex items-center gap-3 text-xs text-zinc-400" aria-hidden="true"><span className="h-px flex-1 bg-white/10" />or<span className="h-px flex-1 bg-white/10" /></div>
+      <GoogleButton onCredential={withGoogle} disabled={busy || (mode === "register" && !adult)} />
+      {mode === "register" && !adult && <p className="text-center text-xs text-zinc-400">Tick the 18+ box to use Google.</p>}
     </form>
   );
 }
