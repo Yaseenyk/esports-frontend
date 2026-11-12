@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { events, explain, type Members } from "@/lib/api/cloud";
+import { addMemberMessage } from "@/lib/insights";
 
 /** Give other organisers access to one event. Owner only. */
 export default function MembersPanel({ eventId }: { eventId: string }) {
@@ -14,7 +15,7 @@ export default function MembersPanel({ eventId }: { eventId: string }) {
 
   const add = async (e: React.FormEvent) => {
     e.preventDefault(); setErr(""); setMsg(""); setBusy(true);
-    try { const m = await events.addMember(eventId, email.trim(), role); setMsg(`${m.name} now has ${m.role === "editor" ? "edit" : "view-only"} access.`); setEmail(""); load(); }
+    try { const m = await events.addMember(eventId, email.trim(), role); setMsg(addMemberMessage(m, email.trim())); setEmail(""); load(); }
     catch (x) { setErr((x as { status?: number }).status === 404 ? "There is no account with that email. Ask them to create a free account first, then add them." : (x as { status?: number }).status === 409 ? "That is the owner of this event." : explain(x)); }
     finally { setBusy(false); }
   };

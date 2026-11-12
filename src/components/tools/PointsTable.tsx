@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { sendEvent } from "@/lib/track";
 import { useMemo, useState } from "react";
 import { EXAMPLE_SCALE, parsePlacement, standings, type TeamEntry } from "@/lib/points";
 import ScreenButtons from "@/components/display/ScreenButtons";
@@ -42,7 +43,7 @@ export default function PointsTable({ preset }: { /** A game landing page: the s
   const csv = () => {
     const head = ["Rank", "Team", ...Array.from({ length: matches }, (_, i) => `Match ${i + 1}`), "Placement points", "Kill points", "Total"];
     const rows = table.map((s) => [s.rank, s.name, ...s.perMatch, s.placementPoints, s.killPoints, s.total]);
-    downloadBlob(new Blob([[head, ...rows].map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\r\n")], { type: "text/csv" }), "points-table.csv");
+    downloadBlob(new Blob([[head, ...rows].map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\r\n")], { type: "text/csv" }), "points-table.csv"); sendEvent("tool_complete", "points-table");
   };
   const loadExampleScale = () => { setScaleText(EXAMPLE_SCALE.placement.join(", ")); setKill(EXAMPLE_SCALE.perKill); };
   const scaleSample = placement ? placement.slice(0, 3).map((p, i) => `${ord(i + 1)} place gets ${p} point${p === 1 ? "" : "s"}`).join(", ") : "";

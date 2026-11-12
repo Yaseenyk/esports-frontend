@@ -1,6 +1,7 @@
 "use client";
 
 import { Fragment, useMemo, useState } from "react";
+import { sendEvent } from "@/lib/track";
 import ToolStep from "./ToolStep";
 import ScreenButtons from "@/components/display/ScreenButtons";
 import NumberField from "./NumberField";
@@ -21,7 +22,7 @@ export default function ScheduleMaker() {
     if (!slots) return;
     const q = (c: unknown) => `"${String(c).replace(/"/g, '""')}"`;
     const rows = [["Slot", "Start", "End", "Matches", "Break after (min)"], ...slots.map((s) => [s.slot, s.start, s.end, s.matches.map((m) => `M${m}`).join(" "), s.breakAfter || ""])];
-    downloadBlob(new Blob([rows.map((r) => r.map(q).join(",")).join("\r\n")], { type: "text/csv" }), "schedule.csv");
+    downloadBlob(new Blob([rows.map((r) => r.map(q).join(",")).join("\r\n")], { type: "text/csv" }), "schedule.csv"); sendEvent("tool_complete", "schedule");
   };
 
   const plural = (n: number, w: string) => `${n} ${w}${n === 1 ? "" : "s"}`;

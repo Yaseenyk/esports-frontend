@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { sendEvent } from "@/lib/track";
 import { downloadBlob } from "@/lib/idcard/download";
 import { fixContrast, useBrand } from "@/lib/brand";
 import ToolStep from "./ToolStep";
@@ -90,7 +91,7 @@ export default function CertificateMaker() {
         if (i) doc.addPage();
         doc.addImage(url, "JPEG", 0, 0, 297, 210);
       }
-      downloadBlob(doc.output("blob"), "certificates.pdf");
+      downloadBlob(doc.output("blob"), "certificates.pdf"); sendEvent("tool_complete", "certificates");
       setStatus(`Done: ${list.length} certificate${list.length === 1 ? "" : "s"} in certificates.pdf.`);
     } catch { setStatus("Could not make the PDF. Try fewer names at a time."); } finally { setBusy(false); setLive(null); }
   }, [list, busy]);

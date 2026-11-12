@@ -3,6 +3,7 @@
 import AccountPanel from "@/components/cloud/AccountPanel";
 import { LangSwitch } from "@/components/useLang";
 import { useSession } from "@/components/cloud/useSession";
+import ApiKeysPanel from "@/components/insights/ApiKeysPanel";
 import { ExportPanel } from "@/components/org/AccountPrivacy";
 
 export default function AccountPage() {
@@ -16,6 +17,7 @@ export default function AccountPage() {
       </div>
       <section className="card space-y-2"><h2 className="font-display font-bold text-white">Language</h2><LangSwitch /></section>
       <ExportPanel />
+      <ApiKeysPanel />
       <AccountPanel onDone={() => undefined /* the app shell sends a deleted account to the home page */} />
     </div>
   );

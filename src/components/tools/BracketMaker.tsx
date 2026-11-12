@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import { AnimatePresence, m as motion } from "framer-motion";
+import { sendEvent } from "@/lib/track";
 import { useEffect, useMemo, useState } from "react";
 import { useXp } from "@/components/XpProvider";
 import ScreenButtons from "@/components/display/ScreenButtons";
@@ -137,7 +138,7 @@ export default function BracketMaker() {
 
       <div className="no-print">
         <ToolStep n={3} id="bk-print" title="Print it" hint="Prints the bracket on its own, without the buttons and instructions. Choose Save as PDF in the print window to keep a file instead.">
-          <button type="button" className="btn px-5" disabled={!ready} onClick={() => window.print()}>Print the bracket</button>
+          <button type="button" className="btn px-5" disabled={!ready} onClick={() => { sendEvent("tool_complete", "brackets"); window.print(); }}>Print the bracket</button>
         </ToolStep>
       </div>
 

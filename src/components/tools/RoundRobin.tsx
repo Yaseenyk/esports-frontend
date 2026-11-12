@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { sendEvent } from "@/lib/track";
 import ScreenButtons from "@/components/display/ScreenButtons";
 import { leagueView } from "@/lib/display-views";
 import { downloadBlob } from "@/lib/idcard/download";
@@ -40,7 +41,7 @@ export default function RoundRobin() {
     const lines = kind === "fixtures"
       ? [["Round", "Team A", "Team B"], ...rounds.flatMap((rd, ri) => rd.map((f) => [ri + 1, f.a === BYE ? BYE_LABEL : f.a, f.b === BYE ? BYE_LABEL : f.b]))]
       : [["Rank", "Team", "Played", "Won", "Drawn", "Lost", "For", "Against", "Difference", "Points"], ...rows.map((r) => [r.rank, r.team, r.played, r.won, r.drawn, r.lost, r.for, r.against, r.diff, r.points])];
-    downloadBlob(new Blob([lines.map((l) => l.map(q).join(",")).join("\r\n")], { type: "text/csv" }), `round-robin-${kind}.csv`);
+    downloadBlob(new Blob([lines.map((l) => l.map(q).join(",")).join("\r\n")], { type: "text/csv" }), `round-robin-${kind}.csv`); sendEvent("tool_complete", "round-robin");
   };
 
   const th = "px-3 py-2";

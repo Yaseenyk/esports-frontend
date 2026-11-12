@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { sendEvent } from "@/lib/track";
 import ToolStep from "@/components/tools/ToolStep";
 import TeamsInput from "@/components/tools/TeamsInput";
 import NumberField from "@/components/tools/NumberField";
@@ -73,7 +74,7 @@ export default function PrintKits() {
   const download = async () => {
     const blob = await make();
     if (!blob) return;
-    downloadBlob(blob, `${kind}-kit.pdf`);
+    downloadBlob(blob, `${kind}-kit.pdf`); sendEvent("tool_complete", "print-kits");
     setStatus(`Done: ${pages.length} page${pages.length === 1 ? "" : "s"} saved as ${kind}-kit.pdf. Print it at 100% size (not "fit to page") on ${paper} paper.`);
   };
   const print = async () => {
@@ -82,7 +83,7 @@ export default function PrintKits() {
     const url = URL.createObjectURL(blob);
     const f = document.createElement("iframe");
     f.setAttribute("aria-hidden", "true"); f.style.cssText = "position:fixed;width:0;height:0;border:0;right:0;bottom:0";
-    f.onload = () => { try { f.contentWindow?.focus(); f.contentWindow?.print(); setStatus("The print window should be open. If nothing appeared, press Download PDF and print the file."); } catch { setError("Your browser did not open the print window. Press Download PDF and print the file instead."); } setTimeout(() => { f.remove(); URL.revokeObjectURL(url); }, 60000); };
+    f.onload = () => { try { f.contentWindow?.focus(); f.contentWindow?.print(); sendEvent("tool_complete", "print-kits"); setStatus("The print window should be open. If nothing appeared, press Download PDF and print the file."); } catch { setError("Your browser did not open the print window. Press Download PDF and print the file instead."); } setTimeout(() => { f.remove(); URL.revokeObjectURL(url); }, 60000); };
     f.src = url; document.body.appendChild(f);
   };
 

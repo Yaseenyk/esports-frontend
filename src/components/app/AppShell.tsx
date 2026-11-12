@@ -16,6 +16,7 @@ const TABS = [
   { href: "/app/id-cards/", label: "ID cards" },
   { href: "/app/check-in/", label: "Gate check-in" },
   { href: "/app/brackets/", label: "Brackets" },
+  { href: "/app/insights/", label: "Insights" },
   { href: "/app/account/", label: "Account" },
 ];
 

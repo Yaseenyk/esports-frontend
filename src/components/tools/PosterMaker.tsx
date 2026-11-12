@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { sendEvent } from "@/lib/track";
 import { cardFontVars } from "@/components/idcard/fonts";
 import { shareOrDownload } from "@/components/display/shareFile";
 import { logoFromFile } from "@/lib/extras-store";
@@ -64,14 +65,14 @@ export default function PosterMaker() {
     setBusy(true); setMsg(null);
     try {
       const r = await shareOrDownload(await make(), posterFileName(data.event, format), data.event || "Tournament poster");
-      setMsg(r === "cancelled" ? null : { ok: true, text: r === "shared" ? "Shared." : "Saved the picture. Open WhatsApp or Instagram and choose it from your gallery." });
+      if (r !== "cancelled") sendEvent("tool_complete", "poster"); setMsg(r === "cancelled" ? null : { ok: true, text: r === "shared" ? "Shared." : "Saved the picture. Open WhatsApp or Instagram and choose it from your gallery." });
     } catch (e) { setMsg({ ok: false, text: e instanceof Error ? e.message : "The picture could not be made. Try again." }); }
     setBusy(false);
   };
   const download = async () => {
     if (!ready || busy) return;
     setBusy(true); setMsg(null);
-    try { downloadBlob(await make(), posterFileName(data.event, format)); setMsg({ ok: true, text: "Saved the PNG picture." }); }
+    try { downloadBlob(await make(), posterFileName(data.event, format)); sendEvent("tool_complete", "poster"); setMsg({ ok: true, text: "Saved the PNG picture." }); }
     catch (e) { setMsg({ ok: false, text: e instanceof Error ? e.message : "The picture could not be made. Try again." }); }
     setBusy(false);
   };

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { sendEvent } from "@/lib/track";
 import { EXAMPLE_SCALE, standings } from "@/lib/points";
 import ThemePicker from "./ThemePicker";
 import ToolStep from "@/components/tools/ToolStep";
@@ -63,7 +64,7 @@ export default function DisplayDemo() {
         <ThemePicker value={theme} onChange={setTheme} />
       </ToolStep>
       <ToolStep n={3} id="dd-open" title="Press Open full screen" hint="Opens the screen in its own window, ready for a TV, projector or stream. Press F11 in that window to hide the browser bars."
-        actions={<a href={url || undefined} rel="noopener" target="eh-screen" className={`btn px-4 text-sm ${url ? "" : "pointer-events-none opacity-50"}`} aria-disabled={!url}>Open full screen</a>}>
+        actions={<a href={url || undefined} rel="noopener" target="eh-screen" onClick={() => { sendEvent("tool_complete", "display-screen"); }} className={`btn px-4 text-sm ${url ? "" : "pointer-events-none opacity-50"}`} aria-disabled={!url}>Open full screen</a>}>
         <div className="aspect-video w-full overflow-hidden rounded-xl border border-white/[0.14] bg-black">
           {url ? <iframe key={url} title={`Preview of the ${kindLabel} screen`} src={url} className="h-full w-full" loading="lazy" /> : <div className="grid h-full place-items-center text-sm text-zinc-400">Loading the preview…</div>}
         </div>

@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { sendEvent } from "@/lib/track";
 import ScreenButtons from "@/components/display/ScreenButtons";
 import TeamsInput from "@/components/tools/TeamsInput";
 import ToolStep from "@/components/tools/ToolStep";
@@ -49,6 +50,8 @@ export default function GroupsTool() {
   const picks = pickState.sig === sig ? pickState.map : {};
   const played = useMemo(() => playKnockout(ko.matches, picks), [ko, picks]);
   const decided = played.matches.filter((m) => m.winner).length;
+  const crowned = Boolean(played.champion);
+  useEffect(() => { if (crowned) sendEvent("tool_complete", "groups"); }, [crowned]);
   const koTotal = ko.matches.length;
 
   const payload = useMemo(() => {

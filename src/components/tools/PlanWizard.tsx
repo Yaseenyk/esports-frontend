@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { sendEvent } from "@/lib/track";
 import { Fragment, useMemo, useState } from "react";
 import ToolStep from "./ToolStep";
 import NumberField from "./NumberField";
@@ -37,7 +38,7 @@ export default function PlanWizard() {
   const num = (k: "teams" | "rooms" | "hours" | "perLobby" | "matchLength" | "gap" | "breakEvery" | "breakLength", label: string, min: number, max: number, hint?: string, shown?: number, decimal = false) => (
     <NumberField label={label} value={shown ?? (i[k] as number)} min={min} max={max} decimal={decimal} hint={hint} onChange={(n) => setI((x) => ({ ...x, [k]: n }))} />
   );
-  const copy = async () => { try { await navigator.clipboard.writeText(pack); setCopied("yes"); } catch { setCopied("no"); } setTimeout(() => setCopied(""), 2500); };
+  const copy = async () => { try { await navigator.clipboard.writeText(pack); setCopied("yes"); sendEvent("tool_complete", "plan"); } catch { setCopied("no"); } setTimeout(() => setCopied(""), 2500); };
   const slug = (event.trim() || "tournament-plan").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "tournament-plan";
 
   return (
@@ -146,7 +147,7 @@ export default function PlanWizard() {
               <pre className="max-h-80 overflow-auto whitespace-pre-wrap rounded-xl border border-white/[0.14] bg-[#0f1013] p-3 text-sm text-zinc-200" tabIndex={0} aria-label="Tournament pack text">{pack}</pre>
               <div className="flex flex-wrap items-center gap-3">
                 <button type="button" className="btn px-4 text-sm" onClick={copy}>{copied === "yes" ? "Copied" : "Copy the pack"}</button>
-                <button type="button" className="btn-ghost px-4 text-sm" onClick={() => downloadBlob(new Blob([pack], { type: "text/plain" }), `${slug}.txt`)}>Download as text</button>
+                <button type="button" className="btn-ghost px-4 text-sm" onClick={() => { downloadBlob(new Blob([pack], { type: "text/plain" }), `${slug}.txt`); sendEvent("tool_complete", "plan"); }}>Download as text</button>
                 <button type="button" className="btn-ghost px-4 text-sm" onClick={() => downloadBlob(new Blob([buildPack(ok, { event, preset }, "md")], { type: "text/markdown" }), `${slug}.md`)}>Download as Markdown</button>
                 <span role="status" aria-live="polite" className={`text-sm ${copied === "yes" ? "text-emerald-300" : "text-amber-200"}`}>{copied === "yes" ? "Copied. Now paste it where you want it." : copied === "no" ? "Your browser did not allow copying. Select the text above and copy it yourself." : ""}</span>
               </div>

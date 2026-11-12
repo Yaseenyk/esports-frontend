@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { sendEvent } from "@/lib/track";
 import { useMemo, useState } from "react";
 import { downloadBlob } from "@/lib/idcard/download";
 import ToolStep from "./ToolStep";
@@ -30,8 +31,8 @@ export default function RegistrationTemplate() {
       <ToolStep n={2} id="rg-copy" title="Copy or download the form" done={copied === "yes"} hint="Press Copy, then paste it into Google Forms, WhatsApp or a document. Each numbered line is one question to ask. It works without an account.">
         <pre className="max-h-72 overflow-auto whitespace-pre-wrap rounded-xl border border-white/[0.14] bg-[#0f1013] p-3 text-sm text-zinc-200" tabIndex={0} aria-label="Registration form text">{text}</pre>
         <div className="flex flex-wrap items-center gap-3">
-          <button type="button" className="btn px-4 text-sm" onClick={async () => { try { await navigator.clipboard.writeText(text); setCopied("yes"); } catch { setCopied("no"); } setTimeout(() => setCopied(""), 2500); }}>{copied === "yes" ? "Copied" : "Copy the form"}</button>
-          <button type="button" className="btn-ghost px-4 text-sm" onClick={() => downloadBlob(new Blob([text], { type: "text/plain" }), "registration-form.txt")}>Download as a text file</button>
+          <button type="button" className="btn px-4 text-sm" onClick={async () => { try { await navigator.clipboard.writeText(text); setCopied("yes"); sendEvent("tool_complete", "registration"); } catch { setCopied("no"); } setTimeout(() => setCopied(""), 2500); }}>{copied === "yes" ? "Copied" : "Copy the form"}</button>
+          <button type="button" className="btn-ghost px-4 text-sm" onClick={() => { downloadBlob(new Blob([text], { type: "text/plain" }), "registration-form.txt"); sendEvent("tool_complete", "registration"); }}>Download as a text file</button>
           <span role="status" aria-live="polite" className={`text-sm ${copied === "yes" ? "text-emerald-300" : "text-amber-200"}`}>{copied === "yes" ? "Copied. Now paste it where you want it." : copied === "no" ? "Your browser did not allow copying. Select the text above and copy it yourself." : ""}</span>
         </div>
       </ToolStep>

@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { sendEvent } from "@/lib/track";
 import ScreenButtons from "@/components/display/ScreenButtons";
 import WinnersBlock from "@/components/display/WinnersBlock";
 import { doubleElimView } from "@/lib/display-views";
@@ -49,6 +50,8 @@ export default function DoubleElimination() {
   };
 
   const champion = bracket ? championOf(bracket, picks) : null;
+  const crowned = Boolean(champion);
+  useEffect(() => { if (crowned) sendEvent("tool_complete", "double-elimination"); }, [crowned]);
   const screen = useMemo(() => (bracket ? doubleElimView(bracket, picks) : null), [bracket, picks]);
   // Second: the other team in the deciding final. Third: whoever lost the losers final.
   const podium = useMemo(() => {

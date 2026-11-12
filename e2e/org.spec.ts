@@ -24,7 +24,7 @@ test("flag off or no club: the navigation is exactly today's and only /me/contex
   await signedIn(page, [], { context: ctx([team()], false) });
   await page.goto("/app/");
   const nav = page.getByRole("navigation", { name: "App" });
-  await expect(nav.getByRole("link")).toHaveText(["Home", "Events", "ID cards", "Gate check-in", "Brackets", "Account"]);
+  await expect(nav.getByRole("link")).toHaveText(["Home", "Events", "ID cards", "Gate check-in", "Brackets", "Insights", "Account"]);
   await page.goto("/app/org/");
   await expect(page.getByText("Clubs are not available yet.")).toBeVisible();
   expect(unmockedCalls.get(page)).toEqual([]);

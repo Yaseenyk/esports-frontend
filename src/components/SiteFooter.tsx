@@ -23,7 +23,7 @@ const TILE: Record<string, { label: string; d: string }> = {
 
 /** The guides worth a place in the footer, by slug. The rest are one click away on the guides page. */
 const FEATURED: [string, string][] = [["run-a-campus-tournament", "Run a college tournament"], ["esports-tournament-rules-template", "Tournament rules template"], ["choosing-a-tournament-format", "Choosing a format"], ["free-fire-tournament-organiser", "Free Fire tournaments"], ["bgmi-custom-room-tournament", "BGMI custom rooms"], ["valorant-tournament-organiser", "Valorant tournaments"], ["tournament-bracket-template", "Bracket template"], ["student-id-card-format", "Student ID card format"], ["qr-code-attendance", "QR code attendance"], ["tournament-registration-form-fields", "Registration form fields"]];
-const LEGAL: [string, string][] = [["Free tournament software compared", "/compare/free-tournament-software-india/"], ["About", "/about/"], ["Contact", "/contact/"], ["Privacy", "/privacy/"], ["Terms", "/terms/"]];
+const LEGAL: [string, string][] = [["Free tournament software compared", "/compare/free-tournament-software-india/"], ["About", "/about/"], ["Developers", "/developers/"], ["Contact", "/contact/"], ["Privacy", "/privacy/"], ["Terms", "/terms/"]];
 
 function Hex({ slug }: { slug: string }) {
   const t = TILE[slug]; const tool = TOOLS.find((x) => x.slug === slug);

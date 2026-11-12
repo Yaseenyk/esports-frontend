@@ -20,6 +20,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...TOOLS.map((t) => at(t.href, 0.9, TOOL_PAGES[t.slug]?.updated ?? HEADINGS)),
     ...GROWTH_PAGES.map((p) => at(p.path, p.priority, p.updated)),
     ...GUIDES.map((g) => at(`/guides/${g.slug}/`, 0.8, g.updated)),
-    at("/about/", 0.4), at("/contact/", 0.3), at("/privacy/", 0.2), at("/terms/", 0.2),
+    at("/about/", 0.4), at("/developers/", 0.3), at("/contact/", 0.3), at("/privacy/", 0.2), at("/terms/", 0.2),
   ];
 }
