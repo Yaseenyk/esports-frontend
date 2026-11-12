@@ -1,4 +1,4 @@
-import type { Page } from "@playwright/test";
+import { expect, type Page } from "@playwright/test";
 
 const API = "**/esports-api.yaseenyk.workers.dev/**";
 export const json = (body: unknown, status = 200) => ({ status, contentType: "application/json", headers: { "access-control-allow-origin": "*" }, body: JSON.stringify(body) });
@@ -69,4 +69,12 @@ export async function openPanel(page: Page, group: "run" | "share" | "settings",
   if (!(await g.evaluate((d) => (d as HTMLDetailsElement).open))) await g.locator("> summary").click();
   const p = g.locator(`details[data-panel="${id}"]`);
   if (!(await p.evaluate((d) => (d as HTMLDetailsElement).open))) await p.locator("> summary").click();
+}
+
+/** Opens the hub menu in the app header (the same honeycomb menu as the home page) and returns its "App" navigation. */
+export async function appNav(page: Page) {
+  const dlg = page.getByRole("dialog", { name: "Hub menu" });
+  await expect(dlg).toBeHidden();
+  await page.getByRole("button", { name: "Open the hub menu" }).click();
+  return dlg.getByRole("navigation", { name: "App" });
 }

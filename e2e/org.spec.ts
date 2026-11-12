@@ -1,6 +1,6 @@
 // Club screens (Phase 2a-ii), server mocked. Everything sits behind GET /me/context features.teamOrgs.
 import { expect, test, type Page } from "@playwright/test";
-import { json, mockContext, signedIn, unmockedCalls } from "./helpers";
+import { appNav, json, mockContext, signedIn, unmockedCalls } from "./helpers";
 
 const A = "**/esports-api.yaseenyk.workers.dev";
 const ALL = ["org.read", "org.people.manage", "org.events.create", "org.audit.read"];
@@ -23,8 +23,8 @@ const members = (youRole = "admin") => ({ role: youRole, members: [
 test("flag off or no club: the navigation is exactly today's and only /me/context is called extra", async ({ page }) => {
   await signedIn(page, [], { context: ctx([team()], false) });
   await page.goto("/app/");
-  const nav = page.getByRole("navigation", { name: "App" });
-  await expect(nav.getByRole("link")).toHaveText(["Home", "Events", "ID cards", "Gate check-in", "Brackets", "Insights", "Account"]);
+  const nav = await appNav(page);
+  await expect(nav.locator("a span.font-display:visible")).toHaveText(["Home", "Events", "ID cards", "Gate check-in", "Brackets", "Insights", "Account"]);
   await page.goto("/app/org/");
   await expect(page.getByText("Clubs are not available yet.")).toBeVisible();
   expect(unmockedCalls.get(page)).toEqual([]);
@@ -35,13 +35,13 @@ test("context call fails: the app still works and shows no club entry", async ({
   await page.route(`${A}/me/context`, (r) => r.fulfill(json({ error: "x" }, 500)));
   await page.goto("/app/");
   await expect(page.getByRole("heading", { name: /Welcome/ })).toBeVisible();
-  await expect(page.getByRole("navigation", { name: "App" }).getByRole("link", { name: "Your club" })).toHaveCount(0);
+  await expect((await appNav(page)).getByRole("link", { name: "Your club" })).toHaveCount(0);
 });
 
 test("a person with only their own space is offered 'Make it a club'", async ({ page }) => {
   await signedIn(page, [], { context: ctx([personal]) });
   await page.goto("/app/");
-  await expect(page.getByRole("navigation", { name: "App" }).getByRole("link", { name: "Make it a club" })).toBeVisible();
+  await expect((await appNav(page)).getByRole("link", { name: "Make it a club" })).toBeVisible();
 });
 
 test("club home shows counts and what needs you", async ({ page }) => {

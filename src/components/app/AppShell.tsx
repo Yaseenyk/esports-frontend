@@ -7,18 +7,21 @@ import { auth, sessionStore } from "@/lib/api/cloud";
 import { LangSwitch } from "@/components/useLang";
 import { useSession } from "@/components/cloud/useSession";
 import { Sk } from "@/components/skeleton/Sk";
+import HubNav, { type Section } from "@/components/HubNav";
 import { useOrg } from "@/components/org/OrgContext";
 import { orgNav } from "@/lib/org";
 
-const TABS = [
-  { href: "/app/", label: "Home" },
-  { href: "/app/events/", label: "Events" },
-  { href: "/app/id-cards/", label: "ID cards" },
-  { href: "/app/check-in/", label: "Gate check-in" },
-  { href: "/app/brackets/", label: "Brackets" },
-  { href: "/app/insights/", label: "Insights" },
-  { href: "/app/account/", label: "Account" },
+// The app uses the same floating pill and honeycomb menu as the public home page (HubNav); only the entries differ.
+const TABS: Section[] = [
+  { href: "/app/", label: "Home", blurb: "Your workspace", icon: "M3 11l9-8 9 8M5 10v10h5v-6h4v6h5V10" },
+  { href: "/app/events/", label: "Events", blurb: "Saved online", icon: "M4 6a2 2 0 012-2h12a2 2 0 012 2v13a2 2 0 01-2 2H6a2 2 0 01-2-2zM4 10h16M8 3v4M16 3v4" },
+  { href: "/app/id-cards/", label: "ID cards", blurb: "Passes & badges", icon: "M3 7a2 2 0 012-2h14a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2zM8 11a2 2 0 100-4 2 2 0 000 4zM5.5 16a3 3 0 015 0M14 9h4M14 13h4" },
+  { href: "/app/check-in/", label: "Gate check-in", blurb: "Scan at the door", icon: "M4 7V5a1 1 0 011-1h2M17 4h2a1 1 0 011 1v2M20 17v2a1 1 0 01-1 1h-2M7 20H5a1 1 0 01-1-1v-2M7 12h10" },
+  { href: "/app/brackets/", label: "Brackets", blurb: "Seeded bracket", icon: "M8 21h8M12 17v4M7 4h10v5a5 5 0 01-10 0zM17 5h3v2a3 3 0 01-3 3M7 5H4v2a3 3 0 003 3" },
+  { href: "/app/insights/", label: "Insights", blurb: "Usage & numbers", icon: "M4 20V10M10 20V4M16 20v-7M22 20H2" },
+  { href: "/app/account/", label: "Account", blurb: "Profile & security", icon: "M20 21v-1a5 5 0 00-5-5H9a5 5 0 00-5 5v1M12 11a4 4 0 100-8 4 4 0 000 8z" },
 ];
+const CLUB_ICON = "M16 20v-1a4 4 0 00-4-4H8a4 4 0 00-4 4v1M10 11a3.5 3.5 0 100-7 3.5 3.5 0 000 7zM20 20v-1a3.5 3.5 0 00-2.5-3.4M16 4.2a3.5 3.5 0 010 6.6";
 
 /**
  * The web app's frame. Everything under /app needs a signed-in account: someone who is not signed in is sent to the sign-in page
@@ -49,27 +52,29 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     );
   }
 
-  const active = (href: string) => (href === "/app/" ? path === "/app/" || path === "/app" : path.startsWith(href.slice(0, -1)));
+  const sections: Section[] = clubTab ? [...TABS.slice(0, -1), { href: clubTab.href, label: clubTab.label, blurb: "Team workspace", icon: CLUB_ICON }, ...TABS.slice(-1)] : TABS;
+  const signOut = () => { if (path.startsWith("/app/id-cards") && !window.confirm("Sign out? The people and designs on this screen are not saved in this browser, so they will be lost unless you saved a project file or saved the event online.")) return; auth.logout(); };
+  const initial = session.user.name.trim().charAt(0) || "?";
   return (
     <div className="min-h-[100svh]">
-      <header className="no-print sticky top-0 z-40 border-b border-white/[0.14] bg-[#070a0f]">
-        <div className="mx-auto flex max-w-[1500px] items-center justify-between gap-3 px-4 py-2.5">
-          <Link href="/app/" className="flex items-center gap-2 rounded-lg font-display text-[15px] font-bold tracking-tight text-white outline-none focus-visible:ring-2 focus-visible:ring-cyan">
-            Esports<span className="bg-gradient-to-r from-cyan to-purple bg-clip-text text-transparent">Hub</span><span className="rounded-md bg-white/10 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-zinc-300">App</span>
-          </Link>
-          <div className="flex items-center gap-3">
-            <LangSwitch className="hidden sm:flex" />
-            <span className="hidden max-w-[10rem] truncate text-sm text-zinc-300 md:block">{session.user.name}</span>
-            <button type="button" className="btn-ghost !min-h-9 px-3 text-sm" onClick={() => { if (path.startsWith("/app/id-cards") && !window.confirm("Sign out? The people and designs on this screen are not saved in this browser, so they will be lost unless you saved a project file or saved the event online.")) return; auth.logout(); }}>Sign out</button>
-          </div>
-        </div>
-        <nav aria-label="App" className="mx-auto flex max-w-[1500px] gap-1 overflow-x-auto px-3 pb-2 [scrollbar-width:none]">
-          {(clubTab ? [...TABS.slice(0, -1), clubTab, ...TABS.slice(-1)] : TABS).map((t) => (
-            <Link key={t.href} href={t.href} aria-current={active(t.href) ? "page" : undefined} className={`shrink-0 rounded-full border px-4 py-2 text-sm font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-cyan ${active(t.href) ? "border-cyan bg-[#0c1d27] text-cyan" : "border-transparent text-zinc-300 hover:border-white/20 hover:text-white"}`}>{t.label}</Link>
-          ))}
-        </nav>
-      </header>
-      <main className="mx-auto max-w-[1500px] px-4 pb-16 pt-6">{children}</main>
+      <HubNav
+        sections={sections}
+        home="/app/"
+        homeAria="Esports Hub app home"
+        navLabel="App"
+        combDesktop={sections.length > 7 ? [4, 4] : [3, 4]}
+        combMobile={sections.length > 7 ? [3, 3, 2] : [2, 3, 2]}
+        actions={<>
+          <span aria-hidden="true" title={session.user.email} className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-gradient-to-br from-cyan/25 to-purple/25 text-sm font-semibold uppercase text-white max-sm:hidden">{initial}</span>
+          <button type="button" onClick={signOut} className="hidden h-11 items-center rounded-full bg-white/5 px-4 text-sm font-medium text-zinc-200 outline-none transition-colors hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-cyan/60 sm:inline-flex">Sign out</button>
+        </>}
+        overlayExtra={<LangSwitch />}
+        overlayActions={<>
+          <span className="max-w-[10rem] truncate text-sm text-zinc-300">{session.user.name}</span>
+          <button type="button" onClick={signOut} className="btn-ghost !min-h-11 px-6">Sign out</button>
+        </>}
+      />
+      <main className="mx-auto max-w-[1500px] px-4 pb-16 pt-8">{children}</main>
     </div>
   );
 }

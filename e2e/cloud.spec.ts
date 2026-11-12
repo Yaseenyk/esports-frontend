@@ -74,7 +74,9 @@ test("the invite page can be read in Hindi and Marathi, and the choice is rememb
 test("the ID card steps speak the chosen language", async ({ page }) => {
   await signedIn(page);
   await page.goto("/app/id-cards/");
-  await page.getByRole("button", { name: "हिन्दी" }).click();
+  await page.getByRole("button", { name: "Open the hub menu" }).click(); // the language switch lives in the hub menu, like on the home page
+  await page.getByRole("dialog", { name: "Hub menu" }).getByRole("button", { name: "हिन्दी" }).click();
+  await page.keyboard.press("Escape");
   await expect(page.getByText(/चरण 1 \/ 4/)).toBeVisible();
   await expect(page.getByRole("button", { name: /आगे: लोग/ })).toBeVisible();
 });
@@ -135,7 +137,9 @@ test("an expired sign-in says so on the sign-in page and brings the person back"
 test("the Sign out button in the app header goes to a plain sign-in page", async ({ page }) => {
   await signedIn(page);
   await page.goto("/app/events/");
-  await page.getByRole("button", { name: "Sign out" }).click();
+  const out = page.getByRole("button", { name: "Sign out" });
+  if (!(await out.first().isVisible())) await page.getByRole("button", { name: "Open the hub menu" }).click(); // on a phone it is in the hub menu
+  await out.click();
   await expect(page).toHaveURL(/\/login\/$/);
   await expect(page.getByRole("status").filter({ hasText: /ran out/i })).toHaveCount(0);
 });

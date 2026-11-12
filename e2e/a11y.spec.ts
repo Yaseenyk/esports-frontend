@@ -35,7 +35,7 @@ for (const path of APP_PAGES) {
   test(`app page ${path} has no serious accessibility problems`, async ({ page }) => {
     await signedIn(page);
     await page.goto(path);
-    await expect(page.getByRole("navigation", { name: "App" })).toBeVisible();
+    await expect(page.getByRole("navigation", { name: "Main" })).toBeVisible();
     await page.waitForLoadState("networkidle");
     await page.waitForTimeout(900);
     const r = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa"]).exclude(".idcard-box").analyze();

@@ -3,6 +3,7 @@ const openMenu = async (page: import("@playwright/test").Page) => { const t = pa
 //   LIVE=1 PORT=4173 npx playwright test e2e/cloud.live.spec.ts --project=desktop
 // (4173 is one of the origins the backend allows. Build first with NEXT_PUBLIC_API_URL set.)
 import { expect, test } from "@playwright/test";
+import { appNav } from "./helpers";
 
 test.skip(!process.env.LIVE, "live backend test, run on request");
 test.describe.configure({ mode: "serial" });
@@ -21,7 +22,7 @@ test("sign up, save online, live check-in on a second page, pass link, invite an
   await page.getByRole("button", { name: "Create account" }).last().click();
   await expect(page).toHaveURL(/\/app\/$/, { timeout: 20_000 });
   await expect(page.getByRole("heading", { name: /Welcome, Live/ })).toBeVisible();
-  await page.getByRole("navigation", { name: "App" }).getByRole("link", { name: "ID cards" }).click();
+  await (await appNav(page)).getByRole("link", { name: "ID cards" }).click();
   await openMenu(page);
   await page.getByRole("button", { name: /^Online/ }).click();
   const dlg = page.getByRole("dialog", { name: "Cloud" });

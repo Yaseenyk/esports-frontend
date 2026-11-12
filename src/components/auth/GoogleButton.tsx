@@ -5,6 +5,9 @@ import { useEffect, useRef, useState } from "react";
 /** The public OAuth client id (not a secret). Same value as GOOGLE_CLIENT_ID in the Worker's wrangler.toml. */
 export const GOOGLE_CLIENT_ID = "799281032291-pc0pqmu29g0c4d5fddrmrqi0nrt3kff7.apps.googleusercontent.com";
 
+/** The origins registered for the OAuth client in Google Cloud. */
+const GOOGLE_ORIGINS = ["https://esports.streamerosai.com", "http://localhost:3000"];
+
 interface Gsi { accounts: { id: { initialize(o: { client_id: string; callback: (r: { credential?: string }) => void; use_fedcm_for_prompt?: boolean }): void; renderButton(el: HTMLElement, o: Record<string, unknown>): void } } }
 declare global { interface Window { google?: Gsi } }
 
@@ -12,6 +15,7 @@ let loading: Promise<Gsi | null> | null = null;
 /** Loads Google's sign-in script once, only on the sign-in and sign-up forms. Resolves null when it cannot load (offline, blocked). */
 function loadGsi(): Promise<Gsi | null> {
   if (window.google?.accounts?.id) return Promise.resolve(window.google);
+  if (!GOOGLE_ORIGINS.includes(window.location.origin)) return Promise.resolve(null); // Google only accepts the origins registered for the client; elsewhere (previews, tests) the button stays away
   loading ??= new Promise((done) => {
     const s = document.createElement("script");
     s.src = "https://accounts.google.com/gsi/client";

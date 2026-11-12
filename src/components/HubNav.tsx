@@ -9,7 +9,7 @@ import { useSession } from "@/components/cloud/useSession";
 import { useXp } from "./XpProvider";
 import SearchBox from "./SearchBox";
 
-interface Section { href: string; label: string; blurb: string; icon: string }
+export interface Section { href: string; label: string; blurb: string; icon: string }
 const SECTIONS: Section[] = [
   { href: "/tools/", label: "Tools", blurb: "All free tools", icon: "M3 7a2 2 0 012-2h14a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2zM8 11a2 2 0 100-4 2 2 0 000 4zM5.5 16a3 3 0 015 0M14 9h4M14 13h4" },
   { href: "/tools/id-cards/", label: "ID cards", blurb: "Passes & badges", icon: "M3 7a2 2 0 012-2h14a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2zM8 11a2 2 0 100-4 2 2 0 000 4zM5.5 16a3 3 0 015 0M14 9h4M14 13h4" },
@@ -19,6 +19,19 @@ const SECTIONS: Section[] = [
   { href: "/gate/", label: "Gate scanner", blurb: "Event-day check-in", icon: "M12 3l2.4 5 5.6.8-4 3.9.9 5.5L12 15.6 7.1 18.2 8 12.7 4 8.8 9.6 8z" },
   { href: "/about/", label: "About", blurb: "Who and why", icon: "M16 20v-1a4 4 0 00-4-4H8a4 4 0 00-4 4v1M10 11a3.5 3.5 0 100-7 3.5 3.5 0 000 7zM20 20v-1a3.5 3.5 0 00-2.5-3.4M16 4.2a3.5 3.5 0 010 6.6" },
 ];
+/** The same pill and honeycomb menu is used by the public site (defaults) and by the signed-in app (AppShell passes its own sections and actions). */
+export interface HubNavProps {
+  sections?: Section[];
+  home?: string; // where the wordmark goes
+  homeAria?: string;
+  homeText?: string; // what the pill says when no section matches
+  navLabel?: string; // when set, the honeycomb links are wrapped in a navigation landmark with this name
+  combDesktop?: number[];
+  combMobile?: number[];
+  actions?: React.ReactNode; // right end of the pill on wide screens (replaces Open app / Log in / Sign up)
+  overlayExtra?: React.ReactNode; // always shown under the honeycomb (for example the language switch)
+  overlayActions?: React.ReactNode; // shown under the honeycomb on phones (replaces Open the app / Log in / Sign up)
+}
 const HEX = "polygon(50% 0%, 93% 25%, 93% 75%, 50% 100%, 7% 75%, 7% 25%)";
 const EASE = [0.22, 1, 0.36, 1] as const;
 
@@ -26,10 +39,10 @@ function Icon({ d, className = "h-7 w-7" }: { d: string; className?: string }) {
   return <svg aria-hidden="true" viewBox="0 0 24 24" className={`${className} fill-none stroke-current`} strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d={d} /></svg>;
 }
 
-function Comb({ pattern, className, current, reduce }: { pattern: number[]; className: string; current?: string; reduce: boolean }) {
+function Comb({ sections, pattern, className, current, reduce }: { sections: Section[]; pattern: number[]; className: string; current?: string; reduce: boolean }) {
   const rows: Section[][] = [];
   let at = 0;
-  for (const n of pattern) { rows.push(SECTIONS.slice(at, at + n)); at += n; }
+  for (const n of pattern) { rows.push(sections.slice(at, at + n)); at += n; }
   return (
     <ul className={`flex flex-col ${className}`}>
       {rows.map((row, r) => (
@@ -63,7 +76,7 @@ function Comb({ pattern, className, current, reduce }: { pattern: number[]; clas
   );
 }
 
-export default function HubNav() {
+export default function HubNav({ sections = SECTIONS, home = "/", homeAria = "Esports Hub home", homeText = "Home", navLabel, combDesktop = [3, 4], combMobile = [2, 3, 2], actions, overlayExtra, overlayActions }: HubNavProps = {}) {
   const signedIn = !!useSession();
   const path = usePathname() ?? "/";
   const router = useRouter();
@@ -72,7 +85,7 @@ export default function HubNav() {
   const xp = useXp();
   const opener = useRef<HTMLElement | null>(null);
   const panel = useRef<HTMLDivElement>(null);
-  const current = [...SECTIONS].sort((x, y) => y.href.length - x.href.length).find((s) => path.startsWith(s.href.slice(0, -1)));
+  const current = [...sections].sort((x, y) => y.href.length - x.href.length).find((s) => path.startsWith(s.href.slice(0, -1)));
 
   const show = useCallback((from?: HTMLElement | null) => { opener.current = from ?? (document.activeElement as HTMLElement); setOpen(true); }, []);
   const hide = useCallback(() => { setOpen(false); opener.current?.focus?.(); }, []);
@@ -87,7 +100,7 @@ export default function HubNav() {
       if (!open && !typing && (e.key === "m" || e.key === "M") && !e.metaKey && !e.ctrlKey && !e.altKey) { e.preventDefault(); show(); return; }
       if (!open) return;
       if (e.key === "Escape") { e.preventDefault(); hide(); return; }
-      if (!typing && /^[1-7]$/.test(e.key)) { const to = SECTIONS[Number(e.key) - 1]!.href; if (to === path || to === path + "/") hide(); else router.push(to); }
+      if (!typing && /^[1-9]$/.test(e.key) && sections[Number(e.key) - 1]) { const to = sections[Number(e.key) - 1]!.href; if (to === path || to === path + "/") hide(); else router.push(to); }
       if (e.key === "Tab" && panel.current) {
         const f = Array.from(panel.current.querySelectorAll<HTMLElement>("a[href],button,input"));
         if (!f.length) return;
@@ -98,7 +111,7 @@ export default function HubNav() {
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
-  }, [open, show, hide, router, path]);
+  }, [open, show, hide, router, path, sections]);
   useEffect(() => {
     if (!open) return;
     const prev = document.body.style.overflow;
@@ -118,14 +131,14 @@ export default function HubNav() {
             <span aria-hidden="true" className="absolute inset-0 rounded-full bg-white/5 transition-colors group-hover:bg-white/10" />
             <motion.span whileHover={reduce ? undefined : { rotate: 60 }} transition={{ type: "spring", stiffness: 200, damping: 12 }} className="relative"><Mark className="h-8 w-8" /></motion.span>
           </button>
-          <Link href="/" className="shrink-0 rounded-full px-2 font-display text-[15px] font-bold tracking-tight text-white outline-none focus-visible:bg-white/10" aria-label="Esports Hub home">
+          <Link href={home} className="shrink-0 rounded-full px-2 font-display text-[15px] font-bold tracking-tight text-white outline-none focus-visible:bg-white/10" aria-label={homeAria}>
             Esports<span className="bg-gradient-to-r from-cyan to-purple bg-clip-text text-transparent">Hub</span>
           </Link>
           <span aria-hidden="true" className="mx-1 hidden h-5 w-px bg-white/10 sm:block" />
           <div className="relative hidden h-9 min-w-[5.5rem] flex-1 items-center overflow-hidden sm:flex" aria-live="polite">
             <AnimatePresence mode="wait" initial={false}>
               <motion.span key={current?.label ?? "Home"} initial={reduce ? false : { y: 16, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={reduce ? undefined : { y: -16, opacity: 0 }} transition={{ duration: 0.22 }} className="flex items-center gap-2 truncate text-sm text-zinc-300">
-                {current ? <><Icon d={current.icon} className="h-4 w-4 text-cyan" />{current.label}</> : <span className="text-zinc-400">Home</span>}
+                {current ? <><Icon d={current.icon} className="h-4 w-4 text-cyan" />{current.label}</> : <span className="text-zinc-400">{homeText}</span>}
               </motion.span>
             </AnimatePresence>
           </div>
@@ -140,9 +153,10 @@ export default function HubNav() {
           <button type="button" onClick={(e) => show(e.currentTarget)} aria-haspopup="dialog" className="flex h-11 items-center gap-2 rounded-full bg-cyan px-4 text-sm font-semibold text-ink outline-none transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-white/70 sm:hidden">
             <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4 fill-none stroke-current" strokeWidth="2.4" strokeLinecap="round"><path d="M4 7h16M4 12h16M4 17h16" /></svg>Menu
           </button>
-          {signedIn
-            ? <Link href="/app/" className="hidden h-11 items-center rounded-full bg-cyan px-4 text-sm font-semibold text-ink outline-none transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-white/70 sm:inline-flex">Open app</Link>
-            : <><Link href="/login/" className="hidden h-11 items-center rounded-full px-3 text-sm font-medium text-zinc-200 outline-none hover:text-white focus-visible:ring-2 focus-visible:ring-cyan sm:inline-flex">Log in</Link><Link href="/signup/" className="hidden h-11 items-center rounded-full bg-cyan px-4 text-sm font-semibold text-ink outline-none transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-white/70 sm:inline-flex">Sign up</Link></>}
+          {actions ?? (signedIn
+              ? <Link href="/app/" className="hidden h-11 items-center rounded-full bg-cyan px-4 text-sm font-semibold text-ink outline-none transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-white/70 sm:inline-flex">Open app</Link>
+              : <><Link href="/login/" className="hidden h-11 items-center rounded-full px-3 text-sm font-medium text-zinc-200 outline-none hover:text-white focus-visible:ring-2 focus-visible:ring-cyan sm:inline-flex">Log in</Link><Link href="/signup/" className="hidden h-11 items-center rounded-full bg-cyan px-4 text-sm font-semibold text-ink outline-none transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-white/70 sm:inline-flex">Sign up</Link></>
+          )}
         </motion.nav>
       </div>
 
@@ -163,16 +177,22 @@ export default function HubNav() {
               </motion.div>
 
               {/* Honeycomb: rows alternate left and right by a quarter hex so the rows nest. 2 per row on phones, 3 on larger screens. */}
-              <div className="mt-8 w-full [--h:7.3rem] sm:mt-10 sm:[--h:10.4rem]">
-                <Comb pattern={[2, 3, 2]} className="sm:hidden" current={current?.href} reduce={!!reduce} />
-                <Comb pattern={[3, 4]} className="hidden sm:block" current={current?.href} reduce={!!reduce} />
-              </div>
+              {(() => {
+                const comb = (
+                  <div className="mt-8 w-full [--h:7.3rem] sm:mt-10 sm:[--h:10.4rem]">
+                    <Comb sections={sections} pattern={combMobile} className="sm:hidden" current={current?.href} reduce={!!reduce} />
+                    <Comb sections={sections} pattern={combDesktop} className="hidden sm:block" current={current?.href} reduce={!!reduce} />
+                  </div>
+                );
+                return navLabel ? <nav aria-label={navLabel} className="w-full">{comb}</nav> : comb;
+              })()}
+              {overlayExtra && <div className="mt-6 flex justify-center">{overlayExtra}</div>}
               <div className="mt-6 flex flex-wrap items-center justify-center gap-3 sm:hidden">
-                {signedIn
+                {overlayActions ?? (signedIn
                   ? <Link href="/app/" onClick={hide} className="btn !min-h-11 px-6">Open the app</Link>
-                  : <><Link href="/login/" onClick={hide} className="btn-ghost !min-h-11 px-6">Log in</Link><Link href="/signup/" onClick={hide} className="btn !min-h-11 px-6">Sign up</Link></>}
+                  : <><Link href="/login/" onClick={hide} className="btn-ghost !min-h-11 px-6">Log in</Link><Link href="/signup/" onClick={hide} className="btn !min-h-11 px-6">Sign up</Link></>)}
               </div>
-              <p className="mt-6 hidden text-center text-xs text-zinc-400 sm:block">Press <kbd className="rounded border border-white/15 px-1.5">1</kbd>–<kbd className="rounded border border-white/15 px-1.5">7</kbd> to jump, <kbd className="rounded border border-white/15 px-1.5">Esc</kbd> to close</p>
+              <p className="mt-6 hidden text-center text-xs text-zinc-400 sm:block">Press <kbd className="rounded border border-white/15 px-1.5">1</kbd>–<kbd className="rounded border border-white/15 px-1.5">{Math.min(9, sections.length)}</kbd> to jump, <kbd className="rounded border border-white/15 px-1.5">Esc</kbd> to close</p>
             </div>
           </motion.div>
         )}

@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import { expect, test } from "@playwright/test";
-import { json, preflight, signedIn } from "./helpers";
+import { appNav, json, preflight, signedIn } from "./helpers";
 
 const PAGES = ["/", "/games/", "/events/", "/communities/", "/arcade/", "/guides/", "/tools/", "/tools/id-cards/", "/tools/check-in/", "/tools/brackets/", "/tools/points-table/", "/tools/round-robin/", "/tools/double-elimination/", "/tools/display-screen/", "/tools/registration/", "/tools/schedule/", "/tools/plan/", "/tools/poster/", "/points-table/bgmi/", "/points-table/free-fire/", "/compare/free-tournament-software-india/", "/tools/certificates/", "/manage/", "/login/", "/signup/", "/gate/", "/about/", "/privacy/", "/terms/", "/contact/", "/guides/points-table/", "/guides/run-a-campus-tournament/"];
 
@@ -145,12 +145,12 @@ test("every app screen opens after sign-in, and an expired sign-in returns to th
   await expect(page.getByRole("heading", { name: /Welcome, Olivia/ })).toBeVisible();
   await expect(page.getByText("Spring Cup")).toBeVisible();
   for (const [name, h1] of [["ID cards", /ID cards/], ["Gate check-in", /Gate check-in/], ["Brackets", /Bracket maker/], ["Account", /Account/]] as const) {
-    await page.getByRole("navigation", { name: "App" }).getByRole("link", { name }).click();
+    await (await appNav(page)).getByRole("link", { name }).click();
     await expect(page.getByRole("heading", { level: 1 })).toContainText(h1);
   }
   // The server rejects the token: the person is signed out and sent to sign in.
   await page.route("**/esports-api.yaseenyk.workers.dev/events", (r) => r.fulfill(json({ error: "Authentication required" }, 401)));
-  await page.getByRole("navigation", { name: "App" }).getByRole("link", { name: "Home" }).click();
+  await (await appNav(page)).getByRole("link", { name: "Home" }).click();
   await expect(page).toHaveURL(/\/login\//, { timeout: 15000 });
 });
 
