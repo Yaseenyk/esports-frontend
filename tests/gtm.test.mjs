@@ -18,9 +18,9 @@ test("a prefix that merely starts the same does not match", () => {
 test("the container id is the one the owner supplied", () => assert.equal(GTM_ID, "GTM-MD3J4FKT"));
 
 /** Runs the head loader the way a browser would, and returns how many scripts it added. */
-function runBoot(path, nav = {}) {
+function runBoot(path, nav = {}, host = "esports.streamerosai.com") {
   const added = [];
-  const win = { clarity: undefined, location: { pathname: path }, navigator: { doNotTrack: "0", ...nav } };
+  const win = { clarity: undefined, location: { pathname: path, hostname: host }, navigator: { doNotTrack: "0", ...nav } };
   const doc = { head: { appendChild: (s) => added.push(s.src) }, createElement: () => ({}) };
   new Function("location", "navigator", "window", "document", GTM_BOOT)(win.location, win.navigator, win, doc);
   return added;
@@ -39,4 +39,8 @@ test("the head loader stays off for private pages and for opt-outs", () => {
 
 test("the head loader and gtmAllowed agree on every path", () => {
   for (const p of ["/", "/tools/", "/guides/x/", "/compare/", "/about/", "/contact/", "/privacy/", "/terms/", "/points-table/", "/app/", "/live/x/", "/toolsx/", "/login/"]) assert.equal(runBoot(p).length > 0, gtmAllowed(p), p);
+});
+
+test("the head loader never runs on localhost, previews or any other host", () => {
+  for (const h of ["localhost", "127.0.0.1", "esports-frontend.pages.dev", "yaseenyk.github.io", "esports.streamerosai.com.evil.example", "streamerosai.com"]) assert.equal(runBoot("/", {}, h).length, 0, h);
 });
