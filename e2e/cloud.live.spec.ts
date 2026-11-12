@@ -17,6 +17,7 @@ test("sign up, save online, live check-in on a second page, pass link, invite an
   await page.getByLabel("Your name").fill("Live Test");
   await page.getByLabel("Email").fill(email);
   await page.getByLabel("Password").fill(password);
+  await page.getByLabel(/I am 18 or older/).check();
   await page.getByRole("button", { name: "Create account" }).last().click();
   await expect(page).toHaveURL(/\/app\/$/, { timeout: 20_000 });
   await expect(page.getByRole("heading", { name: /Welcome, Live/ })).toBeVisible();

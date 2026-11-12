@@ -11,7 +11,7 @@ import { auth, authMessage } from "@/lib/api/cloud";
 export default function AuthForm({ initialMode = "login", onDone, intro, showTabs = true }: { initialMode?: "login" | "register"; onDone?: () => void; intro?: string; showTabs?: boolean }) {
   const [mode, setMode] = useState<"login" | "register">(initialMode);
   const [email, setEmail] = useState(""), [name, setName] = useState(""), [pw, setPw] = useState("");
-  const [show, setShow] = useState(false);
+  const [show, setShow] = useState(false), [adult, setAdult] = useState(false);
   const [busy, setBusy] = useState(false), [err, setErr] = useState("");
   const sending = useRef(false);
 
@@ -42,6 +42,12 @@ export default function AuthForm({ initialMode = "login", onDone, intro, showTab
           <label className="flex min-h-11 cursor-pointer items-center gap-2 text-xs text-zinc-300"><input type="checkbox" className="h-5 w-5 accent-cyan" checked={show} onChange={(e) => setShow(e.target.checked)} />Show characters</label>
         </div>
       </div>
+      {mode === "register" && (
+        <label className="flex min-h-11 cursor-pointer items-start gap-2 text-xs text-zinc-300">
+          <input type="checkbox" name="adult" className="mt-0.5 h-5 w-5 shrink-0 accent-cyan" checked={adult} onChange={(e) => setAdult(e.target.checked)} required />
+          <span>I am 18 or older. I have read the <Link className="text-cyan underline" href="/terms/" target="_blank">terms</Link> and <Link className="text-cyan underline" href="/privacy/" target="_blank">privacy policy</Link>. I understand that I am responsible for the events I run and for the consent of everyone I add, and that Esports Hub is not responsible for that.</span>
+        </label>
+      )}
       {mode === "login" && <p className="-mt-1"><Link className="inline-flex min-h-11 items-center text-sm text-cyan underline" href={email.trim() ? `/forgot-password/?email=${encodeURIComponent(email.trim())}` : "/forgot-password/"}>Forgot password?</Link></p>}
       <div aria-live="polite">{err && <p role="alert" className="text-sm text-red-300">{err}</p>}</div>
       <button className="btn w-full" disabled={busy}>{busy ? "Please wait…" : mode === "login" ? "Sign in" : "Create account"}</button>

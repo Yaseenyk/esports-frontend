@@ -12,6 +12,7 @@ export default function Page() {
   return (
     <TextPage title="Terms of use" path="/terms/" updated="2026-11-12" intro="By using Esports Hub you agree to these terms. They are written in plain language.">
       <section><h2>What you may do</h2><p>You may use the tools and read the guides for free, for your own events and communities, including events that charge an entry fee. You may print and share cards and results you make.</p></section>
+      <section><h2>Who may create an account</h2><p>You must be 18 or older to create an account. When you sign up, you confirm that you are. We do not check your age. If we learn that an account belongs to someone under 18, we may remove it. People under 18 may appear on a roster only because an organiser added them with a parent or guardian&apos;s permission.</p></section>
       <section><h2>Your responsibilities as an organiser</h2>
         <ul>
           <li>You are responsible for the events you run, the rules you publish and the safety of the people who attend.</li>
@@ -27,7 +28,7 @@ export default function Page() {
       <section><h2>Your content</h2><p>What you add (names, photos, logos, rules, text) stays yours. You allow us to store it and show it as you choose in the tools, on passes and on pages you publish, so that the service works. You confirm you have the right to add it.</p></section>
       <section><h2>Emails</h2><p>We send account emails (such as password reset) and event reminders only to people who agreed to them. Every reminder has an unsubscribe link.</p></section>
       <section><h2>No affiliation</h2><p>Esports Hub is independent and is not affiliated with any game publisher, tournament organiser or government body. Game names and logos belong to their owners.</p></section>
-      <section><h2>Limits</h2><p>To the extent the law allows, we are not liable for losses arising from the use of the tools or guides, including lost data or a mistake at an event. Keep your own copy of anything important: the card maker lets you save a project file.</p></section>
+      <section><h2>Limits</h2><p>Esports Hub is a tool. Organisers, not Esports Hub, are responsible for their events, for the permission and consent of every person they add (including parents or guardians of anyone under 18), and for what they publish. To the extent the law allows, we are not liable for losses arising from the use of the tools or guides, including lost data or a mistake at an event. Keep your own copy of anything important: the card maker lets you save a project file.</p></section>
       <section><h2>Changes and contact</h2><p>We may update these terms and will change the date above when we do. Questions: use the <Link href="/contact/">contact page</Link>. See also the <Link href="/privacy/">privacy policy</Link>.</p></section>
     </TextPage>
   );

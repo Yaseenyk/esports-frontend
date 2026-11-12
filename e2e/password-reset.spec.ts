@@ -80,3 +80,21 @@ test("reset password: mismatch, weak password, expired link and missing token", 
   await expect(page.getByRole("link", { name: "Request a new link" })).toBeVisible();
   await expect(page.getByLabel("New password", { exact: true })).toHaveCount(0);
 });
+
+test("signup asks for the 18+ confirmation and sends nothing until it is ticked", async ({ page }) => {
+  await preflight(page);
+  let sent = 0;
+  await page.route("**/auth/register", (r) => { sent++; return r.fulfill(json({ token: "t", user: { id: "u", email: "a@example.com", name: "A" } }, 201)); });
+  await page.goto("/signup/");
+  await page.getByLabel("Your name").fill("A");
+  await page.getByLabel("Email").fill("a@example.com");
+  await page.getByLabel("Password", { exact: true }).fill("longenough1");
+  const box = page.getByLabel(/I am 18 or older/);
+  await expect(box).not.toBeChecked();
+  await page.getByRole("button", { name: "Create account" }).click();
+  await page.waitForTimeout(300);
+  expect(sent).toBe(0);
+  await box.check();
+  await page.getByRole("button", { name: "Create account" }).click();
+  await expect.poll(() => sent).toBe(1);
+});
