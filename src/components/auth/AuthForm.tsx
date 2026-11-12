@@ -12,7 +12,7 @@ import GoogleButton from "./GoogleButton";
 export default function AuthForm({ initialMode = "login", onDone, intro, showTabs = true }: { initialMode?: "login" | "register"; onDone?: () => void; intro?: string; showTabs?: boolean }) {
   const [mode, setMode] = useState<"login" | "register">(initialMode);
   const [email, setEmail] = useState(""), [name, setName] = useState(""), [pw, setPw] = useState("");
-  const [show, setShow] = useState(false), [adult, setAdult] = useState(false);
+  const [show, setShow] = useState(false), [adult, setAdult] = useState(false), [gReady, setGReady] = useState(false);
   const [busy, setBusy] = useState(false), [err, setErr] = useState("");
   const sending = useRef(false);
 
@@ -48,6 +48,17 @@ export default function AuthForm({ initialMode = "login", onDone, intro, showTab
           {(["login", "register"] as const).map((m) => <button key={m} type="button" aria-pressed={mode === m} onClick={() => { setMode(m); setErr(""); }} className={`chip ${mode === m ? "!border-cyan !text-cyan" : ""}`}>{m === "login" ? "Sign in" : "Create account"}</button>)}
         </div>
       )}
+      {mode === "register" && (
+        <label className="flex min-h-11 cursor-pointer items-start gap-2 rounded-xl border border-white/10 bg-white/5 p-3 text-xs text-zinc-300">
+          <input type="checkbox" name="adult" className="mt-0.5 h-5 w-5 shrink-0 accent-cyan" checked={adult} onChange={(e) => setAdult(e.target.checked)} required />
+          <span>I am 18 or older. I have read the <Link className="text-cyan underline" href="/terms/" target="_blank">terms</Link> and <Link className="text-cyan underline" href="/privacy/" target="_blank">privacy policy</Link>. I understand that I am responsible for the events I run and for the consent of everyone I add, and that Esports Hub is not responsible for that.</span>
+        </label>
+      )}
+      <div className="space-y-2">
+        <GoogleButton onCredential={withGoogle} onReady={() => setGReady(true)} disabled={busy || (mode === "register" && !adult)} />
+        {gReady && mode === "register" && !adult && <p className="text-center text-xs text-zinc-400">Tick the box above, then continue with Google.</p>}
+      </div>
+      {gReady && <div className="flex items-center gap-3 text-xs text-zinc-400" aria-hidden="true"><span className="h-px flex-1 bg-white/10" />{mode === "login" ? "or sign in with email" : "or sign up with email"}<span className="h-px flex-1 bg-white/10" /></div>}
       {mode === "register" && <label className="block text-sm text-zinc-300">Your name<input className="field mt-1" name="name" value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" maxLength={80} required /></label>}
       <label className="block text-sm text-zinc-300">Email<input className="field mt-1" name="email" type="email" inputMode="email" autoCapitalize="none" autoCorrect="off" spellCheck={false} value={email} onChange={(e) => setEmail(e.target.value)} autoComplete={mode === "login" ? "username" : "email"} required /></label>
       <div>
@@ -57,18 +68,9 @@ export default function AuthForm({ initialMode = "login", onDone, intro, showTab
           <label className="flex min-h-11 cursor-pointer items-center gap-2 text-xs text-zinc-300"><input type="checkbox" className="h-5 w-5 accent-cyan" checked={show} onChange={(e) => setShow(e.target.checked)} />Show characters</label>
         </div>
       </div>
-      {mode === "register" && (
-        <label className="flex min-h-11 cursor-pointer items-start gap-2 text-xs text-zinc-300">
-          <input type="checkbox" name="adult" className="mt-0.5 h-5 w-5 shrink-0 accent-cyan" checked={adult} onChange={(e) => setAdult(e.target.checked)} required />
-          <span>I am 18 or older. I have read the <Link className="text-cyan underline" href="/terms/" target="_blank">terms</Link> and <Link className="text-cyan underline" href="/privacy/" target="_blank">privacy policy</Link>. I understand that I am responsible for the events I run and for the consent of everyone I add, and that Esports Hub is not responsible for that.</span>
-        </label>
-      )}
       {mode === "login" && <p className="-mt-1"><Link className="inline-flex min-h-11 items-center text-sm text-cyan underline" href={email.trim() ? `/forgot-password/?email=${encodeURIComponent(email.trim())}` : "/forgot-password/"}>Forgot password?</Link></p>}
       <div aria-live="polite">{err && <p role="alert" className="text-sm text-red-300">{err}</p>}</div>
       <button className="btn w-full" disabled={busy}>{busy ? "Please wait…" : mode === "login" ? "Sign in" : "Create account"}</button>
-      <div className="flex items-center gap-3 text-xs text-zinc-400" aria-hidden="true"><span className="h-px flex-1 bg-white/10" />or<span className="h-px flex-1 bg-white/10" /></div>
-      <GoogleButton onCredential={withGoogle} disabled={busy || (mode === "register" && !adult)} />
-      {mode === "register" && !adult && <p className="text-center text-xs text-zinc-400">Tick the 18+ box to use Google.</p>}
     </form>
   );
 }

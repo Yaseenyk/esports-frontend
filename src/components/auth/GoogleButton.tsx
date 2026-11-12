@@ -27,10 +27,12 @@ function loadGsi(): Promise<Gsi | null> {
  * "Continue with Google". Google draws its own button; when it hands back an ID token, onCredential sends it to our server,
  * which checks it. If the script cannot load, nothing is shown and email and password still work.
  */
-export default function GoogleButton({ onCredential, disabled }: { onCredential: (credential: string) => void; disabled?: boolean }) {
+export default function GoogleButton({ onCredential, disabled, onReady }: { onCredential: (credential: string) => void; disabled?: boolean; onReady?: () => void }) {
   const box = useRef<HTMLDivElement>(null);
   const cb = useRef(onCredential);
   cb.current = onCredential;
+  const onReadyRef = useRef(onReady);
+  onReadyRef.current = onReady;
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
@@ -40,13 +42,14 @@ export default function GoogleButton({ onCredential, disabled }: { onCredential:
       g.accounts.id.initialize({ client_id: GOOGLE_CLIENT_ID, callback: (r) => { if (r.credential) cb.current(r.credential); } });
       g.accounts.id.renderButton(box.current, { type: "standard", theme: "filled_black", size: "large", text: "continue_with", shape: "pill", width: 320 });
       setReady(true);
+      onReadyRef.current?.();
     });
     return () => { gone = true; };
   }, []);
 
   return (
     <div className={`flex justify-center ${ready ? "" : "hidden"} ${disabled ? "pointer-events-none opacity-50" : ""}`} aria-disabled={disabled || undefined} data-testid="google-button">
-      <div ref={box} />
+      <div ref={box} style={{ colorScheme: "light" }} />
     </div>
   );
 }
