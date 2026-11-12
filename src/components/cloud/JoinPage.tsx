@@ -8,6 +8,7 @@ import { Waiting } from "@/components/skeleton/Scenes";
 import { Sk, SkLines } from "@/components/skeleton/Sk";
 import { LangSwitch, useLang } from "@/components/useLang";
 import { takeTokenSearch } from "@/lib/tokenHygiene";
+import JoinOrgFallback from "@/components/org/JoinOrgFallback";
 
 const ROLES = ["Player", "Substitute", "Coach", "Manager", "Staff"];
 const toDataUrl = (b: Blob) => new Promise<string>((ok) => { const r = new FileReader(); r.onload = () => ok(String(r.result)); r.readAsDataURL(b); });
@@ -18,6 +19,7 @@ export default function JoinPage() {
   const [token, setToken] = useState("");
   const [info, setInfo] = useState<{ event: { name: string; date: string }; team: { name: string } } | null>(null);
   const [loading, setLoading] = useState(true);
+  const [notPlayer, setNotPlayer] = useState(false), [orgHandled, setOrgHandled] = useState(false); // the token is not a player invite: it may be a club or event invitation
   const [err, setErr] = useState(""), [done, setDone] = useState(false), [busy, setBusy] = useState(false);
   const [name, setName] = useState(""), [role, setRole] = useState("Player"), [minor, setMinor] = useState(false), [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState("");
@@ -26,7 +28,7 @@ export default function JoinPage() {
     const tok = new URLSearchParams(takeTokenSearch()).get("t") ?? "";
     setToken(tok);
     if (!tok) { setErr(t("link_incomplete")); setLoading(false); return; }
-    pub.invite(tok).then(setInfo).catch((e) => setErr((e as { status?: number }).status === 404 ? t("invite_inactive") : explain(e))).finally(() => setLoading(false));
+    pub.invite(tok).then(setInfo).catch((e) => { const dead = (e as { status?: number }).status === 404; setNotPlayer(dead); setErr(dead ? t("invite_inactive") : explain(e)); }).finally(() => setLoading(false));
   }, []);
   useEffect(() => { if (!file) { setPreview(""); return; } const u = URL.createObjectURL(file); setPreview(u); return () => URL.revokeObjectURL(u); }, [file]);
 
@@ -49,7 +51,8 @@ export default function JoinPage() {
     <div className="mx-auto max-w-md">
       <LangSwitch className="mb-4 justify-end" />
       <Waiting loading={loading} apiKey="/public/invite" label="Loading the invite"><div className="space-y-3"><Sk className="!h-8" w="70%" /><SkLines n={2} /><Sk className="!h-11" /><Sk className="!h-11" i={1} /></div></Waiting>
-      {err && !done && <p ref={errBox} tabIndex={-1} role="alert" className="mb-4 rounded-xl border border-red-400/40 bg-red-500/10 p-4 text-red-100">{err}</p>}
+      {err && !done && !orgHandled && <p ref={errBox} tabIndex={-1} role="alert" className="mb-4 rounded-xl border border-red-400/40 bg-red-500/10 p-4 text-red-100">{err}</p>}
+      {notPlayer && !done && token && <JoinOrgFallback token={token} onHandled={setOrgHandled} />}
       {done ? (
         <div role="status" className="sk-pop space-y-2 rounded-2xl border border-emerald-400/40 bg-emerald-500/10 p-5 text-center"><p className="font-display text-xl font-bold text-white">{t("sent_title")}</p><p className="text-sm text-emerald-100">{t("sent_body", { team: info?.team.name ?? "" })}</p></div>
       ) : info && (

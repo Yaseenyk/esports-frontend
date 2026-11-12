@@ -96,7 +96,7 @@ export function normaliseInclude(raw: Partial<Record<string, unknown>>, role: Ro
   return { teams, people: teams && role === "owner" && t("people"), registrationForm: t("registrationForm"), liveExtras: t("liveExtras"), directory: false, members: role === "owner" && t("members"), matches: t("matches") };
 }
 
-export interface DuplicateRequest { name: string; date?: string; include: DuplicateInclude }
+export interface DuplicateRequest { name: string; date?: string; include: DuplicateInclude; /** Only when the person chose a club; otherwise the copy lands where the source event is. */ orgId?: string }
 
 export function buildRequest(name: string, date: string, include: DuplicateInclude, role: Role): DuplicateRequest {
   const body: DuplicateRequest = { name: name.trim(), include: normaliseInclude(include as unknown as Record<string, unknown>, role) };

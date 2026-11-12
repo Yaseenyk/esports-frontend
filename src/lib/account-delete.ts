@@ -2,7 +2,7 @@
 export interface EventRef { id: string; name: string; newOwnerName?: string }
 export interface DeleteBlock {
   /** confirm: tick "also delete my events" and send again. conflict and too_many: nothing can be done on this screen. */
-  kind: "confirm" | "conflict" | "too_many";
+  kind: "confirm" | "conflict" | "too_many" | "club" | "count";
   text: string;
   events: EventRef[];
 }
@@ -33,6 +33,10 @@ export function deleteBlock(err: unknown): DeleteBlock | null {
     }
     case "too_many_shared_events":
       return { kind: "too_many", events, text: "You share more than 50 events with other organisers. Remove some co-organisers or delete some events first, then delete your account." };
+    case "sole_owner":
+      return { kind: "club", events, text: "You are the only admin of a club that other people use. Hand the club over first: on the People page make someone else an admin. Then delete your account. Nothing was deleted." };
+    case "events_need_count_confirmation":
+      return { kind: "count", events, text: "A lot of your events would be deleted with your account. Type how many in the box below to confirm. Nothing was deleted yet." };
     default:
       return null;
   }

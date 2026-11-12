@@ -14,7 +14,7 @@ export interface GateKey { id: string; label: string; expiresAt: string | null; 
 export interface Invite { id: string; teamId: string; token: string; label: string; maxUses: number | null; uses: number; expiresAt: string | null; revoked: boolean; createdAt: string }
 export interface Submission { id: string; teamId: string; team: string | null; name: string; role: string; minor: boolean; status: string; createdAt: string; photoUrl: string | null }
 export interface PassData { event: { name: string; date: string; venue: string }; person: { name: string; team: string | null; role: string; zones: unknown }; code: string; photoUrl: string | null }
-export interface RegForm { token: string; title: string; intro: string; closesAt: string | null; maxTeams: number | null; teamSize: number; subs: number; open: boolean; createdAt: string }
+export interface RegForm { token: string; title: string; intro: string; closesAt: string | null; maxTeams: number | null; teamSize: number; subs: number; open: boolean; createdAt: string; ackVersion?: string | null; ackAt?: string | null }
 export interface RegPlayer { name: string; ign: string; minor: boolean }
 export interface Registration { id: string; teamName: string; captainName: string; captainContact: string; players: RegPlayer[]; notes: string; status: "pending" | "approved" | "rejected"; createdAt: string }
 export interface PublicReg { event: { name: string; date: string; venue: string }; form: { title: string; intro: string; teamSize: number; subs: number; closesAt: string | null; spotsLeft: number | null; status: "open" | "closed" | "full" } }
@@ -83,7 +83,7 @@ export const auth = {
     return { ok: true as const };
   },
   /** `deleteEvents` is the explicit "delete my events too" confirmation the server asks for when an event has only viewers. */
-  async deleteAccount(password: string, deleteEvents = false) { await api.post<{ ok: true }>("/auth/delete-account", deleteEvents ? { password, deleteEvents: true } : { password }); setSession(null, "deleted"); },
+  async deleteAccount(password: string, deleteEvents = false, confirmEventCount?: number) { await api.post<{ ok: true }>("/auth/delete-account", { password, ...(deleteEvents ? { deleteEvents: true } : {}), ...(typeof confirmEventCount === "number" ? { confirmEventCount } : {}) }); setSession(null, "deleted"); },
 };
 
 /** What the backend says when something is wrong, in words a person can act on. */
@@ -118,7 +118,7 @@ export function authMessage(e: unknown, mode: "login" | "register"): string {
 // ---- owner calls ----
 export const events = {
   list: () => api.get<CloudEvent[]>("/events", { ttl: 30000 }),
-  create: (b: Partial<CloudEvent>) => api.post<CloudEvent>("/events", b),
+  create: (b: Partial<CloudEvent> & { orgId?: string }) => api.post<CloudEvent>("/events", b),
   update: (id: string, b: Partial<CloudEvent>) => api.put<CloudEvent>(`/events/${id}`, b),
   remove: (id: string) => api.del<{ ok: true }>(`/events/${id}`),
   roster: (id: string) => api.get<CloudRoster>(`/events/${id}/roster`, { ttl: 20000 }),
@@ -140,8 +140,8 @@ export const events = {
   members: (id: string) => api.get<Members>(`/events/${id}/members`, { ttl: 3000 }),
   addMember: (id: string, email: string, role: "editor" | "viewer") => api.post<{ userId: string; name: string; email: string; role: string }>(`/events/${id}/members`, { email, role }),
   removeMember: (id: string, userId: string) => api.del<{ ok: true }>(`/events/${id}/members/${userId}`),
-  registration: (id: string) => api.get<{ form: RegForm | null; counts: { pending: number; approved: number; rejected: number } }>(`/events/${id}/registration`, { ttl: 5000 }),
-  saveRegistration: (id: string, b: Partial<Pick<RegForm, "title" | "intro" | "closesAt" | "maxTeams" | "teamSize" | "subs" | "open">>) => api.put<RegForm>(`/events/${id}/registration`, b),
+  registration: (id: string) => api.get<{ form: RegForm | null; counts: { pending: number; approved: number; rejected: number }; acknowledgement?: { version: string; text: string } }>(`/events/${id}/registration`, { ttl: 5000 }),
+  saveRegistration: (id: string, b: Partial<Pick<RegForm, "title" | "intro" | "closesAt" | "maxTeams" | "teamSize" | "subs" | "open">> & { acknowledge?: boolean }) => api.put<RegForm>(`/events/${id}/registration`, b),
   registrations: (id: string, status = "pending") => api.get<Registration[]>(`/events/${id}/registrations?status=${status}`, { ttl: 5000 }),
   approveRegistration: (id: string, rid: string) => api.post<{ ok: true; teamId: string; people: number }>(`/events/${id}/registrations/${rid}/approve`, {}),
   rejectRegistration: (id: string, rid: string) => api.post<{ ok: true }>(`/events/${id}/registrations/${rid}/reject`, {}),

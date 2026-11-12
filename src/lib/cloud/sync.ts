@@ -82,12 +82,12 @@ export async function hasAlpha(dataUrl: string): Promise<boolean> {
 export interface SaveResult { id: string; key: string; codes: Record<string, string>; sentRoster: boolean; photosSent: number; photosSkipped: string[] }
 
 /** `onCreated` fires as soon as a new event exists on the server, so a failure later in the save does not leave an unlinked event behind and a retry makes a second one. */
-export async function saveToCloud(s: Snapshot, existingId: string | null, minorOf: (p: Person) => boolean, say: (t: string) => void, onCreated?: (id: string, key: string) => void): Promise<SaveResult> {
+export async function saveToCloud(s: Snapshot, existingId: string | null, minorOf: (p: Person) => boolean, say: (t: string) => void, onCreated?: (id: string, key: string) => void, orgId?: string): Promise<SaveResult> {
   const memo = readMemo();
   const details = { name: s.event, game: s.game, organiser: s.organiser, date: s.info.date, venue: s.info.venue, emergency: s.info.emergency, rules: s.info.rules };
   let ev: CloudEvent;
   say(existingId ? "Updating the event…" : "Creating the event…");
-  if (!existingId) { ev = await events.create(details); onCreated?.(ev.id, ev.key); }
+  if (!existingId) { ev = await events.create(orgId ? { ...details, orgId } : details); onCreated?.(ev.id, ev.key); }
   else {
     ev = { id: existingId } as CloudEvent;
     if (memo[existingId]?.details !== fingerprint(details)) ev = await events.update(existingId, details);

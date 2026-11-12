@@ -7,6 +7,8 @@ import { auth, sessionStore } from "@/lib/api/cloud";
 import { LangSwitch } from "@/components/useLang";
 import { useSession } from "@/components/cloud/useSession";
 import { Sk } from "@/components/skeleton/Sk";
+import { useOrg } from "@/components/org/OrgContext";
+import { orgNav } from "@/lib/org";
 
 const TABS = [
   { href: "/app/", label: "Home" },
@@ -26,6 +28,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const session = useSession();
   const path = usePathname() ?? "/app/";
   const router = useRouter();
+  const clubTab = orgNav(useOrg().ctx); // null until /me/context says clubs are on: the tabs are then exactly today's
   const [ready, setReady] = useState(false);
   useEffect(() => setReady(true), []);
   // One place decides where a signed-out person goes, so the Sign out button and an expired sign-in cannot race each other:
@@ -60,7 +63,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           </div>
         </div>
         <nav aria-label="App" className="mx-auto flex max-w-[1500px] gap-1 overflow-x-auto px-3 pb-2 [scrollbar-width:none]">
-          {TABS.map((t) => (
+          {(clubTab ? [...TABS.slice(0, -1), clubTab, ...TABS.slice(-1)] : TABS).map((t) => (
             <Link key={t.href} href={t.href} aria-current={active(t.href) ? "page" : undefined} className={`shrink-0 rounded-full border px-4 py-2 text-sm font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-cyan ${active(t.href) ? "border-cyan bg-[#0c1d27] text-cyan" : "border-transparent text-zinc-300 hover:border-white/20 hover:text-white"}`}>{t.label}</Link>
           ))}
         </nav>

@@ -6,6 +6,7 @@ import ToolStep from "@/components/tools/ToolStep";
 import { events, explain, type CloudEvent } from "@/lib/api/cloud";
 import { duplicate } from "@/lib/api/f-duplicate";
 import { safeRole } from "@/lib/role";
+import OrgPicker, { chosenOrgId, useOrgChoices } from "@/components/org/OrgPicker";
 import {
   DEFAULT_INCLUDE, NAME_MAX, NEVER_COPIED, OPTIONS, buildRequest, dateProblem, defaultName, eventHref, includeProblem, nameProblem, nextWeekName, sameTimeNextWeek, summaryLines,
   type DuplicateInclude, type Role,
@@ -33,6 +34,8 @@ function DuplicateDialog({ eventId, eventName, onClose }: { eventId: string; eve
   const [name, setName] = useState(defaultName(eventName));
   const [date, setDate] = useState("");
   const [inc, setInc] = useState<DuplicateInclude>(DEFAULT_INCLUDE);
+  const [orgPick, setOrgPick] = useState("");
+  const orgOptions = useOrgChoices("Where this event is now");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [created, setCreated] = useState<CloudEvent | null>(null);
@@ -90,7 +93,7 @@ function DuplicateDialog({ eventId, eventName, onClose }: { eventId: string; eve
 
   const go = async () => {
     setBusy(true); setError("");
-    try { setCreated(await duplicate.run(eventId, buildRequest(name, date, inc, role))); }
+    try { setCreated(await duplicate.run(eventId, { ...buildRequest(name, date, inc, role), ...(chosenOrgId(orgPick, orgOptions) ? { orgId: chosenOrgId(orgPick, orgOptions) } : {}) })); }
     catch (e) { setError(explain(e)); }
     finally { setBusy(false); }
   };
@@ -128,6 +131,7 @@ function DuplicateDialog({ eventId, eventName, onClose }: { eventId: string; eve
                 <p className="mt-1 text-xs text-zinc-400">Leave it as it is to keep the old date. &ldquo;Same time next week&rdquo; adds 7 days to the old date.</p>
                 {weekNote && <p role="status" className="mt-1 text-xs text-amber-200">{weekNote}</p>}
               </div>
+              <OrgPicker value={orgPick} onChange={setOrgPick} defaultLabel="Where this event is now" hint="Leave the first choice to keep the copy next to the original." />
               {problem && <p role="alert" className="text-sm text-red-300">{problem}</p>}
               <div className="flex justify-end"><button type="button" className="btn !min-h-11 px-5 text-sm" disabled={!!problem} onClick={() => setStep(2)}>Next: what to bring over</button></div>
             </div>

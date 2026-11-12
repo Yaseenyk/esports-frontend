@@ -10,6 +10,7 @@ import AuthForm from "@/components/auth/AuthForm";
 import InvitesPanel from "./InvitesPanel";
 import LivePanel from "./LivePanel";
 import { useSession } from "./useSession";
+import OrgPicker, { chosenOrgId, useOrgChoices } from "@/components/org/OrgPicker";
 
 export interface CloudProps {
   snapshot: Snapshot;
@@ -31,6 +32,8 @@ export default function CloudPanel(p: CloudProps) {
   const [tab, setTab] = useState<(typeof TABS)[number]>((TABS as readonly string[]).includes(p.initialTab ?? "") ? (p.initialTab as (typeof TABS)[number]) : "Save & sync");
   const [link, setLink] = useState<{ id: string; key: string } | null>(null);
   const [list, setList] = useState<CloudEvent[] | null>(null);
+  const [orgPick, setOrgPick] = useState(""); // "" = the server's default; a club id only when the person chose one
+  const orgOptions = useOrgChoices("Just me (not shared)");
   const [busy, setBusy] = useState(false), [msg, setMsg] = useState(""), [err, setErr] = useState("");
 
   const box = useRef<HTMLDivElement>(null);
@@ -60,7 +63,7 @@ export default function CloudPanel(p: CloudProps) {
   const save = async () => {
     setBusy(true); setErr(""); setMsg("");
     try {
-      const r = await saveToCloud(p.snapshot, link?.id ?? null, p.minorOf, setMsg, (id, key) => { const l = { id, key }; writeLink(l); setLink(l); });
+      const r = await saveToCloud(p.snapshot, link?.id ?? null, p.minorOf, setMsg, (id, key) => { const l = { id, key }; writeLink(l); setLink(l); }, link ? undefined : chosenOrgId(orgPick, orgOptions));
       const l = { id: r.id, key: r.key || link?.key || "" }; writeLink(l); setLink(l); p.onCodes(r.codes); refresh();
       setMsg(`Saved. ${r.sentRoster ? `${p.snapshot.people.length} people sent` : "People were already up to date"}, ${r.photosSent} photo${r.photosSent === 1 ? "" : "s"} uploaded.${r.photosSkipped.length ? ` Too large even after shrinking: ${r.photosSkipped.join(", ")}.` : ""} Cards now carry the server-signed passes.`);
     } catch (e) { setErr(explain(e)); setMsg(""); } finally { setBusy(false); }
@@ -98,6 +101,7 @@ export default function CloudPanel(p: CloudProps) {
                   <p>{link ? <>This event is saved online as <strong className="text-white">{p.snapshot.event}</strong>.</> : <>Not saved online yet. Press the button below to save it; then you can invite players and check guests in from several phones.</>} Only names, teams, roles, areas they can enter, under-18 flags and photos are sent. <strong className="text-zinc-100">Birth dates and Aadhaar digits stay in your browser.</strong></p>
                   <div className="mt-3 flex flex-wrap items-center gap-2"><button type="button" className="btn !min-h-10 px-4 text-sm" disabled={busy} onClick={save}>{busy ? "Working…" : link ? "Save changes online" : "Save this event online"}</button>{link && <button type="button" className="chip" onClick={() => { writeLink(null); setLink(null); }}>Save as a new event instead</button>}</div>
                 </div>
+                {!link && <OrgPicker value={orgPick} onChange={setOrgPick} defaultLabel="Just me (not shared)" hint="Everyone in the club can see the event. Choose Just me to keep it to yourself." disabled={busy} />}
                 <div>
                   <h3 className="mb-2 font-display font-bold text-white">Your online events</h3>
                   {list === null ? <p className="text-sm text-zinc-400">Loading…</p> : list.length === 0 ? <p className="text-sm text-zinc-400">None yet. Press &ldquo;Save this event online&rdquo; above to add this one.</p> : (
