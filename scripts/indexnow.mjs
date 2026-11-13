@@ -13,6 +13,9 @@ const KEY = keyFile.replace(".txt", "");
 // The live sitemap, because this runs after the deploy.
 const sitemap = await (await fetch(`${SITE}/sitemap.xml`)).text();
 const all = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
+// A scheduled guide goes live on its date with no commit of its own, so its sitemap lastmod is the only sign. Submit those too.
+const todayUtc = new Date().toISOString().slice(0, 10);
+const liveToday = [...sitemap.matchAll(/<url>\s*<loc>([^<]+)<\/loc>\s*<lastmod>([^<]+)<\/lastmod>/g)].filter((m) => m[2].slice(0, 10) === todayUtc && m[1].includes("/guides/")).map((m) => m[1]);
 
 let urls;
 if (process.env.FORCE === "1") urls = all;
@@ -26,6 +29,7 @@ else {
     else if (f === "src/app/(site)/page.tsx") set.add(`${SITE}/`);
     else { const m = /^src\/app\/\(site\)\/([a-z0-9-/]+)\/page\.tsx$/.exec(f.replace(/\\/g, "/")); if (m) set.add(`${SITE}/${m[1]}/`); }
   }
+  liveToday.forEach((u) => set.add(u));
   urls = [...set].filter((u) => all.includes(u));
 }
 if (!urls.length) { console.log("No indexable pages changed in this commit."); process.exit(0); }

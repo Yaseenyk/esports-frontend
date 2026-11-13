@@ -1,7 +1,8 @@
 // Guide FAQs are real content (they feed the page and the FAQPage structured data), so they are checked for depth and uniqueness.
 import test from "node:test";
 import assert from "node:assert/strict";
-import { GUIDES } from "../src/content/guides.ts";
+// The hand-written guides only; the scheduled ones have their own FAQ rules in scheduled-guides.test.mjs.
+import { CORE_GUIDES as GUIDES } from "../src/content/guides.ts";
 
 test("every guide has at least 5 FAQ items with substantial answers", () => {
   assert.ok(GUIDES.length >= 21);

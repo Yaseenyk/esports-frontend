@@ -3,6 +3,11 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches: [main]
+  # Scheduled guides (src/content/scheduled) carry a release date and stay hidden until it. A daily rebuild at 00:17 UTC turns
+  # on the one that is due: Monday, Wednesday and Friday. Off the top of the hour, when GitHub delays scheduled runs. A dropped
+  # run is caught up the next day, because the build shows every guide whose date has passed.
+  schedule:
+    - cron: "17 0 * * *"
   workflow_dispatch:
 
 permissions:
@@ -80,7 +85,29 @@ jobs:
         with:
           timeout: 420000
 
-  # Tell Bing and other IndexNow engines about pages that changed in this commit (Google does not use IndexNow).
+  # GitHub switches off scheduled workflows in a public repository after 60 days without activity. If nothing has been
+  # committed for 45 days, a scheduled run records an empty commit so the guide schedule keeps running.
+  keepalive:
+    if: github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v5
+      - name: Commit if the repository has been quiet for 45 days
+        run: |
+          last=$(git log -1 --format=%ct)
+          age=$(( ($(date +%s) - last) / 86400 ))
+          echo "Last commit was $age days ago."
+          if [ "$age" -ge 45 ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git commit --allow-empty -m "Keep the guide schedule active"
+            git push
+          fi
+
+  # Tell Bing and other IndexNow engines about pages that changed in this commit, or went live today by schedule (Google does not use IndexNow).
+  # (the scheduled guides have no commit of their own on release day, so the script also reads today's date from the live sitemap)
   indexnow:
     needs: deploy
     runs-on: ubuntu-latest

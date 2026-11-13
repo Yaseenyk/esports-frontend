@@ -1,6 +1,7 @@
 import { EXAMPLE_SCALE, standings, type TeamEntry } from "@/lib/points";
 import { MORE_GUIDES } from "./guides-more";
 import { GROWTH_GUIDES } from "./guides-growth";
+import { RELEASED } from "./scheduled";
 
 /** Inline links are written as [text](/path/) inside paragraphs, lists and notes. */
 export type Block =
@@ -848,6 +849,10 @@ const BASE_GUIDES: Guide[] = [
 ];
 
 /** The nine original guides, the second batch (guides-more.ts), then the growth batch (guides-growth.ts). */
-export const GUIDES: Guide[] = [...BASE_GUIDES, ...MORE_GUIDES, ...GROWTH_GUIDES];
+/** The hand-written guides. Their tests are the strictest (5 long FAQs, inbound links); the scheduled ones have their own tests. */
+export const CORE_GUIDES: Guide[] = [...BASE_GUIDES, ...MORE_GUIDES, ...GROWTH_GUIDES];
+
+/** Everything live today: the core guides plus the scheduled ones whose release day has come, newest first. */
+export const GUIDES: Guide[] = [...CORE_GUIDES, ...RELEASED].sort((a, b) => b.published.localeCompare(a.published));
 
 export const guideBySlug = (slug: string) => GUIDES.find((g) => g.slug === slug);
