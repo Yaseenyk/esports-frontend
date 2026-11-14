@@ -10,9 +10,10 @@ import { BATCH_05 } from "./batch-05";
 import { BATCH_06 } from "./batch-06";
 import { BATCH_07 } from "./batch-07";
 import { BATCH_08 } from "./batch-08";
+import { BATCH_09 } from "./batch-09";
 
 /** Every scheduled guide, in release order. The order of this list IS the release schedule. */
-export const DRAFTS: Draft[] = [...BATCH_01, ...BATCH_02, ...BATCH_03, ...BATCH_04, ...BATCH_05, ...BATCH_06, ...BATCH_07, ...BATCH_08];
+export const DRAFTS: Draft[] = [...BATCH_01, ...BATCH_02, ...BATCH_03, ...BATCH_04, ...BATCH_05, ...BATCH_06, ...BATCH_07, ...BATCH_08, ...BATCH_09];
 
 const wordsOf = (d: Draft) => [d.intro, d.answer, ...d.sections.flatMap((s) => [s.h2, s.md]), ...d.faq.flatMap((f) => [f.q, f.a])].join(" ").split(/\s+/).length;
 
