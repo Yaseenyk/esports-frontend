@@ -74,7 +74,7 @@ export function EvidenceUploader({ items, onPick, onRemove, full, busy }: { item
   return (
     <div>
       <p className="mb-1 block text-sm font-medium text-zinc-100">Evidence images (optional)</p>
-      <label className={`inline-flex min-h-11 cursor-pointer items-center rounded-lg border border-white/10 bg-surface px-4 text-zinc-100 focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-cyan-400 ${full || busy ? "opacity-60" : ""}`}>
+      <label className={`inline-flex min-h-11 cursor-pointer items-center rounded-lg border border-white/10 bg-surface px-4 text-zinc-100 focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-cyan-400 ${full || busy ? "opacity-60" : ""}`}>
         <span>{items.length ? "Add more images" : "Choose images"}</span>
         <input id="ev-files" type="file" multiple accept={ACCEPTED_TYPES.join(",")} disabled={full || busy} onChange={(e) => { onPick(Array.from(e.target.files ?? [])); e.target.value = ""; }} className="sr-only" aria-describedby="ev-help" />
       </label>

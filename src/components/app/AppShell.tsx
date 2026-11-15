@@ -64,7 +64,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   }
 
   const sections: Section[] = clubTab ? [...ALL_TABS.slice(0, -1), { href: clubTab.href, label: clubTab.label, blurb: "Team workspace", icon: CLUB_ICON }, ...ALL_TABS.slice(-1)] : ALL_TABS;
-  const signOut = () => { if (path.startsWith("/app/id-cards") && !window.confirm("Sign out? The people and designs on this screen are not saved in this browser, so they will be lost unless you saved a project file or saved the event online.")) return; auth.logout(); };
+  const signOut = () => { if (path.startsWith("/app/id-cards") && !window.confirm("Sign out? Photos, birth dates and designs on this screen are not kept in this browser, so they will be lost unless you saved a project file or saved the event online.")) return; auth.logout(); };
   const initial = session.user.name.trim().charAt(0) || "?";
   return (
     <div className="min-h-[100svh]">

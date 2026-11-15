@@ -30,7 +30,7 @@ export default function Dashboard() {
       <Checklist
         intro={hasEvent ? "Open your latest event to continue. Each step ticks itself off there as you finish it." : "You have no event yet. Start with step 1: it takes about two minutes."}
         steps={[
-          { n: 1, title: "Create your event", hint: "Name it and list your teams.", done: hasEvent, href: "/app/id-cards/", cta: "Create an event" },
+          { n: 1, title: "Create your event", hint: "Name it and list your teams.", done: hasEvent, href: "/app/id-cards/?new=1", cta: "Create an event" },
           { n: 2, title: "Add people", hint: "Type them in, import a sheet, or send players an invite link.", done: false, href: first ? `/app/events/?id=${encodeURIComponent(first.id)}` : undefined, cta: "Open your event" },
           { n: 3, title: "Design the ID cards", hint: "Pick a look for each team.", done: false, href: first ? `/app/id-cards/?open=${encodeURIComponent(first.id)}` : undefined, cta: "Open cards" },
           { n: 4, title: "Print or share passes", hint: "Download a PDF to print, or send each person a link.", done: false },
@@ -52,7 +52,7 @@ export default function Dashboard() {
       <section aria-label="Your events" className="space-y-3">
         <div className="flex items-center justify-between gap-3">
           <h2 className="font-display text-lg font-bold text-white">Your events</h2>
-          <Link href="/app/id-cards/" className="btn-ghost !min-h-11 px-3 text-sm">New event</Link>
+          <Link href="/app/id-cards/?new=1" className="btn-ghost !min-h-11 px-3 text-sm">New event</Link>
         </div>
         <Waiting loading={q.loading} apiKey="/events" label="Loading your events" onRetry={q.refetch}>
           <div className="space-y-2">{Array.from({ length: 3 }, (_, i) => <Sk key={i} i={i} className="!h-16 !rounded-xl" />)}</div>

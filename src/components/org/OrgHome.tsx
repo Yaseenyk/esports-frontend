@@ -57,7 +57,7 @@ function Events({ org }: { org: ContextOrg }) {
           <div className="card space-y-3">
             <p className="text-zinc-200">No events in your club yet.</p>
             <p className="text-sm text-zinc-400">Make your first one in the ID card maker. Choose your club when you save it online.</p>
-            {can(org, CAP.events) && <Link href="/app/id-cards/" className="btn !min-h-11 px-4 text-sm">Create an event</Link>}
+            {can(org, CAP.events) && <Link href="/app/id-cards/?new=1" className="btn !min-h-11 px-4 text-sm">Create an event</Link>}
           </div>
         ) : (
           <ul className="grid gap-3 md:grid-cols-2">
