@@ -96,7 +96,7 @@ Three layers, one direction. A layer talks only to its neighbour. Same definitio
   `V3_NAV=tournaments,lft,resume,disputes` or `all` forces links, `off` hides them. Read through `src/features/shared/flags.ts` (footer only today). The routes
   always exist and are noindex; the switch only controls links.
 - A stale `.next/cache` can serve an old API answer to a local build: `rm -rf .next` before building against a different API. CI starts clean.
-- `next/og` (tournament cards) cannot start on Windows (`path.join` on a `file:` URL); the card route falls back to `/og.png` there unless `CI` is set.
+- `next/og` (tournament cards) cannot start on Windows (`path.join` on a `file:` URL); the card route falls back to the generic `/og.png` (and logs `[og]` in the build) whenever the card cannot be drawn.
 - Try the "API on" build locally: `node scripts/mock-v3-api.mjs 8799`, then `NEXT_PUBLIC_API_URL=http://localhost:8799 npm run build`, then `node scripts/verify-seo.mjs`
   and `npx playwright test e2e/v3-tournaments.spec.ts --project=desktop` (`MOCK_MANY=12` shows the weekly cap).
 
