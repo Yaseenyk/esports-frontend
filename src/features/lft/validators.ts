@@ -5,7 +5,7 @@
  */
 export const LFT_MESSAGE_MAX = 600, LFT_MESSAGE_MIN = 10, APPLICATION_MESSAGE_MAX = 400, CONTACT_MAX = 40, CONTACT_MIN = 2;
 
-export type TextProblem = "empty" | "too_long" | "has_link" | "has_phone" | "has_markup" | "bad_contact";
+export type TextProblem = "empty" | "too_long" | "has_link" | "has_phone" | "has_markup" | "bad_contact" | "has_outside_contact";
 export type TextCheck = { ok: true; text: string } | { ok: false; code: TextProblem };
 
 const CONTROL = new RegExp("[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f-\u009f\u200b-\u200f\u2028-\u202e\u2066-\u2069\ufeff]", "g");
@@ -22,6 +22,10 @@ export function hasPhoneNumber(text: string): boolean {
   for (const r of runs) if (r.replace(/\D/g, "").length >= 7) return true;
   return text.replace(/[^0-9]/g, "").length >= 10;
 }
+/** A social @handle (an at sign and 3 or more word or dot characters) or an invitation to talk somewhere else. Same rule as the server. */
+const HANDLE_RE = /@[\w.]{3,}/;
+const INVITE_RES: RegExp[] = [/\bdm\s+me\b/i, /\b(?:message|contact|ping|add|reach)\s+me\s+on\b/i, /\b(?:call|whatsapp|text)\s+me\b/i];
+export const hasOutsideContact = (text: string): boolean => HANDLE_RE.test(text) || INVITE_RES.some((re) => re.test(text));
 export const hasLink = (text: string): boolean => LINK_RES.some((re) => re.test(text));
 export const cleanText = (v: string): string => v.replace(CONTROL, " ").replace(/\r\n?/g, "\n").replace(/[ \t]+/g, " ").replace(/\n{3,}/g, "\n\n").trim();
 
@@ -32,6 +36,7 @@ function plain(v: string, max: number, min: number): TextCheck {
   if (/[<>]/.test(t)) return { ok: false, code: "has_markup" };
   if (hasLink(t)) return { ok: false, code: "has_link" };
   if (hasPhoneNumber(t)) return { ok: false, code: "has_phone" };
+  if (hasOutsideContact(t)) return { ok: false, code: "has_outside_contact" };
   return { ok: true, text: t };
 }
 export const checkListingMessage = (v: string): TextCheck => plain(v, LFT_MESSAGE_MAX, LFT_MESSAGE_MIN);
@@ -44,12 +49,17 @@ export function checkContact(v: string): TextCheck {
   return { ok: true, text: t };
 }
 
+export const OUTSIDE_CONTACT_HINT = 'Contact details are shared only after the poster accepts an application. Remove the handle or the "DM me" line and ask people to apply here.';
+/** The one line shown under the message box before anything is typed. */
+export const MESSAGE_HELP = "Plain text, 10 to 600 characters. No links, phone numbers, @handles or \"DM me\" lines: contact is shared only after you accept an application.";
+
 /** A hint in plain words for a problem, or "" when the text is fine. */
 export function hintFor(what: "message" | "application" | "contact", c: TextCheck): string {
   if (c.ok) return "";
   switch (c.code) {
     case "has_link": return "This looks like a link. Links are not allowed: describe it in words.";
     case "has_phone": return "This looks like a phone number. Phone numbers are not allowed.";
+    case "has_outside_contact": return OUTSIDE_CONTACT_HINT;
     case "has_markup": return "Plain text only: remove the < and > characters.";
     case "too_long": return `Too long: at most ${what === "application" ? APPLICATION_MESSAGE_MAX : LFT_MESSAGE_MAX} characters.`;
     case "bad_contact": return `Use ${CONTACT_MIN} to ${CONTACT_MAX} characters: letters, digits and . _ # @ - only.`;

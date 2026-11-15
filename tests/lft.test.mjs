@@ -28,6 +28,16 @@ test("message hints: markup, length and emptiness", () => {
   no("x".repeat(601), "too_long");
   assert.equal(checkListingMessage("y".repeat(600)).ok, true);
 });
+test("message hints: a handle or an invitation to talk elsewhere is caught, the friendly reason says why", () => {
+  for (const s of ["IGL here, DM me on insta @rohan_igl", "ping me on discord after 9pm ok", "add me on steam for scrims", "reach me on telegram please", "whatsapp me for trials ok", "just text me for a trial game", "call me for a trial game ok", "message me on instagram for scrims", "contact me on discord any time", "DM me anytime for scrims"]) no(s, "has_outside_contact");
+  assert.match(hintFor("message", checkListingMessage("DM me on insta @rohan_igl")), /Contact details are shared only after the poster accepts an application\. Remove the handle or the "DM me" line and ask people to apply here\./);
+  assert.equal(checkApplicationMessage("I play evenings, ping me on discord").ok, false);
+});
+test("message hints: ordinary words that look close are fine", () => {
+  for (const s of ["Looking for a squad, we scrim at 9pm every day", "I can message the team captain once accepted", "Ace-rank sniper, 2 @ a time pushes", "Email style a@b is not used here ok ok"]) ok(s);
+  assert.equal(checkContact("rohan_igl#1234").ok, true); // the contact field may hold a handle: it is never shown before accept
+  assert.equal(checkContact("@rohan_igl").ok, true);
+});
 test("hints are plain words and empty when fine", () => {
   assert.equal(hintFor("message", checkListingMessage("a good message about my squad")), "");
   assert.match(hintFor("message", checkListingMessage("call 9876543210 now ok")), /phone number/);

@@ -4,9 +4,10 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useSession } from "@/components/cloud/useSession";
 import { useLftBoard } from "@/features/lft/hooks/useLftBoard";
-import { useApply, useCreateListing, useListing, useReport } from "@/features/lft/hooks/useLftForms";
+import { useApply, useCreateListing, useIsOwnListing, useListing, useReport } from "@/features/lft/hooks/useLftForms";
 import { useAdult } from "@/features/shared/hooks/useAdult";
 import { KINDS, GAMES, REPORT_REASONS, ROLES, ROLE_LABELS, type Listing } from "@/features/lft/domain";
+import { MESSAGE_HELP } from "@/features/lft/validators";
 import { LftCard, LftFilters, ListingDetail } from "@/features/lft/ui/LftParts";
 import { Field, SelectInput, TextArea, TextInput } from "@/features/shared/ui/Fields";
 import Modal from "@/features/shared/ui/Modal";
@@ -57,7 +58,7 @@ function ApplyDialog({ listing, open, onClose }: { listing: Listing; open: boole
         </div>
       ) : (
         <form onSubmit={(e) => { e.preventDefault(); void a.submit(); }} className="space-y-4" noValidate>
-          <TextArea id="ap-msg" label="Message (optional)" value={a.message} onChange={a.setMessage} rows={4} max={400} error={a.hints.message} help="Plain text. No links or phone numbers." />
+          <TextArea id="ap-msg" label="Message (optional)" value={a.message} onChange={a.setMessage} rows={4} max={400} error={a.hints.message} help="Plain text. No links, phone numbers, @handles or &quot;DM me&quot; lines." />
           <TextInput id="ap-contact" label="Your contact" value={a.contact} onChange={a.setContact} maxLength={40} error={a.hints.contact} help="For example your Discord name. Shown to the poster only after they accept." />
           {a.error && <p role="alert" className="text-sm text-danger"><span aria-hidden="true">! </span>{a.error}</p>}
           <div className="flex flex-wrap gap-3"><button type="submit" disabled={a.busy} className={btnPrimary}>{a.busy ? "Sending" : "Send application"}</button><button type="button" onClick={onClose} className={btnSecondary}>Cancel</button></div>
@@ -90,6 +91,7 @@ export function ListingScreen() {
   useEffect(() => { setId(new URLSearchParams(window.location.search).get("id") ?? ""); }, []);
   const session = useSession();
   const res = useListing(id);
+  const own = useIsOwnListing(id, !!session);
   const adult = useAdult(!!session && res.phase === "ready");
   const [dialog, setDialog] = useState<"" | "apply" | "report">("");
   const l = res.phase === "ready" ? res.data : null;
@@ -104,7 +106,7 @@ export function ListingScreen() {
       {l && (
         <>
           <ListingDetail l={l} />
-          {!session ? <SignInPrompt what="Sign in and confirm you are 18 or older to apply." next="/app/lft/" /> : adult.known && !adult.adult ? <AdultGate busy={adult.busy} error={adult.error} onConfirm={adult.confirm} /> : (
+          {own ? <p role="status" className="text-zinc-300">That is your own listing. You can bump, close or read its applications on your <Link href="/app/lft/" className={link}>listings page</Link>.</p> : !session ? <SignInPrompt what="Sign in and confirm you are 18 or older to apply." next="/app/lft/" /> : adult.known && !adult.adult ? <AdultGate busy={adult.busy} error={adult.error} onConfirm={adult.confirm} /> : (
             <div className="flex flex-wrap gap-3"><button type="button" onClick={() => setDialog("apply")} className={btnPrimary}>Apply</button><button type="button" onClick={() => setDialog("report")} className={btnSecondary}>Report this listing</button></div>
           )}
           <ApplyDialog listing={l} open={dialog === "apply"} onClose={() => setDialog("")} />
@@ -151,7 +153,7 @@ export function NewListingScreen() {
             <TextInput id="n-city" label="City (optional)" value={form.city} onChange={(v) => set("city", v)} maxLength={60} />
           </div>
           <label className="flex min-h-11 items-center gap-2 text-zinc-100"><input type="checkbox" checked={form.onlineOk} onChange={(e) => set("onlineOk", e.target.checked)} className="h-5 w-5 accent-cyan-400" />Online play is fine</label>
-          <TextArea id="n-msg" label="Message" value={form.message} onChange={(v) => set("message", v)} max={600} error={errors.message} help="Plain text, 10 to 600 characters. No links and no phone numbers: they are rejected." />
+          <TextArea id="n-msg" label="Message" value={form.message} onChange={(v) => set("message", v)} max={600} error={errors.message} help={MESSAGE_HELP} />
           <TextInput id="n-contact" label="Your contact" value={form.contact} onChange={(v) => set("contact", v)} maxLength={40} error={errors.contact} help="For example your Discord name. Never shown on the board: only to someone you accept." />
           <Field id="n-days" label="Keep it open for" error={errors.expiresInDays}>
             <select id="n-days" value={form.expiresInDays} onChange={(e) => set("expiresInDays", e.target.value)} className="min-h-11 w-full rounded-lg border border-white/10 bg-surface px-3 text-zinc-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-400">

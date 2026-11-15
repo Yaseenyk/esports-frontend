@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { applyTo, createListing, fetchListing, fetchMyTeamPages, reportListing } from "@/features/lft/services/lft.api";
+import { applyTo, createListing, fetchListing, fetchMine, fetchMyTeamPages, reportListing } from "@/features/lft/services/lft.api";
 import { checkApplicationMessage, checkContact, createBody, hintFor, validateCreate, type CreateForm, type FormErrors } from "@/features/lft/validators";
 import { explainFailure } from "@/features/shared/failure";
 import { useResource } from "@/features/shared/hooks/useResource";
@@ -76,4 +76,11 @@ export function useCreateListing() {
 /** One listing from its id (`null` while the id is not known yet, which resolves to "no listing"). */
 export function useListing(id: string | null) {
   return useResource(() => (id ? fetchListing(id) : Promise.resolve({ ok: true as const, data: null })), [id]);
+}
+
+/** True when the listing is one of the signed-in person's own (read in parallel with the listing itself, never cached). `null` while unknown. */
+export function useIsOwnListing(id: string | null, signedIn: boolean): boolean | null {
+  const mine = useResource(() => (signedIn ? fetchMine() : Promise.resolve({ ok: true as const, data: [] })), [signedIn]);
+  if (!id || mine.phase === "loading") return null;
+  return mine.phase === "ready" ? mine.data.some((m) => m.id === id) : false; // if the check failed the server still refuses the application
 }
