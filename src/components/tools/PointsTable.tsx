@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { sendEvent } from "@/lib/track";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { EXAMPLE_SCALE, parsePlacement, standings, type TeamEntry } from "@/lib/points";
 import ScreenButtons from "@/components/display/ScreenButtons";
 import WinnersBlock from "@/components/display/WinnersBlock";
@@ -30,6 +30,11 @@ export default function PointsTable({ preset }: { /** A game landing page: the s
   const [kill, setKill] = useState(EXAMPLE_SCALE.perKill);
   const [matches, setMatches] = useState(3);
   const [teams, setTeams] = useState<TeamEntry[]>(EXAMPLE);
+  // What was typed in a box, so a 0 stays "0" (the stored number 0 means "empty" for a place). It is used only while it still matches the stored number.
+  const [typed, setTyped] = useState<Record<string, string>>({});
+  const shown = (key: string, n: number, blankZero: boolean) => { const t = typed[key]; return t !== undefined && num(t) === n ? t : n || !blankZero ? String(n) : ""; };
+  const tableBox = useRef<HTMLDivElement>(null);
+  const [scrolls, setScrolls] = useState(false);
 
   const placement = parsePlacement(scaleText);
   const normalised = useMemo(() => teams.map((t) => ({ ...t, matches: Array.from({ length: matches }, (_, i) => t.matches[i] ?? { placement: 0, kills: 0 }) })), [teams, matches]);
@@ -38,8 +43,16 @@ export default function PointsTable({ preset }: { /** A game landing page: the s
   const screen = useMemo(() => (table.length ? pointsView(table, matches) : null), [table, matches]);
   const cells = normalised.length * matches;
   const filled = normalised.reduce((n, t) => n + t.matches.filter((m) => m.placement > 0).length, 0);
-  const setCell = (ti: number, mi: number, key: "placement" | "kills", v: string) =>
+  const setCell = (ti: number, mi: number, key: "placement" | "kills", v: string) => {
+    setTyped((o) => ({ ...o, [`${ti}:${mi}:${key}`]: v.replace(/\D/g, "").slice(0, 4) }));
     setTeams(normalised.map((t, i) => (i === ti ? { ...t, matches: t.matches.map((m, j) => (j === mi ? { ...m, [key]: num(v) } : m)) } : t)));
+  };
+  useEffect(() => {
+    const el = tableBox.current; if (!el) return;
+    const check = () => setScrolls(el.scrollWidth > el.clientWidth + 2);
+    check();
+    const ro = new ResizeObserver(check); ro.observe(el); return () => ro.disconnect();
+  }, [table.length, matches]);
   const csv = () => {
     const head = ["Rank", "Team", ...Array.from({ length: matches }, (_, i) => `Match ${i + 1}`), "Placement points", "Kill points", "Total"];
     const rows = table.map((s) => [s.rank, s.name, ...s.perMatch, s.placementPoints, s.killPoints, s.total]);
@@ -87,8 +100,8 @@ export default function PointsTable({ preset }: { /** A game landing page: the s
                     <fieldset key={mi} className="min-w-0 rounded-lg border border-white/[0.1] p-2">
                       <legend className="px-1 text-xs font-medium text-zinc-300">Match {mi + 1}</legend>
                       <div className="flex gap-2">
-                        <label className="block min-w-0 flex-1 text-[11px] text-zinc-300">Place<input aria-label={`${t.name || `Team ${ti + 1}`}, match ${mi + 1}, placement`} className="field !min-h-11 mt-0.5 !px-2 text-center" inputMode="numeric" value={m.placement || ""} onChange={(e) => setCell(ti, mi, "placement", e.target.value)} /></label>
-                        <label className="block min-w-0 flex-1 text-[11px] text-zinc-300">Kills<input aria-label={`${t.name || `Team ${ti + 1}`}, match ${mi + 1}, kills`} className="field !min-h-11 mt-0.5 !px-2 text-center" inputMode="numeric" value={m.kills || ""} onChange={(e) => setCell(ti, mi, "kills", e.target.value)} /></label>
+                        <label className="block min-w-0 flex-1 text-[11px] text-zinc-300">Place<input aria-label={`${t.name || `Team ${ti + 1}`}, match ${mi + 1}, placement`} className="field !min-h-11 mt-0.5 !px-2 text-center" inputMode="numeric" value={shown(`${ti}:${mi}:placement`, m.placement, true)} onChange={(e) => setCell(ti, mi, "placement", e.target.value)} /></label>
+                        <label className="block min-w-0 flex-1 text-[11px] text-zinc-300">Kills<input aria-label={`${t.name || `Team ${ti + 1}`}, match ${mi + 1}, kills`} className="field !min-h-11 mt-0.5 !px-2 text-center" inputMode="numeric" value={shown(`${ti}:${mi}:kills`, m.kills, true)} onChange={(e) => setCell(ti, mi, "kills", e.target.value)} /></label>
                       </div>
                     </fieldset>
                   ))}
@@ -107,10 +120,11 @@ export default function PointsTable({ preset }: { /** A game landing page: the s
           {table.length === 0 ? <p className="rounded-xl border border-dashed border-white/15 p-6 text-center text-zinc-300" role={placement ? undefined : "alert"}>{placement ? "No standings yet. Add a team with a name in step 2." : "Fix the points scale in step 1 to see the table."}</p> : (
             <>
               {filled === 0 && <p className="text-sm text-zinc-300">No results yet, so every team is on 0. Enter a Place for each match in step 2.</p>}
-              <div role="region" aria-label="Standings table" tabIndex={0} className="overflow-x-auto outline-none focus-visible:ring-2 focus-visible:ring-cyan">
+              {scrolls && <p className="text-xs text-zinc-300">Swipe sideways to see every match. Total stays in view.</p>}
+              <div ref={tableBox} role="region" aria-label="Standings table" tabIndex={0} className="overflow-x-auto outline-none focus-visible:ring-2 focus-visible:ring-cyan">
                 <table className="w-full min-w-[30rem] border-collapse text-left text-sm">
-                  <thead><tr className="bg-[#0f1013] text-zinc-200"><th scope="col" className="px-3 py-2">Rank</th><th scope="col" className="px-3 py-2">Team</th>{Array.from({ length: matches }, (_, i) => <th key={i} scope="col" className="px-3 py-2">M{i + 1}</th>)}<th scope="col" className="px-3 py-2">Kills</th><th scope="col" className="px-3 py-2">Wins</th><th scope="col" className="px-3 py-2">Total</th></tr></thead>
-                  <tbody>{table.map((s) => <tr key={s.name + s.rank} className="border-t border-white/[0.08]"><th scope="row" className="px-3 py-2 font-bold text-cyan">{s.rank}</th><td className="px-3 py-2 font-medium text-white">{s.name}{s.tied && <span className="ml-2 text-xs text-amber-300" title="Same points as another team; the tie-breakers decided the order">tie-break</span>}</td>{s.perMatch.map((p, i) => <td key={i} className="px-3 py-2 text-zinc-300">{p}</td>)}<td className="px-3 py-2 text-zinc-300">{s.kills}</td><td className="px-3 py-2 text-zinc-300">{s.wins}</td><td className="px-3 py-2 font-bold text-white">{s.total}</td></tr>)}</tbody>
+                  <thead><tr className="bg-[#0f1013] text-zinc-200"><th scope="col" className="px-3 py-2">Rank</th><th scope="col" className="px-3 py-2">Team</th>{Array.from({ length: matches }, (_, i) => <th key={i} scope="col" className="px-3 py-2">M{i + 1}</th>)}<th scope="col" className="px-3 py-2">Kills</th><th scope="col" className="px-3 py-2">Wins</th><th scope="col" className="sticky right-0 bg-[#0f1013] px-3 py-2 shadow-[-6px_0_6px_-6px_rgba(0,0,0,0.8)]">Total</th></tr></thead>
+                  <tbody>{table.map((s) => <tr key={s.name + s.rank} className="border-t border-white/[0.08]"><th scope="row" className="px-3 py-2 font-bold text-cyan">{s.rank}</th><td className="px-3 py-2 font-medium text-white">{s.name}{s.tied && <span className="ml-2 text-xs text-amber-300" title="Same points as another team; the tie-breakers decided the order">tie-break</span>}</td>{s.perMatch.map((p, i) => <td key={i} className="px-3 py-2 text-zinc-300">{p}</td>)}<td className="px-3 py-2 text-zinc-300">{s.kills}</td><td className="px-3 py-2 text-zinc-300">{s.wins}</td><td className="sticky right-0 bg-[#0a0b0d] px-3 py-2 font-bold text-white shadow-[-6px_0_6px_-6px_rgba(0,0,0,0.8)]">{s.total}</td></tr>)}</tbody>
                 </table>
               </div>
               <p className="text-xs leading-5 text-zinc-400">M1, M2... = points earned in each match. Wins = matches finished 1st. A tie-break is the rule that orders teams on the same total: most wins, then most kills, then the better place in the last match, then team name. Put your own tie-breakers in your rules before the event.</p>

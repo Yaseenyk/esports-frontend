@@ -33,7 +33,10 @@ const config: Config = {
       },
     },
   },
-  plugins: [],
+  plugins: [
+    // `short:` = landscape phones (max-height 500px). A plugin variant, not a `screens` entry: object screens would break the max-sm: variants used in the app.
+    ({ addVariant }: { addVariant: (name: string, def: string) => void }) => addVariant("short", "@media (max-height: 500px)"),
+  ],
 };
 
 export default config;

@@ -17,6 +17,7 @@ export default function LivePagePanel({ eventId }: { eventId: string }) {
   const [ticker, setTicker] = useState<string[]>([]);
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
+  const [ask, setAsk] = useState<boolean | null>(null); // the publish / unpublish question, asked on the page (a browser pop-up can be blocked or dismissed, which looked like the switch doing nothing)
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
 
@@ -33,11 +34,9 @@ export default function LivePagePanel({ eventId }: { eventId: string }) {
   const saved = state?.snapshot ?? emptySnapshot();
   const dirty = JSON.stringify([saved.announcements, saved.sponsors, saved.ticker]) !== JSON.stringify([ann, spons, ticker]);
 
-  const togglePublish = async () => {
+  const togglePublish = async (on: boolean) => {
     if (!state || busy) return;
-    const on = !state.published;
-    if (!confirm(on ? "Publish the live page? Anyone with the link will be able to see it." : "Unpublish the live page? The link will stop working until you publish again.")) return;
-    setBusy(true); setMsg(null);
+    setAsk(null); setBusy(true); setMsg(null);
     try { const s = await live.put(eventId, { published: on }); setState(s); setMsg({ ok: true, text: s.published ? "The live page is on. Anyone with the link can see it." : "The live page is off. The link shows that it is not live." }); }
     catch (e) { setMsg({ ok: false, text: explain(e) }); } finally { setBusy(false); }
   };
@@ -81,10 +80,16 @@ export default function LivePagePanel({ eventId }: { eventId: string }) {
       {state && (
         <>
           <div className="flex flex-wrap items-center gap-3">
-            <button type="button" role="switch" aria-checked={state.published} aria-label="Live page is published" disabled={busy} onClick={togglePublish} className={`relative h-11 w-20 shrink-0 rounded-full border outline-none focus-visible:ring-2 focus-visible:ring-cyan ${state.published ? "border-cyan bg-cyan" : "border-zinc-600 bg-zinc-800"}`}><span aria-hidden="true" className={`absolute top-1.5 h-7 w-7 rounded-full bg-[#05070a] transition-all ${state.published ? "left-11" : "left-1.5 !bg-zinc-300"}`} /></button>
+            <button type="button" role="switch" aria-checked={state.published} aria-label="Live page is published" disabled={busy} onClick={() => { setMsg(null); setAsk(!state.published); }} className={`relative h-11 w-20 shrink-0 rounded-full border outline-none focus-visible:ring-2 focus-visible:ring-cyan ${state.published ? "border-cyan bg-cyan" : "border-zinc-600 bg-zinc-800"}`}><span aria-hidden="true" className={`absolute top-1.5 h-7 w-7 rounded-full bg-[#05070a] transition-all ${state.published ? "left-11" : "left-1.5 !bg-zinc-300"}`} /></button>
             <p className="text-sm font-semibold text-zinc-100">{state.published ? "Published: anyone with the link can see it" : "Not published: nobody can see it yet"}</p>
           </div>
 
+          {ask !== null && (
+            <div role="group" aria-label={ask ? "Publish the live page?" : "Unpublish the live page?"} className="space-y-2 rounded-xl border border-amber-500/40 bg-surface p-3 text-sm text-amber-100">
+              <p>{ask ? "Publish the live page? Anyone with the link will be able to see it." : "Unpublish the live page? The link will stop working until you publish again."}</p>
+              <div className="flex flex-wrap gap-2"><button type="button" className="btn !min-h-11 px-4 text-sm" onClick={() => togglePublish(ask)}>{ask ? "Yes, publish" : "Yes, unpublish"}</button><button type="button" className="btn-ghost !min-h-11 px-4 text-sm" onClick={() => setAsk(null)}>Cancel</button></div>
+            </div>
+          )}
           {url && (
             <div className="space-y-3">
               <p className="break-all rounded-lg border border-white/10 bg-[#0a0b0d] px-3 py-2 font-mono text-xs text-zinc-200" aria-label="Public link">{url}</p>
