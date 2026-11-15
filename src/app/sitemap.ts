@@ -27,6 +27,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...GUIDES.map((g) => at(`/guides/${g.slug}/`, 0.8, g.updated)),
     ...(live.length > 0 ? [at("/tournaments/", 0.6, live[0].detail.publishedAt?.slice(0, 10) ?? LAUNCH), ...live.map((t) => at(`/tournaments/${t.detail.slug}/`, 0.5, t.detail.publishedAt?.slice(0, 10) ?? LAUNCH))] : []),
     ...colleges.map((c) => at(`/colleges/${c.slug}/`, 0.4)),
-    at("/about/", 0.4), at("/developers/", 0.3), at("/contact/", 0.3), at("/privacy/", 0.2), at("/terms/", 0.2),
+    at("/about/", 0.4), at("/contact/", 0.3), at("/privacy/", 0.2), at("/terms/", 0.2),
   ];
 }

@@ -6,6 +6,7 @@ export const metadata: Metadata = {
   title: "Esports Hub API: read event counts",
   description: "A small read-only API for Esports Hub. Base URL, the key header, two endpoints, the response fields and the rate limits. Counts and event details only, never people.",
   alternates: { canonical: "/developers/" },
+  robots: { index: false, follow: true },
 };
 
 const code = "block overflow-x-auto rounded-lg border border-white/10 bg-[#0a0b0d] p-3 font-mono text-sm text-zinc-100";
