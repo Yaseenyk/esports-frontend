@@ -16,6 +16,7 @@ const OUT = join(ROOT, "out");
 const ALLOWED_HOSTS = [
   "googletagmanager.com", // owner-approved, marketing pages only
   "clarity.ms",           // owner-approved, marketing pages only
+  "pulse.yaseenyk.workers.dev", // owner-approved first-party visit counter (no cookies); off on identity-document, app and sign-in paths via data-exclude
   "cdn.jsdelivr.net",     // runtime-only model/library loads; never in HTML today
 ];
 const OWN_HOSTS = ["esports.streamerosai.com", "esports-api.yaseenyk.workers.dev"];
