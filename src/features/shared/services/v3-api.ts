@@ -1,5 +1,5 @@
 import { api } from "@/lib/api";
-import { attempt, type V3Result } from "@/features/shared/services/result";
+import { attempt, type V3Result } from "@/features/shared/failure";
 
 /** Every v3 screen calls the API through these helpers (which sit on the one shared client in `@/lib/api`). */
 export const v3Get = <T>(path: string, opt?: { force?: boolean; ttl?: number }): Promise<V3Result<T>> => attempt(() => api.get<T>(path, { retries: 1, ...opt }));

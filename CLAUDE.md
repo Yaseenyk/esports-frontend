@@ -83,6 +83,23 @@ Three layers, one direction. A layer talks only to its neighbour. Same definitio
 - Structured data goes through one helper; never hand-write JSON-LD in a page. Tournaments use `SportsEvent`.
 - The measured demand is small (see the research file). Pages are for sharing and conversion first, search second. Do not promise rankings.
 
+## v3 build behaviour (tournament pages, nav switch)
+
+- **Tournament pages are built from the public API.** `src/features/tournaments/services/build-data.ts` reads `GET /public/tournaments` and each detail at build time.
+  API off (404), empty or unreachable: no tournament page is emitted and `/tournaments/` stays the old noindex directory. Next 14 refuses an empty
+  `generateStaticParams()` under `output: "export"`, so the route gets a placeholder slug (`__none__`) that `scripts/prune-v3.mjs` (the second half of
+  `npm run build`) deletes. Never remove that script from the build command.
+- **Indexable = guard + API + weekly cap.** `seo/thin-page-guard.ts` mirrors the backend's `seo-guard.ts` (synced block, parity test with shared fixtures). "Newly
+  indexable" is measured by `publishedAt`: at most 10 pages whose publish times fall in any rolling 7 days (the newest are held `noindex` until the window passes).
+  `scripts/verify-seo.mjs` re-runs the guard on each page's `eh-guard` data, checks JSON-LD only on indexable pages, og.png, canonical, sitemap parity and the cap.
+- **Nav switch.** `next.config.mjs` sets `NEXT_PUBLIC_V3_NAV` at build: `V3_NAV` unset or `auto` probes `/public/tournaments` and `/public/lft` (200 = link it),
+  `V3_NAV=tournaments,lft,resume,disputes` or `all` forces links, `off` hides them. Read through `src/features/shared/flags.ts` (footer only today). The routes
+  always exist and are noindex; the switch only controls links.
+- A stale `.next/cache` can serve an old API answer to a local build: `rm -rf .next` before building against a different API. CI starts clean.
+- `next/og` (tournament cards) cannot start on Windows (`path.join` on a `file:` URL); the card route falls back to `/og.png` there unless `CI` is set.
+- Try the "API on" build locally: `node scripts/mock-v3-api.mjs 8799`, then `NEXT_PUBLIC_API_URL=http://localhost:8799 npm run build`, then `node scripts/verify-seo.mjs`
+  and `npx playwright test e2e/v3-tournaments.spec.ts --project=desktop` (`MOCK_MANY=12` shows the weekly cap).
+
 ## Commands
 
 ```bash

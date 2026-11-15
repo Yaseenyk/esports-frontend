@@ -155,6 +155,48 @@ export function createClient(o: ClientOptions) {
     } finally { clearTimeout(timer); }
   }
 
+  /** The error for a failed response, with the server's message and machine code when it sent them. */
+  async function failed(res: Response): Promise<ApiError> {
+    let why: string | undefined;
+    let detail: ApiError["detail"];
+    try {
+      const b = (await res.json()) as { error?: unknown; code?: unknown };
+      if (typeof b?.error === "string") why = b.error.slice(0, 200);
+      if (typeof b?.code === "string") detail = { code: b.code.slice(0, 60), events: [] };
+    } catch { /* no JSON body */ }
+    return new ApiError(res.status, `Request failed (${res.status})`, undefined, why, detail);
+  }
+
+  /** POST a raw body (an image) instead of JSON. Never retried. Used by the dispute evidence upload (API.md: the bytes are the body). */
+  async function postRaw<T>(path: string, body: Blob, extra?: { signal?: AbortSignal; timeout?: number }): Promise<T> {
+    const ctl = new AbortController();
+    const timer = setTimeout(() => ctl.abort(), extra?.timeout ?? 30000);
+    extra?.signal?.addEventListener("abort", () => ctl.abort(), { once: true });
+    try {
+      stats.network++;
+      const res = await f(url(path), { method: "POST", headers: headers({ "content-type": "application/octet-stream" }), body, signal: ctl.signal });
+      if (res.status === 401 && o.token?.() && !path.startsWith("/auth/")) o.onUnauthorized?.();
+      if (!res.ok) throw await failed(res);
+      invalidateRelated(path);
+      return (await res.json()) as T;
+    } finally { clearTimeout(timer); }
+  }
+
+  /** GET a file with the bearer token (an `<img src>` cannot send it). Not cached: the caller turns it into an object URL. */
+  async function getBlob(path: string, extra?: { signal?: AbortSignal; timeout?: number }): Promise<Blob> {
+    const ctl = new AbortController();
+    const timer = setTimeout(() => ctl.abort(), extra?.timeout ?? 30000);
+    extra?.signal?.addEventListener("abort", () => ctl.abort(), { once: true });
+    try {
+      stats.network++;
+      const h = headers(); h.accept = "*/*";
+      const res = await f(url(path), { headers: h, signal: ctl.signal });
+      if (res.status === 401 && o.token?.() && !path.startsWith("/auth/")) o.onUnauthorized?.();
+      if (!res.ok) throw await failed(res);
+      return await res.blob();
+    } finally { clearTimeout(timer); }
+  }
+
   /** After a write, forget cached reads of the same collection so nobody sees stale data. */
   function invalidateRelated(path: string) {
     const segs = path.split("?")[0].split("/");
@@ -171,6 +213,8 @@ export function createClient(o: ClientOptions) {
     post: <T>(path: string, body?: unknown, extra?: Parameters<typeof send>[3]) => send<T>("POST", path, body, extra),
     put: <T>(path: string, body?: unknown, extra?: Parameters<typeof send>[3]) => send<T>("PUT", path, body, extra),
     del: <T>(path: string, extra?: Parameters<typeof send>[3]) => send<T>("DELETE", path, undefined, extra),
+    postRaw,
+    getBlob,
     peek: <T>(path: string): T | undefined => cache.get(path)?.data as T | undefined,
     invalidate: (prefix: string) => { epoch++; for (const k of [...cache.keys()]) if (k.startsWith(prefix)) cache.delete(k); },
     /** Forget everything, including requests still in flight (used on sign-in and sign-out so nobody sees the previous person's data). */

@@ -1,7 +1,7 @@
 import { api } from "@/lib/api";
 import { toCardList, toDetail, toLive } from "@/features/tournaments/services/tournament.adapter";
 import type { LiveStatus, TournamentCard, TournamentDetail } from "@/features/tournaments/domain";
-import { attempt, type V3Result } from "@/features/shared/services/result";
+import { attempt, type V3Result } from "@/features/shared/failure";
 
 /**
  * Public tournament reads. At BUILD time these run in Node through the same client (`@/lib/api`); any failure (404 while the flag is off, a
