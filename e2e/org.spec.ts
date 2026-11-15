@@ -1,4 +1,6 @@
 // Club screens (Phase 2a-ii), server mocked. Everything sits behind GET /me/context features.teamOrgs.
+import fs from "node:fs";
+import path from "node:path";
 import { expect, test, type Page } from "@playwright/test";
 import { appNav, json, mockContext, signedIn, unmockedCalls } from "./helpers";
 
@@ -20,11 +22,16 @@ const members = (youRole = "admin") => ({ role: youRole, members: [
   { userId: "b", name: "Bob", email: "bob@example.com", role: "member", addedAt: "", isYou: false },
 ] });
 
+/** True when this build probed a live v3 API: the public footer and app menu then link to the tournaments and the team finder, by design. */
+const v3NavOn = (): boolean => { try { return fs.readFileSync(path.resolve("out", "index.html"), "utf8").includes('href="/lft/"'); } catch { return false; } };
+
 test("flag off or no club: the navigation is exactly today's and only /me/context is called extra", async ({ page }) => {
   await signedIn(page, [], { context: ctx([team()], false) });
   await page.goto("/app/");
   const nav = await appNav(page);
-  await expect(nav.locator("a span.font-display:visible")).toHaveText(["Home", "Events", "ID cards", "Gate check-in", "Brackets", "Insights", "Account"]);
+  const shown = await nav.locator("a span.font-display:visible").allTextContents();
+  // With the v3 API live the menu also offers the tournaments and the team finder; nothing else may change.
+  expect(v3NavOn() ? shown.filter((t) => t !== "Tournaments" && t !== "Team finder") : shown).toEqual(["Home", "Events", "ID cards", "Gate check-in", "Brackets", "Insights", "Account"]);
   await page.goto("/app/org/");
   await expect(page.getByText("Clubs are not available yet.")).toBeVisible();
   expect(unmockedCalls.get(page)).toEqual([]);

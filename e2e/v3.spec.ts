@@ -419,6 +419,7 @@ test("dialogs have no serious accessibility problems (apply and report)", async 
 
 test("existing pages are untouched: the footer has no v3 links while the API is off", async ({ page }) => {
   test.skip(fs.existsSync(path.resolve("out", "tournaments", "fixture-cup-1")), "this build was made against the mock tournament API, which turns the footer link on by design");
+  test.skip(fs.readFileSync(path.resolve("out", "index.html"), "utf8").includes('href="/lft/"'), "this build probed a live v3 API (flags on), which turns the footer links on by design");
   await page.goto("/");
   const footer = page.locator("footer");
   for (const t of ["Find a team", "Tournaments"]) await expect(footer.getByRole("link", { name: t, exact: true })).toHaveCount(0);

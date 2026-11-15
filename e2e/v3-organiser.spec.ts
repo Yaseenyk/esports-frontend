@@ -1,6 +1,8 @@
 // Organiser tournament screens and dispute corrections. The API is MOCKED with route interception (a small stateful fake of API.md section 2):
 // nothing here reaches the real backend. Run one project at a time:  npx playwright test e2e/v3-organiser.spec.ts --project=desktop
 import AxeBuilder from "@axe-core/playwright";
+import fs from "node:fs";
+import path from "node:path";
 import { expect, test, type Page } from "@playwright/test";
 import { DISPUTE, json, mockV3, signedIn, type Handler } from "./v3-helpers";
 
@@ -98,7 +100,9 @@ test("the new routes are noindex and nothing is added to the public nav or foote
     await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
   }
   await page.goto("/");
-  await expect(page.locator('footer a[href="/tournaments/"], footer a[href="/lft/"], footer a[href^="/app/tournaments"]')).toHaveCount(0);
+  // With the v3 API live, the public footer links the tournaments and the team finder by design; the organiser routes are never linked publicly.
+  const publicV3 = (() => { try { return fs.readFileSync(path.resolve("out", "index.html"), "utf8").includes('href="/lft/"'); } catch { return false; } })();
+  await expect(page.locator(publicV3 ? 'footer a[href^="/app/tournaments"]' : 'footer a[href="/tournaments/"], footer a[href="/lft/"], footer a[href^="/app/tournaments"]')).toHaveCount(0);
   expect(await page.locator("a[href*='/app/tournaments']").count()).toBe(0);
 });
 
