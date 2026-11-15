@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { gtmAllowed, GTM_ID, CLARITY_ID, GTM_BOOT } from "../src/lib/gtm.ts";
+import { gtmAllowed, GTM_ID, CLARITY_ID, GTM_BOOT, tagHostAllowed } from "../src/lib/gtm.ts";
 
 test("the tag loads on public marketing pages", () => {
   for (const p of ["/", "/tools/", "/tools/bracket/", "/guides/", "/guides/how-to-run-a-bgmi-tournament/", "/compare/", "/about/", "/contact/", "/privacy/", "/terms/"]) assert.equal(gtmAllowed(p), true, p);
@@ -43,4 +43,9 @@ test("the head loader and gtmAllowed agree on every path", () => {
 
 test("the head loader never runs on localhost, previews or any other host", () => {
   for (const h of ["localhost", "127.0.0.1", "esports-frontend.pages.dev", "yaseenyk.github.io", "esports.streamerosai.com.evil.example", "streamerosai.com"]) assert.equal(runBoot("/", {}, h).length, 0, h);
+});
+
+test("analytics tags run only on the real website (local runs and tests must not count as visitors)", () => {
+  assert.equal(tagHostAllowed("esports.streamerosai.com"), true);
+  for (const h of ["localhost", "127.0.0.1", "0.0.0.0", "192.168.1.5", "preview.example.com", "esports.streamerosai.com.evil.test", ""]) assert.equal(tagHostAllowed(h), false, h);
 });

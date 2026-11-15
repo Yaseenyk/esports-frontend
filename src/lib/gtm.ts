@@ -10,6 +10,11 @@ export const TAG_HOSTS = ["esports.streamerosai.com"];
 /** Public marketing pages only. Everything else (the app, sign-in, live/score/report/ready/run/overlay/embed/display, passes, unsubscribe, join, register, teams, leagues) is excluded because those addresses can hold private links or belong to signed-in people. */
 const ALLOWED = ["/", "/tools", "/guides", "/compare", "/about", "/contact", "/privacy", "/terms", "/points-table"];
 
+/** True only on the real website. The page-header loader checks this inline; the React loader (GoogleTag) must check it too, or local runs and tests count as visitors. */
+export function tagHostAllowed(hostname: string): boolean {
+  return TAG_HOSTS.includes((hostname || "").toLowerCase());
+}
+
 export function gtmAllowed(pathname: string): boolean {
   const p = (pathname || "/").replace(/\/+$/, "") || "/";
   return ALLOWED.some((a) => (a === "/" ? p === "/" : p === a || p.startsWith(a + "/")));

@@ -3,7 +3,7 @@
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 import { doNotTrack } from "@/lib/hits";
-import { gtmAllowed, GTM_ID } from "@/lib/gtm";
+import { gtmAllowed, GTM_ID, tagHostAllowed } from "@/lib/gtm";
 
 /**
  * Google Tag Manager (the Google Analytics 4 tag lives in the container).
@@ -17,6 +17,7 @@ export default function GoogleTag() {
   useEffect(() => {
     try {
       const w = window as unknown as { dataLayer?: unknown[]; __gtmOn?: boolean; globalPrivacyControl?: boolean };
+      if (!tagHostAllowed(window.location.hostname)) return; // local runs, previews and automated tests must never send hits to the owner's analytics
       const optedOut = doNotTrack() || (navigator as Navigator & { globalPrivacyControl?: boolean }).globalPrivacyControl === true;
       if (!gtmAllowed(path) || optedOut) {
         if (w.__gtmOn) window.location.reload(); // the tag is already running: a fresh page load without it
