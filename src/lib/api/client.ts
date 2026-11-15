@@ -37,7 +37,12 @@ export interface GetOptions {
   signal?: AbortSignal;
   /** Skip the cache and ask again. */
   force?: boolean;
+  /** Send no bearer token and never trigger the sign-out handler (public calls that must not carry an account, such as the feedback probe). */
+  anonymous?: boolean;
 }
+
+/** Extras for writes. `anonymous` sends no bearer token (and a 401 never signs anyone out); `headers` are added last and win. */
+export interface SendOptions { signal?: AbortSignal; timeout?: number; keepalive?: boolean; anonymous?: boolean; headers?: Record<string, string> }
 
 export class ApiError extends Error {
   constructor(public status: number, message: string, public retryAfterMs?: number, public serverError?: string, /** Machine-readable extras the server sent with the error: a `code` and, for some, a list of events. */ public detail?: { code?: string; events?: { id: string; name: string; newOwnerName?: string }[] }) { super(message); }
@@ -68,9 +73,11 @@ export function createClient(o: ClientOptions) {
   const stats = { network: 0, cacheHits: 0, deduped: 0, notModified: 0, retried: 0 };
 
   const url = (p: string) => o.base.replace(/\/$/, "") + p;
-  const headers = (extra?: Record<string, string>) => {
-    const h: Record<string, string> = { accept: "application/json", ...extra };
-    const t = o.token?.(); if (t) h.authorization = `Bearer ${t}`;
+  /** Header names are compared case-insensitively by the server, so keys are lower-cased here: a caller's "Content-Type" replaces ours instead of being sent twice. */
+  const lower = (h?: Record<string, string>): Record<string, string> => Object.fromEntries(Object.entries(h ?? {}).map(([k, v]) => [k.toLowerCase(), v]));
+  const headers = (extra?: Record<string, string>, anonymous?: boolean) => {
+    const h: Record<string, string> = { accept: "application/json", ...lower(extra) };
+    const t = anonymous ? null : o.token?.(); if (t) h.authorization = `Bearer ${t}`;
     return h;
   };
 
@@ -80,10 +87,10 @@ export function createClient(o: ClientOptions) {
     const t0 = now();
     try {
       stats.network++;
-      const res = await f(url(path), { headers: headers(etag ? { "if-none-match": etag } : undefined), signal: ctl.signal });
+      const res = await f(url(path), { headers: headers(etag ? { "if-none-match": etag } : undefined, opt.anonymous), signal: ctl.signal });
       (o.onLatency ?? recordLatency)(path.split("?")[0], now() - t0);
       if (res.status === 304) { stats.notModified++; return { notModified: true }; }
-      if (res.status === 401 && o.token?.() && !path.startsWith("/auth/")) o.onUnauthorized?.();
+      if (res.status === 401 && !opt.anonymous && o.token?.() && !path.startsWith("/auth/")) o.onUnauthorized?.();
       if (!res.ok) {
         const ra = Number(res.headers.get("retry-after"));
         throw new ApiError(res.status, `Request failed (${res.status})`, ra > 0 ? ra * 1000 : undefined);
@@ -129,14 +136,14 @@ export function createClient(o: ClientOptions) {
   }
 
   /** Writes are never retried automatically: repeating a request that may have worked could do it twice. */
-  async function send<T>(method: "POST" | "PUT" | "DELETE", path: string, body?: unknown, extra?: { signal?: AbortSignal; timeout?: number; keepalive?: boolean }): Promise<T> {
+  async function send<T>(method: "POST" | "PUT" | "DELETE", path: string, body?: unknown, extra?: SendOptions): Promise<T> {
     const ctl = new AbortController();
     const timer = setTimeout(() => ctl.abort(), extra?.timeout ?? 15000);
     extra?.signal?.addEventListener("abort", () => ctl.abort(), { once: true });
     try {
       stats.network++;
-      const res = await f(url(path), { method, headers: headers(body === undefined ? undefined : { "content-type": "application/json" }), body: body === undefined ? undefined : JSON.stringify(body), signal: ctl.signal, keepalive: extra?.keepalive });
-      if (res.status === 401 && o.token?.() && !path.startsWith("/auth/")) o.onUnauthorized?.();
+      const res = await f(url(path), { method, headers: headers({ ...(body === undefined ? {} : { "content-type": "application/json" }), ...lower(extra?.headers) }, extra?.anonymous), body: body === undefined ? undefined : JSON.stringify(body), signal: ctl.signal, keepalive: extra?.keepalive });
+      if (res.status === 401 && !extra?.anonymous && o.token?.() && !path.startsWith("/auth/")) o.onUnauthorized?.();
       if (!res.ok) {
         let why: string | undefined;
         let detail: ApiError["detail"];
@@ -168,14 +175,14 @@ export function createClient(o: ClientOptions) {
   }
 
   /** POST a raw body (an image) instead of JSON. Never retried. Used by the dispute evidence upload (API.md: the bytes are the body). */
-  async function postRaw<T>(path: string, body: Blob, extra?: { signal?: AbortSignal; timeout?: number }): Promise<T> {
+  async function postRaw<T>(path: string, body: Blob, extra?: SendOptions): Promise<T> {
     const ctl = new AbortController();
     const timer = setTimeout(() => ctl.abort(), extra?.timeout ?? 30000);
     extra?.signal?.addEventListener("abort", () => ctl.abort(), { once: true });
     try {
       stats.network++;
-      const res = await f(url(path), { method: "POST", headers: headers({ "content-type": "application/octet-stream" }), body, signal: ctl.signal });
-      if (res.status === 401 && o.token?.() && !path.startsWith("/auth/")) o.onUnauthorized?.();
+      const res = await f(url(path), { method: "POST", headers: headers({ "content-type": "application/octet-stream", ...lower(extra?.headers) }, extra?.anonymous), body, signal: ctl.signal });
+      if (res.status === 401 && !extra?.anonymous && o.token?.() && !path.startsWith("/auth/")) o.onUnauthorized?.();
       if (!res.ok) throw await failed(res);
       invalidateRelated(path);
       return (await res.json()) as T;
@@ -210,9 +217,9 @@ export function createClient(o: ClientOptions) {
 
   return {
     get,
-    post: <T>(path: string, body?: unknown, extra?: Parameters<typeof send>[3]) => send<T>("POST", path, body, extra),
-    put: <T>(path: string, body?: unknown, extra?: Parameters<typeof send>[3]) => send<T>("PUT", path, body, extra),
-    del: <T>(path: string, extra?: Parameters<typeof send>[3]) => send<T>("DELETE", path, undefined, extra),
+    post: <T>(path: string, body?: unknown, extra?: SendOptions) => send<T>("POST", path, body, extra),
+    put: <T>(path: string, body?: unknown, extra?: SendOptions) => send<T>("PUT", path, body, extra),
+    del: <T>(path: string, extra?: SendOptions) => send<T>("DELETE", path, undefined, extra),
     postRaw,
     getBlob,
     peek: <T>(path: string): T | undefined => cache.get(path)?.data as T | undefined,

@@ -10,7 +10,7 @@ async function toBlob(canvas: HTMLCanvasElement, quality: number): Promise<Blob 
   return new Promise<Blob | null>((ok) => canvas.toBlob(ok, "image/jpeg", quality));
 }
 
-export async function compressImage(file: File): Promise<Shrunk> {
+export async function compressImage(file: File, limit?: number): Promise<Shrunk> {
   let bitmap: ImageBitmap;
   try { bitmap = await createImageBitmap(file); } catch { return { ok: false, reason: "encode_failed" }; }
   const canvas = document.createElement("canvas");
@@ -22,5 +22,5 @@ export async function compressImage(file: File): Promise<Shrunk> {
     ctx.drawImage(bitmap, 0, 0, a.w, a.h);
     return toBlob(canvas, a.quality);
   };
-  try { return await shrinkToLimit(bitmap.width, bitmap.height, encode); } finally { bitmap.close(); }
+  try { return await shrinkToLimit(bitmap.width, bitmap.height, encode, limit); } finally { bitmap.close(); }
 }

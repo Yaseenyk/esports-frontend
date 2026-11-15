@@ -41,7 +41,11 @@ export async function mockApi(page: Page, m: ApiMocks = {}) {
   const calls: string[] = [];
   unmockedCalls.set(page, calls);
   const events = (m.events ?? []).map((e) => mockEvent(e));
-  await page.route(API, (r) => { const u = new URL(r.request().url()); calls.push(`${r.request().method()} ${u.pathname}`); return r.abort("failed"); });
+  await page.route(API, (r) => {
+    const u = new URL(r.request().url());
+    if (u.pathname.startsWith("/feedback")) return r.request().method() === "OPTIONS" ? r.fallback() : r.fulfill(json({ error: "Not found" }, 404)); // the feedback widget probe: off, like production today
+    calls.push(`${r.request().method()} ${u.pathname}`); return r.abort("failed");
+  });
   await preflight(page);
   const get = (path: RegExp, answer: (match: RegExpMatchArray) => unknown | undefined) =>
     page.route(API, (r) => {

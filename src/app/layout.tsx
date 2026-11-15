@@ -9,6 +9,7 @@ import { GTM_BOOT } from "@/lib/gtm";
 import { SITE_DESCRIPTION } from "@/lib/facts";
 import { INDEXABLE, SITE_URL } from "@/lib/site";
 import XpProvider from "@/components/XpProvider";
+import FeedbackLoader from "@/features/feedback/FeedbackLoader";
 
 // Fonts are files in src/fonts (see scripts/fetch-fonts.py), so a build never needs Google.
 const body = localFont({ src: [{ path: "../fonts/inter-100-900-normal.woff2", weight: "100 900", style: "normal" }], variable: "--font-body", display: "swap" });
@@ -42,6 +43,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <HexField />
         <div aria-hidden="true" className="aurora no-print" />
         {children}
+        <FeedbackLoader />
         </XpProvider>
         </MotionProvider>
       </body>

@@ -9,8 +9,9 @@ const config: Config = {
         float: { "0%,100%": { transform: "translateY(0)" }, "50%": { transform: "translateY(-12px)" } },
         drift: { "0%,100%": { transform: "translate(0,0) scale(1)" }, "50%": { transform: "translate(40px,-30px) scale(1.15)" } },
         sheen: { to: { backgroundPosition: "200% center" } },
+        nudge: { from: { opacity: "0", transform: "translateY(0.5rem)" }, to: { opacity: "1", transform: "translateY(0)" } }, // the feedback hint: transform + opacity only
       },
-      animation: { marquee: "marquee 38s linear infinite", float: "float 6s ease-in-out infinite", drift: "drift 16s ease-in-out infinite", sheen: "sheen 6s linear infinite" },
+      animation: { marquee: "marquee 38s linear infinite", float: "float 6s ease-in-out infinite", drift: "drift 16s ease-in-out infinite", sheen: "sheen 6s linear infinite", nudge: "nudge 300ms ease-out both" },
       colors: {
         // streamerOS Signal Kit, same tokens as the other sites.
         ink: "#05070A",
