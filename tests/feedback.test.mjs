@@ -2,7 +2,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { cleanPath, validatePathInput } from "../src/features/feedback/hooks/path.ts";
-import { HIDDEN_ROUTE_PREFIXES, isFullscreenNow, isHiddenPath, PROMPT_DELAY_MS, PROMPT_SNOOZE_MS, DISMISS_KEY, PROMPTED_KEY } from "../src/features/feedback/config.ts";
+import { probeAllowed, HIDDEN_ROUTE_PREFIXES, isFullscreenNow, isHiddenPath, PROMPT_DELAY_MS, PROMPT_SNOOZE_MS, DISMISS_KEY, PROMPTED_KEY } from "../src/features/feedback/config.ts";
 import { armNudge, mayNudge, markDismissed, markShown, pickLine } from "../src/features/feedback/hooks/prompt.ts";
 import { createErrorBuffer, sanitizeError } from "../src/features/feedback/hooks/error-capture.ts";
 import { initialState, reduce, stepErrors, canWithdraw, transcript, currentPrompt } from "../src/features/feedback/hooks/conversation.ts";
@@ -299,4 +299,14 @@ test("api client: anonymous calls send no bearer token and never sign anyone out
   assert.equal(signedOut, 1, "unchanged behaviour for normal calls");
   await client.get("/feedback/status", { anonymous: true, retries: 0, force: true });
   assert.equal(calls.at(-1).init.headers.authorization, undefined);
+});
+
+test("the widget talks to the API only on the real host (or with the explicit tab switch)", () => {
+  const ss = (v) => ({ getItem: () => v });
+  assert.equal(probeAllowed("esports.streamerosai.com"), true);
+  assert.equal(probeAllowed("localhost", ss(null)), false);
+  assert.equal(probeAllowed("localhost"), false);
+  assert.equal(probeAllowed("someone.github.io", ss("0")), false);
+  assert.equal(probeAllowed("localhost", ss("1")), true);
+  assert.equal(probeAllowed("localhost", { getItem() { throw new Error("blocked"); } }), false);
 });

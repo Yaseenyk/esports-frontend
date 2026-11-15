@@ -18,6 +18,7 @@ interface Mock { status?: Reply; create?: (n: number) => Reply; upload?: (n: num
 /** Mocks /feedback*. Every other API call is aborted so nothing reaches production. Returns what the page sent. */
 async function mockFeedback(page: Page, m: Mock = {}, keep = false): Promise<Seen[]> {
   const seen: Seen[] = [];
+  await page.addInitScript(() => { try { sessionStorage.setItem("eh-feedback-probe", "1"); } catch { /* ignore */ } }); // the widget only talks to the API on the real host unless this is set
   let creates = 0, uploads = 0;
   if (!keep) await page.route(API, (r) => r.request().method() === "OPTIONS" ? r.fulfill({ status: 204, headers: CORS }) : r.abort("failed"));
   await page.route(API, async (r) => {
@@ -81,6 +82,7 @@ test("probe 404: nothing in the DOM at all", async ({ page }) => {
 });
 
 test("probe network error counts as off", async ({ page }) => {
+  await page.addInitScript(() => sessionStorage.setItem("eh-feedback-probe", "1"));
   await page.route(API, (r) => r.abort("failed"));
   await page.goto("/about/");
   await page.waitForTimeout(6000);

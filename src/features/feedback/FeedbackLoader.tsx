@@ -3,7 +3,7 @@
 import { usePathname } from "next/navigation";
 import { useEffect, useState, type ComponentType } from "react";
 import { hasBackend } from "@/lib/api";
-import { isHiddenPath } from "@/features/feedback/config";
+import { isHiddenPath, probeAllowed } from "@/features/feedback/config";
 
 /**
  * The only thing the root layout loads for feedback: a few lines. It does nothing on hidden routes (no probe, no chunk) and when the site has
@@ -16,6 +16,9 @@ export default function FeedbackLoader() {
 
   useEffect(() => {
     if (hidden || !hasBackend || Root) return;
+    let session: Storage | undefined;
+    try { session = window.sessionStorage; } catch { /* blocked */ }
+    if (!probeAllowed(location.hostname, session)) return;
     let gone = false;
     let idle: number | ReturnType<typeof setTimeout> | undefined;
     const go = () => { void import("@/features/feedback/FeedbackRoot").then((m) => { if (!gone) setRoot(() => m.default); }); };

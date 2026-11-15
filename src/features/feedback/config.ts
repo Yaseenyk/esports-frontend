@@ -19,6 +19,18 @@ export function isHiddenPath(pathname: string | null | undefined): boolean {
 /** True while any element (a video, the display screen) is fullscreen. */
 export const isFullscreenNow = (doc: Pick<Document, "fullscreenElement"> = document): boolean => !!doc.fullscreenElement;
 
+/**
+ * Where the widget may talk to the API at all: the real site only. On localhost, previews and in automated tests it does nothing (no probe, no
+ * chunk), so a test run never sends a request to production (which would also log a CORS error on a non-production origin). To try it elsewhere,
+ * set sessionStorage `eh-feedback-probe` to `1` in that tab (the feedback e2e does this and mocks the API).
+ */
+export const PROBE_HOSTS = ["esports.streamerosai.com"];
+export const PROBE_FORCE_KEY = "eh-feedback-probe";
+export function probeAllowed(hostname: string, session?: { getItem(k: string): string | null }): boolean {
+  if (PROBE_HOSTS.includes(hostname)) return true;
+  try { return session?.getItem(PROBE_FORCE_KEY) === "1"; } catch { return false; }
+}
+
 // ---- popup (the nudge line next to the bubble) ----
 export const PROMPT_DELAY_MS = 20_000;
 export const PROMPT_SNOOZE_MS = 7 * 24 * 60 * 60 * 1000;
