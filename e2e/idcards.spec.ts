@@ -18,6 +18,32 @@ test("demo event: teams, people and cards are all there", async ({ page }) => {
   await expect(page.getByRole("button", { name: "Download PDF (real size)" })).toBeVisible();
 });
 
+test("renamed people survive a refresh, and the sample banner can clear the demo people", async ({ page }) => {
+  await open(page);
+  await step(page, "People");
+  await expect(page.getByText("These are SAMPLE names and details.")).toBeVisible();
+  await page.getByRole("textbox", { name: "Full name" }).first().fill("Real Player");
+  await page.reload();
+  await expect(page.locator("ol")).toContainText("12 people");
+  await step(page, "People");
+  await expect(page.getByRole("textbox", { name: "Full name" }).first()).toHaveValue("Real Player");
+  page.once("dialog", (d) => void d.accept());
+  await page.getByRole("button", { name: "Remove all sample people" }).click();
+  await expect(page.locator("ol")).toContainText("1 person");
+  await page.reload();
+  await expect(page.locator("ol")).toContainText("1 person");
+});
+
+test("a 'create my event' link opens the studio blank, with no sample people", async ({ page }) => {
+  await signedIn(page);
+  await page.goto("/app/id-cards/?new=1");
+  await expect(page.getByRole("heading", { level: 1 })).toContainText(/ID cards/i);
+  await expect(page.locator("ol")).toContainText("1 team");
+  await expect(page.locator("ol")).toContainText("0 people");
+  await expect(page.getByLabel("Event name")).toHaveValue("");
+  expect(page.url()).not.toContain("new=1"); // removed, so a refresh keeps the work
+});
+
 test("the next and back buttons walk through the four steps", async ({ page }) => {
   await open(page);
   const nav = page.getByRole("navigation", { name: "Step navigation" });
