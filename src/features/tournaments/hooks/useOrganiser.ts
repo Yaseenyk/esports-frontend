@@ -28,12 +28,13 @@ export function useTournamentEditor() {
 
   const res = useResource<Loaded>(async (): Promise<V3Result<Loaded>> => {
     if (!eventId) return { ok: true, data: { event: null, tournament: null } };
-    const ev = await fetchEvent(eventId);
+    // The three calls do not depend on each other, so they start together (the screen used to wait for them one after another).
+    // The answers are read in the same order as before, so every failure is handled exactly as it was.
+    const [ev, t, probeP] = await Promise.all([fetchEvent(eventId), fetchTournament(eventId), probeTournaments()]);
     if (!ev.ok) return ev.failure.kind === "unavailable" ? { ok: true, data: { event: null, tournament: null } } : ev;
-    const t = await fetchTournament(eventId);
     if (t.ok) return { ok: true, data: { event: ev.data, tournament: t.data } };
     if (t.failure.kind !== "unavailable") return t;
-    const probe = await probeTournaments(); // 404 on the tournament is "none yet" only when the feature is on
+    const probe = probeP; // 404 on the tournament is "none yet" only when the feature is on
     return probe.ok ? { ok: true, data: { event: ev.data, tournament: null } } : probe;
   }, [eventId]);
 

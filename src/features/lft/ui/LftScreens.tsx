@@ -92,7 +92,7 @@ export function ListingScreen() {
   const session = useSession();
   const res = useListing(id);
   const own = useIsOwnListing(id, !!session);
-  const adult = useAdult(!!session && res.phase === "ready");
+  const adult = useAdult(!!session); // starts with the listing, not after it
   const [dialog, setDialog] = useState<"" | "apply" | "report">("");
   const l = res.phase === "ready" ? res.data : null;
   return (

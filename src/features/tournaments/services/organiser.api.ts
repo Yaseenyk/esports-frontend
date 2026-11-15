@@ -22,10 +22,16 @@ export const probeTournaments = (): Promise<V3Result<true>> => mapOk(v3Get<unkno
  */
 export const fetchEvent = (eventId: string): Promise<V3Result<EventLite>> =>
   attempt(async () => {
-    const ev = toEventLite(await api.get<unknown>(`/events/${e(eventId)}`, { retries: 1, ttl: 0, force: true }));
+    // The event and the list that carries the role start together. A failed list only matters when the event itself has no role.
+    const [evRaw, listRaw] = await Promise.all([
+      api.get<unknown>(`/events/${e(eventId)}`, { retries: 1, ttl: 0, force: true }),
+      api.get<unknown>("/events", { retries: 1, ttl: 0, force: true }).then((v) => ({ ok: true as const, v }), (err: unknown) => ({ ok: false as const, err })),
+    ]);
+    const ev = toEventLite(evRaw);
     if (!ev) throw Object.assign(new Error("event"), { status: 404 });
     if (ev.role) return ev;
-    const mine = toEventLiteList(await api.get<unknown>("/events", { retries: 1, ttl: 0, force: true })).find((x) => x.id === ev.id);
+    if (!listRaw.ok) throw listRaw.err;
+    const mine = toEventLiteList(listRaw.v).find((x) => x.id === ev.id);
     return { ...ev, role: mine?.role ?? "" };
   });
 
@@ -50,9 +56,9 @@ export const fetchDisputeStatuses = (slug: string): Promise<V3Result<string[]>> 
 
 /** Every event the person can change, each with the tournament built on it (404 = none yet). Capped so one screen is a bounded number of calls. */
 export async function fetchOwnedEvents(cap = 30): Promise<V3Result<OwnedEventRow[]>> {
-  const probe = await probeTournaments();
+  // The probe and the event list start together; the probe's answer is still looked at first.
+  const [probe, list] = await Promise.all([probeTournaments(), attempt(async () => toEventLiteList(await api.get<unknown>("/events", { retries: 1, ttl: 0, force: true })))]);
   if (!probe.ok) return probe;
-  const list = await attempt(async () => toEventLiteList(await api.get<unknown>("/events", { retries: 1, ttl: 0, force: true })));
   if (!list.ok) return list;
   const mine = list.data.filter((ev) => ev.role === "owner" || ev.role === "editor").slice(0, cap);
   const rows = await Promise.all(mine.map(async (ev): Promise<OwnedEventRow> => {
