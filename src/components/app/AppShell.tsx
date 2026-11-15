@@ -85,7 +85,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           <button type="button" onClick={signOut} className="btn-ghost !min-h-11 px-6">Sign out</button>
         </>}
       />
-      <main className="mx-auto max-w-[1500px] px-4 pb-16 pt-8">{org.ctx?.user.verifyRequired ? <VerifyScreen email={org.ctx.user.email} refresh={org.refresh} /> : children}</main>
+      <main id="main" className="mx-auto max-w-[1500px] px-4 pb-16 pt-8">{org.ctx?.user.verifyRequired ? <VerifyScreen email={org.ctx.user.email} refresh={org.refresh} /> : children}</main>
     </div>
   );
 }

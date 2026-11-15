@@ -8,6 +8,8 @@ import { Mark } from "./Logo";
 import { useSession } from "@/components/cloud/useSession";
 import { useXp } from "./XpProvider";
 import SearchBox from "./SearchBox";
+import { fitPattern } from "@/lib/comb";
+import { v3PublicEntries } from "@/features/shared/flags";
 
 export interface Section { href: string; label: string; blurb: string; icon: string }
 const SECTIONS: Section[] = [
@@ -17,6 +19,8 @@ const SECTIONS: Section[] = [
   { href: "/tools/points-table/", label: "Points table", blurb: "Battle royale", icon: "M4 4h7v7H4zM13 4h7v4h-7zM13 10h7v10h-7zM4 13h7v7H4z" },
   { href: "/guides/", label: "Guides", blurb: "How to run it", icon: "M4 5a2 2 0 012-2h13v16H6a2 2 0 00-2 2zM4 19a2 2 0 012-2h13M9 7h6" },
   { href: "/gate/", label: "Gate scanner", blurb: "Event-day check-in", icon: "M12 3l2.4 5 5.6.8-4 3.9.9 5.5L12 15.6 7.1 18.2 8 12.7 4 8.8 9.6 8z" },
+  // Sections that exist only while their backend switch is on (features/shared/flags.ts). Nothing is added while they are off.
+  ...v3PublicEntries().map((e): Section => ({ href: e.href, label: e.label, blurb: e.blurb, icon: e.icon })),
   { href: "/about/", label: "About", blurb: "Who and why", icon: "M16 20v-1a4 4 0 00-4-4H8a4 4 0 00-4 4v1M10 11a3.5 3.5 0 100-7 3.5 3.5 0 000 7zM20 20v-1a3.5 3.5 0 00-2.5-3.4M16 4.2a3.5 3.5 0 010 6.6" },
 ];
 /** The same pill and honeycomb menu is used by the public site (defaults) and by the signed-in app (AppShell passes its own sections and actions). */
@@ -85,10 +89,12 @@ export default function HubNav({ sections = SECTIONS, home = "/", homeAria = "Es
   const xp = useXp();
   const opener = useRef<HTMLElement | null>(null);
   const panel = useRef<HTMLDivElement>(null);
+  const hexBtn = useRef<HTMLButtonElement>(null);
   const current = [...sections].sort((x, y) => y.href.length - x.href.length).find((s) => path.startsWith(s.href.slice(0, -1)));
 
   const show = useCallback((from?: HTMLElement | null) => { opener.current = from ?? (document.activeElement as HTMLElement); setOpen(true); }, []);
-  const hide = useCallback(() => { setOpen(false); opener.current?.focus?.(); }, []);
+  // Focus goes back to the Menu button that opened it (the hex button when the menu was opened with the M key).
+  const hide = useCallback(() => { setOpen(false); const o = opener.current; (o && o !== document.body && o.isConnected ? o : hexBtn.current)?.focus?.(); }, []);
 
   // Close on navigation.
   useEffect(() => { setOpen(false); }, [path]);
@@ -102,11 +108,15 @@ export default function HubNav({ sections = SECTIONS, home = "/", homeAria = "Es
       if (e.key === "Escape") { e.preventDefault(); hide(); return; }
       if (!typing && /^[1-9]$/.test(e.key) && sections[Number(e.key) - 1]) { const to = sections[Number(e.key) - 1]!.href; if (to === path || to === path + "/") hide(); else router.push(to); }
       if (e.key === "Tab" && panel.current) {
-        const f = Array.from(panel.current.querySelectorAll<HTMLElement>("a[href],button,input"));
+        const here = document.activeElement as HTMLElement | null;
+        const other = here?.closest('[role="dialog"]'); // another dialog on top (the feedback dialog) keeps its own focus
+        if (other && other !== panel.current) return;
+        const f = Array.from(panel.current.querySelectorAll<HTMLElement>("a[href],button:not([disabled]),input:not([disabled])"));
         if (!f.length) return;
         const first = f[0], last = f[f.length - 1];
-        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
-        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+        if (!here || !panel.current.contains(here)) { e.preventDefault(); (e.shiftKey ? last : first).focus(); } // focus is behind the menu: pull it in
+        else if (e.shiftKey && here === first) { e.preventDefault(); last.focus(); }
+        else if (!e.shiftKey && here === last) { e.preventDefault(); first.focus(); }
       }
     };
     document.addEventListener("keydown", onKey);
@@ -116,7 +126,10 @@ export default function HubNav({ sections = SECTIONS, home = "/", homeAria = "Es
     if (!open) return;
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-    const t = setTimeout(() => panel.current?.querySelector<HTMLElement>("a[href]")?.focus(), 80);
+    // Focus moves into the menu: the first entry (not the search box, which would open the phone keyboard). Tried again after the open animation starts.
+    const into = () => { const p = panel.current; if (p && !p.contains(document.activeElement)) (p.querySelector<HTMLElement>("ul a[href]") ?? p.querySelector<HTMLElement>("button, input") ?? p).focus(); };
+    into();
+    const t = setTimeout(into, 80);
     return () => { document.body.style.overflow = prev; clearTimeout(t); };
   }, [open]);
 
@@ -126,7 +139,7 @@ export default function HubNav({ sections = SECTIONS, home = "/", homeAria = "Es
       <div className="no-print sticky top-3 z-40 flex justify-center px-3 pt-3">
         <motion.nav aria-label="Main" initial={false} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.6, ease: EASE }}
           className="flex w-full max-w-xl items-center gap-1 rounded-full bg-[#0a0b0d] p-1.5 sm:max-w-3xl">
-          <button type="button" onClick={(e) => show(e.currentTarget)} aria-label="Open the hub menu" aria-expanded={open} aria-haspopup="dialog"
+          <button ref={hexBtn} type="button" onClick={(e) => show(e.currentTarget)} aria-label="Open the hub menu" aria-expanded={open} aria-haspopup="dialog"
             className="group relative grid h-11 w-11 shrink-0 place-items-center rounded-full outline-none ring-cyan/60 focus-visible:ring-2">
             <span aria-hidden="true" className="absolute inset-0 rounded-full bg-white/5 transition-colors group-hover:bg-white/10" />
             <motion.span whileHover={reduce ? undefined : { rotate: 60 }} transition={{ type: "spring", stiffness: 200, damping: 12 }} className="relative"><Mark className="h-8 w-8" /></motion.span>
@@ -162,9 +175,9 @@ export default function HubNav({ sections = SECTIONS, home = "/", homeAria = "Es
 
       <AnimatePresence>
         {open && (
-          <motion.div key="hub" role="dialog" aria-modal="true" aria-label="Hub menu" ref={panel}
+          <motion.div key="hub" role="dialog" aria-modal="true" aria-label="Hub menu" ref={panel} tabIndex={-1}
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.25 }}
-            className="no-print fixed inset-0 z-50 overflow-y-auto bg-ink/85 backdrop-blur-2xl" onClick={(e) => { if (e.target === e.currentTarget) hide(); }}>
+            className="no-print fixed inset-0 z-50 overflow-y-auto bg-ink/85 outline-none backdrop-blur-2xl" onClick={(e) => { if (e.target === e.currentTarget) hide(); }}>
             <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
               <div className="absolute left-1/2 top-1/2 h-[42rem] w-[42rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-gradient-to-br from-cyan/15 to-purple/15 blur-3xl" />
             </div>
@@ -180,8 +193,8 @@ export default function HubNav({ sections = SECTIONS, home = "/", homeAria = "Es
               {(() => {
                 const comb = (
                   <div className="mt-8 w-full [--h:7.3rem] sm:mt-10 sm:[--h:10.4rem]">
-                    <Comb sections={sections} pattern={combMobile} className="sm:hidden" current={current?.href} reduce={!!reduce} />
-                    <Comb sections={sections} pattern={combDesktop} className="hidden sm:block" current={current?.href} reduce={!!reduce} />
+                    <Comb sections={sections} pattern={fitPattern(combMobile, sections.length)} className="sm:hidden" current={current?.href} reduce={!!reduce} />
+                    <Comb sections={sections} pattern={fitPattern(combDesktop, sections.length)} className="hidden sm:block" current={current?.href} reduce={!!reduce} />
                   </div>
                 );
                 return navLabel ? <nav aria-label={navLabel} className="w-full">{comb}</nav> : comb;

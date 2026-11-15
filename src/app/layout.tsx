@@ -39,6 +39,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <MotionProvider>
         <PwaRegister />
         <GoogleTag />
+        <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-dialog focus:inline-flex focus:min-h-11 focus:items-center focus:rounded-lg focus:bg-cyan-400 focus:px-4 focus:font-semibold focus:text-ink">Skip to content</a>
         <XpProvider>
         <HexField />
         <div aria-hidden="true" className="aurora no-print" />

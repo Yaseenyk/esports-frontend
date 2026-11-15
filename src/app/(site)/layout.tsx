@@ -13,7 +13,7 @@ export default function SiteLayout({ children }: { children: React.ReactNode }) 
       ]} />
       <div id="top" />
       <HubNav />
-      <main className="mx-auto max-w-6xl px-4 pb-12 pt-8 sm:py-12">{children}</main>
+      <main id="main" className="mx-auto max-w-6xl px-4 pb-12 pt-8 sm:py-12">{children}</main>
       <SiteFooter />
     </>
   );

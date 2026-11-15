@@ -15,3 +15,14 @@ export function v3FooterLinks(): NavLink[] {
   const all: [V3Section, NavLink][] = [["tournaments", { label: "Tournaments", href: "/tournaments/" }], ["lft", { label: "Find a team", href: "/lft/" }]];
   return all.filter(([s]) => v3Enabled(s)).map(([, l]) => l);
 }
+
+/** The public pages that deserve an entry in the home menu, and the words the menu search should find them by. */
+export interface PublicEntry { section: V3Section; label: string; href: string; blurb: string; keywords: string; icon: string }
+const PUBLIC_ENTRIES: PublicEntry[] = [
+  { section: "lft", label: "Find a team", href: "/lft/", blurb: "Players and teams", keywords: "team find a team player players lft looking for team looking for player recruit", icon: "M16 20v-1a4 4 0 00-4-4H8a4 4 0 00-4 4v1M10 11a3.5 3.5 0 100-7 3.5 3.5 0 000 7zM20 20v-1a3.5 3.5 0 00-2.5-3.4M16 4.2a3.5 3.5 0 010 6.6" },
+  { section: "tournaments", label: "Tournaments", href: "/tournaments/", blurb: "Public tournament pages", keywords: "tournament tournaments create tournament my tournaments organise organiser publish a tournament", icon: "M8 21h8M12 17v4M7 4h10v5a5 5 0 01-10 0zM17 5h3v2a3 3 0 01-3 3M7 5H4v2a3 3 0 003 3" },
+];
+/** Public menu and search entries for the sections that are switched on. Empty while the switches are off, so nothing new is shown. `on` is a parameter for tests. */
+export function v3PublicEntries(on: (s: V3Section) => boolean = v3Enabled): PublicEntry[] {
+  return PUBLIC_ENTRIES.filter((e) => on(e.section));
+}

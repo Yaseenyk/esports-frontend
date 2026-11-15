@@ -1,4 +1,5 @@
 import { GUIDES } from "@/content/guides";
+import { v3PublicEntries } from "@/features/shared/flags";
 /**
  * DEMO DATA for the interface prototype. Nothing here is a real event, community or result: the names, dates, fees and prizes are
  * invented to show how the site will look when it is full. Games are listed with generic facts only (platform and the usual team size). When the app is
@@ -139,12 +140,14 @@ export const gameBySlug = (slug: string) => GAMES.find((g) => g.slug === slug);
 
 /** One search index over everything, for the search box. */
 export interface Hit {
-  kind: "Game" | "Event" | "Community" | "Guide" | "Tool";
+  kind: "Game" | "Event" | "Community" | "Guide" | "Tool" | "Page";
   title: string;
   sub: string;
   href: string;
+  keywords?: string; // extra words the search matches but does not show
 }
 export const SEARCH_INDEX: Hit[] = [
+  ...v3PublicEntries().map((e) => ({ kind: "Page" as const, title: e.label, sub: e.blurb, keywords: e.keywords, href: e.href })), // only the sections that are switched on
   ...GAMES.map((g) => ({ kind: "Game" as const, title: g.name, sub: `${g.platform} · ${g.genre} · ${g.short}`, href: `/games/${g.slug}/` })),
   ...EVENTS.map((e) => ({ kind: "Event" as const, title: e.name, sub: `${gameBySlug(e.game)?.short} · ${e.level} · ${e.mode}`, href: `/events/${e.slug}/` })),
   ...COMMUNITIES.map((c) => ({ kind: "Community" as const, title: c.name, sub: `${c.kind} · ${c.city}`, href: `/communities/${c.slug}/` })),

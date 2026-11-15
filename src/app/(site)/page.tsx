@@ -11,6 +11,7 @@ import { HOME_FAQ } from "@/content/home-faq";
 import { GAMES, TOOLS } from "@/lib/data";
 import { CARD_DESIGNS, CARD_SHAPES, LANGUAGES_COUNT, SCREEN_DESIGNS, SITE_DESCRIPTION } from "@/lib/facts";
 import { ORG_ID, SITE_URL } from "@/lib/site";
+import { v3Enabled } from "@/features/shared/flags";
 
 const HOME_TITLE = "Free tournament tools for India: bracket, points table, ID cards";
 export const metadata: Metadata = {
@@ -62,6 +63,7 @@ export default function Home() {
             <Link href="/tools/id-cards/" className="btn">Make ID cards</Link>
             <Link href="/tools/" className="btn-ghost">Pick the job you need</Link>
           </div>
+          {v3Enabled("lft") && <p className="mt-3 text-sm text-zinc-300">Playing, not organising? <Link href="/lft/" className="text-cyan underline underline-offset-2 hover:text-white">Find a team</Link></p>}
           <p className="mt-4 text-sm text-zinc-400">New here? <Link href="/tools/" className="text-cyan underline underline-offset-2 hover:text-white">Pick the job you need done</Link>, or read <Link href="/guides/run-a-campus-tournament/" className="text-cyan hover:underline">how to run a college tournament</Link>. Free, in your browser, no account for the tools.</p>
           <dl className="mt-10 grid max-w-lg grid-cols-4 gap-4">
             {([["Free tools", TOOLS.length], ["Guides", GUIDES.length], ["Card designs", CARD_DESIGNS], ["Languages", LANGUAGES_COUNT]] as const).map(([k, v]) => (

@@ -11,6 +11,7 @@ const KIND_STYLE: Record<Hit["kind"], string> = {
   Community: "bg-purple/15 text-purple-300",
   Guide: "bg-emerald-500/15 text-emerald-300",
   Tool: "bg-pink-500/15 text-pink-300",
+  Page: "bg-cyan/15 text-cyan",
 };
 
 /** One box that searches games, events, communities, guides and tools. Press / to focus it from anywhere. */
@@ -26,7 +27,7 @@ export default function SearchBox({ large = false, placeholder = "Search games, 
     const t = q.trim().toLowerCase();
     if (!t) return [] as Hit[];
     const words = t.split(/\s+/);
-    return SEARCH_INDEX.filter((h) => words.every((w) => `${h.title} ${h.sub} ${h.kind}`.toLowerCase().includes(w))).slice(0, 8);
+    return SEARCH_INDEX.filter((h) => words.every((w) => `${h.title} ${h.sub} ${h.kind} ${h.keywords ?? ""}`.toLowerCase().includes(w))).slice(0, 8);
   }, [q]);
   useEffect(() => {
     const key = (e: KeyboardEvent) => {

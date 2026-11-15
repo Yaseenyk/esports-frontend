@@ -55,7 +55,7 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
           ))}
         </nav>
       </header>
-      <main className="mx-auto max-w-5xl px-4 pb-16 pt-6">{children}</main>
+      <main id="main" className="mx-auto max-w-5xl px-4 pb-16 pt-6">{children}</main>
     </div>
   );
 }

@@ -7,6 +7,7 @@ import { useQuery } from "@/lib/api/useQuery";
 import { useSession } from "@/components/cloud/useSession";
 import { Waiting } from "@/components/skeleton/Scenes";
 import { Sk } from "@/components/skeleton/Sk";
+import { ForPlayersCard } from "@/features/shared/ui/ForPlayers";
 
 const TOOLS = [
   { href: "/app/check-in/", title: "Run the gate", body: "Scan passes on event day with a phone camera." },
@@ -45,6 +46,8 @@ export default function Dashboard() {
           </Link>
         ))}
       </section>
+
+      <ForPlayersCard />
 
       <section aria-label="Your events" className="space-y-3">
         <div className="flex items-center justify-between gap-3">
