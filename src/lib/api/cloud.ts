@@ -102,6 +102,11 @@ export function explain(e: unknown): string {
   return "Could not reach the server. Check your connection.";
 }
 
+/** Like `explain`, for the people list of an event: a 400 there means a name or team the server refused, not something the person typed in a form. */
+export function explainRoster(e: unknown): string {
+  return (e as { status?: number })?.status === 400 ? "The server did not accept the people list. Check names and teams and try again." : explain(e);
+}
+
 /** fetch that gives up after `ms`, so a dead connection ends in an error the screen can show instead of waiting for ever. */
 export async function fetchWithin(input: string, init: RequestInit = {}, ms = 15000): Promise<Response> {
   const ctl = new AbortController();

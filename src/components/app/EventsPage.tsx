@@ -27,12 +27,12 @@ export default function EventsPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div><h1 className="font-display text-2xl font-bold text-white sm:text-3xl">Events</h1><p className="mt-1 text-sm text-zinc-300">Pick an event to see who is signed up, share links and get ready for the gate. Events appear here after you save them online from the ID card maker.</p></div>
-        <Link href="/app/id-cards/" className="btn !min-h-11 px-4 text-sm">New event</Link>
+        <Link href="/app/id-cards/?new=1" className="btn !min-h-11 px-4 text-sm">New event</Link>
       </div>
 
       <Waiting loading={list.loading} apiKey="/events" label="Loading your events" onRetry={list.refetch}><div className="space-y-2">{Array.from({ length: 3 }, (_, i) => <Sk key={i} i={i} className="!h-16 !rounded-xl" />)}</div></Waiting>
       {list.error && <p role="alert" className="text-sm text-red-300">{explain(list.error)}</p>}
-      {!list.loading && !list.error && (list.data ?? []).length === 0 && <div className="card space-y-3"><p className="text-zinc-200">No events saved online yet.</p><p className="text-sm text-zinc-400">Make your cards in the ID card maker, then press <strong className="text-zinc-200">Save, open or share</strong>, then <strong className="text-zinc-200">Online</strong>, to save the event here.</p><Link href="/app/id-cards/" className="btn !min-h-11 px-4 text-sm">Create your first event</Link></div>}
+      {!list.loading && !list.error && (list.data ?? []).length === 0 && <div className="card space-y-3"><p className="text-zinc-200">No events saved online yet.</p><p className="text-sm text-zinc-400">Make your cards in the ID card maker, then press <strong className="text-zinc-200">Save, open or share</strong>, then <strong className="text-zinc-200">Online</strong>, to save the event here.</p><Link href="/app/id-cards/?new=1" className="btn !min-h-11 px-4 text-sm">Create your first event</Link></div>}
 
       {id && !chosen && !list.loading && !list.error && list.data && <p role="status" className="rounded-xl border border-amber-500/30 bg-[#0a0b0d] p-3 text-sm text-amber-100">That event was not found. It may have been deleted, or it belongs to another account.</p>}
       {chosen ? <Detail key={chosen.id} ev={chosen} onBack={() => select(null)} onDeleted={() => { select(null); list.refetch(); }} /> : (

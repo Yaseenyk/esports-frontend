@@ -20,6 +20,9 @@ import { idPrefix, uniqueId } from "./ids";
 import SetupStep from "./SetupStep";
 import { StepSkeleton } from "@/components/skeleton/Scenes";
 import { LangSwitch, useLang } from "@/components/useLang";
+import { DRAFT_KEY, lossSignature, readDraft, slimPeople } from "@/lib/idcard/draft";
+import { BLANK_INFO, BLANK_TEAMS, SAMPLE_EVENT, SAMPLE_ORGANISER, SAMPLE_PEOPLE, SAMPLE_TEAMS, isSamplePerson, sampleDetails } from "@/lib/idcard/samples";
+import SampleNotice from "./SampleNotice";
 
 // Only the first step ships with the page. The others download when a step is opened (or when the browser is idle / the button is touched), each behind a skeleton shaped like the step.
 const loadPeople = () => import("./PeopleStep");
@@ -31,7 +34,7 @@ const PrintPanel = dynamic(loadPrint, { loading: () => <StepSkeleton kind="print
 const CloudPanel = dynamic(() => import("@/components/cloud/CloudPanel"), { loading: () => <div className="fixed inset-0 z-50 grid place-items-center bg-ink/85 p-6"><StepSkeleton kind="people" /></div> });
 const PRELOAD = [() => undefined, loadPeople, loadDesign, loadPrint];
 
-const STORE = "eh-idstudio-v3"; // designs and team names only; people and photos are never saved
+const STORE = "eh-idstudio-v3"; // local storage: designs, team names and event details. People are kept only for this tab (DRAFT_KEY, text fields only); photos, birth dates and Aadhaar digits are never stored.
 const STEPS = ["Event & teams", "People", "Design", "Print"];
 const GUIDE = [
   "Type your event name and list your teams. Everything else on this screen can stay as it is. Then press Next.",
@@ -39,23 +42,6 @@ const GUIDE = [
   "Pick a design for each team. Tap one to use it; you can change colours and text after. Not sure? Press Next and keep the default.",
   "Last step: download the PDF to print at real size, or the PNG zip to share online. Read any warnings on this screen first.",
 ];
-const SAMPLE_TEAMS: Team[] = [{ id: "t1", name: "Konkan Kings" }, { id: "t2", name: "Deadly Duos" }, { id: "t3", name: "Pune Phantoms" }];
-/** Demo roster: invented names, dates and card numbers. */
-const SAMPLE_PEOPLE: Person[] = [
-  { id: "KON-001", name: "Aarav Mehta", teamId: "t1", role: "Player", dob: "12/05/2003", gender: "Male", last4: "4471", photo: "/samples/people/aarav-mehta.webp", cutout: true },
-  { id: "KON-002", name: "Diya Kulkarni", teamId: "t1", role: "Player", dob: "23/09/2004", gender: "Female", last4: "8802", photo: "/samples/people/diya-kulkarni.webp", cutout: true },
-  { id: "KON-003", name: "Rohan Deshmukh", teamId: "t1", role: "Player", dob: "02/11/2002", gender: "Male", last4: "1936", photo: "/samples/people/rohan-deshmukh.webp", cutout: true },
-  { id: "KON-004", name: "Sneha Iyer", teamId: "t1", role: "Substitute", dob: "14/01/2005", gender: "Female", last4: "5520", photo: "/samples/people/sneha-iyer.webp", cutout: true },
-  { id: "KON-005", name: "Kabir Sheikh", teamId: "t1", role: "Coach", dob: "30/07/1995", gender: "Male", last4: "7714", photo: "/samples/people/kabir-sheikh.webp", cutout: true },
-  { id: "DEA-001", name: "Vihaan Patil", teamId: "t2", role: "Player", dob: "08/03/2003", gender: "Male", last4: "3068", photo: "/samples/people/vihaan-patil.webp", cutout: true },
-  { id: "DEA-002", name: "Ananya Nair", teamId: "t2", role: "Player", dob: "19/12/2003", gender: "Female", last4: "9245", photo: "/samples/people/ananya-nair.webp", cutout: true },
-  { id: "DEA-003", name: "Ishita Joshi", teamId: "t2", role: "Substitute", dob: "27/06/2004", gender: "Female", last4: "6183", photo: "/samples/people/ishita-joshi.webp", cutout: true },
-  { id: "DEA-004", name: "Arjun Reddy", teamId: "t2", role: "Manager", dob: "11/10/1992", gender: "Male", last4: "2857", photo: "/samples/people/arjun-reddy.webp", cutout: true },
-  { id: "PUN-001", name: "Meera Pawar", teamId: "t3", role: "Player", dob: "05/04/2002", gender: "Female", last4: "4096", photo: "/samples/people/meera-pawar.webp", cutout: true },
-  { id: "PUN-002", name: "Zoya Khan", teamId: "t3", role: "Player", dob: "21/08/2003", gender: "Female", last4: "7731", photo: "/samples/people/zoya-khan.webp", cutout: true },
-  { id: "PUN-003", name: "Aditya Chavan", teamId: "t3", role: "Coach", dob: "16/02/1994", gender: "Male", last4: "1259", photo: "/samples/people/aditya-chavan.webp", cutout: true },
-];
-
 /** Photos are shrunk to a sensible size so a full roster stays light in memory and prints sharply. */
 async function shrink(file: File, max = 800): Promise<{ url: string; cutout: boolean }> {
   const bmp = await createImageBitmap(file);
@@ -84,9 +70,9 @@ export default function IdCardStudio() {
     const id = window.setTimeout(() => void next(), 1200);
     return () => window.clearTimeout(id);
   }, [step]);
-  const [event, setEvent] = useState("Monsoon Clash Season 2");
+  const [event, setEvent] = useState(SAMPLE_EVENT);
   const [game, setGame] = useState("BGMI");
-  const [organiser, setOrganiser] = useState("Konkan Gamers Guild");
+  const [organiser, setOrganiser] = useState(SAMPLE_ORGANISER);
   const [fmt, setFmt] = useState<Fmt>("wallet");
   const [teams, setTeams] = useState<Team[]>(SAMPLE_TEAMS);
   const [templates, setTemplates] = useState<Record<string, Template>>({});
@@ -127,13 +113,42 @@ export default function IdCardStudio() {
   useEffect(() => {
     try {
       const s = JSON.parse(localStorage.getItem(STORE) || "null");
+      // "Create MY event" links open ?new=1: blank details and nobody in the list. The flag is removed so a refresh keeps the work.
+      const sp = new URLSearchParams(location.search);
+      const fresh = sp.get("new") === "1" && !sp.get("open");
+      if (fresh) {
+        sp.delete("new"); const q = sp.toString(); history.replaceState(null, "", `${location.pathname}${q ? `?${q}` : ""}${location.hash}`);
+        setEvent(""); setOrganiser(""); setTeams(BLANK_TEAMS); setPeople([]); setInfo({ ...BLANK_INFO }); setDesignTeam("t1"); setScanTeam("t1");
+        if (s?.fmt in FORMATS) setFmt(s.fmt);
+      } else {
+      const draft = readDraft(sessionStorage.getItem(DRAFT_KEY), ROLES);
+      if (draft) setPeople(draft);
       if (s) { if (s.fmt in FORMATS) setFmt(s.fmt); setEvent(s.event ?? event); setGame(s.game ?? game); setOrganiser(s.organiser ?? organiser); if (Array.isArray(s.teams) && s.teams.length) { setTeams(s.teams); setDesignTeam(s.teams[0].id); setScanTeam(s.teams[0].id); } if (s.templates) setTemplates(s.templates); if (s.info) setInfo({ ...DEFAULT_INFO, ...s.info }); }
+      }
     } catch {}
     setReady(true);
     return () => { void import("@/lib/idcard/ocr").then((m) => m.stopOcr()); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   useEffect(() => { if (ready) try { localStorage.setItem(STORE, JSON.stringify({ event, game, organiser, fmt, teams, templates, info })); } catch {} }, [ready, event, game, organiser, fmt, teams, templates, info]);
+  // Names, teams, roles, zones and IDs survive a refresh in this tab (text only; see lib/idcard/draft.ts).
+  useEffect(() => { if (ready) try { sessionStorage.setItem(DRAFT_KEY, JSON.stringify({ people: slimPeople(people) })); } catch {} }, [ready, people]);
+  // Photos and birth dates are not kept anywhere, so leaving loses them unless a project file was saved after the last change.
+  const [savedSig, setSavedSig] = useState("");
+  const lossSig = lossSignature(people);
+  const unsaved = lossSig !== "" && lossSig !== savedSig;
+  useEffect(() => {
+    if (!unsaved) return;
+    const warn = (e: BeforeUnloadEvent) => { e.preventDefault(); e.returnValue = ""; };
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [unsaved]);
+  const samplesLeft = sampleDetails({ event, organiser, info, people });
+  const samplePeople = people.filter(isSamplePerson).length;
+  const sampleEvent = event.trim() === SAMPLE_EVENT || organiser.trim() === SAMPLE_ORGANISER || info.emergency.includes("+91 00000 00000");
+  const removeSamples = () => { if (window.confirm(`Remove the ${samplePeople} sample ${samplePeople === 1 ? "person" : "people"}? People you added or renamed stay.`)) setPeople((l) => l.filter((p) => !isSamplePerson(p))); };
+  const emptyList = () => { if (window.confirm(`Remove all ${people.length} ${people.length === 1 ? "person" : "people"} and start with an empty list?`)) setPeople([]); };
+  const clearSampleEvent = () => { setEvent((v) => (v.trim() === SAMPLE_EVENT ? "" : v)); setOrganiser((v) => (v.trim() === SAMPLE_ORGANISER ? "" : v)); setInfo((i) => ({ ...i, emergency: i.emergency.includes("+91 00000 00000") ? "" : i.emergency })); setStep(0); };
   // Signed passes need a passphrase; make one the first time.
   useEffect(() => { if (ready && info.sign && !info.passphrase) setInfo((i) => ({ ...i, passphrase: randomPassphrase() })); }, [ready, info.sign, info.passphrase]);
 
@@ -257,6 +272,7 @@ export default function IdCardStudio() {
   const saveProject = () => {
     const withPass = info.sign && !!info.passphrase && window.confirm("Include the signing passphrase in the file?\n\nAnyone who has the file could then make valid passes. Choose Cancel to leave it out (you will need to enter it again after opening the file).");
     downloadBlob(new Blob([JSON.stringify(buildProject({ event, game, organiser, fmt, info, teams, templates, people }, withPass))], { type: "application/json" }), `${eventKey(event)}-project.json`);
+    setSavedSig(lossSig);
     setProjectMsg(`Saved. The file holds ${people.length} ${people.length === 1 ? "person" : "people"} with their birth dates and photos, so keep it private.`);
   };
   const openProject = async (f?: File) => {
@@ -268,7 +284,7 @@ export default function IdCardStudio() {
     setEvent(pj.event.name); setGame(pj.event.game); setOrganiser(pj.event.organiser); setFmt(pj.event.fmt);
     setTeams(pj.teams); setTemplates(pj.templates); setPeople(pj.people);
     setInfo((cur) => ({ ...DEFAULT_INFO, ...pj.info, passphrase: pj.info.passphrase || cur.passphrase || randomPassphrase() }));
-    setDesignTeam(pj.teams[0].id); setScanTeam(pj.teams[0].id); setPrintTeam("all"); setPreviewId(""); setStep(0);
+    setDesignTeam(pj.teams[0].id); setScanTeam(pj.teams[0].id); setPrintTeam("all"); setPreviewId(""); setStep(0); setSavedSig(lossSignature(pj.people));
     setProjectMsg(`Opened “${pj.event.name}”: ${pj.people.length} people in ${pj.teams.length} teams.${pj.info.passphrase ? "" : " The signing passphrase was not in the file; a new one was made. Enter your old one in More options if you need it."}`);
   };
   const saveDesign = () => downloadBlob(new Blob([designToJson(curTpl)], { type: "application/json" }), `${(dTeam.name || "team").replace(/[^A-Za-z0-9]+/g, "-").toLowerCase()}-design.json`);
@@ -291,21 +307,22 @@ export default function IdCardStudio() {
     <div className="studio">
       <header className="no-print mb-4 flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
         <div>
-        <h1 className="font-display text-2xl font-bold text-white sm:text-3xl">ID cards <span className="text-cyan">&amp;</span> passes</h1>
-        <p className="text-sm text-zinc-400"><span className="sm:hidden">Four steps: teams, people, design, print. Demo data is loaded so you can try it.</span><span className="hidden sm:inline">Four steps: list your teams, add the people, pick a design, then print or download. Everything stays in your browser until you choose to save it online. Demo data is loaded so you can try it.</span></p>
+        <h1 className="font-display text-2xl font-bold text-white short:text-xl sm:text-3xl">ID cards <span className="text-cyan">&amp;</span> passes</h1>
+        <p className="text-sm text-zinc-400"><span className="sm:hidden">Four steps: teams, people, design, print.{samplePeople > 0 ? " Demo data is loaded so you can try it." : ""}</span><span className="hidden sm:inline">Four steps: list your teams, add the people, pick a design, then print or download. Everything stays in your browser until you choose to save it online.{samplePeople > 0 ? " Demo data is loaded so you can try it." : ""}</span></p>
         </div>
         <div className="w-full sm:w-auto">
           <LangSwitch className="mb-2 sm:hidden" />
           <button type="button" aria-expanded={projMenu} aria-controls="project-menu" className="btn-ghost !min-h-10 w-full justify-between px-4 text-sm sm:hidden" onClick={() => setProjMenu((v) => !v)}>
             <span>Save, open or share</span><span aria-hidden="true">{projMenu ? "▴" : "▾"}</span>
           </button>
-          <div id="project-menu" className={`${projMenu ? "mt-2 flex" : "hidden"} flex-col gap-2 sm:mt-0 sm:flex sm:flex-row sm:flex-wrap sm:items-center`}>
-            <button type="button" className="btn-ghost !min-h-10 flex-col items-start px-4 py-2 text-left text-sm sm:!min-h-9 sm:flex-row sm:items-center sm:px-3 sm:py-0" onClick={() => { setProjMenu(false); setCloudOpen(true); }} title="Save this event online, check guests in live, invite players">Online<span className="text-xs font-normal text-zinc-400 sm:hidden">Sign in to share passes and check guests in live</span></button>
-            <button type="button" className="btn-ghost !min-h-10 flex-col items-start px-4 py-2 text-left text-sm sm:!min-h-9 sm:flex-row sm:items-center sm:px-3 sm:py-0" onClick={() => { setProjMenu(false); saveProject(); }} title="Download this event (details, teams, people, photos and designs) as one file">Save project<span className="text-xs font-normal text-zinc-400 sm:hidden">Download your work as a file you can open later</span></button>
-            <label className="btn-ghost !min-h-10 cursor-pointer flex-col items-start px-4 py-2 text-left text-sm sm:!min-h-9 sm:flex-row sm:items-center sm:px-3 sm:py-0" title="Open a project file you saved before">Open project<span className="text-xs font-normal text-zinc-400 sm:hidden">Load a file you saved before</span><input type="file" accept="application/json,.json" className="sr-only" onChange={(e) => { setProjMenu(false); openProject(e.target.files?.[0]); e.target.value = ""; }} /></label>
+          <div id="project-menu" className={`${projMenu ? "mt-2 flex" : "hidden"} flex-col gap-2 rounded-xl border border-white/20 bg-surface p-2 sm:mt-0 sm:flex sm:flex-row sm:flex-wrap sm:items-center sm:rounded-none sm:border-0 sm:bg-transparent sm:p-0`}>
+            <button type="button" className="btn-ghost !min-h-10 flex-col items-start px-4 py-2 text-left text-sm sm:!min-h-9 sm:flex-row sm:items-center sm:px-3 sm:py-0" onClick={() => { setProjMenu(false); setCloudOpen(true); }} title="Save this event online, check guests in live, invite players">Online<span className="text-xs font-normal text-zinc-300 sm:hidden">Sign in to share passes and check guests in live</span></button>
+            <button type="button" className="btn-ghost !min-h-10 flex-col items-start px-4 py-2 text-left text-sm sm:!min-h-9 sm:flex-row sm:items-center sm:px-3 sm:py-0" onClick={() => { setProjMenu(false); saveProject(); }} title="Save project: download this event (details, teams, people, photos and designs) as one file you can open later">Save project<span className="text-xs font-normal text-zinc-300 sm:hidden">Download a file you can open later</span></button>
+            <label className="btn-ghost !min-h-10 cursor-pointer flex-col items-start px-4 py-2 text-left text-sm sm:!min-h-9 sm:flex-row sm:items-center sm:px-3 sm:py-0" title="Open a project file you saved before">Open project<span className="text-xs font-normal text-zinc-300 sm:hidden">Load a file you saved before</span><input type="file" accept="application/json,.json" className="sr-only" onChange={(e) => { setProjMenu(false); openProject(e.target.files?.[0]); e.target.value = ""; }} /></label>
           </div>
         </div>
       </header>
+      <p role="status" className="no-print mb-3 text-xs text-zinc-400 short:mb-1">{unsaved ? <span className="text-amber-200">Photos and birth dates are not kept if you leave. Save the project (menu above) to keep them.</span> : "Saved on this device: your event, teams, names and roles stay if you refresh. Photos and birth dates are not kept, so save the project to keep a copy."}</p>
       {staleCodes > 0 && (
         <p role="status" className="no-print mb-3 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-500/40 bg-[#0a0b0d] px-3 py-2 text-sm text-amber-100">
           <span>{staleCodes} {staleCodes === 1 ? "person's role was" : "people's roles were"} changed since the last online save. Their cards use the old pass code, so the gate would reject them until you save again.</span>
@@ -325,23 +342,24 @@ export default function IdCardStudio() {
         ))}
       </ol>
 
-      <p className="no-print mb-4 rounded-xl border border-white/[0.14] bg-[#0a0b0d] px-3 py-2.5 text-sm text-zinc-300"><strong className="text-white">{t("step_of", { n: step + 1 })}: {lang === "en" ? STEPS[step] : stepName(step)}.</strong> {lang === "en" ? GUIDE[step] : t((["guide0", "guide1", "guide2", "guide3"] as const)[step]!)}</p>
+      <p className="no-print mb-4 rounded-xl border border-white/[0.14] bg-[#0a0b0d] px-3 py-2.5 text-sm text-zinc-300 short:mb-2 short:py-1.5 short:text-xs"><strong className="text-white">{t("step_of", { n: step + 1 })}: {lang === "en" ? STEPS[step] : stepName(step)}.</strong> {lang === "en" ? (step === 1 && samplePeople === 0 ? GUIDE[1]!.replace(" Demo people are already here so you can try the next steps.", "") : GUIDE[step]) : t((["guide0", "guide1", "guide2", "guide3"] as const)[step]!)}</p>
 
+      {(step === 1 || step === 3) && <SampleNotice left={samplesLeft} hasPeople={people.length > 0} hasSamplePeople={samplePeople > 0} hasSampleEvent={sampleEvent} onRemoveSamples={removeSamples} onEmptyList={emptyList} onClearEvent={clearSampleEvent} />}
       <AnimatePresence mode="wait" initial={false}>
         <motion.div key={step} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.18 }}>
           {step === 0 && <SetupStep event={event} setEvent={setEvent} game={game} setGame={setGame} organiser={organiser} setOrganiser={setOrganiser} fmt={fmt} onFmt={(f) => { if (f === fmt) return; if (Object.keys(templates).length > 0 && !window.confirm("Changing the card shape starts every team's design again, because the layouts are different sizes. Continue?")) return; setFmt(f); setTemplates({}); }} teams={teams} setTeams={setTeams} people={people} setPeople={setPeople} info={info} setInfo={setInfo} />}
           {step === 1 && <PeopleStep ocrLang={ocrLang} setOcrLang={setOcrLang} people={people} teams={teams} teamOpts={teamOpts} valid={valid} onInvite={() => { setCloudTab("Player invites"); setCloudOpen(true); }} scanTeam={scanTeam} setScanTeam={setScanTeam} consent={consent} setConsent={setConsent} jobs={jobs} scan={scan} trySample={trySample} pdfAsk={pdfAsk} pdfPass={pdfPass} setPdfPass={setPdfPass} setPeople={setPeople} setTeams={setTeams} setPerson={setPerson} addPerson={addPerson} minorOf={minorOf} duplicates={duplicates} photo={photo} cutOutExisting={cutOutExisting} bgBusy={bgBusy} bgNote={bgNote} autoBg={autoBg} setAutoBg={setAutoBg} />}
           {step === 2 && dTeam && <DesignStep teamOpts={teamOpts} dTeam={dTeam} setDesignTeam={setDesignTeam} curTpl={curTpl} editView={editView} onEdit={onEdit} ctxFor={ctxFor} sample={sample} teamPeople={teamPeople} setPreviewId={setPreviewId} side={side} setSide={setSide} vibe={vibe} setVibe={setVibe} onFormat={changeFormat} applyTheme={(id) => applyTheme(id, [dTeam.id])} surprise={() => applyTheme(suggest(vibe, dTeam.name, fmtOf(curTpl)), [dTeam.id])} sameForAll={sameForAll} differentPerTeam={differentPerTeam} addBack={() => setTemplates((t) => ({ ...t, [dTeam.id]: withBack(curTpl) }))} rebuildBack={() => setTemplates((t) => ({ ...t, [dTeam.id]: { ...curTpl, back: buildBack(curTpl) } }))} toggleRoleBar={toggleRoleBar} roleBarOn={curTpl.els.some((e) => e.id.startsWith("rolebar"))} recolourFromLogo={recolourFromLogo} setTeamLogo={(logo) => setTeams((l) => l.map((x) => (x.id === dTeam.id ? { ...x, logo } : x)))} photoForSample={(f) => photo(sample.id, f)} onSaveDesign={saveDesign} onLoadDesign={loadDesign} />}
           {step === 3 && (
-            <PrintPanel people={printable} allPeople={people} teams={teams} teamOpts={teamOpts} printTeam={printTeam === "all" ? "all" : valid(printTeam)} setPrintTeam={setPrintTeam} tplFor={tplFor} teamById={teamById} ctxFor={ctxFor} event={event} info={info} minorOf={minorOf} duplicates={duplicates} needReview={needReview} onPrinted={() => { try { localStorage.setItem("eh-idcards-printed", "1"); } catch {} award("card-shark", 20, "Card shark: printed your first ID cards"); sendEvent("tool_complete", "id-cards"); }} />
+            <PrintPanel sampleLeft={samplesLeft} people={printable} allPeople={people} teams={teams} teamOpts={teamOpts} printTeam={printTeam === "all" ? "all" : valid(printTeam)} setPrintTeam={setPrintTeam} tplFor={tplFor} teamById={teamById} ctxFor={ctxFor} event={event} info={info} minorOf={minorOf} duplicates={duplicates} needReview={needReview} onPrinted={() => { try { localStorage.setItem("eh-idcards-printed", "1"); } catch {} award("card-shark", 20, "Card shark: printed your first ID cards"); sendEvent("tool_complete", "id-cards"); }} />
           )}
         </motion.div>
       </AnimatePresence>
 
-      <nav aria-label="Step navigation" className="no-print sticky z-30 mt-6 grid grid-cols-2 items-center gap-3 rounded-2xl border border-white/[0.14] bg-[#0a0b0d] px-3 py-2.5 sm:flex sm:justify-between" style={{ bottom: "max(0.75rem, env(safe-area-inset-bottom))" }}>
-        <button type="button" className="btn-ghost !min-h-11 px-4 text-sm" disabled={step === 0} onClick={() => setStep((s) => s - 1)}>{t("back")}</button>
+      <nav aria-label="Step navigation" className="no-print sticky z-30 mt-6 grid grid-cols-2 items-center gap-3 rounded-2xl border border-white/[0.14] bg-[#0a0b0d] px-3 py-2.5 short:mt-3 short:gap-2 short:rounded-xl short:py-1 sm:flex sm:justify-between" style={{ bottom: "max(0.75rem, env(safe-area-inset-bottom))" }}>
+        <button type="button" className="btn-ghost !min-h-11 px-4 text-sm short:!min-h-9" disabled={step === 0} onClick={() => setStep((s) => s - 1)}>{t("back")}</button>
         <p className="hidden min-w-0 truncate text-sm text-zinc-400 sm:block">{hint}</p>
-        {step < 3 ? <button type="button" className="btn !min-h-11 px-4 text-sm sm:px-5" onClick={() => setStep((s) => s + 1)}>{t("next", { step: stepName(step + 1) })}</button> : <button type="button" className="btn !min-h-11 px-4 text-sm sm:px-5" onClick={() => document.getElementById("pdf-button")?.click()}>{t("download_pdf")}</button>}
+        {step < 3 ? <button type="button" className="btn !min-h-11 px-4 text-sm short:!min-h-9 sm:px-5" onClick={() => setStep((s) => s + 1)}>{t("next", { step: stepName(step + 1) })}</button> : <button type="button" className="btn !min-h-11 px-4 text-sm short:!min-h-9 sm:px-5" onClick={() => document.getElementById("pdf-button")?.click()}>{t("download_pdf")}</button>}
       </nav>
       {cloudOpen && (
         <CloudPanel
@@ -352,7 +370,7 @@ export default function IdCardStudio() {
           onClose={() => { setCloudOpen(false); setCloudTab(undefined); }}
           onCodes={(codes) => setCloudCodes(Object.fromEntries(Object.entries(codes).map(([id, code]) => [id, { code, role: peopleRef.current.find((p) => p.id === id)?.role ?? "Player" }])))}
           onPeople={(add) => setPeople((l) => [...l, ...add.filter((a) => !l.some((x) => x.id === a.id))])}
-          onLoaded={(l) => { setEvent(l.details.name); setGame(l.details.game || game); setOrganiser(l.details.organiser || organiser); setInfo((i) => ({ ...i, date: l.details.date || i.date, venue: l.details.venue || i.venue, emergency: l.details.emergency || i.emergency, rules: l.details.rules || i.rules })); setTeams(l.teams.length ? l.teams : teams); setPeople(l.people); setTemplates((t) => Object.fromEntries(Object.entries(t).filter(([id]) => l.teams.some((x) => x.id === id)))); setStep(0); }}
+          onLoaded={(l) => { setEvent(l.details.name); setGame(l.details.game || game); setOrganiser(l.details.organiser || organiser); setInfo((i) => ({ ...i, date: l.details.date || i.date, venue: l.details.venue || i.venue, emergency: l.details.emergency || i.emergency, rules: l.details.rules || i.rules })); setTeams(l.teams.length ? l.teams : teams); setPeople(l.people); setSavedSig(lossSignature(l.people)); setTemplates((t) => Object.fromEntries(Object.entries(t).filter(([id]) => l.teams.some((x) => x.id === id)))); setStep(0); }}
         />
       )}
     </div>

@@ -22,8 +22,8 @@ async function thumbOf(src?: string): Promise<string | undefined> {
   } catch { return undefined; }
 }
 
-export default function PrintPanel({ people, allPeople, teams, teamOpts, printTeam, setPrintTeam, tplFor, teamById, ctxFor, event, info, minorOf, duplicates, needReview, onPrinted }: {
-  people: Person[]; allPeople: Person[]; teams: Team[]; teamOpts: { value: string; label: string }[]; printTeam: string; setPrintTeam: (v: string) => void;
+export default function PrintPanel({ sampleLeft = [], people, allPeople, teams, teamOpts, printTeam, setPrintTeam, tplFor, teamById, ctxFor, event, info, minorOf, duplicates, needReview, onPrinted }: {
+  sampleLeft?: string[]; people: Person[]; allPeople: Person[]; teams: Team[]; teamOpts: { value: string; label: string }[]; printTeam: string; setPrintTeam: (v: string) => void;
   tplFor: (t: Team) => Template; teamById: (id: string) => Team; ctxFor: (p: Person) => Ctx; event: string; info: EventInfo;
   minorOf: (p: Person) => boolean; duplicates: Map<string, string[]>; needReview: number; onPrinted: () => void;
 }) {
@@ -152,8 +152,9 @@ export default function PrintPanel({ people, allPeople, teams, teamOpts, printTe
         {status && <p className="text-sm text-zinc-300" role="status">{status}</p>}
         <p className="text-xs text-zinc-400">The PDF puts every card at its real size on A4 pages. Backs go on their own pages, mirrored so a double-sided print lines up. Hover or tap a card to view it in your hand or save it as a PNG. In the print window, turn on background graphics if your browser asks.</p>
 
-        {(unconsented.length > 0 || dupCount > 0 || needReview > 0 || noPhoto > 0) && (
+        {(sampleLeft.length > 0 || unconsented.length > 0 || dupCount > 0 || needReview > 0 || noPhoto > 0) && (
           <ul className="space-y-1.5 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-100" aria-label="Things to check before printing">
+            {sampleLeft.length > 0 && <li><strong>Sample details are still in this event:</strong> {sampleLeft.join(", ")}. They will print on the cards.</li>}
             {unconsented.length > 0 && <li><strong>{unconsented.length}</strong> {unconsented.length === 1 ? "person is" : "people are"} under 18 on the event date without guardian consent: {unconsented.slice(0, 4).map((p) => p.name).join(", ")}{unconsented.length > 4 ? "…" : ""}.</li>}
             {dupCount > 0 && <li><strong>{dupCount}</strong> {dupCount === 1 ? "person looks" : "people look"} like a duplicate entry.</li>}
             {needReview > 0 && <li><strong>{needReview}</strong> scanned {needReview === 1 ? "person has" : "people have"} not been checked yet.</li>}

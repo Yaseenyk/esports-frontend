@@ -4,6 +4,7 @@ const config: Config = {
   content: ["./src/app/**/*.{ts,tsx}", "./src/components/**/*.{ts,tsx}", "./src/lib/**/*.{ts,tsx}", "./src/features/**/*.{ts,tsx}"],
   theme: {
     extend: {
+      screens: { short: { raw: "(max-height: 500px)" } }, // landscape phones: lets the studio shrink its sticky bars
       keyframes: {
         marquee: { to: { transform: "translateX(-50%)" } },
         float: { "0%,100%": { transform: "translateY(0)" }, "50%": { transform: "translateY(-12px)" } },

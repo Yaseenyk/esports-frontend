@@ -3,7 +3,7 @@
  * - Only what the server stores is sent: names, teams, roles, zones, flags and photos. Birth dates and Aadhaar digits never leave the browser.
  * - If nothing changed since the last save, no request is made. Photos upload one at a time, and only the ones that changed.
  */
-import { events, type CloudEvent, type CloudPerson, type CloudTeam } from "../api/cloud";
+import { events, explainRoster, type CloudEvent, type CloudPerson, type CloudTeam } from "../api/cloud";
 import type { EventInfo, Person, Role, Team } from "../idcard/types";
 import { ROLES } from "../idcard/types";
 
@@ -85,6 +85,12 @@ export async function hasAlpha(dataUrl: string): Promise<boolean> {
 
 export interface SaveResult { id: string; key: string; codes: Record<string, string>; sentRoster: boolean; photosSent: number; photosSkipped: string[] }
 
+/** The event exists on the server but its people could not be sent. The screen says exactly that and the same button retries. */
+export const PEOPLE_RETRY = "The event is saved, but we could not send the people yet. Press Save changes online to try again.";
+export class PartialSaveError extends Error {
+  constructor(readonly eventId: string, readonly reason: string) { super(`${PEOPLE_RETRY} ${reason}`); this.name = "PartialSaveError"; }
+}
+
 /** `onCreated` fires as soon as a new event exists on the server, so a failure later in the save does not leave an unlinked event behind and a retry makes a second one. */
 export async function saveToCloud(s: Snapshot, existingId: string | null, minorOf: (p: Person) => boolean, say: (t: string) => void, onCreated?: (id: string, key: string) => void, orgId?: string): Promise<SaveResult> {
   const memo = readMemo();
@@ -105,7 +111,7 @@ export async function saveToCloud(s: Snapshot, existingId: string | null, minorO
   const body = rosterPayload(teams, s.people, minorOf);
   const rf = fingerprint(body);
   let sentRoster = false;
-  if (m.roster !== rf) { say(`Saving ${s.people.length} people…`); await events.saveRoster(id, body); m.roster = rf; sentRoster = true; writeMemo(memo); }
+  if (m.roster !== rf) { say(`Saving ${s.people.length} people…`); try { await events.saveRoster(id, body); } catch (e) { throw new PartialSaveError(id, explainRoster(e)); } m.roster = rf; sentRoster = true; writeMemo(memo); }
 
   const photos = (m.photos ??= {});
   const skipped: string[] = [];
