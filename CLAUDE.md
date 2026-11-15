@@ -16,8 +16,8 @@ Read in this order before changing anything:
   (repo `esports-frontend`). No server runtime: no SSR, no ISR, no route handlers, no middleware. Dynamic data comes from the build
   (`generateStaticParams`) or from the browser calling the API.
 - Backend: `../esports-backend`, a Cloudflare Worker (Hono) on D1 (SQLite), free plan. About 50 migrations are live in production.
-- `db/schema.ts` is the **v3 design contract in PostgreSQL**, not wired to anything. Which database runs it is an open decision
-  (see ADR-1 in `docs/ecosystem/v3/README.md`). Do not write repository code until that is decided.
+- Database decision (ADR-1, 15 Nov 2026): **v3 runs on the existing free D1**. The v3 tables, repositories and routes live in `../esports-backend/src/v3/`.
+  `db/schema.ts` here is the original PostgreSQL design, kept as the logical reference only (excluded from the Next type-check). Do not build on it.
 - The site is indexable. Pages under `src/app/(site)/(noindex)` and the app, gate, join and pass routes are noindex on purpose.
 
 ## Hard limits (the owner's rules, not suggestions)
@@ -37,8 +37,8 @@ Read in this order before changing anything:
 | **Legacy** | everything that exists today under `src/` | Keep working. Do not mass-refactor to meet the v3 rules. When you touch a file, do not make it worse. |
 | **v3** | new code: `src/features/**`, new routes, `db/**`, the new Worker modules | The strict rules below are enforced. |
 
-Legacy is not clean: about 370 arbitrary Tailwind values and 29 relative `../` imports across 372 files at 15 Nov 2026. A lint check
-that reports these in v3 paths only is a Phase 1 task. Never "fix" legacy files as a side effect of a v3 change.
+Legacy is not clean: about 370 arbitrary Tailwind values and 29 relative `../` imports across 372 files at 15 Nov 2026. `npm run lint:v3`
+(`scripts/lint-v3.mjs`, runs in CI) enforces the rules on v3 paths only. Never "fix" legacy files as a side effect of a v3 change.
 
 ## Trinity Architecture (v3 code)
 
@@ -68,7 +68,7 @@ Three layers, one direction. A layer talks only to its neighbour. Same definitio
 
 - `@/` aliases only: `@/features/...`, `@/lib/...`, `@/components/...`. **No `../` imports.** Same-folder `./` is allowed only for files in the
   same feature folder; prefer the alias.
-- `@/db/*` is added to `tsconfig.json` paths in Phase 1; until then `db/` is excluded from the Next type-check.
+- There is no `@/db/*` alias: the frontend never touches a database. It calls the API through `@/lib/api`.
 
 ## Programmatic SEO rules
 

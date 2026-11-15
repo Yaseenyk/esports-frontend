@@ -1,4 +1,7 @@
 /**
+ * SUPERSEDED (15 Nov 2026): the owner chose the existing free D1 (ADR-1, option A). The live v3 schema is in ../esports-backend/src/v3/.
+ * This file is the original PostgreSQL design, kept as the LOGICAL reference. Do not build on it.
+ *
  * Esports ecosystem: Drizzle ORM schema (PostgreSQL). Phase 0 CONTRACT, not wired to anything yet.
  *
  * Status: DRAFT v0, 15 Nov 2026. Human-readable contract with rules and the mapping to the live D1 tables:

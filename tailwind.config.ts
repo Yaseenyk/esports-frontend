@@ -16,6 +16,12 @@ const config: Config = {
         ink: "#05070A",
         cyan: { DEFAULT: "#22D3EE", 400: "#22D3EE", 500: "#22D3EE", 900: "#164e63" },
         purple: { DEFAULT: "#A855F7", 400: "#A855F7", 500: "#A855F7" },
+        // v3 semantic tokens (DESIGN_SYSTEM.md). Use these, never arbitrary values.
+        surface: "#0A0B0D",
+        line: "rgb(255 255 255 / 0.1)",
+        success: "#4ADE80",
+        warning: "#FBBF24",
+        danger: "#F87171",
       },
       fontFamily: {
         sans: ["var(--font-body)", "Segoe UI", "system-ui", "sans-serif"],
