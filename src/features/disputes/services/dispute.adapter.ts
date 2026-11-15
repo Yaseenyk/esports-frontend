@@ -1,4 +1,5 @@
 /** API shape -> domain for disputes. Fixed field lists: no user id can reach a component because none is ever copied. Pure. */
+import type { CurrentResults } from "@/features/disputes/corrections";
 import type { Correction, DisputeDetail, DisputeEvent, DisputeListItem, EvidenceItem, Permissions } from "@/features/disputes/domain";
 
 type Obj = Record<string, unknown>;
@@ -45,5 +46,15 @@ export function toDetail(raw: unknown): DisputeDetail | null {
     ...base, matchId: str(o.matchId, 80), matchNo: num(o.matchNo), outcome: str(o.outcome, 30), resolutionNote: str(o.resolutionNote, 1200), resolvedAt: str(o.resolvedAt, 40), updatedAt: str(o.updatedAt, 40) ?? "",
     events: arr(o.events).map(toEvent).filter((x): x is DisputeEvent => x !== null), evidence: arr(o.evidence).map(toEvidence).filter((x): x is EvidenceItem => x !== null),
     corrections: arr(o.corrections).map(toCorrection).filter((x): x is Correction => x !== null), permissions: toPermissions(o.permissions),
+  };
+}
+
+/** The event's current results as the legacy matches route sends them (`{ matches, br }`). Used only to show the old value beside a correction. */
+export function toCurrentResults(raw: unknown): CurrentResults {
+  const o = obj(raw);
+  const int = (v: unknown): number => (typeof v === "number" && Number.isFinite(v) ? Math.floor(v) : 0);
+  return {
+    matches: arr(o.matches).map((x) => { const m = obj(x), id = str(m.id, 80); return id ? { id, stage: str(m.stage, 40) ?? "main", round: int(m.round), slot: int(m.slot), a: str(m.a, 80) ?? "Side A", b: str(m.b, 80) ?? "Side B", scoreA: num(m.scoreA), scoreB: num(m.scoreB), winner: str(m.winner, 10) } : null; }).filter((x): x is CurrentResults["matches"][number] => x !== null),
+    br: arr(o.br).map((x) => { const r = obj(x), team = str(r.team, 80); return team ? { matchNo: int(r.matchNo), team, placement: int(r.placement), kills: int(r.kills) } : null; }).filter((x): x is CurrentResults["br"][number] => x !== null),
   };
 }

@@ -3,7 +3,10 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useDisputeView, useMyDisputes, useOrganiserQueue, useRaiseDispute } from "@/features/disputes/hooks/useDisputes";
-import { FINAL_STATUSES, OUTCOMES, statusLabel, TYPES, typeLabel } from "@/features/disputes/domain";
+import { FINAL_STATUSES, OUTCOMES, statusLabel, TYPES, typeLabel, type DisputeDetail } from "@/features/disputes/domain";
+import { correctionsAllowed } from "@/features/disputes/corrections";
+import { useCorrections } from "@/features/disputes/hooks/useCorrections";
+import { CorrectionsEditor } from "@/features/disputes/ui/CorrectionsEditor";
 import { DisputeCard, DisputeStatusBadge, DisputeTimeline, EvidenceGrid, EvidenceUploader, OverdueBadge, ResolutionBox, when } from "@/features/disputes/ui/DisputeParts";
 import { explainFailure } from "@/features/shared/failure";
 import { SelectInput, TextArea, TextInput } from "@/features/shared/ui/Fields";
@@ -68,17 +71,27 @@ export function NewDisputeScreen() {
   );
 }
 
-function ResolveForm({ onResolve, noteError, busy }: { onResolve: (status: string, outcome: string, note: string) => void; noteError: string; busy: boolean }) {
+function ResolveForm({ d, eventId, onResolve, noteError, busy }: { d: DisputeDetail; eventId: string | null; onResolve: (status: string, outcome: string, note: string, corrections?: Record<string, unknown>[]) => void; noteError: string; busy: boolean }) {
   const [status, setStatus] = useState("resolved");
   const [outcome, setOutcome] = useState("upheld");
   const [text, setText] = useState("");
+  const corr = useCorrections(eventId, d);
+  const withCorrections = correctionsAllowed(status, outcome);
+  const submit = () => {
+    if (!withCorrections) { onResolve(status, outcome, text); return; }
+    const payload = corr.submit();
+    if (payload === null) return; // the problems are shown beside each correction
+    onResolve(status, outcome, text, payload);
+  };
   return (
-    <form onSubmit={(e) => { e.preventDefault(); onResolve(status, outcome, text); }} noValidate className={`${box} space-y-4`}>
+    <form onSubmit={(e) => { e.preventDefault(); submit(); }} noValidate className={`${box} space-y-4`}>
       <h3 className={h3}>Decide this dispute</h3>
       <SelectInput id="r-status" label="Decision" value={status} onChange={(v) => { setStatus(v); setOutcome(OUTCOMES[v][0].value); }} options={[{ value: "resolved", label: "Resolve" }, { value: "rejected", label: "Reject" }]} />
       <SelectInput id="r-outcome" label="Outcome" value={outcome} onChange={setOutcome} options={OUTCOMES[status]} />
       <TextArea id="r-note" label="Reason, shown to both teams" value={text} onChange={setText} rows={4} max={1000} error={noteError} help="10 to 1000 characters." />
-      <p className="text-xs text-zinc-400">Result corrections are not entered here yet. A decision that changes a score still needs the result fixed in the results tool.</p>
+      {withCorrections
+        ? <CorrectionsEditor drafts={corr.drafts} errors={corr.errors} general={corr.general} current={corr.current} state={corr.state} full={corr.full} onAdd={corr.add} onChange={corr.change} onRemove={corr.remove} />
+        : <p className="text-xs text-zinc-400">Result corrections can be added when the decision is Resolve with Upheld or Partly upheld.</p>}
       <button type="submit" disabled={busy} className={btnPrimary}>Save decision</button>
     </form>
   );
@@ -108,7 +121,7 @@ export function DisputeViewScreen() {
             {v.error && <p role="alert" className="text-danger"><span aria-hidden="true">! </span>{v.error}</p>}
           </div>
           <ResolutionBox d={d} />
-          <DisputeTimeline events={d.events} />
+          <DisputeTimeline events={d.events} corrections={d.corrections} />
           <EvidenceGrid disputeId={d.id} evidence={d.evidence} />
 
           {d.permissions.canUploadEvidence && (
@@ -133,7 +146,7 @@ export function DisputeViewScreen() {
             <section className={`${section} space-y-4`} aria-labelledby="act-h">
               <h2 id="act-h" className={h2}>Actions</h2>
               {d.permissions.transitions.length > 0 && <div className="flex flex-wrap gap-3">{d.permissions.transitions.filter((t) => t !== "withdrawn").map((t) => <button key={t} type="button" onClick={() => v.move(t)} disabled={!!v.busy} className={btnSecondary}>Move to: {statusLabel(t)}</button>)}</div>}
-              {d.permissions.canResolve && <ResolveForm onResolve={v.resolveWith} noteError={v.noteError} busy={v.busy === "resolve"} />}
+              {d.permissions.canResolve && <ResolveForm d={d} eventId={v.eventId} onResolve={v.resolveWith} noteError={v.noteError} busy={v.busy === "resolve"} />}
               {d.permissions.canWithdraw && (confirmWithdraw
                 ? <div className="flex flex-wrap gap-3"><button type="button" onClick={() => { setConfirmWithdraw(false); void v.withdraw(); }} className={btnDanger}>Yes, withdraw this dispute</button><button type="button" onClick={() => setConfirmWithdraw(false)} className={btnSecondary}>Keep it open</button></div>
                 : <button type="button" onClick={() => setConfirmWithdraw(true)} className={btnDanger}>Withdraw dispute</button>)}
@@ -158,7 +171,7 @@ export function OrganiserQueueScreen() {
         <>
           <p className="text-zinc-300">{res.data.title}. Disputes are listed with the soonest deadline first. Decide within 72 hours of the dispute being raised.</p>
           {res.data.items.length === 0 ? <EmptyState title="No disputes" body="Nobody has raised a dispute on this tournament." /> : (
-            <ul className="grid gap-4 sm:grid-cols-2">{[...res.data.items].sort((a, b) => Number(FINAL_STATUSES.includes(a.status)) - Number(FINAL_STATUSES.includes(b.status)) || (a.dueAt ?? "").localeCompare(b.dueAt ?? "")).map((d) => <DisputeCard key={d.id} d={d} href={`/app/disputes/view/?id=${encodeURIComponent(d.id)}`} />)}</ul>
+            <ul className="grid gap-4 sm:grid-cols-2">{[...res.data.items].sort((a, b) => Number(FINAL_STATUSES.includes(a.status)) - Number(FINAL_STATUSES.includes(b.status)) || (a.dueAt ?? "").localeCompare(b.dueAt ?? "")).map((d) => <DisputeCard key={d.id} d={d} href={`/app/disputes/view/?id=${encodeURIComponent(d.id)}${res.data.eventId ? `&e=${encodeURIComponent(res.data.eventId)}` : ""}`} />)}</ul>
           )}
         </>
       )}

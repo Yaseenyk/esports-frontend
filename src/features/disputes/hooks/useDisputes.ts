@@ -92,7 +92,8 @@ export function useRaiseDispute() {
 
 export function useDisputeView() {
   const [id, setId] = useState<string | null>(null);
-  useEffect(() => { setId((new URLSearchParams(window.location.search).get("id") ?? "").slice(0, 80)); }, []);
+  const [eventId, setEventId] = useState<string | null>(null); // `?e=`: set by the organiser queue; lets the resolve form show current results
+  useEffect(() => { const p = new URLSearchParams(window.location.search); setId((p.get("id") ?? "").slice(0, 80)); setEventId((p.get("e") ?? "").slice(0, 80) || null); }, []);
   const res = useResource(() => (id ? fetchDispute(id) : Promise.resolve({ ok: true as const, data: null })), [id]);
   const detail = res.phase === "ready" ? res.data : null;
   const picker = useEvidencePicker(detail?.evidence.filter((e) => !e.purged).length ?? 0);
@@ -111,7 +112,7 @@ export function useDisputeView() {
   };
 
   return {
-    id, res, detail, picker, note, setNote, noteError, busy, error, notice,
+    id, eventId, res, detail, picker, note, setNote, noteError, busy, error, notice,
     sendComment: async () => { const m = validateNote(note); setNoteError(m); if (m || !id) return; if (await run("comment", "Comment added.", () => comment(id, note.trim()))) setNote(""); },
     uploadAll: async () => {
       if (!id) return;
@@ -126,9 +127,9 @@ export function useDisputeView() {
     },
     withdraw: () => (id ? run("withdraw", "Dispute withdrawn.", () => transition(id, "withdrawn", "")) : Promise.resolve(false)),
     move: (to: string) => (id ? run(`to-${to}`, "Status updated.", () => transition(id, to, note)) : Promise.resolve(false)),
-    resolveWith: (status: string, outcome: string, text: string) => {
+    resolveWith: (status: string, outcome: string, text: string, corrections?: Record<string, unknown>[]) => {
       const m = validateNote(text, 10); setNoteError(m);
-      return id && !m ? run("resolve", "Decision saved.", () => resolve(id, { status, outcome, note: text.trim() })) : Promise.resolve(false);
+      return id && !m ? run("resolve", corrections?.length ? "Decision saved, with the result corrections." : "Decision saved.", () => resolve(id, { status, outcome, note: text.trim(), ...(corrections?.length ? { corrections } : {}) })) : Promise.resolve(false);
     },
   };
 }
@@ -160,7 +161,7 @@ export function useOrganiserQueue() {
     setTarget(slug ? { slug } : eventId ? { eventId } : {});
   }, []);
   const res = useResource(async () => {
-    if (!target || (!target.slug && !target.eventId)) return { ok: true as const, data: { slug: "", title: "", items: [] } };
+    if (!target || (!target.slug && !target.eventId)) return { ok: true as const, data: { slug: "", title: "", items: [], eventId: "" } };
     let slug = target.slug ?? "", title = "";
     if (!slug && target.eventId) {
       const t = await v3Get<{ slug?: unknown; title?: unknown }>(`/v3/events/${encodeURIComponent(target.eventId)}/tournament`, { force: true });
@@ -168,7 +169,7 @@ export function useOrganiserQueue() {
       slug = typeof t.data.slug === "string" ? t.data.slug : ""; title = typeof t.data.title === "string" ? t.data.title : "";
     }
     const list = await fetchForTournament(slug);
-    return list.ok ? { ok: true as const, data: { slug, title: title || list.data[0]?.tournament.title || slug, items: list.data } } : list;
+    return list.ok ? { ok: true as const, data: { slug, title: title || list.data[0]?.tournament.title || slug, items: list.data, eventId: target.eventId ?? "" } } : list;
   }, [target]);
   return { target, res };
 }

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEvidenceImage } from "@/features/disputes/hooks/useDisputes";
 import { ACTOR_LABELS, eventText, OUTCOME_LABELS, statusLabel, STATUS_TONE, typeLabel, type Correction, type DisputeDetail, type DisputeEvent, type DisputeListItem, type EvidenceItem } from "@/features/disputes/domain";
+import { refLabel, valueText } from "@/features/disputes/corrections";
 import { ACCEPTED_TYPES, kb, MAX_BYTES, MAX_FILES } from "@/features/disputes/evidence";
 import { StatusBadge } from "@/features/shared/ui/States";
 import { box, btnSecondary, h2, section } from "@/features/shared/ui/styles";
@@ -26,7 +27,7 @@ export function DisputeCard({ d, href }: { d: DisputeListItem; href: string }) {
   );
 }
 
-export function DisputeTimeline({ events }: { events: DisputeEvent[] }) {
+export function DisputeTimeline({ events, corrections = [] }: { events: DisputeEvent[]; corrections?: Correction[] }) {
   return (
     <section aria-labelledby="tl-h" className={section}>
       <h2 id="tl-h" className={h2}>Timeline</h2>
@@ -35,6 +36,7 @@ export function DisputeTimeline({ events }: { events: DisputeEvent[] }) {
           <li key={e.id}>
             <p className="text-zinc-100">{eventText(e)} <span className="text-sm text-zinc-400">by {ACTOR_LABELS[e.actorRole] ?? e.actorRole}</span></p>
             {e.note && <p className="mt-1 whitespace-pre-line text-zinc-300">{e.note}</p>}
+            {e.action === "status_resolved" && corrections.length > 0 && <CorrectionList items={corrections} />}
             <p className="mt-1 text-xs text-zinc-400">{when(e.createdAt)}</p>
           </li>
         ))}
@@ -101,15 +103,14 @@ export function ResolutionBox({ d }: { d: DisputeDetail }) {
       <h2 id="res-h" className={h2}>Decision</h2>
       <p className="mt-3 text-zinc-100">{d.outcome ? (OUTCOME_LABELS[d.outcome] ?? d.outcome) : statusLabel(d.status)}{d.resolvedAt ? <span className="text-sm text-zinc-400"> · {when(d.resolvedAt)}</span> : null}</p>
       {d.resolutionNote && <p className="mt-2 max-w-3xl whitespace-pre-line text-zinc-300">{d.resolutionNote}</p>}
-      {d.corrections.length > 0 && <CorrectionList items={d.corrections} />}
     </section>
   );
 }
 
+/** Result corrections made by the decision, shown in the timeline under it: what changed, the old value and the new one. */
 function CorrectionList({ items }: { items: Correction[] }) {
-  const show = (o: Record<string, number | string>) => Object.entries(o).map(([k, v]) => `${k} ${v}`).join(", ");
   return (
-    <div className="mt-4"><h3 className="font-display text-lg text-zinc-100">Corrected results</h3>
-      <ul className="mt-2 space-y-1 text-sm text-zinc-300">{items.map((c, i) => <li key={i}>{c.matchRef}: <span className="text-zinc-400">was</span> {show(c.oldValue)} <span className="text-zinc-400">now</span> {show(c.newValue)}</li>)}</ul></div>
+    <div className="mt-2"><p className="text-sm font-medium text-zinc-100">Result corrections ({items.length})</p>
+      <ul className="mt-1 space-y-1 text-sm text-zinc-300">{items.map((c, i) => <li key={i}>{refLabel(c.matchRef)}: <span className="text-zinc-400">was</span> {valueText(c.oldValue)}, <span className="text-zinc-400">now</span> {valueText(c.newValue)}</li>)}</ul></div>
   );
 }

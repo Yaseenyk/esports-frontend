@@ -1,7 +1,8 @@
 import { api } from "@/lib/api";
 import { attempt, type V3Result } from "@/features/shared/failure";
 import { v3Get, v3Post } from "@/features/shared/services/v3-api";
-import { toDetail, toList } from "@/features/disputes/services/dispute.adapter";
+import { toCurrentResults, toDetail, toList } from "@/features/disputes/services/dispute.adapter";
+import type { CurrentResults } from "@/features/disputes/corrections";
 import type { DisputeDetail, DisputeListItem } from "@/features/disputes/domain";
 
 const map = async <A, B>(p: Promise<V3Result<A>>, f: (a: A) => B): Promise<V3Result<B>> => { const r = await p; return r.ok ? { ok: true, data: f(r.data) } : r; };
@@ -14,7 +15,7 @@ export const fetchDispute = (id: string): Promise<V3Result<DisputeDetail | null>
 export const raiseDispute = (slug: string, body: Record<string, unknown>): Promise<V3Result<DisputeDetail | null>> => map(v3Post<unknown>(`/v3/tournaments/${e(slug)}/disputes`, body), toDetail);
 export const comment = (id: string, note: string) => v3Post<unknown>(`/v3/disputes/${e(id)}/comment`, { note });
 export const transition = (id: string, to: string, note: string) => v3Post<unknown>(`/v3/disputes/${e(id)}/transition`, { to, ...(note.trim() ? { note: note.trim() } : {}) });
-export const resolve = (id: string, body: { status: string; outcome: string; note: string }) => v3Post<unknown>(`/v3/disputes/${e(id)}/resolve`, body);
+export const resolve = (id: string, body: { status: string; outcome: string; note: string; corrections?: Record<string, unknown>[] }) => v3Post<unknown>(`/v3/disputes/${e(id)}/resolve`, body);
 
 /** The captain claim: the legacy captain-link token, sent once and never stored by this app. Returns the team it proved. */
 export const claimCaptain = (slug: string, token: string) => map(v3Post<unknown>(`/v3/tournaments/${e(slug)}/captain-claim`, { token }), (r) => {
@@ -28,3 +29,6 @@ export const uploadEvidence = (id: string, blob: Blob, caption = ""): Promise<V3
 
 /** Evidence needs the bearer token, so it is fetched as a blob and shown through an object URL (an `<img src>` cannot send a header). */
 export const downloadEvidence = (id: string, evidenceId: string): Promise<V3Result<Blob>> => attempt(() => api.getBlob(`/v3/disputes/${e(id)}/evidence/${e(evidenceId)}`));
+
+/** The event's current results (legacy route, organiser or editor), so a correction can show the value it replaces. */
+export const fetchCurrentResults = (eventId: string): Promise<V3Result<CurrentResults>> => map(v3Get<unknown>(`/events/${e(eventId)}/matches`, { force: true }), toCurrentResults);
