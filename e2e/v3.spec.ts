@@ -250,10 +250,12 @@ test("resume: 18+, profile, game, consent (draft wording), public, withdraw puts
 });
 
 test("public resume shows only the public fields", async ({ page }) => {
-  await mockV3(page, { "GET /public/players/ravi-igl": () => ({ body: { slug: "ravi-igl", handle: "RaviIGL", bio: "Evening IGL", city: "Pune", state: "Maharashtra", languages: ["Hindi"], games: [{ game: "bgmi", inGameName: "Ravi", rankCode: "diamond_3", rankOrdinal: 17, roles: ["igl"], userId: "SECRET-1" }], updatedAt: "2030-01-01T00:00:00Z", email: "secret@example.com", resumeConsentAt: "2030-01-01T00:00:00Z" } }) });
+  await mockV3(page, { "GET /public/players/ravi-igl": () => ({ body: { slug: "ravi-igl", handle: "RaviIGL", bio: "Evening IGL", city: "Pune", state: "Maharashtra", languages: ["Hindi"], stats: { source: "verified_results", basis: "team_captain", tournaments: 2, matches: { played: 5, wins: 3, losses: 2, draws: 0 }, battleRoyale: { matches: 0, wins: 0, kills: 0, bestPlacement: null, averagePlacement: null }, byGame: [] }, games: [{ game: "bgmi", inGameName: "Ravi", rankCode: "diamond_3", rankOrdinal: 17, roles: ["igl"], userId: "SECRET-1" }], updatedAt: "2030-01-01T00:00:00Z", email: "secret@example.com", resumeConsentAt: "2030-01-01T00:00:00Z" } }) });
   await page.goto("/players/view/?s=ravi-igl");
   await expect(page.getByRole("heading", { name: "RaviIGL" })).toBeVisible();
   await expect(page.getByText("Ravi · diamond 3")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Team results" })).toBeVisible();
+  await expect(page.getByText("3 of 5")).toBeVisible();
   const html = await page.content();
   for (const secret of ["SECRET-1", "secret@example.com", "resumeConsentAt"]) expect(html).not.toContain(secret);
 });
