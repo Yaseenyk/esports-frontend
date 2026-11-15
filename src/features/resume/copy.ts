@@ -7,14 +7,14 @@
 export const COPY_IS_DRAFT = true;
 
 export const COPY = {
-  draftNotice: "Draft wording. This text is waiting for a legal review and may change.",
+  draftNotice: "Draft wording: the consent text on this page is waiting for a legal review and may change.",
   adultTitle: "Confirm you are 18 or older",
   adultBody: "Esports resumes are for adults only. We store the time you confirmed, not your date of birth or any id.",
   adultButton: "I am 18 or older",
 
   consentTitle: "Allow your resume to be public",
   consentWhatBecomesPublic: [
-    "Your handle and your profile address (the slug).",
+    "Your handle and your resume address.",
     "Your bio, your city and state, and the languages you listed.",
     "For each game you added: your in-game name, rank and roles.",
     "The date your resume was last updated.",
@@ -32,6 +32,11 @@ export const COPY = {
   visibilityPrivate: "Private: only you.",
   visibilityUnlisted: "Unlisted: anyone with the link. Not available yet.",
   visibilityPublic: "Public: anyone on the internet.",
+  visibilitySave: "Save visibility",
+  visibilityPublicSentence: "Public means anyone on the internet can open your resume and search engines are not asked to hide it. You can make it private again at any time.",
+  visibilityMakePublic: "Make my resume public",
+  visibilityNowPrivate: "Your resume is private",
+  visibilityConsentWithdrawn: "Consent withdrawn. Your resume is private again.",
   visibilityPublicNeedsConsent: "Public needs your 18+ confirmation and your consent first.",
 
   deleteTitle: "Delete my resume",

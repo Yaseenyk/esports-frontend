@@ -52,3 +52,9 @@ export const gameBody = (f: GameForm) => ({ inGameName: f.inGameName.trim(), ran
 
 /** Public can be chosen only with the 18+ confirmation AND consent. Unlisted is reserved by the API. */
 export const canChoose = (v: "private" | "unlisted" | "public", adult: boolean, consent: boolean): boolean => v === "private" || (v === "public" && adult && consent);
+
+/** `diamond_3` + 70 -> `Diamond 3 (skill level 70)`. The typed rank with a capital, then the 0 to 100 level. */
+export const rankLabel = (rankCode: string, level: number): string => {
+  const name = rankCode.replace(/_/g, " ").trim();
+  return `${name ? name.charAt(0).toUpperCase() + name.slice(1) : "Unranked"} (skill level ${level})`;
+};

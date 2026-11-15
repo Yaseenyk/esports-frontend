@@ -145,8 +145,8 @@ export function NewListingScreen() {
             {errors.roles && <p role="alert" className="mt-1 text-sm text-danger"><span aria-hidden="true">! </span>{errors.roles}</p>}
           </fieldset>
           <div className="grid gap-4 sm:grid-cols-2">
-            <TextInput id="n-rmin" label="Rank step from (optional)" value={form.rankMin} onChange={(v) => set("rankMin", v.replace(/\D/g, "").slice(0, 3))} inputMode="numeric" error={errors.rankMin} help="0 is the lowest rung of the game's ladder, 100 the highest." />
-            <TextInput id="n-rmax" label="Rank step to (optional)" value={form.rankMax} onChange={(v) => set("rankMax", v.replace(/\D/g, "").slice(0, 3))} inputMode="numeric" error={errors.rankMax} />
+            <TextInput id="n-rmin" label="Skill level from (optional)" value={form.rankMin} onChange={(v) => set("rankMin", v.replace(/\D/g, "").slice(0, 3))} inputMode="numeric" error={errors.rankMin} help="0 is the lowest level of the game's ladder, 100 the highest." />
+            <TextInput id="n-rmax" label="Skill level up to (optional)" value={form.rankMax} onChange={(v) => set("rankMax", v.replace(/\D/g, "").slice(0, 3))} inputMode="numeric" error={errors.rankMax} />
             <TextInput id="n-state" label="State (optional)" value={form.state} onChange={(v) => set("state", v)} maxLength={60} />
             <TextInput id="n-city" label="City (optional)" value={form.city} onChange={(v) => set("city", v)} maxLength={60} />
           </div>

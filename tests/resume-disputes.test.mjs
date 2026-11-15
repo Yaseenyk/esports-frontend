@@ -1,7 +1,7 @@
 // Esports Resume and Disputes: validators, adapters (private fields never reach props), the evidence shrink loop and its sizing rules.
 import test from "node:test";
 import assert from "node:assert/strict";
-import { canChoose, checkSlug, gameBody, profileBody, splitLanguages, toRankCode, validateGame, validateProfile } from "../src/features/resume/validators.ts";
+import { canChoose, checkSlug, rankLabel, gameBody, profileBody, splitLanguages, toRankCode, validateGame, validateProfile } from "../src/features/resume/validators.ts";
 import { toOwnResume, toPublicProfile } from "../src/features/resume/services/resume.adapter.ts";
 import { COPY, COPY_IS_DRAFT } from "../src/features/resume/copy.ts";
 import { toDetail, toList, toPermissions } from "../src/features/disputes/services/dispute.adapter.ts";
@@ -39,6 +39,16 @@ test("resume game validation and rank code", () => {
   assert.ok(validateGame({ ...g, rankOrdinal: "101" }).rankOrdinal);
   assert.ok(validateGame({ ...g, rankOrdinal: "" }).rankOrdinal);
   assert.deepEqual(gameBody(g), { inGameName: "Ravi", rankCode: "diamond_3", rankOrdinal: 17, roles: ["igl"] });
+});
+test("rank is shown with a capital and the skill level, never as a rank step", () => {
+  assert.equal(rankLabel("ace", 70), "Ace (skill level 70)");
+  assert.equal(rankLabel("diamond_3", 17), "Diamond 3 (skill level 17)");
+  assert.equal(rankLabel("", 0), "Unranked (skill level 0)");
+});
+test("resume copy: no slug jargon, one plain draft line", () => {
+  assert.equal(JSON.stringify(COPY).toLowerCase().includes("slug"), false);
+  assert.match(COPY.draftNotice, /^Draft wording/);
+  assert.match(COPY.visibilityMakePublic, /public/i);
 });
 test("visibility: unlisted is never choosable; public needs 18+ and consent", () => {
   assert.equal(canChoose("private", false, false), true);

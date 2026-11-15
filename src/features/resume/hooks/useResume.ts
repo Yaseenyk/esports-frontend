@@ -21,6 +21,9 @@ export function useResumeEditor() {
   const [busy, setBusy] = useState("");
   const [notice, setNotice] = useState("");
   const [error, setError] = useState("");
+  const [choice, setChoice] = useState<Visibility | null>(null); // the radio picked but not yet applied: selecting never saves
+  const [visDone, setVisDone] = useState<"public" | "private" | "withdrawn" | null>(null); // the success line next to the visibility control
+  const [focus, setFocus] = useState<{ seq: number; where: "top" | "vis" }>({ seq: 0, where: "top" }); // the screen moves focus to the status line when seq changes
 
   const data = res.phase === "ready" ? res.data : null;
   const profile = data?.profile ?? null;
@@ -35,16 +38,19 @@ export function useResumeEditor() {
   const profileErrors: ProfileErrors = showProfileErrors ? validateProfile(form, !profile) : {};
   const gameErrors: GameErrors = showGameErrors ? validateGame(game) : {};
 
-  const run = async (key: string, okText: string, call: () => Promise<V3Result<unknown>>) => {
-    setBusy(key); setError(""); setNotice("");
+  const run = async (key: string, okText: string, call: () => Promise<V3Result<unknown>>, where: "top" | "vis" = "top", done: "public" | "private" | "withdrawn" | null = null) => {
+    setBusy(key); setError(""); setNotice(""); setVisDone(null);
     const r = await call();
     setBusy("");
-    if (r.ok) { setNotice(okText); res.reload(); } else setError(explainFailure(r.failure));
+    if (r.ok) {
+      if (where === "vis") setVisDone(done); else setNotice(okText);
+      setChoice(null); setFocus((f) => ({ seq: f.seq + 1, where })); res.reload();
+    } else { setError(explainFailure(r.failure)); setFocus((f) => ({ seq: f.seq + 1, where: "top" })); }
     return r.ok;
   };
 
   return {
-    res, data, profile, adult, consent, busy, notice, error,
+    res, data, profile, adult, consent, busy, notice, error, visDone, focus, choice, chooseVisibility: setChoice,
     form, setForm: (k: keyof ProfileForm, v: string) => setForm((f) => ({ ...f, [k]: v })), profileErrors,
     game, setGameField: (k: keyof GameForm, v: string) => setGame((g) => ({ ...g, [k]: v })), gameErrors,
     toggleRole: (r: string) => setGame((g) => ({ ...g, roles: g.roles.includes(r) ? g.roles.filter((x) => x !== r) : g.roles.length < 4 ? [...g.roles, r] : g.roles })),
@@ -62,8 +68,9 @@ export function useResumeEditor() {
     },
     removeGame: (g: string) => run(`del-${g}`, "Game removed.", () => deleteGame(g)),
     giveConsent: () => run("consent", "Consent saved. You can now choose Public.", () => giveConsent()),
-    withdrawConsent: () => run("consent", "Consent withdrawn. Your resume is private again.", () => withdrawConsent()),
-    setVisibility: (v: Visibility) => canChoose(v, adult, consent) ? run("visibility", v === "public" ? "Your resume is now public." : "Your resume is now private.", () => saveProfile({ visibility: v })) : Promise.resolve(false),
+    withdrawConsent: () => run("consent", "Consent withdrawn. Your resume is private again.", () => withdrawConsent(), profile ? "vis" : "top", "withdrawn"),
+    /** Applies the picked visibility. Only called from an explicit button, never from the radio itself. */
+    applyVisibility: (v: Visibility) => canChoose(v, adult, consent) ? run("visibility", "", () => saveProfile({ visibility: v }), "vis", v === "public" ? "public" : "private") : Promise.resolve(false),
     deleteResume: () => run("delete", "Your resume was deleted.", () => deleteProfile()),
   };
 }

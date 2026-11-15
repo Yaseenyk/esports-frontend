@@ -22,7 +22,8 @@ for (const [path, , signed] of OFF) {
     await expect(page.getByText("Something went wrong")).toHaveCount(0);
   });
 }
-
+
+
 /** The board keeps role, place and skill level under "More filters": open it when a test needs them. */
 async function openMoreFilters(page: import("@playwright/test").Page) {
   await page.locator("summary", { hasText: "More filters" }).evaluate((el) => { (el.parentElement as HTMLDetailsElement).open = true; });
@@ -197,9 +198,10 @@ test("resume: 18+, profile, game, consent (draft wording), public, withdraw puts
   await page.getByRole("button", { name: "I am 18 or older" }).click();
   await expect(page.getByRole("heading", { name: "Confirm you are 18 or older" })).toHaveCount(0);
 
+  await expect(page.getByRole("status").filter({ hasText: "Thanks. Your 18+ confirmation is saved." })).toBeFocused(); // focus follows the success message
   await page.getByRole("button", { name: "Create profile" }).click();
   await expect(page.getByText("Use 3 to 60 characters.")).toBeVisible();
-  await page.getByLabel("Profile address").fill("ravi-igl");
+  await page.getByLabel("Your resume address").fill("ravi-igl");
   await page.getByLabel("Handle").fill("RaviIGL");
   await page.getByLabel("Languages (optional)").fill("Hindi, English");
   await page.getByRole("button", { name: "Create profile" }).click();
@@ -209,11 +211,11 @@ test("resume: 18+, profile, game, consent (draft wording), public, withdraw puts
   await page.getByLabel("Game", { exact: true }).selectOption("bgmi");
   await page.getByLabel("In-game name").fill("Ravi");
   await page.getByLabel("Rank", { exact: true }).fill("Diamond 3");
-  await page.getByLabel("Rank step (0 to 100)").fill("17");
+  await page.getByLabel("Skill level (0 to 100)").fill("17");
   await page.getByLabel("IGL").check();
   await page.getByRole("button", { name: "Save game" }).click();
   await expect(page.getByText("Game saved.")).toBeVisible();
-  await expect(page.getByText("diamond 3 (rank step")).toBeVisible();
+  await expect(page.getByText("Diamond 3 (skill level 17)")).toBeVisible();
   expect(JSON.parse(seen.find((s) => s.path === "/v3/me/games/bgmi")!.body)).toEqual({ inGameName: "Ravi", rankCode: "diamond_3", rankOrdinal: 17, roles: ["igl"] });
 
   // consent: the wording is marked DRAFT, says what becomes public and that it can be withdrawn
@@ -229,8 +231,15 @@ test("resume: 18+, profile, game, consent (draft wording), public, withdraw puts
 
   await expect(page.getByLabel("Public: anyone on the internet.")).toBeEnabled();
   await expect(page.getByLabel("Unlisted: anyone with the link. Not available yet.")).toBeDisabled();
-  await page.getByLabel("Public: anyone on the internet.").click(); // the radio follows the server, so it flips once the save is answered
-  await expect(page.getByText("Your resume is now public.")).toBeVisible();
+  // selecting a radio (also with the arrow keys) only selects: nothing is saved until the explicit button is pressed
+  const putsBefore = seen.filter((s) => s.method === "PUT" && s.path === "/v3/me/profile").length;
+  await page.getByLabel("Public: anyone on the internet.").click();
+  await expect(page.getByRole("button", { name: "Make my resume public" })).toBeVisible();
+  await expect(page.getByText(/anyone on the internet can open your resume/)).toBeVisible();
+  expect(seen.filter((s) => s.method === "PUT" && s.path === "/v3/me/profile").length).toBe(putsBefore);
+  await page.getByRole("button", { name: "Make my resume public" }).click();
+  await expect(page.getByText("Your resume is now public at")).toBeVisible();
+  await expect(page.getByRole("status").filter({ hasText: "Your resume is now public at" })).toBeFocused();
   expect(JSON.parse(seen.filter((s) => s.method === "PUT" && s.path === "/v3/me/profile").pop()!.body)).toEqual({ visibility: "public" });
   await expect(page.getByRole("link", { name: "See your public resume" })).toBeVisible();
 

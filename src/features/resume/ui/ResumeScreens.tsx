@@ -1,39 +1,44 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useResumeEditor, usePublicResume } from "@/features/resume/hooks/useResume";
 import { COPY, COPY_IS_DRAFT } from "@/features/resume/copy";
-import { canChoose } from "@/features/resume/validators";
+import { canChoose, rankLabel } from "@/features/resume/validators";
 import { GAMES, ROLES, ROLE_LABELS, gameLabel } from "@/features/shared/games";
 import type { GameRow, PublicProfile } from "@/features/resume/domain";
 import { explainFailure } from "@/features/shared/failure";
 import { SelectInput, TextArea, TextInput } from "@/features/shared/ui/Fields";
-import { EmptyState, ErrorState, NotAvailable, SkeletonRows, StatusBadge } from "@/features/shared/ui/States";
+import { EmptyState, ErrorState, NotAvailable, SkeletonRows } from "@/features/shared/ui/States";
 import { box, btnDanger, btnPrimary, btnSecondary, h1, h2, h3, section } from "@/features/shared/ui/styles";
 
 const when = (iso: string | null) => { const t = iso ? Date.parse(iso) : NaN; return Number.isFinite(t) ? new Date(t).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" }) : ""; };
 
 function GameRowView({ g }: { g: GameRow }) {
-  return <span className="block text-zinc-100"><span className="font-medium">{gameLabel(g.game)}</span> · {g.inGameName} · {g.rankCode.replace(/_/g, " ") || "unranked"} (rank step <span className="font-mono tabular-nums">{g.rankOrdinal}</span>){g.roles.length > 0 && <span className="text-zinc-300"> · {g.roles.map((r) => ROLE_LABELS[r] ?? r).join(", ")}</span>}</span>;
+  return <span className="block text-zinc-100"><span className="font-medium">{gameLabel(g.game)}</span> · {g.inGameName} · {rankLabel(g.rankCode, g.rankOrdinal)}{g.roles.length > 0 && <span className="text-zinc-300"> · {g.roles.map((r) => ROLE_LABELS[r] ?? r).join(", ")}</span>}</span>;
 }
 
 export function ResumeEditorScreen() {
   const e = useResumeEditor();
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [agree, setAgree] = useState(false);
-  const header = <h1 className={h1}>My esports resume</h1>;
+  const topRef = useRef<HTMLParagraphElement>(null), visRef = useRef<HTMLParagraphElement>(null);
+  // After a save the focus goes to the status line, not to the top of the page.
+  useEffect(() => { if (e.focus.seq) (e.focus.where === "vis" ? visRef : topRef).current?.focus(); }, [e.focus]);
+  const header = <><h1 className={h1}>My esports resume</h1>{COPY_IS_DRAFT && <p className="text-sm text-warning">{COPY.draftNotice}</p>}</>;
   if (e.res.phase === "unavailable") return <div className="mx-auto max-w-3xl space-y-6">{header}<NotAvailable what="The esports resume" /></div>;
   if (e.res.phase === "loading") return <div className="mx-auto max-w-3xl space-y-6">{header}{e.res.showSkeleton ? <SkeletonRows label="Loading your resume" /> : <p className="sr-only">Loading your resume</p>}</div>;
   if (e.res.phase === "error") return <div className="mx-auto max-w-3xl space-y-6">{header}<ErrorState message={explainFailure(e.res.failure)} onRetry={e.res.reload} /></div>;
   if (e.res.phase !== "ready") return null;
   const vis = e.profile?.visibility ?? "private";
+  const sel = e.choice ?? vis, changed = sel !== vis;
+  const publicHref = `/players/view/?s=${encodeURIComponent(e.profile?.slug ?? "")}`;
   return (
     <div className="mx-auto max-w-3xl space-y-8">
       {header}
       <div aria-live="polite">
-        {e.notice && <p role="status" className="text-success"><span aria-hidden="true">+ </span>{e.notice}</p>}
-        {e.error && <p role="alert" className="text-danger"><span aria-hidden="true">! </span>{e.error}</p>}
+        {e.notice && <p ref={topRef} tabIndex={-1} role="status" className="text-success"><span aria-hidden="true">+ </span>{e.notice}</p>}
+        {e.error && <p ref={e.focus.where === "top" ? topRef : undefined} tabIndex={-1} role="alert" className="text-danger"><span aria-hidden="true">! </span>{e.error}</p>}
       </div>
 
       {!e.adult && (
@@ -47,7 +52,7 @@ export function ResumeEditorScreen() {
       <section aria-labelledby="profile-h" className="space-y-4">
         <h2 id="profile-h" className={h2}>Profile</h2>
         <form onSubmit={(ev) => { ev.preventDefault(); void e.saveProfile(); }} noValidate className={`${box} space-y-4`}>
-          <TextInput id="p-slug" label="Profile address" value={e.form.slug} onChange={(v) => e.setForm("slug", v)} error={e.profileErrors.slug} maxLength={60} help="Your resume lives at /players/view/?s=this-address. 3 to 60 letters, digits and hyphens. Cannot be changed to one that is taken." />
+          <TextInput id="p-slug" label="Your resume address" value={e.form.slug} onChange={(v) => e.setForm("slug", v)} error={e.profileErrors.slug} maxLength={60} help="Your resume lives at /players/view/?s=your-address. 3 to 60 letters, digits and hyphens. Pick one nobody else uses." />
           <TextInput id="p-handle" label="Handle" value={e.form.handle} onChange={(v) => e.setForm("handle", v)} error={e.profileErrors.handle} maxLength={40} help="The name shown at the top. 2 to 40 characters." />
           <TextArea id="p-bio" label="Bio (optional)" value={e.form.bio} onChange={(v) => e.setForm("bio", v)} rows={4} max={400} error={e.profileErrors.bio} />
           <div className="grid gap-4 sm:grid-cols-2">
@@ -55,7 +60,9 @@ export function ResumeEditorScreen() {
             <TextInput id="p-state" label="State (optional)" value={e.form.state} onChange={(v) => e.setForm("state", v)} error={e.profileErrors.state} maxLength={60} />
           </div>
           <TextInput id="p-lang" label="Languages (optional)" value={e.form.languages} onChange={(v) => e.setForm("languages", v)} error={e.profileErrors.languages} help="Separate with commas, up to 6. For example: Hindi, English" />
-          <button type="submit" disabled={e.busy === "profile"} className={btnPrimary}>{e.profile ? "Save profile" : "Create profile"}</button>
+          {e.profile || e.adult
+            ? <button type="submit" disabled={e.busy === "profile"} className={btnPrimary}>{e.profile ? "Save profile" : "Create profile"}</button>
+            : <p className="text-sm text-zinc-400">Confirm you are 18 or older above, then you can create your profile.</p>}
         </form>
       </section>
 
@@ -75,7 +82,7 @@ export function ResumeEditorScreen() {
             <TextInput id="g-name" label="In-game name" value={e.game.inGameName} onChange={(v) => e.setGameField("inGameName", v)} error={e.gameErrors.inGameName} maxLength={40} />
             <div className="grid gap-4 sm:grid-cols-2">
               <TextInput id="g-rank" label="Rank" value={e.game.rankName} onChange={(v) => e.setGameField("rankName", v)} error={e.gameErrors.rankName} maxLength={24} help="As the game shows it, for example Diamond 3." />
-              <TextInput id="g-ord" label="Rank step (0 to 100)" value={e.game.rankOrdinal} onChange={(v) => e.setGameField("rankOrdinal", v.replace(/\D/g, "").slice(0, 3))} inputMode="numeric" error={e.gameErrors.rankOrdinal} help="0 is the lowest rung of that game's ladder, 100 the highest." />
+              <TextInput id="g-ord" label="Skill level (0 to 100)" value={e.game.rankOrdinal} onChange={(v) => e.setGameField("rankOrdinal", v.replace(/\D/g, "").slice(0, 3))} inputMode="numeric" error={e.gameErrors.rankOrdinal} help="0 is the lowest level of that game's ladder, 100 the highest." />
             </div>
             <fieldset>
               <legend className="mb-1 text-sm font-medium text-zinc-100">Roles (up to 4)</legend>
@@ -89,7 +96,6 @@ export function ResumeEditorScreen() {
 
       <section aria-labelledby="consent-h" className={`${section} space-y-4`}>
         <h2 id="consent-h" className={h2}>{COPY.consentTitle}</h2>
-        {COPY_IS_DRAFT && <p className="text-sm text-warning"><StatusBadge label="Draft wording" tone="warning" /> <span className="text-zinc-300">{COPY.draftNotice}</span></p>}
         <div className={`${box} space-y-3`}>
           <p className="text-zinc-100">If you set your resume to Public, this becomes public:</p>
           <ul className="list-disc space-y-1 pl-5 text-zinc-300">{COPY.consentWhatBecomesPublic.map((t) => <li key={t}>{t}</li>)}</ul>
@@ -97,7 +103,7 @@ export function ResumeEditorScreen() {
           <p className="text-zinc-300">{COPY.consentBody}</p>
           <p className="text-zinc-100">{COPY.consentWithdraw}</p>
           {e.consent ? (
-            <div className="space-y-3"><p className="text-success"><span aria-hidden="true">+ </span>{COPY.consentGivenAt} {when(e.data?.resumeConsentAt ?? null)}.</p><button type="button" onClick={e.withdrawConsent} disabled={e.busy === "consent"} className={btnDanger}>{COPY.consentWithdrawButton}</button></div>
+            <div className="space-y-3"><p className="text-success"><span aria-hidden="true">+ </span>{COPY.consentGivenAt} {when(e.data?.resumeConsentAt ?? null)}.</p>{!e.profile && <button type="button" onClick={e.withdrawConsent} disabled={e.busy === "consent"} className={btnDanger}>{COPY.consentWithdrawButton}</button>}</div>
           ) : (
             <div className="space-y-3">
               <p className="text-zinc-300">{COPY.consentNone}</p>
@@ -111,18 +117,27 @@ export function ResumeEditorScreen() {
       {e.profile && (
         <section aria-labelledby="vis-h" className={`${section} space-y-4`}>
           <h2 id="vis-h" className={h2}>{COPY.visibilityTitle}</h2>
-          <fieldset className={`${box} space-y-3`}>
-            <legend className="sr-only">{COPY.visibilityTitle}</legend>
+          <fieldset className={`${box} space-y-3`} aria-labelledby="vis-h">
             {([["private", COPY.visibilityPrivate], ["unlisted", COPY.visibilityUnlisted], ["public", COPY.visibilityPublic]] as const).map(([v, text]) => {
               const ok = v !== "unlisted" && canChoose(v, e.adult, e.consent);
               return (
                 <label key={v} className={`flex min-h-11 items-center gap-3 ${ok || v === vis ? "text-zinc-100" : "text-zinc-400"}`}>
-                  <input type="radio" name="visibility" value={v} checked={vis === v} disabled={!ok && vis !== v} onChange={() => e.setVisibility(v)} className="h-5 w-5 accent-cyan-400" />{text}
+                  <input type="radio" name="visibility" value={v} checked={sel === v} disabled={!ok && vis !== v} onChange={() => e.chooseVisibility(v)} className="h-5 w-5 accent-cyan-400" />{text}
                 </label>
               );
             })}
             {!(e.adult && e.consent) && <p className="text-sm text-zinc-400">{COPY.visibilityPublicNeedsConsent}</p>}
-            {vis === "public" && e.profile && <p className="text-sm"><Link href={`/players/view/?s=${encodeURIComponent(e.profile.slug)}`} className="text-cyan-400 underline underline-offset-2">See your public resume</Link></p>}
+            {changed && sel === "public" && <p className="text-zinc-300">{COPY.visibilityPublicSentence}</p>}
+            {changed && <button type="button" onClick={() => void e.applyVisibility(sel)} disabled={e.busy === "visibility"} className={btnPrimary}>{sel === "public" ? COPY.visibilityMakePublic : COPY.visibilitySave}</button>}
+            {e.visDone && (
+              <p ref={visRef} tabIndex={-1} role="status" className="text-success"><span aria-hidden="true">+ </span>
+                {e.visDone === "public" && e.profile && <>Your resume is now public at <Link href={publicHref} className="underline underline-offset-2">{publicHref}</Link></>}
+                {e.visDone === "private" && COPY.visibilityNowPrivate}
+                {e.visDone === "withdrawn" && COPY.visibilityConsentWithdrawn}
+              </p>
+            )}
+            {vis === "public" && e.profile && <p className="text-sm"><Link href={publicHref} className="text-cyan-400 underline underline-offset-2">See your public resume</Link></p>}
+            {e.consent && <div className="border-t border-white/10 pt-3"><p className="mb-2 text-sm text-zinc-300">Changed your mind? Withdrawing consent makes your resume private straight away.</p><button type="button" onClick={e.withdrawConsent} disabled={e.busy === "consent"} className={btnDanger}>{COPY.consentWithdrawButton}</button></div>}
           </fieldset>
         </section>
       )}
