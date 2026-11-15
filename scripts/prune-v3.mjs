@@ -3,9 +3,10 @@
 import fs from "node:fs";
 import path from "node:path";
 
-const dir = path.resolve("out", "tournaments");
 let removed = 0;
-if (fs.existsSync(dir)) {
+for (const top of ["tournaments", "colleges"]) {
+  const dir = path.resolve("out", top);
+  if (!fs.existsSync(dir)) continue;
   for (const name of fs.readdirSync(dir)) {
     if (name === "__none__" || name.startsWith("__none__.")) { fs.rmSync(path.join(dir, name), { recursive: true, force: true }); removed++; }
   }
