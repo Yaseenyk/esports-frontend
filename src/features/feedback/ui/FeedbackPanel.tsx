@@ -123,7 +123,7 @@ const FeedbackPanel = forwardRef<HTMLDivElement, { v: PanelView; h: PanelHandler
             <div>
               <p className={help}>{fill(COPY.shotsHelp, { max: v.maxShots })}</p>
               <div className="mt-3 flex flex-wrap gap-2">
-                <label className={`${secondary} cursor-pointer focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-cyan-400 ${v.shotsFull ? "opacity-60" : ""}`}>
+                <label data-testid="eh-fb-pick" className={`${secondary} cursor-pointer focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-cyan-400 ${v.shotsFull ? "opacity-60" : ""}`}>
                   <span>{COPY.shotsPick}</span>
                   <input data-autofocus type="file" accept="image/png,image/jpeg,image/webp" multiple disabled={v.shotsFull} className="sr-only" onChange={(e) => { h.onFiles(Array.from(e.target.files ?? [])); e.target.value = ""; }} />
                 </label>
@@ -161,7 +161,7 @@ const FeedbackPanel = forwardRef<HTMLDivElement, { v: PanelView; h: PanelHandler
 
           {s.step === "review" && (
             <div>
-              <h3 className="font-display text-base text-zinc-100">{COPY.summaryHeading}</h3>
+              <h3 tabIndex={-1} data-autofocus className="font-display text-base text-zinc-100">{COPY.summaryHeading}</h3>
               <dl className="mt-2 space-y-2 text-sm">
                 <Row k={COPY.summary.kind} v={KINDS.find((x) => x.id === s.kind)?.label ?? ""} />
                 <Row k={COPY.summary.message} v={s.message.trim()} wrap />
@@ -209,11 +209,16 @@ const FeedbackPanel = forwardRef<HTMLDivElement, { v: PanelView; h: PanelHandler
               )}
               {v.allowWithdraw && (s.step === "done" || s.step === "partial") && (
                 <div>
-                  <button type="button" data-autofocus={s.step === "done" ? "" : undefined} onClick={h.onWithdraw} disabled={s.withdrawing} className={danger}>{s.withdrawing ? COPY.withdrawing : COPY.withdraw}</button>
+                  <button type="button" onClick={h.onWithdraw} disabled={s.withdrawing} className={danger}>{s.withdrawing ? COPY.withdrawing : COPY.withdraw}</button>
                   <p className={help}>{COPY.withdrawNote}</p>
                 </div>
               )}
-              {(s.step === "withdrawn" || (s.step === "done" && !v.allowWithdraw)) && <button type="button" data-autofocus onClick={h.onAnother} className={secondary}>{COPY.another}</button>}
+              {(s.step === "done" || s.step === "withdrawn") && (
+                <div className="flex flex-wrap gap-2">
+                  <button type="button" data-autofocus onClick={h.onAnother} className={secondary}>{COPY.another}</button>
+                  <button type="button" onClick={h.onClose} className={secondary}>{COPY.closeThanks}</button>
+                </div>
+              )}
             </div>
           )}
 

@@ -64,6 +64,7 @@ export const COPY = {
   withdrawing: "Withdrawing...",
   withdrawn: "Done. Your report was withdrawn and will not be read.",
   another: "Send another",
+  closeThanks: "Close",
   partialTitle: "We got your message, but the screenshot did not upload.",
   partialBody: "Your report is safe. Try the upload again, or finish without the screenshot.",
   retryUpload: "Retry the upload",

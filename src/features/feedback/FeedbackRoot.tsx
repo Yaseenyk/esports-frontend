@@ -48,8 +48,8 @@ function Widget({ status, pathname }: { status: FeedbackStatus; pathname: string
   const d = f.dispatch;
   return (
     <>
-      {/* Phones: 9rem up. The studio's step bar (66 px tall) can end up 64 px above the screen bottom at the end of a page, so anything lower would cover it. */}
-      <div className="no-print fixed bottom-36 right-4 z-40 sm:bottom-6 sm:right-6" style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
+      {/* Layer: z-bubble sits above page overlays (the hub menu, Online events) and below the dialog. Landscape phones (the `short` screen, height up to 500 px): vertically centred on the right edge, clear of the studio's top and bottom bars (about 66 px each). Phones: 9rem up. The studio's step bar (66 px tall) can end up 64 px above the screen bottom at the end of a page, so anything lower would cover it. */}
+      <div className="no-print fixed bottom-36 right-4 z-bubble sm:bottom-6 sm:right-6 short:bottom-auto short:right-2 short:top-1/2 short:-translate-y-1/2" style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
         <FeedbackBubble ref={bubble} open={open} onOpen={openIt} nudge={open ? null : line} onDismissNudge={dismiss} />
       </div>
       {open && (

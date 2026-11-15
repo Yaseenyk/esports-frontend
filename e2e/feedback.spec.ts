@@ -504,3 +504,62 @@ test("the hint is not shown once the visitor opened the panel", async ({ page })
   await page.keyboard.press("Escape");
   await expect(page.getByRole("button", { name: "Hide this hint" })).toHaveCount(0);
 });
+
+// ---------- QA round 2: thank-you buttons, review focus, picker ring, landscape phones ----------
+const fillToReview = async (p: Page) => {
+  await dialog(p).getByRole("button", { name: "Start" }).click();
+  await dialog(p).getByRole("radio", { name: /Something is broken/ }).check(); await next(p);
+  await dialog(p).getByLabel("Tell us in your own words").fill("The bracket page does not load for me"); await next(p); await next(p); await next(p); await next(p);
+};
+
+test("thank-you step: no intro line, Send another starts a second report, Close puts the bubble back", async ({ page }) => {
+  const seen = await mockFeedback(page);
+  await open(page);
+  await fillToReview(page);
+  await consentAndSend(page);
+  await expect(dialog(page).getByText("Thank you. We got it.")).toBeVisible();
+  await expect(dialog(page).getByText(/This takes about a minute/)).toHaveCount(0);
+  await dialog(page).getByRole("button", { name: "Send another", exact: true }).click();
+  await expect(dialog(page).getByRole("button", { name: "Start" })).toBeVisible();
+  await dialog(page).getByRole("button", { name: "Start" }).click();
+  await dialog(page).getByRole("radio", { name: /Something is broken/ }).check(); await next(page);
+  await dialog(page).getByLabel("Tell us in your own words").fill("A second problem, on the same page"); await next(page); await next(page); await next(page); await next(page);
+  await consentAndSend(page);
+  await expect(dialog(page).getByText("Thank you. We got it.")).toBeVisible();
+  expect(seen.filter((s) => s.method === "POST" && s.path === "/feedback")).toHaveLength(2);
+  await dialog(page).getByRole("button", { name: "Close", exact: true }).click();
+  await expect(dialog(page)).toHaveCount(0);
+  await expect(bubble(page)).toBeVisible();
+  await expect(bubble(page)).toBeFocused();
+});
+
+test("keyboard: pressing Next into the review step keeps focus inside the dialog, on the step heading", async ({ page }) => {
+  await mockFeedback(page);
+  await open(page);
+  await fillToReview(page);
+  await expect(dialog(page).getByRole("heading", { name: "What will be sent" })).toBeFocused();
+  expect(await page.evaluate(() => !!document.activeElement?.closest('[role="dialog"]'))).toBe(true);
+});
+
+test("keyboard: the Choose an image button shows a focus outline when its hidden input has focus", async ({ page }) => {
+  await mockFeedback(page);
+  await open(page);
+  await dialog(page).getByRole("button", { name: "Start" }).click();
+  await dialog(page).getByRole("radio", { name: /Something is broken/ }).check(); await next(page);
+  await dialog(page).getByLabel("Tell us in your own words").fill("The bracket page does not load for me"); await next(page); await next(page);
+  const pick = dialog(page).getByTestId("eh-fb-pick");
+  await expect(pick.locator("input")).toBeFocused();
+  const o = await pick.evaluate((el) => { const c = getComputedStyle(el); return { style: c.outlineStyle, width: c.outlineWidth, color: c.outlineColor }; });
+  expect(o.style).toBe("solid"); expect(o.width).toBe("2px"); expect(o.color).toBe("rgb(34, 211, 238)");
+});
+
+test("landscape phone (915x412): the bubble sits centred on the right edge, away from the studio's top and bottom bars", async ({ page }) => {
+  await mockFeedback(page);
+  await page.setViewportSize({ width: 915, height: 412 });
+  await page.goto("/about/");
+  await expect(bubble(page)).toBeVisible({ timeout: 20_000 });
+  const b = (await bubble(page).boundingBox())!;
+  expect(Math.abs(b.y + b.height / 2 - 206)).toBeLessThan(4);
+  expect(b.x + b.width).toBeGreaterThan(915 - 24);
+  expect(b.y).toBeGreaterThan(66); expect(b.y + b.height).toBeLessThan(412 - 66);
+});

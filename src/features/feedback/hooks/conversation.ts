@@ -182,7 +182,7 @@ export function transcript(s: ConvState): Line[] {
   if (passed("page")) out.push({ from: "bot", text: `${COPY.pageIntro} ${s.path}` });
   if (passed("shots")) out.push({ from: "bot", text: COPY.shotsQuestion }, { from: "you", text: s.shots.filter((x) => x.status === "ready").length ? `${s.shots.filter((x) => x.status === "ready").length} image(s)` : "Skipped" });
   if (passed("contact")) out.push({ from: "bot", text: COPY.contactQuestion }, { from: "you", text: s.contact.trim() || "Skipped" });
-  return idx < 0 ? out.slice(0, 1) : out;
+  return idx < 0 ? [] : out; // sending, thank-you and withdrawn screens do not repeat the intro line
 }
 
 /** The bot line for the current step, the one a screen reader announces (aria-live). */

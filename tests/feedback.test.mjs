@@ -226,6 +226,26 @@ test("conversation: the transcript shows what was asked and answered", () => {
   assert.ok(t.some((l) => l.text === "You are on: /tools/"));
 });
 
+test("conversation: the thank-you, sending and withdrawn screens do not repeat the intro line", () => {
+  for (const step of ["sending", "done", "partial", "withdrawn"]) assert.deepEqual(transcript({ ...initialState("/tools/"), step }), [], step);
+  assert.equal(transcript({ ...initialState("/tools/"), step: "kind" })[0].text, COPY.greeting);
+  assert.equal(currentPrompt({ ...initialState("/tools/"), step: "done" }), COPY.thanksTitle);
+});
+
+test("widget layers and classes: bubble above overlays and below the dialog, a short screen for landscape phones, a visible focus outline on the image picker", async () => {
+  const { readFileSync } = await import("node:fs");
+  const cfg = (await import("../tailwind.config.ts")).default;
+  const z = cfg.theme.extend.zIndex;
+  assert.ok(Number(z.bubble) > 60 && Number(z.bubble) < Number(z.dialog));
+  assert.equal(cfg.theme.extend.screens.short.raw, "(max-height: 500px)");
+  const root = readFileSync(new URL("../src/features/feedback/FeedbackRoot.tsx", import.meta.url), "utf8");
+  assert.match(root, /z-bubble/); assert.match(root, /short:top-1\/2/); assert.match(root, /short:bottom-auto/);
+  const panel = readFileSync(new URL("../src/features/feedback/ui/FeedbackPanel.tsx", import.meta.url), "utf8");
+  // outline-2 only sets a width: without `focus-within:outline` (style solid) the label shows no ring when its hidden input is focused
+  assert.match(panel, /data-testid="eh-fb-pick"[^>]*focus-within:outline focus-within:outline-2[^>]*focus-within:outline-cyan-400/);
+  assert.match(panel, /COPY\.closeThanks/); assert.match(panel, /COPY\.another/);
+});
+
 // ---------- failure mapping ----------
 test("toFeedbackFailure maps statuses and codes", () => {
   const e = (status, code) => ({ status, detail: code ? { code } : undefined });
