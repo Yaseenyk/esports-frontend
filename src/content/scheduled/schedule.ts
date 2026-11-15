@@ -14,3 +14,6 @@ export function releaseDate(index: number): string {
 
 /** Today in UTC. `GUIDES_NOW=2027-01-01` previews a later day in a local build or a test. */
 export const today = (): string => process.env.GUIDES_NOW ?? new Date().toISOString().slice(0, 10);
+
+/** The guides in live-now.ts are published at once on this day (the owner asked for ten live immediately, 16 Nov 2026), outside the weekly schedule. */
+export const LIVE_NOW_DATE = "2026-11-16";

@@ -1,7 +1,7 @@
 import { EXAMPLE_SCALE, standings, type TeamEntry } from "@/lib/points";
 import { MORE_GUIDES } from "./guides-more";
 import { GROWTH_GUIDES } from "./guides-growth";
-import { RELEASED } from "./scheduled";
+import { LIVE_NOW, RELEASED } from "./scheduled";
 
 /** Inline links are written as [text](/path/) inside paragraphs, lists and notes. */
 export type Block =
@@ -853,6 +853,6 @@ const BASE_GUIDES: Guide[] = [
 export const CORE_GUIDES: Guide[] = [...BASE_GUIDES, ...MORE_GUIDES, ...GROWTH_GUIDES];
 
 /** Everything live today: the core guides plus the scheduled ones whose release day has come, newest first. */
-export const GUIDES: Guide[] = [...CORE_GUIDES, ...RELEASED].sort((a, b) => b.published.localeCompare(a.published));
+export const GUIDES: Guide[] = [...CORE_GUIDES, ...LIVE_NOW, ...RELEASED].sort((a, b) => b.published.localeCompare(a.published));
 
 export const guideBySlug = (slug: string) => GUIDES.find((g) => g.slug === slug);

@@ -3,7 +3,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { CORE_GUIDES } from "../src/content/guides.ts";
-import { DRAFTS, SCHEDULED } from "../src/content/scheduled/index.ts";
+import { DRAFTS, LIVE_NOW, SCHEDULED } from "../src/content/scheduled/index.ts";
 import { FIRST_RELEASE, releaseDate } from "../src/content/scheduled/schedule.ts";
 import { FACTS } from "../src/content/scheduled/facts.ts";
 import { TOOLS } from "../src/lib/data.ts";
@@ -14,16 +14,19 @@ const extraPaths = new Set(["/gate/", "/about/", "/contact/", "/privacy/", "/ter
 const textOf = (g) => [g.intro, g.answer, ...g.sections.flatMap((s) => [s.h2, ...s.blocks.flatMap((b) => (b.t === "p" || b.t === "note" || b.t === "h3" ? [b.x] : b.t === "ul" || b.t === "ol" ? b.items : b.t === "table" ? [...b.head, ...b.rows.flat()] : []))])];
 const bodyOf = (g) => textOf(g).join(" ");
 const words = (g) => [...textOf(g), ...g.faq.flatMap((f) => [f.q, f.a])].join(" ").split(/\s+/).length;
-const BY_DATE = new Map(SCHEDULED.map((g) => [g.slug, g.published]));
+const ALL_NEW = [...LIVE_NOW, ...SCHEDULED];
+const LIVE_SET = new Set(LIVE_NOW.map((g) => g.slug));
+const BY_DATE = new Map(ALL_NEW.map((g) => [g.slug, g.published]));
 
-test("there are no more than 100 scheduled guides, each with a unique slug, title, description and tab title", () => {
-  assert.ok(SCHEDULED.length >= 1 && SCHEDULED.length <= 100, `${SCHEDULED.length} scheduled guides`);
+test("there are no more than 120 scheduled guides and 10 live-now guides, each with a unique slug, title, description and tab title", () => {
+  assert.ok(SCHEDULED.length >= 1 && SCHEDULED.length <= 120, `${SCHEDULED.length} scheduled guides`);
+  assert.ok(LIVE_NOW.length <= 10, `${LIVE_NOW.length} live-now guides`);
   for (const key of ["slug", "title", "description"]) {
-    assert.equal(new Set(SCHEDULED.map((g) => g[key])).size, SCHEDULED.length, `duplicate ${key}`);
+    assert.equal(new Set(ALL_NEW.map((g) => g[key])).size, ALL_NEW.length, `duplicate ${key}`);
   }
-  assert.equal(new Set(SCHEDULED.map((g) => g.seoTitle ?? g.title)).size, SCHEDULED.length, "duplicate tab title");
-  for (const g of SCHEDULED) assert.ok(!coreSlugs.has(g.slug), `${g.slug} clashes with a hand-written guide`);
-  const allTitles = [...CORE_GUIDES, ...SCHEDULED].map((g) => g.title);
+  assert.equal(new Set(ALL_NEW.map((g) => g.seoTitle ?? g.title)).size, ALL_NEW.length, "duplicate tab title");
+  for (const g of ALL_NEW) assert.ok(!coreSlugs.has(g.slug), `${g.slug} clashes with a hand-written guide`);
+  const allTitles = [...CORE_GUIDES, ...ALL_NEW].map((g) => g.title);
   assert.equal(new Set(allTitles).size, allTitles.length, "a scheduled title repeats a hand-written one");
 });
 
@@ -43,7 +46,7 @@ test("the schedule is Monday, Wednesday, Friday, in order, never more than three
 });
 
 test("every scheduled guide is complete and inside search limits", () => {
-  for (const g of SCHEDULED) {
+  for (const g of ALL_NEW) {
     assert.match(g.slug, /^[a-z0-9-]+$/);
     assert.ok(g.title.length >= 20 && g.title.length <= 100, `${g.slug} title ${g.title.length}`);
     assert.ok((g.seoTitle ?? g.title).length <= 56, `${g.slug} tab title ${(g.seoTitle ?? g.title).length}`);
@@ -57,7 +60,7 @@ test("every scheduled guide is complete and inside search limits", () => {
 });
 
 test("each is long enough to be useful, with a list or table and a common-mistakes section", () => {
-  for (const g of SCHEDULED) {
+  for (const g of ALL_NEW) {
     assert.ok(words(g) >= 700, `${g.slug} has only ${words(g)} words`);
     const blocks = g.sections.flatMap((s) => s.blocks);
     assert.ok(blocks.some((b) => b.t === "ul" || b.t === "ol"), `${g.slug} has no list`);
@@ -69,7 +72,7 @@ test("each is long enough to be useful, with a list or table and a common-mistak
 test("FAQs: three each, real answers, unique across the whole site, plain text", () => {
   const seenQ = new Map(), seenA = new Map();
   for (const g of CORE_GUIDES) for (const f of g.faq ?? []) { seenQ.set(f.q.trim().toLowerCase(), g.slug); seenA.set(f.a.trim().toLowerCase(), g.slug); }
-  for (const g of SCHEDULED) {
+  for (const g of ALL_NEW) {
     assert.ok(g.faq.length >= 3 && g.faq.length <= 5, `${g.slug} FAQ count ${g.faq.length}`);
     for (const f of g.faq) {
       assert.ok(f.q.trim().endsWith("?") && f.q.length >= 25, `${g.slug}: question ${f.q}`);
@@ -84,14 +87,14 @@ test("FAQs: three each, real answers, unique across the whole site, plain text",
 });
 
 test("links only point at things that exist on the day the guide goes live", () => {
-  for (const g of SCHEDULED) {
+  for (const g of ALL_NEW) {
     const ok = (path) => {
       if (extraPaths.has(path) || tools.has(path)) return true;
       const m = /^\/guides\/([a-z0-9-]+)\/$/.exec(path);
       if (!m) return false;
       if (coreSlugs.has(m[1])) return true;
       const when = BY_DATE.get(m[1]);
-      return !!when && when < g.published; // a guide released earlier
+      return !!when && (when < g.published || (when === g.published && LIVE_SET.has(g.slug) && LIVE_SET.has(m[1]))); // a guide released earlier, or live today with this one
     };
     const all = [...textOf(g), ...g.faq.flatMap((f) => [f.a])].join(" ");
     for (const m of all.matchAll(/\[([^\]]+)\]\(([^)]*)\)/g)) assert.ok(ok(m[2]), `${g.slug} links to ${m[2]}, which is not live when it releases`);
@@ -105,7 +108,7 @@ test("links only point at things that exist on the day the guide goes live", () 
 test("voice: plain words, no hype, no invented statistics or sources", () => {
   const BANNED = ["delve", "game-changer", "game changer", "in today's fast-paced", "unleash", "dive into", "ultimate guide", "revolutioni", "seamless", "cutting-edge", "state-of-the-art", "tapestry", "navigate the landscape", "it's important to note", "in conclusion", "let's explore", "elevate your", "unlock the", "leverage", "TODO", "lorem", "coming soon", "TBD", "placeholder", "XXX"];
   const SOURCES = ["studies show", "research shows", "research has shown", "according to a", "survey", "statistics show", "experts say", "millions of", "billions of", "most players", "most organisers", "most organizers", "percent of", "% of"];
-  for (const g of SCHEDULED) {
+  for (const g of ALL_NEW) {
     const all = [g.title, g.description, ...textOf(g), ...g.faq.flatMap((f) => [f.q, f.a])].join(" ").toLowerCase();
     for (const b of BANNED) assert.ok(!all.includes(b.toLowerCase()), `${g.slug} contains "${b}"`);
     for (const b of SOURCES) assert.ok(!all.includes(b), `${g.slug} makes an unsourced claim: "${b}"`);
@@ -124,5 +127,6 @@ test("the verified facts file is complete: every fact has a source and a check d
 
 test("release logic: nothing is live before its date, and the list is the schedule", () => {
   assert.equal(DRAFTS.length, SCHEDULED.length);
+  for (const g of LIVE_NOW) assert.equal(g.published, "2026-11-16");
   assert.equal(SCHEDULED[0].published, FIRST_RELEASE);
 });

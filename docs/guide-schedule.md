@@ -1,6 +1,6 @@
 # Scheduled guides: how they work
 
-100 guides are written ahead of time and released three a week (Monday, Wednesday, Friday), starting
+120 guides are written ahead of time and released three a week (Monday, Wednesday, Friday), starting
 Monday 16 November 2026. No API key and no bot writes them: they were written in a Claude Code session,
 tested, and committed. The site's daily deploy releases them.
 
@@ -44,3 +44,14 @@ before then, add `batch-11.ts`, register it in `index.ts` and run the tests.
 
 Game-specific search demand is small, and AI-written scaled content carries risk. A person should skim each
 batch before it goes live. Re-measure impressions in Search Console about 4 and 8 weeks after the first release.
+
+## 16 Nov 2026 additions (demand-led batch)
+
+Research: `docs/seo-research-2026-11-16-blogs.md` (treg volumes for 303 phrases, India).
+
+- `live-now.ts`: ten guides published at once on 16 Nov 2026, outside the schedule, at the owner's request (to get them indexed first).
+  They are always live. Tests hold them to the same quality bar as the scheduled ones.
+- `batch-11.ts` and `batch-12.ts`: twenty guides queued directly after post 1. The original posts 2 to 100 moved back by 20 slots
+  (list position is the date), so the schedule now holds 120 posts.
+- Facts for these live in `facts-live.ts`, `facts-b11.ts`, `facts-b12.ts`, each with a source and a check date.
+- Releasing ten at once is a deliberate exception to the three-a-week rule. If indexing stalls, check Search Console before adding more at that pace.
