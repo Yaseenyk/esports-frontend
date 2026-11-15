@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Mark } from "./Logo";
 import { GUIDES } from "@/content/guides";
 import { TOOLS } from "@/lib/data";
+import { v3FooterLinks } from "@/features/shared/flags";
 
 /** Short names and line icons for the honeycomb. The words carry the meaning, so the icons are decorative. */
 const TILE: Record<string, { label: string; d: string }> = {
@@ -78,7 +79,7 @@ export default function SiteFooter() {
       <div className="mx-auto mt-12 max-w-6xl rounded-2xl border border-white/10 bg-[#0a0b0d] px-4 py-4 sm:px-6">
         <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
           <Link href="/" className="flex items-center gap-2 font-display font-bold text-white" aria-label="Esports Hub home"><Mark className="h-8 w-8" />Esports Hub</Link>
-          <nav aria-label="About this site" className="flex flex-wrap gap-2">{LEGAL.map(([l, h]) => <Link key={h} href={h} className="rounded-full border border-white/10 px-3 py-1 text-xs text-zinc-300 hover:border-cyan hover:text-white">{l}</Link>)}</nav>
+          <nav aria-label="About this site" className="flex flex-wrap gap-2">{[...v3FooterLinks().map((x): [string, string] => [x.label, x.href]), ...LEGAL].map(([l, h]) => <Link key={h} href={h} className="rounded-full border border-white/10 px-3 py-1 text-xs text-zinc-300 hover:border-cyan hover:text-white">{l}</Link>)}</nav>
           <a href="#top" aria-label="Back to top" className="fx-top ml-auto"><span aria-hidden="true">↑</span></a>
         </div>
         <p className="mt-3 border-t border-white/10 pt-3 text-xs text-zinc-400">Esports Hub is an independent project and is not affiliated with any game publisher. Game names and logos are trademarks of their owners and are used only to identify the games.</p>

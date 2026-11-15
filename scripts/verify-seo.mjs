@@ -8,14 +8,37 @@ const problems = [];
 const bad = (page, msg) => problems.push(`${page}: ${msg}`);
 
 // Pages that must stay out of search results (demo data, private screens, one-off links).
-const NOINDEX = [/^\/games\//, /^\/events\//, /^\/communities\//, /^\/manage\//, /^\/arcade\//, /^\/login\//, /^\/signup\//, /^\/forgot-password\//, /^\/reset-password\//, /^\/app\//, /^\/gate\//, /^\/join\//, /^\/pass\//, /^\/register\//, /^\/display\//, /^\/live\//, /^\/overlay\//, /^\/embed\//, /^\/score\//, /^\/report\//, /^\/ready\//, /^\/run\//, /^\/league\//, /^\/tournaments\//, /^\/team\//, /^\/unsubscribe\//, /^\/verify-email\//, /^\/admin\//];
-const isNoindexPath = (p) => NOINDEX.some((re) => re.test(p));
+const NOINDEX = [/^\/games\//, /^\/events\//, /^\/communities\//, /^\/manage\//, /^\/arcade\//, /^\/login\//, /^\/signup\//, /^\/forgot-password\//, /^\/reset-password\//, /^\/app\//, /^\/gate\//, /^\/join\//, /^\/pass\//, /^\/register\//, /^\/display\//, /^\/live\//, /^\/overlay\//, /^\/embed\//, /^\/score\//, /^\/report\//, /^\/ready\//, /^\/run\//, /^\/league\//, /^\/lft\//, /^\/players\//, /^\/team\//, /^\/unsubscribe\//, /^\/verify-email\//, /^\/admin\//];
+// ---- v3: tournament pages are indexable only when the thin-page guard passed (see src/features/tournaments/seo/thin-page-guard.ts) ----
+// The guard runs here too, from the TypeScript source, on the input each page shipped in its <script id="eh-guard">.
+import ts from "typescript";
+const guardSrc = fs.readFileSync(path.resolve("src/features/tournaments/seo/thin-page-guard.ts"), "utf8");
+const guardJs = ts.transpileModule(guardSrc, { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2020 } }).outputText;
+const guard = await import("data:text/javascript;base64," + Buffer.from(guardJs).toString("base64"));
+const attr = (html, re) => { const m = re.exec(html); return m ? m[1] : null; };
+const v3Indexable = new Map(); // "/tournaments/<slug>/" -> boolean, filled below
+const isV3Tournament = (p) => /^\/tournaments\/[^/]+\/$/.test(p);
+const isNoindexPath = (p) => {
+  if (p === "/tournaments/") return ![...v3Indexable.values()].some(Boolean); // legacy directory, or no page passed the guard
+  if (isV3Tournament(p)) return !v3Indexable.get(p);
+  return NOINDEX.some((re) => re.test(p));
+};
 
 function walk(dir) { return fs.readdirSync(dir, { withFileTypes: true }).flatMap((e) => (e.isDirectory() ? walk(path.join(dir, e.name)) : [path.join(dir, e.name)])); }
 const pages = walk(OUT).filter((f) => f.endsWith("index.html")).map((f) => ({ file: f, url: "/" + path.relative(OUT, path.dirname(f)).replace(/\\/g, "/") + "/" })).map((p) => ({ ...p, url: p.url === "//" ? "/" : p.url }));
 const urlSet = new Set(pages.map((p) => p.url));
+const v3Pages = [];
+for (const p of pages.filter((q) => isV3Tournament(q.url))) {
+  const html = fs.readFileSync(p.file, "utf8");
+  const m = /<script type="application\/json" id="eh-guard">([\s\S]*?)<\/script>/.exec(html);
+  let info = null;
+  try { info = m ? JSON.parse(m[1]) : null; } catch { /* reported below */ }
+  const robotsMeta = attr(html, /<meta name="robots" content="([^"]*)"/) ?? "";
+  const indexable = !/noindex/.test(robotsMeta);
+  v3Indexable.set(p.url, indexable);
+  v3Pages.push({ ...p, html, info, indexable });
+}
 
-const attr = (html, re) => { const m = re.exec(html); return m ? m[1] : null; };
 const decode = (s) => s.replace(/&amp;/g, "&").replace(/&#x27;/g, "'").replace(/&quot;/g, '"').replace(/&lt;/g, "<").replace(/&gt;/g, ">");
 const titles = new Map(), descs = new Map();
 let indexable = 0;
@@ -74,6 +97,35 @@ for (const u of smUrls) {
   if (isNoindexPath(p)) bad("sitemap.xml", `lists a noindex page: ${u}`);
 }
 for (const p of pages) if (!isNoindexPath(p.url) && !["/_not-found/", "/404/"].includes(p.url) && !smUrls.includes(`${SITE}${p.url}`)) bad("sitemap.xml", `missing indexable page ${p.url}`);
+
+// ---- v3 checks ----
+const jsonLdOf = (html) => [...html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)].map((m) => { try { return JSON.parse(m[1]); } catch { return null; } }).filter(Boolean);
+for (const v of v3Pages) {
+  const events = jsonLdOf(v.html).filter((d) => d["@type"] === "SportsEvent");
+  if (!v.info) { bad(v.url, "tournament page without its eh-guard data"); continue; }
+  const verdict = guard.seoVerdict(v.info.input);
+  if (v.indexable && !verdict.ready) bad(v.url, `indexable but the thin-page guard fails: ${verdict.failures.join(", ")}`);
+  if (v.indexable && v.info.indexable !== true) bad(v.url, "indexable but the build did not mark it indexable");
+  if (v.indexable) {
+    if (events.length !== 1) bad(v.url, `expected exactly one SportsEvent JSON-LD, found ${events.length}`);
+    for (const e of events) for (const k of ["name", "startDate", "location", "eventAttendanceMode", "eventStatus", "url", "image"]) if (!e[k]) bad(v.url, `SportsEvent missing ${k}`);
+    if (events[0] && events[0].url !== `${SITE}${v.url}`) bad(v.url, "SportsEvent url differs from the canonical");
+    if (!smUrls.includes(`${SITE}${v.url}`)) bad("sitemap.xml", `missing seo-ready tournament ${v.url}`);
+  } else {
+    if (events.length) bad(v.url, "SportsEvent JSON-LD on a page that is noindex (thin or held back)");
+    if (smUrls.includes(`${SITE}${v.url}`)) bad("sitemap.xml", `lists a noindex tournament ${v.url}`);
+  }
+  const canon = attr(v.html, /<link rel="canonical" href="([^"]*)"/);
+  if (canon !== `${SITE}${v.url}`) bad(v.url, `canonical is ${canon}`);
+  if ((v.html.match(/<h1[\s>]/g) || []).length !== 1) bad(v.url, "tournament page must have exactly one h1");
+  const png = path.join(OUT, v.url, "og.png");
+  if (!fs.existsSync(png) || fs.readFileSync(png).subarray(1, 4).toString() !== "PNG") bad(v.url, "missing or invalid og.png card");
+  if (!v.html.includes(`og:image" content="${SITE}${v.url}og.png"`)) bad(v.url, "og:image does not point at this tournament's card");
+}
+const idxEpochs = v3Pages.filter((v) => v.indexable && v.info).map((v) => v.info.input.publishedAt).filter(Number.isFinite);
+if (guard.maxInAnyWeek(idxEpochs) > guard.WEEKLY_CAP) bad("tournaments", `more than ${guard.WEEKLY_CAP} newly indexable tournament pages in one week (${guard.maxInAnyWeek(idxEpochs)})`);
+if (v3Pages.length) console.log(`v3: ${v3Pages.length} tournament page(s), ${v3Pages.filter((v) => v.indexable).length} indexable.`); else console.log("v3: no tournament pages emitted (API off or empty).");
+if (v3Pages.length === 0 && pages.some((q) => q.url.startsWith("/tournaments/") && q.url !== "/tournaments/")) bad("tournaments", "tournament pages exist without eh-guard data");
 
 console.log(`${pages.length} pages checked, ${indexable} indexable, ${smUrls.length} in the sitemap.`);
 if (problems.length) { console.error(`\n${problems.length} SEO problem(s):\n- ` + problems.join("\n- ")); process.exit(1); }

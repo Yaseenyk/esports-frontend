@@ -1,0 +1,20 @@
+{
+  "good": { "title": "Gokte Cup 2026", "titleIsUnique": true, "summary": "SUMMARY80", "description": "DESC200", "startsAt": 1800000000, "venue": "offline", "city": "Pune", "status": "registration_open", "hasVerifiedResults": false, "publishedAt": 1790000000 },
+  "cases": [
+    { "name": "passes when every line holds", "override": {}, "ready": true, "failures": [] },
+    { "name": "title not unique", "override": { "titleIsUnique": false }, "ready": false, "failures": ["title_unique"] },
+    { "name": "title too short", "override": { "title": "Cup" }, "ready": false, "failures": ["title_unique"] },
+    { "name": "summary 79", "override": { "summary": "S79" }, "ready": false, "failures": ["summary_80"] },
+    { "name": "description 199", "override": { "description": "D199" }, "ready": false, "failures": ["description_200"] },
+    { "name": "description null", "override": { "description": null }, "ready": false, "failures": ["description_200"] },
+    { "name": "no start", "override": { "startsAt": null }, "ready": false, "failures": ["start_date"] },
+    { "name": "offline needs a city", "override": { "venue": "offline", "city": " " }, "ready": false, "failures": ["venue"] },
+    { "name": "closed registration, no results", "override": { "status": "registration_closed" }, "ready": false, "failures": ["registration_or_results"] },
+    { "name": "no publish time", "override": { "publishedAt": null }, "ready": false, "failures": ["published"] },
+    { "name": "draft", "override": { "status": "draft" }, "ready": false, "failures": ["registration_or_results", "published"] },
+    { "name": "cancelled", "override": { "status": "cancelled" }, "ready": false, "failures": ["registration_or_results", "published"] },
+    { "name": "online needs no city", "override": { "venue": "online", "city": null }, "ready": true, "failures": [] },
+    { "name": "results replace open registration", "override": { "status": "completed", "hasVerifiedResults": true }, "ready": true, "failures": [] },
+    { "name": "completed without results", "override": { "status": "completed", "hasVerifiedResults": false }, "ready": false, "failures": ["registration_or_results"] }
+  ]
+}

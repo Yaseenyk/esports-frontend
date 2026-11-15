@@ -4,6 +4,7 @@ import { TOOLS } from "@/lib/data";
 import { GROWTH_PAGES } from "@/lib/growth-pages";
 import { SITE_URL } from "@/lib/site";
 import { TOOL_PAGES } from "@/lib/tool-pages";
+import { indexableOnly, loadBuildTournaments } from "@/features/tournaments/services/build-data";
 
 export const dynamic = "force-static";
 
@@ -13,13 +14,16 @@ const LAUNCH = "2026-11-11";
 const HEADINGS = "2026-11-12";
 
 /** Only pages with real, checked content. Demo-data pages, the app, the gate scanner, sign-in and one-off links are left out on purpose. */
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const at = (path: string, priority: number, lastModified: string | undefined = LAUNCH) => ({ url: `${SITE_URL}${path}`, lastModified, changeFrequency: "monthly" as const, priority });
+  // v3 tournament pages: ONLY the ones the thin-page guard passed (and the weekly cap allowed). Empty while the API is off.
+  const live = indexableOnly(await loadBuildTournaments());
   return [
     at("/", 1, HEADINGS), at("/tools/", 0.9, HEADINGS), at("/guides/", 0.9),
     ...TOOLS.map((t) => at(t.href, 0.9, TOOL_PAGES[t.slug]?.updated ?? HEADINGS)),
     ...GROWTH_PAGES.map((p) => at(p.path, p.priority, p.updated)),
     ...GUIDES.map((g) => at(`/guides/${g.slug}/`, 0.8, g.updated)),
+    ...(live.length > 0 ? [at("/tournaments/", 0.6, live[0].detail.publishedAt?.slice(0, 10) ?? LAUNCH), ...live.map((t) => at(`/tournaments/${t.detail.slug}/`, 0.5, t.detail.publishedAt?.slice(0, 10) ?? LAUNCH))] : []),
     at("/about/", 0.4), at("/developers/", 0.3), at("/contact/", 0.3), at("/privacy/", 0.2), at("/terms/", 0.2),
   ];
 }
