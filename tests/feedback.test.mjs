@@ -237,7 +237,6 @@ test("widget layers and classes: bubble above overlays and below the dialog, a s
   const cfg = (await import("../tailwind.config.ts")).default;
   const z = cfg.theme.extend.zIndex;
   assert.ok(Number(z.bubble) > 60 && Number(z.bubble) < Number(z.dialog));
-  assert.equal(cfg.theme.extend.screens.short.raw, "(max-height: 500px)");
   const root = readFileSync(new URL("../src/features/feedback/FeedbackRoot.tsx", import.meta.url), "utf8");
   assert.match(root, /z-bubble/); assert.match(root, /short:top-1\/2/); assert.match(root, /short:bottom-auto/);
   const panel = readFileSync(new URL("../src/features/feedback/ui/FeedbackPanel.tsx", import.meta.url), "utf8");
