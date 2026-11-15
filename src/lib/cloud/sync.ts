@@ -11,10 +11,14 @@ export interface Snapshot { event: string; game: string; organiser: string; info
 
 /** The fields the server accepts for a person. Deliberately leaves out dob, gender and last4. */
 export function rosterPayload(teams: { id: string; name: string; logo?: string | null }[], people: Person[], minorOf: (p: Person) => boolean) {
+  // The server refuses the WHOLE roster if one person names a team that is not in the list (400 "people[n].teamId does not match any team": an event
+  // then saves with 0 people). Someone whose team was removed goes to the first team, the same rule the team-remove button promises on screen.
+  const known = new Set(teams.map((t) => t.id));
+  const fallback = teams[0]?.id ?? "";
   return {
     teams: teams.map((t) => (t.logo ? { id: t.id, name: t.name, logo: t.logo } : { id: t.id, name: t.name })),
     people: people.map((p) => ({
-      id: p.id, name: p.name || "Unnamed", teamId: p.teamId, role: p.role, zones: p.zones ?? "",
+      id: p.id, name: p.name || "Unnamed", teamId: known.has(p.teamId) ? p.teamId : fallback, role: p.role, zones: p.zones ?? "",
       minor: minorOf(p), guardian: !!p.guardian,
     })),
   };

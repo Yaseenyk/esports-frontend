@@ -11,9 +11,10 @@ const safe = <T,>(f: () => T): T | undefined => { try { return f(); } catch { re
 const browserEnv = (): PromptEnv => ({ now: Date.now, local: safe(() => localStorage), session: safe(() => sessionStorage) });
 
 /** Asks the API once whether feedback is on, and starts the in-memory error capture. `null` until known; the widget draws nothing for `null` or off. */
-export function useProbe(): Probe | null {
+export function useProbe(pathname = ""): Probe | null {
   const [probe, setProbe] = useState<Probe | null>(null);
-  useEffect(() => { let live = true; probeStatus().then((p) => { if (live) setProbe(p); }); return () => { live = false; }; }, []);
+  // Asked again on the next page while the answer was not a definite one (see probeStatus): a bad connection must not hide the bubble for the whole visit.
+  useEffect(() => { if (probe?.on) return; let live = true; probeStatus().then((p) => { if (live) setProbe(p); }); return () => { live = false; }; }, [pathname]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => startErrorCapture(), []);
   return probe;
 }

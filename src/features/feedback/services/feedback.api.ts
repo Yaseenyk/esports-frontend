@@ -29,12 +29,17 @@ export async function probeStatus(): Promise<Probe> {
   if (!hasBackend) return { on: false };
   if (memo) return memo;
   try { const c = sessionStorage.getItem(STATUS_KEY); if (c) { memo = c === "off" ? { on: false } : parse(JSON.parse(c)); return memo; } } catch { /* storage blocked */ }
-  const r = await run("status", () => api.get<unknown>("/feedback/status", { retries: 0, timeout: 6000, force: true, anonymous: true }));
+  const ask = () => run("status", () => api.get<unknown>("/feedback/status", { retries: 0, timeout: 8000, force: true, anonymous: true }));
+  let r = await ask();
+  // A slow or dropped answer is not "feedback is off": try once more quietly, and never remember a failure (a visitor on a bad connection would otherwise lose the bubble until a full reload).
+  if (!r.ok && r.failure.code !== "not_found") { await new Promise((res) => setTimeout(res, 1500)); r = await ask(); }
   let out: Probe = { on: false };
-  let cache = false;
-  if (r.ok) { out = parse(r.data); cache = true; } else if (r.failure.code === "not_found") cache = true;
-  memo = out;
-  if (cache) { try { sessionStorage.setItem(STATUS_KEY, out.on ? JSON.stringify(out.status) : "off"); } catch { /* ignore */ } }
+  let definite = false;
+  if (r.ok) { out = parse(r.data); definite = true; } else if (r.failure.code === "not_found") definite = true;
+  if (definite) {
+    memo = out;
+    try { sessionStorage.setItem(STATUS_KEY, out.on ? JSON.stringify(out.status) : "off"); } catch { /* ignore */ }
+  }
   return out;
 }
 

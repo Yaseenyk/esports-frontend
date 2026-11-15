@@ -9,24 +9,31 @@ const day = (iso: string) => { const t = Date.parse(iso); return Number.isFinite
 
 export function rankText(min: number | null, max: number | null): string {
   if (min === null && max === null) return "Any rank";
-  if (min !== null && max !== null) return min === max ? `Rank step ${min}` : `Rank steps ${min} to ${max}`;
-  return min !== null ? `Rank step ${min} and up` : `Up to rank step ${max}`;
+  if (min !== null && max !== null) return min === max ? `Skill level ${min}` : `Skill level ${min} to ${max}`;
+  return min !== null ? `Skill level ${min} and up` : `Up to skill level ${max}`;
 }
 export const placeText = (l: Pick<Listing, "city" | "state" | "onlineOk">): string => [[l.city, l.state].filter(Boolean).join(", ") || null, l.onlineOk ? "Online OK" : null].filter(Boolean).join(" · ") || "Anywhere";
 
 export function LftFilters({ value, onChange, onClear }: { value: BoardFilters; onChange: (f: BoardFilters) => void; onClear: () => void }) {
   const set = <K extends keyof BoardFilters>(k: K, v: BoardFilters[K]) => onChange({ ...value, [k]: v });
   return (
-    <form role="search" aria-label="Filter the board" onSubmit={(e) => e.preventDefault()} className={`${box} grid gap-4 sm:grid-cols-2 lg:grid-cols-4`}>
-      <SelectInput id="f-game" label="Game" value={value.game} onChange={(v) => set("game", v)} options={GAMES} blank="Any game" />
-      <SelectInput id="f-kind" label="Posted by" value={value.kind} onChange={(v) => set("kind", v)} options={KINDS} blank="Players and teams" />
-      <SelectInput id="f-role" label="Role" value={value.role} onChange={(v) => set("role", v)} options={ROLES.map((r) => ({ value: r, label: ROLE_LABELS[r] }))} blank="Any role" />
-      <div className="flex items-end"><label className="flex min-h-11 items-center gap-2 text-zinc-100"><input type="checkbox" checked={value.online} onChange={(e) => set("online", e.target.checked)} className="h-5 w-5 accent-cyan-400" />Online players OK</label></div>
-      <TextInput id="f-rmin" label="Rank step from" value={value.rankMin} onChange={(v) => set("rankMin", v.replace(/\D/g, "").slice(0, 3))} inputMode="numeric" help="0 is the lowest rung of a game's ladder, 100 the highest." />
-      <TextInput id="f-rmax" label="Rank step to" value={value.rankMax} onChange={(v) => set("rankMax", v.replace(/\D/g, "").slice(0, 3))} inputMode="numeric" />
-      <TextInput id="f-state" label="State" value={value.state} onChange={(v) => set("state", v)} maxLength={60} />
-      <TextInput id="f-city" label="City" value={value.city} onChange={(v) => set("city", v)} maxLength={60} />
-      {hasAnyFilter(value) && <div className="sm:col-span-2 lg:col-span-4"><button type="button" onClick={onClear} className={btnSecondary}>Clear all filters</button></div>}
+    <form role="search" aria-label="Filter the board" onSubmit={(e) => e.preventDefault()} className={`${box} space-y-4`}>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <SelectInput id="f-game" label="Game" value={value.game} onChange={(v) => set("game", v)} options={GAMES} blank="Any game" />
+        <SelectInput id="f-kind" label="Posted by" value={value.kind} onChange={(v) => set("kind", v)} options={KINDS} blank="Players and teams" />
+      </div>
+      <details open={!!(value.role || value.online || value.rankMin || value.rankMax || value.state || value.city)} className="group">
+        <summary className="flex min-h-11 cursor-pointer items-center text-cyan-400">More filters: role, place, skill level</summary>
+        <div className="grid gap-4 pt-2 sm:grid-cols-2 lg:grid-cols-3">
+          <SelectInput id="f-role" label="Role" value={value.role} onChange={(v) => set("role", v)} options={ROLES.map((r) => ({ value: r, label: ROLE_LABELS[r] }))} blank="Any role" />
+          <div className="flex items-end"><label className="flex min-h-11 items-center gap-2 text-zinc-100"><input type="checkbox" checked={value.online} onChange={(e) => set("online", e.target.checked)} className="h-5 w-5 accent-cyan-400" />Online players OK</label></div>
+          <TextInput id="f-state" label="State" value={value.state} onChange={(v) => set("state", v)} maxLength={60} />
+          <TextInput id="f-city" label="City" value={value.city} onChange={(v) => set("city", v)} maxLength={60} />
+          <TextInput id="f-rmin" label="Skill level from" value={value.rankMin} onChange={(v) => set("rankMin", v.replace(/\D/g, "").slice(0, 3))} inputMode="numeric" help="A number from 0 (just started) to 100 (top rank in that game)." />
+          <TextInput id="f-rmax" label="Skill level up to" value={value.rankMax} onChange={(v) => set("rankMax", v.replace(/\D/g, "").slice(0, 3))} inputMode="numeric" />
+        </div>
+      </details>
+      {hasAnyFilter(value) && <div><button type="button" onClick={onClear} className={btnSecondary}>Clear all filters</button></div>}
     </form>
   );
 }

@@ -5,7 +5,7 @@ import assert from "node:assert/strict";
 import { BLANK_FORM, checkSlug, fieldForCode, fromTournament, isDirty, isoToLocalInput, localInputToIso, markdownToPlain, slugify, toCreateBody, toUpdateBody, validateForm, RESERVED_SLUGS } from "../src/features/tournaments/organiser/form.ts";
 import { blockedReason, countUndecided, explainTransitionError, MOVES, transitionOptions } from "../src/features/tournaments/organiser/state-machine.ts";
 import { pageChecklist, checklistReady } from "../src/features/tournaments/organiser/checklist.ts";
-import { toEventLiteList, toOrganiserTournament } from "../src/features/tournaments/services/organiser.adapter.ts";
+import { toEventLite, toEventLiteList, toOrganiserTournament } from "../src/features/tournaments/services/organiser.adapter.ts";
 import { toFailure, explainFailure } from "../src/features/shared/failure.ts";
 
 const long = (n, c = "a") => (c + " ").repeat(Math.ceil(n / 2)).slice(0, n);
@@ -229,4 +229,8 @@ test("failures: a 404 is 'not available yet'; tournament codes have plain words"
   assert.match(explainFailure({ kind: "conflict", status: 409, code: "slug_taken" }), /already taken/);
   assert.match(explainFailure({ kind: "conflict", status: 409, code: "disputes_open" }), /open dispute/);
   assert.match(explainFailure({ kind: "conflict", status: 409, code: "needs_description_and_start" }), /description and a start date/);
+});
+
+test("adapter: an event answer without a role is unknown (empty), never viewer (the real GET /events/:id has no role field)", () => {
+  assert.deepEqual(toEventLite({ id: "e1", name: "Cup", game: "BGMI", date: "2026-12-01" }), { id: "e1", name: "Cup", game: "BGMI", date: "2026-12-01", role: "" });
 });

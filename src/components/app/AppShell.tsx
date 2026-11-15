@@ -11,6 +11,7 @@ import HubNav, { type Section } from "@/components/HubNav";
 import VerifyScreen from "@/components/auth/VerifyScreen";
 import { useOrg } from "@/components/org/OrgContext";
 import { orgNav } from "@/lib/org";
+import { v3Enabled } from "@/features/shared/flags";
 
 // The app uses the same floating pill and honeycomb menu as the public home page (HubNav); only the entries differ.
 const TABS: Section[] = [
@@ -22,6 +23,14 @@ const TABS: Section[] = [
   { href: "/app/insights/", label: "Insights", blurb: "Usage & numbers", icon: "M4 20V10M10 20V4M16 20v-7M22 20H2" },
   { href: "/app/account/", label: "Account", blurb: "Profile & security", icon: "M20 21v-1a5 5 0 00-5-5H9a5 5 0 00-5 5v1M12 11a4 4 0 100-8 4 4 0 000 8z" },
 ];
+// Sections that exist only while their backend switch is on (src/features/shared/flags.ts). Nothing is added while they are off.
+const V3_TABS: Section[] = [
+  v3Enabled("tournaments") && { href: "/app/tournaments/", label: "Tournaments", blurb: "Your public pages", icon: "M8 21h8M12 17v4M7 4h10v5a5 5 0 01-10 0zM17 5h3v2a3 3 0 01-3 3M7 5H4v2a3 3 0 003 3" },
+  v3Enabled("lft") && { href: "/app/lft/", label: "Team finder", blurb: "Find a team or player", icon: "M16 20v-1a4 4 0 00-4-4H8a4 4 0 00-4 4v1M10 11a3.5 3.5 0 100-7 3.5 3.5 0 000 7zM20 20v-1a3.5 3.5 0 00-2.5-3.4M16 4.2a3.5 3.5 0 010 6.6" },
+  v3Enabled("resume") && { href: "/app/resume/", label: "My resume", blurb: "Your player profile", icon: "M20 21v-1a5 5 0 00-5-5H9a5 5 0 00-5 5v1M12 11a4 4 0 100-8 4 4 0 000 8z" },
+  v3Enabled("disputes") && { href: "/app/disputes/", label: "Disputes", blurb: "Raise or follow one", icon: "M4 21V4M4 4h13l-2 4 2 4H4" },
+].filter(Boolean) as Section[];
+const ALL_TABS: Section[] = [...TABS.slice(0, -2), ...V3_TABS, ...TABS.slice(-2)];
 const CLUB_ICON = "M16 20v-1a4 4 0 00-4-4H8a4 4 0 00-4 4v1M10 11a3.5 3.5 0 100-7 3.5 3.5 0 000 7zM20 20v-1a3.5 3.5 0 00-2.5-3.4M16 4.2a3.5 3.5 0 010 6.6";
 
 /**
@@ -54,7 +63,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     );
   }
 
-  const sections: Section[] = clubTab ? [...TABS.slice(0, -1), { href: clubTab.href, label: clubTab.label, blurb: "Team workspace", icon: CLUB_ICON }, ...TABS.slice(-1)] : TABS;
+  const sections: Section[] = clubTab ? [...ALL_TABS.slice(0, -1), { href: clubTab.href, label: clubTab.label, blurb: "Team workspace", icon: CLUB_ICON }, ...ALL_TABS.slice(-1)] : ALL_TABS;
   const signOut = () => { if (path.startsWith("/app/id-cards") && !window.confirm("Sign out? The people and designs on this screen are not saved in this browser, so they will be lost unless you saved a project file or saved the event online.")) return; auth.logout(); };
   const initial = session.user.name.trim().charAt(0) || "?";
   return (

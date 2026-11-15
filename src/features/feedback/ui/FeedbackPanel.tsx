@@ -65,7 +65,7 @@ const FeedbackPanel = forwardRef<HTMLDivElement, { v: PanelView; h: PanelHandler
   const n = messageLength(s.message);
 
   return (
-    <div className={`pointer-events-none fixed inset-0 z-50 flex items-end justify-center p-2 sm:justify-end sm:p-6 no-print ${v.hidden ? "invisible" : ""}`} style={{ paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))" }}>
+    <div className={`pointer-events-none fixed inset-0 z-dialog flex items-end justify-center p-2 sm:justify-end sm:p-6 no-print ${v.hidden ? "invisible" : ""}`} style={{ paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))" }}>
       <div ref={ref} role="dialog" aria-modal="true" aria-labelledby="eh-fb-title" className="pointer-events-auto flex max-h-full w-full flex-col rounded-xl border border-white/10 bg-surface text-zinc-100 sm:w-96">
         <div className="flex items-center justify-between gap-2 border-b border-white/10 py-1 pl-4 pr-1">
           <h2 id="eh-fb-title" className="font-display text-lg text-zinc-100">{COPY.panelTitle}</h2>

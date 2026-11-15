@@ -27,3 +27,11 @@ test("the fingerprint tells 'same as last save' from 'changed' without keeping t
   assert.notEqual(fingerprint(a), fingerprint(rosterPayload([{ id: "t1", name: "Kings" }], [{ ...people[0], role: "Coach" }], () => false)));
   assert.ok(!fingerprint(a).includes("Aarav"));
 });
+
+test("roster: a person whose team is not in the list goes to the first team (the server refuses the whole roster otherwise)", () => {
+  const people = [{ id: "p1", name: "A", teamId: "t1", role: "Player" }, { id: "p2", name: "B", teamId: "gone", role: "Player" }];
+  const body = rosterPayload([{ id: "t1", name: "Kings" }, { id: "t2", name: "Dukes" }], people, () => false);
+  assert.deepEqual(body.people.map((p) => p.teamId), ["t1", "t1"]);
+  const ids = new Set(body.teams.map((t) => t.id));
+  assert.ok(body.people.every((p) => ids.has(p.teamId)));
+});

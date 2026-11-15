@@ -69,7 +69,14 @@ function backend(eventId: string, opt: { initial?: T | null; disputeStatuses?: s
 const FULL: T = { id: "t1", eventId: "e1", slug: "gokte-cup", title: "Gokte Cup 2026", game: "bgmi", format: "battle_royale_points", status: "draft", venue: "offline", city: "Pune", state: "Maharashtra", summary: text(90), description: text(220), rules: null, maxTeams: 16, startsAt: "2026-12-20T04:30:00.000Z", endsAt: null, publishedAt: null };
 
 async function organiser(page: Page, handlers: Record<string, Handler> = {}, events: unknown[] = [EV, EV2, EV3]) {
-  await signedIn(page, events);
+  // The real GET /events/:id carries no `role` (only the list does): the mock must not invent one, or the "owner sees View only" bug stays hidden.
+  const eventDetail = (id: string) => {
+    const found = (events as { id: string }[]).find((x) => x.id === id) as Record<string, unknown> | undefined;
+    if (!found) return undefined;
+    const { role: _role, ...rest } = found;
+    return rest;
+  };
+  await signedIn(page, events, { eventDetail });
   return mockV3(page, handlers);
 }
 

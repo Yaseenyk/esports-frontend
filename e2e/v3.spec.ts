@@ -22,6 +22,11 @@ for (const [path, , signed] of OFF) {
     await expect(page.getByText("Something went wrong")).toHaveCount(0);
   });
 }
+
+/** The board keeps role, place and skill level under "More filters": open it when a test needs them. */
+async function openMoreFilters(page: import("@playwright/test").Page) {
+  await page.locator("summary", { hasText: "More filters" }).evaluate((el) => { (el.parentElement as HTMLDetailsElement).open = true; });
+}
 
 test("the v3 routes are noindex", async ({ page }) => {
   await mockV3(page);
@@ -63,6 +68,7 @@ test("board: filters go to the query string and the API, cursor pagination, empt
   await expect(page).not.toHaveURL(/game=/);
   await expect(page.getByText("Serious IGL looking for a squad")).toBeVisible();
 
+  await openMoreFilters(page);
   await page.getByLabel("Role").selectOption("sniper");
   await expect(page.getByRole("heading", { name: /did not load/ })).toBeVisible();
   await expect(page.getByRole("button", { name: "Try again" })).toBeVisible();
@@ -72,8 +78,9 @@ test("board: rank range goes to the API", async ({ page }) => {
   const asked: string[] = [];
   await mockV3(page, { "GET /public/lft": ({ url }) => { asked.push(url.search); return { body: { items: [], nextCursor: null } }; } });
   await page.goto("/lft/");
-  await page.getByLabel("Rank step from").fill("10");
-  await page.getByLabel("Rank step to").fill("40");
+  await openMoreFilters(page);
+  await page.getByLabel("Skill level from").fill("10");
+  await page.getByLabel("Skill level up to").fill("40");
   await expect.poll(() => asked.some((q) => q.includes("rank_min=10") && q.includes("rank_max=40"))).toBe(true);
 });
 

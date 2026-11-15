@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { v3Enabled } from "@/features/shared/flags";
 import { useEffect, useState } from "react";
 import { canEditRole, isOwner, safeRole } from "@/lib/role";
 import { events, explain, type CloudEvent, type CloudRoster, type Live } from "@/lib/api/cloud";
@@ -151,7 +152,7 @@ function Detail({ ev, onBack, onDeleted }: { ev: CloudEvent; onBack: () => void;
           </div>
         </details>
       )}
-      <div className="flex flex-wrap gap-2"><Link href={`/app/id-cards/?open=${encodeURIComponent(ev.id)}`} className="btn !min-h-11 px-4 text-sm">Open the cards</Link><Link href="/app/check-in/" className="btn-ghost !min-h-11 px-4 text-sm">Gate check-in</Link></div>
+      <div className="flex flex-wrap gap-2"><Link href={`/app/id-cards/?open=${encodeURIComponent(ev.id)}`} className="btn !min-h-11 px-4 text-sm">Open the cards</Link><Link href="/app/check-in/" className="btn-ghost !min-h-11 px-4 text-sm">Gate check-in</Link>{v3Enabled("tournaments") && <Link href={`/app/tournaments/manage/?id=${encodeURIComponent(ev.id)}`} className="btn-ghost !min-h-11 px-4 text-sm">Public tournament page</Link>}{v3Enabled("disputes") && <Link href={`/app/tournaments/disputes/?id=${encodeURIComponent(ev.id)}`} className="btn-ghost !min-h-11 px-4 text-sm">Disputes</Link>}</div>
     </section>
   );
 }

@@ -13,7 +13,7 @@ import FeedbackPanel from "@/features/feedback/ui/FeedbackPanel";
 
 /** The mounted widget. Draws nothing until the API says feedback is on, and nothing while something is fullscreen. */
 export default function FeedbackRoot({ pathname }: { pathname: string }) {
-  const probe = useProbe();
+  const probe = useProbe(pathname);
   const full = useFullscreen();
   if (!probe || !probe.on || full) return null;
   return <Widget status={probe.status} pathname={pathname} />;

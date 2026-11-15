@@ -16,9 +16,18 @@ const tournament = (r: unknown): V3Result<OrganiserTournament> => { const t = to
  */
 export const probeTournaments = (): Promise<V3Result<true>> => mapOk(v3Get<unknown>("/public/tournaments?limit=1", { force: true }), () => true as const);
 
-/** One legacy event (name and the caller's role). */
+/**
+ * One legacy event (name and the caller's role). GET /events/:id does NOT carry the caller's role (only the list GET /events does), so the role is
+ * looked up there. An empty role means "unknown": the screens then let the server decide instead of calling the owner a viewer.
+ */
 export const fetchEvent = (eventId: string): Promise<V3Result<EventLite>> =>
-  attempt(async () => { const ev = toEventLite(await api.get<unknown>(`/events/${e(eventId)}`, { retries: 1, ttl: 0, force: true })); if (!ev) throw Object.assign(new Error("event"), { status: 404 }); return ev; });
+  attempt(async () => {
+    const ev = toEventLite(await api.get<unknown>(`/events/${e(eventId)}`, { retries: 1, ttl: 0, force: true }));
+    if (!ev) throw Object.assign(new Error("event"), { status: 404 });
+    if (ev.role) return ev;
+    const mine = toEventLiteList(await api.get<unknown>("/events", { retries: 1, ttl: 0, force: true })).find((x) => x.id === ev.id);
+    return { ...ev, role: mine?.role ?? "" };
+  });
 
 /** `status 404` here is "this event has no tournament page yet" (once the probe says the feature is on). */
 export const fetchTournament = (eventId: string): Promise<V3Result<OrganiserTournament>> => v3Get<unknown>(`/v3/events/${e(eventId)}/tournament`, { force: true }).then((r) => (r.ok ? tournament(r.data) : r));

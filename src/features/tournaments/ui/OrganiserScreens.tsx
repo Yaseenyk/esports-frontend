@@ -10,7 +10,7 @@ import { FORMAT_OPTIONS, GAME_OPTIONS, VENUE_OPTIONS } from "@/features/tourname
 import { DescriptionPreview, OwnedEventCard, PageChecklist, ShareBlock, TournamentStatusBadge, TransitionPanel } from "@/features/tournaments/ui/OrganiserParts";
 
 const Loading = ({ show, label }: { show: boolean; label: string }) => (show ? <SkeletonRows n={2} label={label} /> : <p className="sr-only">{label}</p>);
-const WHAT = "Tournament pages";
+const WHAT = "The tournament page tool";
 
 export function MyTournamentsScreen() {
   const res = useMyTournaments();

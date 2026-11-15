@@ -24,6 +24,6 @@ export function toOrganiserTournament(raw: unknown): OrganiserTournament | null 
 export interface EventLite { id: string; name: string; game: string; date: string; role: string }
 export function toEventLite(raw: unknown): EventLite | null {
   const o = obj(raw), id = str(o.id, 80);
-  return id ? { id, name: str(o.name, 160) ?? "Untitled event", game: str(o.game, 60) ?? "", date: str(o.date, 40) ?? "", role: str(o.role, 20) ?? "viewer" } : null;
+  return id ? { id, name: str(o.name, 160) ?? "Untitled event", game: str(o.game, 60) ?? "", date: str(o.date, 40) ?? "", role: str(o.role, 20) ?? "" } : null;
 }
 export const toEventLiteList = (raw: unknown): EventLite[] => (Array.isArray(raw) ? raw : []).map(toEventLite).filter((e): e is EventLite => e !== null);

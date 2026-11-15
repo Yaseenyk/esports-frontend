@@ -48,7 +48,7 @@ export function NewDisputeScreen() {
 
       <section aria-labelledby="claim-h" className={`${box} space-y-3`}>
         <h2 id="claim-h" className={h3}>Are you a team captain? Prove it once</h2>
-        <p className="text-sm text-zinc-300">Team captains do not have accounts. They have a private captain link from the organiser. Paste the token from that link below (the part after <span className="font-mono">t=</span>). We use it once to link this account to your team in this tournament and we do not keep it. Organisers can skip this step.</p>
+        <p className="text-sm text-zinc-300">Team captains do not have accounts. Your organiser gives each captain a private link: ask them to send you your team's captain link. Paste the token from that link below (the part after <span className="font-mono">t=</span>). We use it once to link this account to your team in this tournament and we do not keep it. Organisers can skip this step.</p>
         <TextInput id="c-slug" label="Tournament address" value={r.form.slug} onChange={(v) => r.set("slug", v.toLowerCase())} maxLength={60} error={r.errors.slug} help="The last part of the tournament page address, for example gokte-cup-2026." />
         <TextInput id="c-token" label="Captain link token" value={r.token} onChange={r.setToken} type="password" autoComplete="off" error={r.claimError} />
         <button type="button" onClick={r.claim} disabled={r.busy === "claim"} className={btnSecondary}>{r.busy === "claim" ? "Checking" : "Link my team"}</button>

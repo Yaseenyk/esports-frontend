@@ -12,6 +12,7 @@ const config: Config = {
         nudge: { from: { opacity: "0", transform: "translateY(0.5rem)" }, to: { opacity: "1", transform: "translateY(0)" } }, // the feedback hint: transform + opacity only
       },
       animation: { marquee: "marquee 38s linear infinite", float: "float 6s ease-in-out infinite", drift: "drift 16s ease-in-out infinite", sheen: "sheen 6s linear infinite", nudge: "nudge 300ms ease-out both" },
+      zIndex: { dialog: "70" }, // above the XP toast (z 60) and every page layer; used by the feedback dialog
       colors: {
         // streamerOS Signal Kit, same tokens as the other sites.
         ink: "#05070A",

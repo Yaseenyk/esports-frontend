@@ -69,7 +69,7 @@ export function useRaiseDispute() {
     const r = await claimCaptain(form.slug.trim().toLowerCase(), c.token);
     setBusy(""); setToken(""); // the secret never stays in the page
     if (r.ok) { setClaimed((l) => (r.data.team && !l.includes(r.data.team) ? [...l, r.data.team] : l)); setForm((f) => (f.team ? f : { ...f, team: r.data.team })); }
-    else setClaimError(r.failure.kind === "unavailable" ? "That token did not match a team in this tournament." : explainFailure(r.failure));
+    else setClaimError(r.failure.kind === "unavailable" ? `We could not match that token to a team in "${form.slug.trim().toLowerCase()}". Check the tournament address, and that you copied the whole token from your captain link.` : explainFailure(r.failure));
   };
 
   const submit = async () => {
@@ -77,7 +77,7 @@ export function useRaiseDispute() {
     if (Object.keys(validateRaise(form)).length || busy) return;
     setBusy("raise"); setError("");
     const r = await raiseDispute(form.slug.trim().toLowerCase(), raiseBody(form));
-    if (!r.ok || !r.data) { setBusy(""); setError(r.ok ? "The dispute could not be read back. Check your disputes list before trying again." : explainFailure(r.failure)); return; }
+    if (!r.ok || !r.data) { setBusy(""); setError(r.ok ? "The dispute could not be read back. Check your disputes list before trying again." : r.failure.kind === "unavailable" ? `We could not find a tournament called "${form.slug.trim().toLowerCase()}", or disputes are not open for it yet. Check the address: it is the last part of the tournament page link.` : explainFailure(r.failure)); return; }
     const id = r.data.id, failedFiles: string[] = [];
     for (const it of picker.ready) { // the dispute exists now; each image is its own request so one failure does not lose the others
       const up = await uploadEvidence(id, it.blob as Blob);

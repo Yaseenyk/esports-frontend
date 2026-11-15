@@ -73,9 +73,11 @@ export function EvidenceGrid({ disputeId, evidence }: { disputeId: string; evide
 export function EvidenceUploader({ items, onPick, onRemove, full, busy }: { items: { key: string; name: string; status: string; size?: number; error?: string }[]; onPick: (files: File[]) => void; onRemove: (key: string) => void; full: boolean; busy?: boolean }) {
   return (
     <div>
-      <label htmlFor="ev-files" className="mb-1 block text-sm font-medium text-zinc-100">Evidence images (optional)</label>
-      <input id="ev-files" type="file" multiple accept={ACCEPTED_TYPES.join(",")} disabled={full || busy} onChange={(e) => { onPick(Array.from(e.target.files ?? [])); e.target.value = ""; }}
-        className="block min-h-11 w-full rounded-lg border border-white/10 bg-surface p-2 text-zinc-100 file:mr-3 file:min-h-9 file:rounded-lg file:border-0 file:bg-white/10 file:px-3 file:text-zinc-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-400" aria-describedby="ev-help" />
+      <p className="mb-1 block text-sm font-medium text-zinc-100">Evidence images (optional)</p>
+      <label className={`inline-flex min-h-11 cursor-pointer items-center rounded-lg border border-white/10 bg-surface px-4 text-zinc-100 focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-cyan-400 ${full || busy ? "opacity-60" : ""}`}>
+        <span>{items.length ? "Add more images" : "Choose images"}</span>
+        <input id="ev-files" type="file" multiple accept={ACCEPTED_TYPES.join(",")} disabled={full || busy} onChange={(e) => { onPick(Array.from(e.target.files ?? [])); e.target.value = ""; }} className="sr-only" aria-describedby="ev-help" />
+      </label>
       <p id="ev-help" className="mt-1 text-xs text-zinc-400">PNG, JPEG or WebP, up to {MAX_FILES} images. Each is shrunk to {kb(MAX_BYTES)} on your device before upload, which also removes location and camera data.</p>
       {items.length > 0 && (
         <ul className="mt-3 space-y-2" aria-live="polite">

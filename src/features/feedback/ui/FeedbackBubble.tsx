@@ -21,9 +21,9 @@ const FeedbackBubble = forwardRef<HTMLButtonElement, Props>(function FeedbackBub
         </div>
       )}
       <button ref={ref} type="button" onClick={onOpen} aria-haspopup="dialog" aria-expanded={open} aria-label={COPY.bubbleLabel}
-        className={`inline-flex min-h-11 min-w-11 items-center justify-center gap-2 rounded-full border border-white/10 bg-surface px-4 text-sm font-medium text-zinc-100 transition-colors duration-150 hover:border-white/30 ${focus}`}>
+        className={`inline-flex min-h-11 min-w-11 items-center justify-center gap-2 rounded-full border border-white/10 bg-surface px-0 text-sm sm:px-4 font-medium text-zinc-100 transition-colors duration-150 hover:border-white/30 ${focus}`}>
         <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5 fill-none stroke-cyan-400" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12a8 8 0 01-11.6 7.1L4 20l1-4.6A8 8 0 1121 12z" /></svg>
-        <span>{COPY.bubbleShort}</span>
+        <span className="hidden sm:inline">{COPY.bubbleShort}</span>
       </button>
     </div>
   );

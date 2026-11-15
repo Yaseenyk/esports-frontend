@@ -162,7 +162,7 @@ export function PublicResumeScreen() {
   if (slug === null || res.phase === "loading") return <div className="mx-auto max-w-3xl">{res.phase === "loading" && res.showSkeleton ? <SkeletonRows n={2} label="Loading the resume" /> : <p className="sr-only">Loading the resume</p>}</div>;
   return (
     <div className="mx-auto max-w-3xl space-y-6">
-      {res.phase === "unavailable" && <NotAvailable what="Esports resumes are" />}
+      {res.phase === "unavailable" && <EmptyState title="No public resume here" body="This address has no public resume. The owner may have made it private, or it never existed." action={<Link href="/" className={btnSecondary}>Back to the home page</Link>} />}
       {res.phase === "error" && <ErrorState message={explainFailure(res.failure)} onRetry={res.reload} />}
       {res.phase === "ready" && !res.data && <EmptyState title="No public resume here" body="This address has no public resume. The owner may have made it private, or it never existed." action={<Link href="/" className={btnSecondary}>Back to the home page</Link>} />}
       {res.phase === "ready" && res.data && <PublicResumeView p={res.data} />}
