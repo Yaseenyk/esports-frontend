@@ -14,10 +14,10 @@ export function Field({ id, label: text, help, error, children }: { id: string; 
 
 export const describedBy = (id: string, help?: string, error?: string): string | undefined => [help ? `${id}-help` : "", error ? `${id}-err` : ""].filter(Boolean).join(" ") || undefined;
 
-export function TextInput({ id, value, onChange, help, error, label: text, type = "text", maxLength, inputMode, autoComplete }: { id: string; value: string; onChange: (v: string) => void; label: string; help?: string; error?: string; type?: string; maxLength?: number; inputMode?: "numeric" | "text"; autoComplete?: string }) {
+export function TextInput({ id, value, onChange, help, error, label: text, type = "text", maxLength, inputMode, autoComplete, disabled }: { disabled?: boolean; id: string; value: string; onChange: (v: string) => void; label: string; help?: string; error?: string; type?: string; maxLength?: number; inputMode?: "numeric" | "text"; autoComplete?: string }) {
   return (
     <Field id={id} label={text} help={help} error={error}>
-      <input id={id} type={type} value={value} maxLength={maxLength} inputMode={inputMode} autoComplete={autoComplete} onChange={(e) => onChange(e.target.value)} aria-invalid={error ? true : undefined} aria-describedby={describedBy(id, help, error)} className={input} />
+      <input id={id} type={type} value={value} maxLength={maxLength} inputMode={inputMode} autoComplete={autoComplete} disabled={disabled} onChange={(e) => onChange(e.target.value)} aria-invalid={error ? true : undefined} aria-describedby={describedBy(id, help, error)} className={input} />
     </Field>
   );
 }

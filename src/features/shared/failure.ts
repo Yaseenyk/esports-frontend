@@ -62,6 +62,12 @@ const WORDS: Record<string, string> = {
   conflict_of_interest: "You cannot decide a dispute you are part of.",
   tournament_not_started: "Disputes open once registration has closed.",
   dispute_cap: "You already have 3 open disputes on this tournament.",
+  tournament_exists: "This event already has a tournament page. Opening it instead.",
+  slug_locked: "The address cannot change once the page has been published, so existing share links keep working.",
+  tournament_final: "A finished tournament cannot be changed.",
+  needs_description_and_start: "A description and a start date are needed first. Add them, save, and try again.",
+  disputes_open: "Decide every open dispute before the tournament is completed.",
+  correction_target_missing: "One of the corrections points at a result that does not exist. Check the match, match number and team.",
   temporarily_disabled: "This is switched off for a few minutes. Try again shortly.",
 };
 
