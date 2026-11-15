@@ -4,6 +4,12 @@ export type RaiseErrors = Partial<Record<keyof RaiseForm, string>>;
 
 export const SUMMARY_MIN = 10, SUMMARY_MAX = 1000, NOTE_MAX = 1000;
 
+/** A pasted tournament link (.../tournaments/<address>/) becomes just the address; anything else is only lower-cased. */
+export function slugFromInput(v: string): string {
+  const m = /\/tournaments\/([a-z0-9-]+)/i.exec(v);
+  return (m ? m[1]! : v).toLowerCase().slice(0, 60);
+}
+
 const hasPhone = (t: string): boolean => (t.match(/[+(]?\d[\d\s().-]{5,}\d/g) ?? []).some((r) => r.replace(/\D/g, "").length >= 7) || t.replace(/\D/g, "").length >= 10;
 
 export function validateRaise(f: RaiseForm): RaiseErrors {

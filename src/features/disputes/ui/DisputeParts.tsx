@@ -35,7 +35,7 @@ export function DisputeTimeline({ events, corrections = [] }: { events: DisputeE
         {events.map((e) => (
           <li key={e.id}>
             <p className="text-zinc-100">{eventText(e)} <span className="text-sm text-zinc-400">by {ACTOR_LABELS[e.actorRole] ?? e.actorRole}</span></p>
-            {e.note && <p className="mt-1 whitespace-pre-line text-zinc-300">{e.note}</p>}
+            {e.note && !(e.action === "evidence_added" && e.note.startsWith("file ")) && <p className="mt-1 whitespace-pre-line text-zinc-300">{e.note}</p>}
             {e.action === "status_resolved" && corrections.length > 0 && <CorrectionList items={corrections} />}
             <p className="mt-1 text-xs text-zinc-400">{when(e.createdAt)}</p>
           </li>

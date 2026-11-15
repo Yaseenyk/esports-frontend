@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useDisputeView, useMyDisputes, useOrganiserQueue, useRaiseDispute } from "@/features/disputes/hooks/useDisputes";
 import { FINAL_STATUSES, OUTCOMES, statusLabel, TYPES, typeLabel, type DisputeDetail } from "@/features/disputes/domain";
 import { correctionsAllowed } from "@/features/disputes/corrections";
+import { slugFromInput } from "@/features/disputes/validators";
 import { useCorrections } from "@/features/disputes/hooks/useCorrections";
 import { CorrectionsEditor } from "@/features/disputes/ui/CorrectionsEditor";
 import { DisputeCard, DisputeStatusBadge, DisputeTimeline, EvidenceGrid, EvidenceUploader, OverdueBadge, ResolutionBox, when } from "@/features/disputes/ui/DisputeParts";
@@ -49,8 +50,8 @@ export function NewDisputeScreen() {
 
       <section aria-labelledby="claim-h" className={`${box} space-y-3`}>
         <h2 id="claim-h" className={h3}>Are you a team captain? Prove it once</h2>
-        <p className="text-sm text-zinc-300">Team captains do not have accounts. Your organiser gives each captain a private link: ask them to send you your team's captain link. Paste the token from that link below (the part after <span className="font-mono">t=</span>). We use it once to link this account to your team in this tournament and we do not keep it. Organisers can skip this step.</p>
-        <TextInput id="c-slug" label="Tournament address" value={r.form.slug} onChange={(v) => r.set("slug", v.toLowerCase())} maxLength={60} error={r.errors.slug} help="The last part of the tournament page address, for example gokte-cup-2026." />
+        <p className="text-sm text-zinc-300">Your organiser gives each captain a private link for their team: ask them to send you yours. Paste the token from that link below (the part after <span className="font-mono">t=</span>). We use it once to link this account to your team in this tournament and we do not keep it. Organisers can skip this step.</p>
+        <TextInput id="c-slug" label="Tournament address" value={r.form.slug} onChange={(v) => r.set("slug", slugFromInput(v))} maxLength={200} error={r.errors.slug} help="The last part of the tournament page address, for example gokte-cup-2026. Pasting the whole link works too." />
         <TextInput id="c-token" label="Captain link token" value={r.token} onChange={r.setToken} type="password" autoComplete="off" error={r.claimError} />
         <button type="button" onClick={r.claim} disabled={r.busy === "claim"} className={btnSecondary}>{r.busy === "claim" ? "Checking" : "Link my team"}</button>
         {r.claimed.length > 0 && <p role="status" className="text-success"><span aria-hidden="true">+ </span>Linked as captain of {r.claimed.join(", ")}.</p>}

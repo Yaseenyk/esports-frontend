@@ -43,7 +43,7 @@ export interface TransitionOption {
 
 const ACTIONS: Record<TournamentStatus, { label: string; help: string }> = {
   draft: { label: "Back to draft", help: "" },
-  published: { label: "Publish the page", help: "Makes the page public so you can share the link. Registration is not open yet. The address can no longer be changed." },
+  published: { label: "Publish the page", help: "Makes the page public so you can share the link. Registration is not open yet. Once published, the page address is locked." },
   registration_open: { label: "Open registration", help: "Teams can register. Needs a description and a start date." },
   registration_closed: { label: "Close registration", help: "No new registrations. Disputes can be raised from here on." },
   live: { label: "Start the tournament", help: "Marks the tournament as live." },

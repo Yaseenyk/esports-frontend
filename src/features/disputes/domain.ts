@@ -26,7 +26,7 @@ export const STATUS_TONE: Record<string, "success" | "warning" | "danger" | "neu
 };
 export const statusLabel = (s: string): string => STATUS_LABELS[s] ?? s;
 export const FINAL_STATUSES = ["resolved", "rejected", "withdrawn"];
-export const ACTOR_LABELS: Record<string, string> = { team: "A team captain", raiser: "The person who raised it", organiser: "The organiser", moderator: "A moderator" };
+export const ACTOR_LABELS: Record<string, string> = { team: "a team captain", raiser: "the person who raised it", organiser: "the organiser", moderator: "a moderator" };
 export const OUTCOMES: Record<string, { value: string; label: string }[]> = {
   resolved: [{ value: "upheld", label: "Upheld" }, { value: "partially_upheld", label: "Partly upheld" }, { value: "no_action", label: "No action needed" }],
   rejected: [{ value: "rejected", label: "Rejected" }, { value: "no_action", label: "No action needed" }],
