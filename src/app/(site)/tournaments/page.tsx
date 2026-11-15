@@ -3,7 +3,9 @@ import TournamentsPage from "@/components/features/directory/TournamentsPage";
 import { loadBuildTournaments, indexableOnly } from "@/features/tournaments/services/build-data";
 import { TournamentList } from "@/features/tournaments/ui/TournamentParts";
 import { EmptyState } from "@/features/shared/ui/States";
-import { h1 } from "@/features/shared/ui/styles";
+import Link from "next/link";
+import { v3Enabled } from "@/features/shared/flags";
+import { h1, link } from "@/features/shared/ui/styles";
 import { SITE_URL } from "@/lib/site";
 
 /**
@@ -35,7 +37,7 @@ export default async function Page() {
         <h1 className={h1}>Esports tournaments in India</h1>
         <p className="max-w-3xl text-zinc-300">Every tournament here was created and published by its organiser on Esports Hub. Each page shows the dates, the venue, whether registration is open and, once the organiser has verified them, the results. We do not list tournaments we cannot link to a real organiser.</p>
       </header>
-      {shown.length > 0 ? <TournamentList items={shown} heading="Tournaments" /> : <EmptyState title="No tournaments yet" body="Organisers have not published any tournament yet." />}
+      {shown.length > 0 ? <TournamentList items={shown} heading="Tournaments" /> : <EmptyState title="No tournaments yet" body="Organisers have not published any tournament yet." action={v3Enabled("disputes") ? <p className="text-sm text-zinc-300">Played in a tournament and have a problem with a result? <Link href="/app/disputes/" className={link}>Raise a dispute</Link></p> : undefined} />}
     </div>
   );
 }

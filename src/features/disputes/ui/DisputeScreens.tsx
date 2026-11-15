@@ -45,6 +45,7 @@ export function NewDisputeScreen() {
     <div className="mx-auto max-w-3xl space-y-8">
       <h1 className={h1}>Raise a dispute</h1>
       <p className="text-zinc-300">You can raise a dispute once a tournament&apos;s registration has closed. Only team captains and the organiser can raise one. Nobody decides a dispute they are part of.</p>
+      {r.claimed.length === 0 && <p className={`${box} text-zinc-100`}>You need your team&apos;s captain link from your organiser first. Paste its token in the box below, once. Organisers can skip this.</p>}
 
       <section aria-labelledby="claim-h" className={`${box} space-y-3`}>
         <h2 id="claim-h" className={h3}>Are you a team captain? Prove it once</h2>

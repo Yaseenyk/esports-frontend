@@ -1,5 +1,6 @@
 "use client";
 
+import { deleteConfirmText } from "@/features/shared/account-text";
 import Link from "next/link";
 import { useRef, useState } from "react";
 import { auth, explain } from "@/lib/api/cloud";
@@ -36,7 +37,7 @@ export default function AccountPanel({ onDone }: { onDone: () => void }) {
   const remove = async (e: React.FormEvent) => {
     e.preventDefault();
     if (working.current) return;
-    if (!confirm("Delete your account and everything saved online? Events that have a co-organiser are handed over to them; your other events, rosters, photos and check-ins are deleted. This cannot be undone. Your copies in this browser stay.")) return;
+    if (!confirm(deleteConfirmText())) return;
     if (!typedCountOk(typed, need)) { setDerr(`Type the number ${need} in the box to confirm.`); return; }
     working.current = true; setDbusy(true); setDerr(""); setProgress("");
     try {

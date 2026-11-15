@@ -290,9 +290,11 @@ test("raise a dispute: captain claim once, evidence shrunk to 400 KB, per-file e
   await page.goto("/app/disputes/new/?t=gokte-cup-2026");
   await expect(page.getByLabel("Tournament address").first()).toHaveValue("gokte-cup-2026");
 
+  await expect(page.getByText("You need your team's captain link from your organiser first.")).toBeVisible(); // said before the form is filled
   await page.getByLabel("Captain link token").fill("abcDEF12_-captaintoken");
   await page.getByRole("button", { name: "Link my team" }).click();
   await expect(page.getByText("Linked as captain of Alpha Wolves.")).toBeVisible();
+  await expect(page.getByText("You need your team's captain link from your organiser first.")).toHaveCount(0);
   await expect(page.getByLabel("Captain link token")).toHaveValue(""); // the secret does not stay in the page
   expect(JSON.parse(seen.find((s) => s.path.endsWith("/captain-claim"))!.body)).toEqual({ token: "abcDEF12_-captaintoken" });
 

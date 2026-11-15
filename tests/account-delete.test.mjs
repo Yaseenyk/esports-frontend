@@ -40,3 +40,12 @@ test("too many shared events gets its own message; other errors are not blocks",
   assert.equal(deleteBlock({ status: 409, detail: { code: "something_else" } }), null);
   assert.equal(deleteBlock(null), null);
 });
+
+test("the delete confirmation names what the v3 features lose, and only for sections that are on", async () => {
+  const { deleteConfirmText, DELETE_BASE } = await import("../src/features/shared/account-text.ts");
+  const off = deleteConfirmText(() => false);
+  assert.ok(off.startsWith(DELETE_BASE)); assert.match(off, /feedback you linked/); assert.doesNotMatch(off, /resume|team-finder|Disputes/);
+  const all = deleteConfirmText(() => true);
+  assert.match(all, /your esports resume, your team-finder posts and applications and any feedback you linked to your account/);
+  assert.match(all, /Disputes you raised stay for the other team and the organiser, but your name and the text you wrote in them are removed and the screenshots you uploaded are deleted/);
+});
