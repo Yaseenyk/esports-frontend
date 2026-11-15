@@ -3,6 +3,7 @@ import { Item, Reveal, Stagger } from "@/components/Motion";
 import JsonLd from "./JsonLd";
 import Faq from "@/components/seo/Faq";
 import { Inline } from "@/components/seo/Prose";
+import ScrollTable from "@/components/seo/ScrollTable";
 import { GUIDES } from "@/content/guides";
 import { SITE_URL } from "@/lib/site";
 
@@ -11,6 +12,10 @@ export interface ToolPage {
   name: string;
   h1: string;
   lead: string;
+  /** A short plain-words opening (about two lines) shown in the header instead of `lead`, so the button comes before any jargon. `lead` stays the description for search engines and structured data. */
+  intro?: string;
+  /** Print-shop and tech words used on the page, explained once in a small note under the tool. */
+  glossary?: { term: string; meaning: string }[];
   benefits: { title: string; body: string }[];
   steps: string[];
   faq: { q: string; a: string }[];
@@ -66,10 +71,17 @@ export default function ToolLanding({ t, children }: { t: ToolPage; children?: R
       <header className="no-print">
         <nav aria-label="Breadcrumb" className="text-sm text-zinc-400"><Link href={crumb.href} className="hover:text-zinc-200">{crumb.name}</Link> / {t.name}</nav>
         <h1 className="mt-3 text-3xl font-black text-zinc-50 sm:text-5xl">{t.h1}</h1>
-        <p className="mt-4 max-w-2xl text-lg text-zinc-200">{t.lead}</p>
+        <p className="mt-4 max-w-2xl text-lg text-zinc-200">{t.intro ?? t.lead}</p>
       </header>
 
       {children && <section aria-labelledby="use"><h2 id="use" className="mb-4 font-display text-2xl font-bold text-white">{t.useHeading ?? "Use it now"}</h2>{children}</section>}
+
+      {t.glossary && t.glossary.length > 0 && (
+        <aside className="no-print -mt-6 max-w-3xl rounded-xl border border-white/[0.14] bg-[#0a0b0d] p-4 text-sm text-zinc-300" aria-labelledby="words">
+          <h2 id="words" className="font-semibold text-white">What these words mean</h2>
+          <dl className="mt-2 space-y-1.5">{t.glossary.map((g) => <div key={g.term}><dt className="inline font-semibold text-zinc-100">{g.term}</dt><dd className="inline">{": "}{g.meaning}</dd></div>)}</dl>
+        </aside>
+      )}
 
       <section className="no-print" aria-labelledby="why"><h2 id="why" className="font-display text-2xl font-bold text-white">{`Why use this ${hn}`}</h2>
         <Stagger className="mt-4 grid gap-4 md:grid-cols-3">{t.benefits.map((b) => <Item key={b.title}><div className="card h-full"><h3 className="font-display font-bold text-white">{b.title}</h3><p className="mt-2 text-sm text-zinc-300">{b.body}</p></div></Item>)}</Stagger>
@@ -77,13 +89,7 @@ export default function ToolLanding({ t, children }: { t: ToolPage; children?: R
 
       {t.table && (
         <section className="no-print" aria-label={t.table.caption}>
-          <div role="region" aria-label={t.table.caption} tabIndex={0} className="overflow-x-auto rounded-xl border border-white/[0.14] outline-none focus-visible:ring-2 focus-visible:ring-cyan">
-            <table className="w-full border-collapse text-left text-sm">
-              <caption className="px-3 py-2 text-left text-sm font-semibold text-zinc-200">{t.table.caption}</caption>
-              <thead><tr className="bg-[#0f1013] text-zinc-200">{t.table.head.map((h) => <th key={h} scope="col" className="px-3 py-2">{h}</th>)}</tr></thead>
-              <tbody>{t.table.rows.map((r) => <tr key={r[0]} className="border-t border-white/[0.08]">{r.map((c, i) => i === 0 ? <th key={i} scope="row" className="px-3 py-2 font-semibold text-white">{c}</th> : <td key={i} className="px-3 py-2 text-zinc-300">{c}</td>)}</tr>)}</tbody>
-            </table>
-          </div>
+          <ScrollTable label={t.table.caption} caption={t.table.caption} head={t.table.head} rows={t.table.rows} />
         </section>
       )}
 
@@ -104,15 +110,7 @@ export default function ToolLanding({ t, children }: { t: ToolPage; children?: R
               </figure>
             ))}</div>
           )}
-          {x.table && (
-            <div role="region" aria-label={x.table.caption} tabIndex={0} className="overflow-x-auto rounded-xl border border-white/[0.14] outline-none focus-visible:ring-2 focus-visible:ring-cyan">
-              <table className="w-full border-collapse text-left text-sm">
-                <caption className="px-3 py-2 text-left text-sm font-semibold text-zinc-200">{x.table.caption}</caption>
-                <thead><tr className="bg-[#0f1013] text-zinc-200">{x.table.head.map((h) => <th key={h} scope="col" className="min-w-28 px-3 py-2 align-bottom">{h}</th>)}</tr></thead>
-                <tbody>{x.table.rows.map((r) => <tr key={r[0]} className="border-t border-white/[0.08] align-top">{r.map((c, i) => i === 0 ? <th key={i} scope="row" className="min-w-28 px-3 py-2 font-semibold text-white">{c}</th> : <td key={i} className="min-w-28 px-3 py-2 text-zinc-300">{c}</td>)}</tr>)}</tbody>
-              </table>
-            </div>
-          )}
+          {x.table && <ScrollTable label={x.table.caption} caption={x.table.caption} head={x.table.head} rows={x.table.rows} />}
           {x.note && <p className="max-w-3xl text-sm text-zinc-400"><Inline text={x.note} /></p>}
         </section>
       ))}

@@ -22,7 +22,9 @@ test("the esports page is indexable, has one h1, the tool above the fold and the
   const open = page.getByRole("button", { name: "Open the ID card maker" });
   await expect(open).toBeVisible();
   const box = (await open.boundingBox())!;
-  expect(box.y).toBeLessThan(page.viewportSize()!.height + 200);
+  expect(box.y).toBeLessThan(page.viewportSize()!.height); // the button is on the first screen, before any print-shop jargon
+  await expect(page.getByRole("heading", { level: 2, name: "What these words mean" })).toBeVisible();
+  await expect(page.getByText("CR80", { exact: false }).first()).toBeVisible();
   const types = (await jsonLd(page)).map((d) => d["@type"]).sort();
   expect(types).toEqual(["BreadcrumbList", "FAQPage", "HowTo", "Organization", "SoftwareApplication"]); // Organization is the sitewide entity from the layout
 });
@@ -68,6 +70,11 @@ test("the comparison guide has the answer box, last-checked date, article schema
   await expect(page.getByRole("table")).toBeVisible();
   const types = (await jsonLd(page)).map((d) => d["@type"]);
   expect(types).toEqual(expect.arrayContaining(["Article", "BreadcrumbList", "FAQPage"]));
+  // The compared sites are linked so a reader can check them: plain links, no tracking.
+  const mufttools = page.getByRole("link", { name: "MuftTools", exact: true });
+  await expect(mufttools.first()).toHaveAttribute("href", "https://mufttools.com/");
+  await expect(mufttools.first()).toHaveAttribute("rel", /noopener/);
+  await expect(page.getByRole("button", { name: "Open the esports ID card maker" }).or(page.getByRole("link", { name: "Open the esports ID card maker" })).first()).toBeVisible();
   await expect(page.getByRole("link", { name: "esports ID card maker" }).first()).toHaveAttribute("href", PAGE);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1)).toBe(true);
 });

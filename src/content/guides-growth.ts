@@ -766,6 +766,7 @@ export const GROWTH_GUIDES: Guide[] = [
     intro: "People search for an esports ID card maker and get a mix of logo makers, template sites and gamer profile card generators, and most of them do a different job from the one an organiser has. An organiser has a roster, a date and a gate. This guide compares the tools we could read, says plainly what each one is for, and gives you a way to pick. We run one of the tools, so read our claims against the table and check each site yourself. Last checked: 15 November 2026. Prices, features and terms change, so check each site for its current terms.",
     sections: [
       { h2: "The comparison at a glance", blocks: [
+        { t: "note", x: "What these words mean. CR80: the standard ID card size (credit-card size, 85.6 x 54 mm). Bleed: a few extra millimetres of colour around the edge, so no white border shows after cutting. Crop marks: small lines in the sheet corners that show where to cut. Signed QR code: a QR code with a secret signature, so a copied or edited card fails the check. Gate check-in: scanning that QR code on a phone at the door." },
         { t: "p", x: "We read one page of each tool on 15 November 2026 and wrote down only what it said. \"Not checked\" means the fact was not in the text we read. It does not mean the feature is missing. We did not sign up for or test any of the other products. We could not read Canva's page, so for Canva we state only that it is a general design tool with ID card templates." },
         { t: "table", head: ["Tool", "Free?", "No sign-up?", "Whole roster", "QR code", "Print-ready sheet", "Built for tournaments"], rows: [
           ["Esports Hub", "Yes", "Yes", "Yes", "Yes, signed", "Yes", "Yes, with check-in"],
@@ -777,6 +778,7 @@ export const GROWTH_GUIDES: Guide[] = [
           ["StyleNameLab", "Not checked", "Not checked", "No, one card", "Not checked", "Not checked", "No, personal card"],
           ["IDCreator", "No, paid", "Not checked", "Not checked", "Not checked", "Ordered from them", "Not checked"],
         ] },
+        { t: "p", x: "Do not take our word for it. Here is each site's own page, so you can check: [Canva](https://www.canva.com/), [Template.net](https://www.template.net/), [MuftTools](https://mufttools.com/), [Themiku](https://themiku.in/), [StyleNameLab](https://stylenamelab.com/) and [IDCreator](https://www.idcreator.com/). These are plain links to the home pages, with no tracking. We could not confirm a web address for BotCamp, so it has no link." },
         { t: "note", x: "Free and no sign-up are not what sets one tool apart: several of these say they are free or need no sign-up. The real difference is the job each tool is built for." },
       ] },
       { h2: "Decision guide: if you need this, use that", blocks: [

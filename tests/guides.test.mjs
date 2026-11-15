@@ -36,11 +36,14 @@ test("each guide is long enough to be useful", () => {
   }
 });
 
+// The comparison guide links to the home pages of the sites it compares, so a reader can check them. Plain links only; Inline adds rel=noopener.
+const COMPARED_SITES = new Set(["https://www.canva.com/", "https://www.template.net/", "https://mufttools.com/", "https://themiku.in/", "https://stylenamelab.com/", "https://www.idcreator.com/"]);
+
 test("every internal link and every related guide points at something that exists", () => {
   for (const g of GUIDES) {
     for (const r of g.related) assert.ok(slugs.has(r), `${g.slug} relates to a missing guide ${r}`);
     assert.ok(knownPaths.has(g.cta.href), `${g.slug} CTA goes to ${g.cta.href}`);
-    for (const t of textOf(g)) for (const m of t.matchAll(/\[([^\]]+)\]\(([^)]*)\)/g)) assert.ok(knownPaths.has(m[2]), `${g.slug} links to unknown ${m[2]}`);
+    for (const t of textOf(g)) for (const m of t.matchAll(/\[([^\]]+)\]\(([^)]*)\)/g)) assert.ok(knownPaths.has(m[2]) || COMPARED_SITES.has(m[2]), `${g.slug} links to unknown ${m[2]}`);
   }
 });
 

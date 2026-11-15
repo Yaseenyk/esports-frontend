@@ -54,6 +54,7 @@ export default function GuidePage({ params }: { params: { slug: string } }) {
         <p className="mt-3 text-sm text-zinc-400">Updated {dateText(g.updated)} · {g.minutes} min read · By the Esports Hub team</p>
         {g.answer && <div role="note" aria-label="Short answer" className="mt-5 rounded-xl border border-cyan/40 bg-[#0a0b0d] p-4"><p className="text-sm font-semibold uppercase tracking-wide text-cyan">Short answer</p><p className="mt-1 leading-relaxed text-zinc-100"><Inline text={g.answer} /></p></div>}
         <p className="mt-5 text-lg leading-relaxed text-zinc-200">{g.intro}</p>
+        {g.slug === "best-free-esports-id-card-makers" && <p className="mt-5"><Link href={g.cta.href} className="btn">{g.cta.label}</Link></p>}
       </header>
 
       <nav aria-label="On this page" className="rounded-xl border border-white/[0.14] bg-[#0a0b0d] p-4">
