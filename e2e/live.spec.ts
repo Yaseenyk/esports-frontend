@@ -199,8 +199,9 @@ test("the live page panel publishes and unpublishes after asking, and shows the 
   await expect(panel.getByText("Not published")).toBeVisible();
   const sw = panel.getByRole("switch");
   await expect(sw).toHaveAttribute("aria-checked", "false");
-  page.once("dialog", (d) => { expect(d.message()).toMatch(/anyone with the link/i); void d.accept(); });
   await sw.click();
+  await expect(panel.getByText(/anyone with the link will be able/i)).toBeVisible();
+  await panel.getByRole("button", { name: "Yes, publish" }).click();
   await expect(sw).toHaveAttribute("aria-checked", "true");
   await expect(panel.getByLabel("Public link")).toContainText("/live/?e=abcd1234efgh");
   await expect(panel.getByRole("img", { name: /QR code/ })).toBeVisible();
@@ -208,8 +209,9 @@ test("the live page panel publishes and unpublishes after asking, and shows the 
   await expect(panel.getByRole("button", { name: "Copy link" })).toBeVisible();
   await expect(panel.getByRole("button", { name: "Download QR for a poster" })).toBeVisible();
   expect(st.puts[0]).toEqual({ published: true });
-  page.once("dialog", (d) => { expect(d.message()).toMatch(/link will stop working/i); void d.accept(); });
   await sw.click();
+  await expect(panel.getByText(/link will stop working/i)).toBeVisible();
+  await panel.getByRole("button", { name: "Yes, unpublish" }).click();
   await expect(sw).toHaveAttribute("aria-checked", "false");
   expect(st.puts[1]).toEqual({ published: false });
 });

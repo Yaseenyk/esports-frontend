@@ -10,7 +10,7 @@ test.setTimeout(120_000);
 
 // ---------- "Not available yet": every v3 call answers 404, exactly as production does with the flags off ----------
 const OFF: [string, string, boolean][] = [
-  ["/lft/", "The board", false], ["/lft/listing/?id=a1", "The board", false], ["/lft/new/", "The board", true], ["/players/view/?s=ravi-igl", "Esports resumes", false],
+  ["/lft/", "The board", false], ["/lft/listing/?id=a1", "The board", false], ["/lft/new/", "The board", true], 
   ["/app/lft/", "The board", true], ["/app/resume/", "The esports resume", true], ["/app/disputes/", "The dispute portal", true], ["/app/disputes/new/", "The dispute portal", true],
   ["/app/disputes/view/?id=d1", "The dispute portal", true], ["/app/tournaments/disputes/?t=gokte-cup-2026", "The dispute portal", true],
 ];
@@ -261,7 +261,7 @@ test("public resume shows only the public fields", async ({ page }) => {
 test("public resume: an unknown or private address says so without guessing which", async ({ page }) => {
   await mockV3(page, { "GET /public/players/nobody": () => undefined });
   await page.goto("/players/view/?s=nobody");
-  await expect(page.getByRole("heading", { name: "Not available yet" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "No public resume here" })).toBeVisible();
 });
 
 // ---------- disputes ----------
