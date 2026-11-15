@@ -120,7 +120,7 @@ export interface Tool {
 /** The free tools. Only tools that work today are listed. */
 export const TOOLS: Tool[] = [
   { slug: "plan", name: "Plan my tournament", blurb: "Answer a few questions and get a format, match counts, a timed schedule, draft rules and a sign-up form, as one pack to copy or download.", href: "/tools/plan/" },
-  { slug: "id-cards", name: "ID card maker", blurb: "Make player and event ID cards with signed QR passes. Free, in your browser, no account.", href: "/tools/id-cards/" },
+  { slug: "id-cards", name: "ID card maker", blurb: "Free, no sign-up, built for tournaments: make player and event ID cards with signed QR passes, in your browser.", href: "/tools/id-cards/" },
   { slug: "brackets", name: "Bracket maker", blurb: "Paste your teams, get a seeded single-elimination bracket with byes, and click winners forward.", href: "/tools/brackets/" },
   { slug: "points-table", name: "Points table calculator", blurb: "Battle royale placement and kill points with tie-breakers, ranked standings and CSV export.", href: "/tools/points-table/" },
   { slug: "double-elimination", name: "Double elimination bracket", blurb: "Winners and losers brackets with a grand final and reset, byes for any number of teams, and click-to-advance results.", href: "/tools/double-elimination/" },

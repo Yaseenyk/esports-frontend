@@ -1,5 +1,7 @@
 import { GUIDES } from "@/content/guides";
 import { TOOLS } from "@/lib/data";
+import { ESPORTS_PAGE } from "@/lib/esports-id-page";
+import { STUDENT_PAGE } from "@/lib/student-page";
 import { SITE_URL } from "@/lib/site";
 
 export const dynamic = "force-static";
@@ -11,6 +13,7 @@ export const dynamic = "force-static";
  */
 export function GET() {
   const guides = GUIDES.map((g) => `- [${g.title}](${SITE_URL}/guides/${g.slug}/): ${g.description}`).join("\n");
+  const pages = [ESPORTS_PAGE, STUDENT_PAGE].map((p) => `- [${p.name}](${SITE_URL}${p.path}): ${p.description}`).join("\n");
   const tools = TOOLS.map((t) => `- [${t.name}](${SITE_URL}${t.href}): ${t.blurb}`).join("\n");
   const md = `# Esports Hub
 
@@ -26,6 +29,10 @@ export function GET() {
 ## Free tools
 
 ${tools}
+
+## ID card maker pages
+
+${pages}
 
 ## Guides (${GUIDES.length} live)
 

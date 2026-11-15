@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Item, Reveal, Stagger } from "@/components/Motion";
 import JsonLd from "./JsonLd";
 import Faq from "@/components/seo/Faq";
+import { Inline } from "@/components/seo/Prose";
 import { GUIDES } from "@/content/guides";
 import { SITE_URL } from "@/lib/site";
 
@@ -29,6 +30,18 @@ export interface ToolPage {
   table?: { caption: string; head: string[]; rows: string[][] };
   /** The date (YYYY-MM-DD) the text of this page last really changed. Used as the sitemap lastmod. */
   updated?: string;
+  /** Extra content sections, shown after the steps. Text may hold [label](/path/) links. */
+  sections?: ToolSection[];
+  /** Also emit HowTo structured data from the steps. */
+  howTo?: boolean;
+  /** The share card for this page, as a path under /og/. Defaults to the site card. */
+  og?: string;
+}
+
+export interface ToolSection {
+  id: string; h2: string; paras?: string[]; items?: string[]; note?: string;
+  table?: { caption: string; head: string[]; rows: string[][] };
+  images?: { src: string; alt: string; caption: string; w: number; h: number }[];
 }
 
 /** The tool's name as it reads in a heading: the short name when set, else the name without a leading "Free", first letter lowercased. */
@@ -46,6 +59,7 @@ export default function ToolLanding({ t, children }: { t: ToolPage; children?: R
     <article className="space-y-12">
       <JsonLd data={[
         { "@context": "https://schema.org", "@type": "SoftwareApplication", name: t.name, applicationCategory: "UtilitiesApplication", operatingSystem: "Web", url, description: t.lead, inLanguage: "en-IN", isAccessibleForFree: true, browserRequirements: "Requires JavaScript. Works in any current browser.", featureList: t.benefits.map((b) => b.title), offers: { "@type": "Offer", price: "0", priceCurrency: "INR" } },
+        ...(t.howTo ? [{ "@context": "https://schema.org", "@type": "HowTo", name: `How to use the ${hn}`, description: t.lead, step: t.steps.map((x, i) => ({ "@type": "HowToStep", position: i + 1, name: x.split(/[.,:]/)[0], text: x })) }] : []),
         { "@context": "https://schema.org", "@type": "FAQPage", mainEntity: t.faq.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })) },
         { "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [{ "@type": "ListItem", position: 1, name: "Home", item: `${SITE_URL}/` }, { "@type": "ListItem", position: 2, name: crumb.name, item: `${SITE_URL}${crumb.href}` }, { "@type": "ListItem", position: 3, name: t.name, item: url }] },
       ]} />
@@ -76,6 +90,32 @@ export default function ToolLanding({ t, children }: { t: ToolPage; children?: R
       <section className="no-print" aria-labelledby="how"><h2 id="how" className="font-display text-2xl font-bold text-white">{`How to use the ${hn}`}</h2>
         <Stagger className="mt-4 space-y-3"><ol className="contents">{t.steps.map((s, i) => <li key={s} className="list-none"><Item><div className="card flex gap-4 !p-4"><span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-cyan font-bold text-ink">{i + 1}</span><span className="text-zinc-200">{s}</span></div></Item></li>)}</ol></Stagger>
       </section>
+
+      {(t.sections ?? []).map((x) => (
+        <section key={x.id} className="no-print space-y-3" aria-labelledby={x.id}><h2 id={x.id} className="font-display text-2xl font-bold text-white">{x.h2}</h2>
+          {x.paras?.map((p) => <p key={p} className="max-w-3xl leading-7 text-zinc-300"><Inline text={p} /></p>)}
+          {x.items && <ul className="max-w-3xl list-disc space-y-1.5 pl-5 leading-7 text-zinc-300 marker:text-cyan">{x.items.map((i) => <li key={i}><Inline text={i} /></li>)}</ul>}
+          {x.images && (
+            <div className="grid gap-4 sm:grid-cols-3">{x.images.map((im) => (
+              <figure key={im.src} className="space-y-2">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={im.src} alt={im.alt} width={im.w} height={im.h} loading="lazy" decoding="async" className="h-auto w-full rounded-xl border border-white/10" />
+                <figcaption className="text-sm text-zinc-400">{im.caption}</figcaption>
+              </figure>
+            ))}</div>
+          )}
+          {x.table && (
+            <div role="region" aria-label={x.table.caption} tabIndex={0} className="overflow-x-auto rounded-xl border border-white/[0.14] outline-none focus-visible:ring-2 focus-visible:ring-cyan">
+              <table className="w-full border-collapse text-left text-sm">
+                <caption className="px-3 py-2 text-left text-sm font-semibold text-zinc-200">{x.table.caption}</caption>
+                <thead><tr className="bg-[#0f1013] text-zinc-200">{x.table.head.map((h) => <th key={h} scope="col" className="min-w-28 px-3 py-2 align-bottom">{h}</th>)}</tr></thead>
+                <tbody>{x.table.rows.map((r) => <tr key={r[0]} className="border-t border-white/[0.08] align-top">{r.map((c, i) => i === 0 ? <th key={i} scope="row" className="min-w-28 px-3 py-2 font-semibold text-white">{c}</th> : <td key={i} className="min-w-28 px-3 py-2 text-zinc-300">{c}</td>)}</tr>)}</tbody>
+              </table>
+            </div>
+          )}
+          {x.note && <p className="max-w-3xl text-sm text-zinc-400"><Inline text={x.note} /></p>}
+        </section>
+      ))}
 
       {guides.length > 0 && (
         <section className="no-print" aria-labelledby="read"><h2 id="read" className="font-display text-2xl font-bold text-white">Guides that help</h2>

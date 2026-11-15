@@ -20,8 +20,10 @@ export const STUDENT_PAGE: ToolPage & { title: string; description: string; path
   steps: base.steps,
   guides: ["student-id-card-format", "print-pvc-id-cards", "player-id-cards", "event-gate-checkin", "run-a-campus-tournament", "employee-id-card-format"],
   related: [
+    { href: "/id-card-maker/esports/", label: "Esports ID card maker", blurb: "The same maker for tournaments: a roster of players with a QR for the gate and print-ready sheets." },
     { href: "/tools/id-cards/", label: "ID card maker for events and teams", blurb: "The same maker, framed for tournaments, teams and event staff." },
     { href: "/tools/check-in/", label: "Gate check-in scanner", blurb: "Scan the signed QR on a printed card at the door." },
+    { href: "/tools/", label: "All free tournament tools", blurb: "Brackets, points tables, schedules, posters, certificates and more, all free." },
   ],
   faq: [
     ...base.faq,

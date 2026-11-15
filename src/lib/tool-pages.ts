@@ -54,11 +54,11 @@ export const TOOL_PAGES: Record<string, ToolPage & { title: string; description:
     ],
   },
   "id-cards": {
-    slug: "id-cards", name: "Free ID card maker for events and teams", shortName: "ID card maker", updated: "2026-11-12", related: [{ href: "/id-card-maker/student/", label: "Student ID card maker", blurb: "Free ID cards for school clubs, college fests and events, with photo and QR code, printed at real size on A4." }],
-    title: "Free ID card maker for events, teams and tournaments",
-    description: "Make player and event ID cards free in your browser: add people, pick a design per team, add a QR code and print at real size on A4. No account needed.",
-    h1: "Free ID card maker for events, teams and tournaments",
-    lead: "Add your teams and people, pick a design for each team, and print real-size cards or download them as pictures. Each card can carry a signed QR code, so the gate can tell a genuine card from a copy. It runs in your browser and needs no account.",
+    slug: "id-cards", name: "Free ID card maker for esports and events", shortName: "ID card maker", updated: "2026-11-15", related: [{ href: "/id-card-maker/esports/", label: "Esports ID card maker", blurb: "The same maker framed for tournaments: paste a roster, add a QR for the gate and print A4 sheets with crop marks." }, { href: "/tools/check-in/", label: "Gate check-in scanner", blurb: "Scan the signed QR on a printed card at the door, offline or live." }, { href: "/id-card-maker/student/", label: "Student ID card maker", blurb: "Free ID cards for school clubs, college fests and events, with photo and QR code, printed at real size on A4." }],
+    title: "Free ID card maker for esports and events",
+    description: "Free ID card maker for esports teams and events: add your roster, pick a design per team, add a QR code and print at real size on A4. No sign-up needed.",
+    h1: "Free ID card maker for esports and events: no sign-up",
+    lead: "Free, no sign-up and built for tournaments. Add your teams and people, pick a design for each team, and print real-size cards or download them as pictures. Each card can carry a signed QR code, so the gate can tell a genuine card from a copy. It runs in your browser and needs no account.",
     useHeading: "Make your cards",
     benefits: [
       { title: "Fast roster entry", body: "Type people in, import a spreadsheet, or scan Aadhaar cards with the holder's permission. Scanning happens on your own device and only the last four digits of a number are kept." },
@@ -66,7 +66,7 @@ export const TOOL_PAGES: Record<string, ToolPage & { title: string; description:
       { title: "Print-ready files", body: "A PDF at real size with crop marks, optional 3 mm bleed, fronts and mirrored backs for double-sided printing, A4 or US Letter, or a zip of PNG pictures." },
     ],
     steps: ["Name your event, choose the game and the card shape, and list your teams.", "Add people by hand, from a sheet, or by scanning Aadhaar cards with their permission.", "Choose a design for each team and adjust it.", "Download the PDF to print, or share the pictures. Create a free account if you also want to save the event online and check guests in live."],
-    guides: ["player-id-cards", "event-gate-checkin", "run-a-campus-tournament", "student-id-card-format", "employee-id-card-format", "print-pvc-id-cards"],
+    guides: ["best-free-esports-id-card-makers", "player-id-cards", "event-gate-checkin", "run-a-campus-tournament", "student-id-card-format", "print-pvc-id-cards"],
     faq: [
       { q: "Do I need an account to make ID cards?", a: "No. The card maker runs entirely in your browser, so you can add people, choose designs and download the PDF or PNG pictures without signing up. An account is only needed for the extras that require a server: saving the event online, sending teams invite links so players add their own details, and running live check-in across several doors. If you are printing cards for one college fest or one gaming cafe tournament, you can finish the whole job without ever creating an account." },
       { q: "How do I make ID cards for a tournament with 12 teams?", a: "Name the event, choose the game and a card shape, then list your 12 teams. Add the people by typing them in, importing a spreadsheet, or scanning Aadhaar cards with the holder's permission. Give each team a design, optionally with its logo, and adjust anything in the editor. On the print step, download one PDF with every card at real size, or a zip of PNG pictures. The roster keeps a role for each person (Player, Substitute, Coach, Manager, Staff, Guest, Caster, Media, VIP, Organiser or Volunteer), so staff and guests can look different from players." },

@@ -171,7 +171,7 @@ test("SEO pass 12 Nov: the student page, related links, game tables and the home
   assert.ok(STUDENT_PAGE.title.length + SUFFIX <= 70 && STUDENT_PAGE.description.length >= 70 && STUDENT_PAGE.description.length <= 170);
   assert.ok(/does not issue official/i.test(STUDENT_PAGE.lead));
   assert.ok(GROWTH_PAGES.some((p) => p.path === STUDENT_PATH));
-  const real = new Set([...TOOLS.map((t) => t.href), ...GROWTH_PAGES.map((p) => p.path)]);
+  const real = new Set(["/tools/", ...TOOLS.map((t) => t.href), ...GROWTH_PAGES.map((p) => p.path)]);
   for (const p of [...toolPages, ...gamePages, STUDENT_PAGE]) for (const r of p.related ?? []) assert.ok(real.has(r.href), `${p.slug} links to missing page ${r.href}`);
   for (const g of gamePages) assert.ok(g.table && g.table.rows.length >= 6 && /not the official scale/.test(g.table.caption), g.path);
   assert.ok(TOOL_PAGES["points-table"].related.some((r) => r.href === "/points-table/bgmi/") && TOOL_PAGES["points-table"].related.some((r) => r.href === "/points-table/free-fire/"));

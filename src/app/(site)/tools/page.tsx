@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 /** Each tool, said as the job a person has in mind. Order follows a first event: people, teams, matches, the day, afterwards. */
 const TASKS: { slug: string; task: string; line: string; button: string }[] = [
   { slug: "plan", task: "plan a whole tournament", line: "Say how many teams, rooms and hours you have. Get the format, the timed schedule, draft rules and a sign-up form in one pack.", button: "Plan my tournament" },
-  { slug: "id-cards", task: "make ID cards", line: "Print a card with a photo and a QR code for every player and volunteer.", button: "Make ID cards" },
+  { slug: "id-cards", task: "make ID cards", line: "Free, no sign-up, built for tournaments: print a card with a photo and a QR code for every player and volunteer.", button: "Make ID cards" },
   { slug: "registration", task: "collect team sign-ups", line: "Get a ready-made registration form to copy, or an online link that gathers teams for you.", button: "Get a sign-up form" },
   { slug: "brackets", task: "draw a bracket", line: "Type your teams and get a knockout bracket. Tap the winners to move them forward.", button: "Draw a bracket" },
   { slug: "double-elimination", task: "give every team a second chance", line: "A bracket where a team is only out after losing twice.", button: "Draw a two-life bracket" },
@@ -47,7 +47,7 @@ export default function Tools() {
           </TiltLink></Item>
         ))}
       </Stagger>
-      <p className="text-sm text-zinc-400">An account is optional. It adds saving events online, invite links for players and live check-in across several doors. Looking for one game? See the <Link href="/points-table/bgmi/" className="text-cyan underline">BGMI points table</Link> and the <Link href="/points-table/free-fire/" className="text-cyan underline">Free Fire points table</Link>, or <Link href="/compare/free-tournament-software-india/" className="text-cyan underline">how free tournament software for India compares</Link>. New to running an event? Start with the <Link href="/guides/run-a-campus-tournament/" className="text-cyan underline">college tournament guide</Link>.</p>
+      <p className="text-sm text-zinc-400">An account is optional. It adds saving events online, invite links for players and live check-in across several doors. Looking for one game? See the <Link href="/points-table/bgmi/" className="text-cyan underline">BGMI points table</Link> and the <Link href="/points-table/free-fire/" className="text-cyan underline">Free Fire points table</Link>, or <Link href="/compare/free-tournament-software-india/" className="text-cyan underline">how free tournament software for India compares</Link>. New to running an event? Start with the <Link href="/guides/run-a-campus-tournament/" className="text-cyan underline">college tournament guide</Link>. Making ID cards for a tournament? See the <Link href="/id-card-maker/esports/" className="text-cyan underline">esports ID card maker</Link> and the <Link href="/guides/best-free-esports-id-card-makers/" className="text-cyan underline">free esports ID card makers compared</Link>.</p>
     </div>
   );
 }

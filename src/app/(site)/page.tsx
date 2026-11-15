@@ -98,7 +98,7 @@ export default function Home() {
             </Item>
           ))}
         </Stagger>
-        <p className="mt-4 text-sm text-zinc-400">Not sure which tool to use? <Link href="/compare/free-tournament-software-india/" className="text-cyan underline underline-offset-2 hover:text-white">See free tournament software for India, compared honestly</Link>. Running a custom room? Make a <Link href="/points-table/bgmi/" className="text-cyan underline underline-offset-2 hover:text-white">BGMI points table</Link> or a <Link href="/points-table/free-fire/" className="text-cyan underline underline-offset-2 hover:text-white">Free Fire points table</Link>.</p>
+        <p className="mt-4 text-sm text-zinc-400">Not sure which tool to use? <Link href="/compare/free-tournament-software-india/" className="text-cyan underline underline-offset-2 hover:text-white">See free tournament software for India, compared honestly</Link>. Running a custom room? Make a <Link href="/points-table/bgmi/" className="text-cyan underline underline-offset-2 hover:text-white">BGMI points table</Link> or a <Link href="/points-table/free-fire/" className="text-cyan underline underline-offset-2 hover:text-white">Free Fire points table</Link>. Making ID cards for a tournament? Try the <Link href="/id-card-maker/esports/" className="text-cyan underline underline-offset-2 hover:text-white">esports ID card maker</Link>: free, no sign-up, built for tournaments.</p>
       </section>
 
       <section aria-labelledby="proof">

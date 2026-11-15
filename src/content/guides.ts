@@ -436,7 +436,7 @@ const BASE_GUIDES: Guide[] = [
           "For anyone under 18, get a parent or guardian's consent before you collect or print anything.",
           "Tell people what you collect, why, and how long you keep it. Delete it after the event if you do not need it.",
         ] },
-        { t: "p", x: "The ID card maker on this site works in your browser, so photos are not uploaded when you only make and print cards. If you scan an Aadhaar card to read the details, the picture is read on your device and only the last four digits of the number are kept. Whether you should collect an ID at all depends on your event, so decide that before you start." },
+        { t: "p", x: "The ID card maker on this site works in your browser, so photos are not uploaded when you only make and print cards. If you scan an Aadhaar card to read the details, the picture is read on your device and only the last four digits of the number are kept. Whether you should collect an ID at all depends on your event, so decide that before you start. To compare free ID card makers for tournaments, read [best free esports ID card makers](/guides/best-free-esports-id-card-makers/), or open the [esports ID card maker](/id-card-maker/esports/)." },
         { t: "note", x: "This is general guidance, not legal advice. Rules on personal data depend on who you are and what you collect: check what applies to your organisation." },
       ] },
       { h2: "Sizes and printing", blocks: [

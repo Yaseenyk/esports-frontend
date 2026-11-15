@@ -1,3 +1,5 @@
+import fs from "node:fs";
+import path from "node:path";
 import type { Metadata } from "next";
 import Link from "next/link";
 import Faq from "@/components/seo/Faq";
@@ -12,14 +14,18 @@ export function generateStaticParams() {
   return GUIDES.map((g) => ({ slug: g.slug }));
 }
 
+/** A guide with its own share card in public/og/<slug>.png uses it; every other guide uses the site card. */
+const ogFor = (slug: string) => (fs.existsSync(path.join(process.cwd(), "public", "og", `${slug}.png`)) ? `/og/${slug}.png` : "/og.png");
+
 export function generateMetadata({ params }: { params: { slug: string } }): Metadata {
   const g = guideBySlug(params.slug);
   if (!g) return {};
   const url = `/guides/${g.slug}/`;
+  const og = ogFor(g.slug);
   return {
     title: g.seoTitle ?? g.title, description: g.description, alternates: { canonical: url },
-    openGraph: { type: "article", title: g.seoTitle ?? g.title, description: g.description, url, publishedTime: g.published, modifiedTime: g.updated, images: ["/og.png"] },
-    twitter: { card: "summary_large_image", title: g.seoTitle ?? g.title, description: g.description, images: ["/og.png"] },
+    openGraph: { type: "article", title: g.seoTitle ?? g.title, description: g.description, url, publishedTime: g.published, modifiedTime: g.updated, images: [og] },
+    twitter: { card: "summary_large_image", title: g.seoTitle ?? g.title, description: g.description, images: [og] },
   };
 }
 
@@ -29,13 +35,14 @@ export default function GuidePage({ params }: { params: { slug: string } }) {
   const g = guideBySlug(params.slug);
   if (!g) notFound();
   const url = `${SITE_URL}/guides/${g.slug}/`;
+  const og = ogFor(g.slug);
   const related = g.related.map((s) => guideBySlug(s)).filter((x): x is NonNullable<typeof x> => !!x);
   return (
     <article className="mx-auto max-w-3xl space-y-10">
       <JsonLd data={[
         {
           "@context": "https://schema.org", "@type": "Article", headline: g.title, description: g.description, datePublished: g.published, dateModified: g.updated,
-          mainEntityOfPage: url, image: `${SITE_URL}/og.png`, inLanguage: "en-IN",
+          mainEntityOfPage: url, image: `${SITE_URL}${og}`, inLanguage: "en-IN",
           author: { "@id": ORG_ID }, publisher: { "@id": ORG_ID },
         },
         { "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [{ "@type": "ListItem", position: 1, name: "Home", item: `${SITE_URL}/` }, { "@type": "ListItem", position: 2, name: "Guides", item: `${SITE_URL}/guides/` }, { "@type": "ListItem", position: 3, name: g.title, item: url }] },
