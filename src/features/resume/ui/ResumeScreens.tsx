@@ -167,6 +167,18 @@ export function PublicResumeView({ p }: { p: PublicProfile }) {
         <h2 id="pg-h" className={h2}>Games</h2>
         {p.games.length === 0 ? <p className="mt-3 text-zinc-300">No games added yet.</p> : <ul className="mt-4 space-y-2">{p.games.map((g) => <li key={g.game} className={box}><GameRowView g={g} /></li>)}</ul>}
       </section>
+      {p.stats && (
+        <section className={section} aria-labelledby="ps-h">
+          <h2 id="ps-h" className={h2}>Team results</h2>
+          <p className="mt-2 text-sm text-zinc-300">Counted by Esports Hub from verified results of tournaments where this player captains a team. The player cannot type these numbers.</p>
+          <dl className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
+            <div><dt className="text-xs text-zinc-400">Tournaments</dt><dd className="text-xl font-semibold text-zinc-100">{p.stats.tournaments}</dd></div>
+            {p.stats.matches.played > 0 && <div><dt className="text-xs text-zinc-400">Matches won</dt><dd className="text-xl font-semibold text-zinc-100">{p.stats.matches.wins} of {p.stats.matches.played}</dd></div>}
+            {p.stats.battleRoyale.matches > 0 && <div><dt className="text-xs text-zinc-400">Battle royale wins</dt><dd className="text-xl font-semibold text-zinc-100">{p.stats.battleRoyale.wins} of {p.stats.battleRoyale.matches}</dd></div>}
+            {p.stats.battleRoyale.matches > 0 && <div><dt className="text-xs text-zinc-400">Team kills</dt><dd className="text-xl font-semibold text-zinc-100">{p.stats.battleRoyale.kills}</dd></div>}
+          </dl>
+        </section>
+      )}
       {p.updatedAt && <p className="text-xs text-zinc-400">Last updated {when(p.updatedAt)}. This resume is public because its owner chose to make it so.</p>}
     </article>
   );

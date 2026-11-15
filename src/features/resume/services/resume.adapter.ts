@@ -1,5 +1,5 @@
 /** API shape -> domain for the resume. Fixed field lists: nothing the server adds (ids, emails, consent times on the public read) reaches a component. Pure. */
-import type { GameRow, OwnProfile, OwnResume, PublicProfile, Visibility } from "@/features/resume/domain";
+import type { GameRow, OwnProfile, OwnResume, PublicProfile, ResumeStats, Visibility } from "@/features/resume/domain";
 
 type Obj = Record<string, unknown>;
 const obj = (v: unknown): Obj => (v && typeof v === "object" && !Array.isArray(v) ? (v as Obj) : {});
@@ -25,8 +25,19 @@ export function toOwnResume(raw: unknown): OwnResume {
   return { profile, adultConfirmedAt: str(o.adultConfirmedAt, 40) ?? str(p.adultConfirmedAt, 40), resumeConsentAt: str(o.resumeConsentAt, 40) ?? str(p.resumeConsentAt, 40) };
 }
 
+const n0 = (v: unknown): number => (typeof v === "number" && Number.isFinite(v) && v >= 0 ? Math.floor(v) : 0);
+export function toStats(raw: unknown): ResumeStats | null {
+  const o = obj(raw);
+  if (o.source !== "verified_results") return null;
+  const m = obj(o.matches), b = obj(o.battleRoyale);
+  const total = n0(o.tournaments) + n0(m.played) + n0(b.matches);
+  if (total === 0) return null;
+  return { tournaments: n0(o.tournaments), matches: { played: n0(m.played), wins: n0(m.wins), losses: n0(m.losses), draws: n0(m.draws) },
+    battleRoyale: { matches: n0(b.matches), wins: n0(b.wins), kills: n0(b.kills), bestPlacement: typeof b.bestPlacement === "number" && b.bestPlacement > 0 ? Math.floor(b.bestPlacement) : null } };
+}
+
 export function toPublicProfile(raw: unknown): PublicProfile | null {
   const o = obj(raw), slug = str(o.slug, 60), handle = str(o.handle, 40);
   if (!slug || !handle) return null;
-  return { slug, handle, bio: str(o.bio, 400), city: str(o.city, 60), state: str(o.state, 60), languages: arr(o.languages).filter((l): l is string => typeof l === "string").slice(0, 6), games: games(o.games), updatedAt: str(o.updatedAt, 40) };
+  return { slug, handle, bio: str(o.bio, 400), city: str(o.city, 60), state: str(o.state, 60), languages: arr(o.languages).filter((l): l is string => typeof l === "string").slice(0, 6), games: games(o.games), stats: toStats(o.stats), updatedAt: str(o.updatedAt, 40) };
 }
