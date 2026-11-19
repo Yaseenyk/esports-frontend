@@ -1,8 +1,8 @@
 import { LOGOS, type Game } from "@/lib/data";
 
 /**
- * The game's official icon when we have one in /public/games, otherwise a clean wordmark tile.
- * Game names and logos are trademarks of their owners and are used only to identify the game.
+ * Our own text badge for a game (publishers' icons are not used). An image is used only for slugs in LOGOS.
+ * Game names are trademarks of their owners and are used only to identify the game.
  */
 export default function GameBadge({ game, size = "md" }: { game: Game; size?: "sm" | "md" | "lg" | "xl" }) {
   const dim = size === "xl" ? "h-24 w-24 text-2xl rounded-3xl" : size === "lg" ? "h-16 w-16 text-lg rounded-2xl" : size === "sm" ? "h-9 w-9 text-[10px] rounded-lg" : "h-12 w-12 text-xs rounded-xl";

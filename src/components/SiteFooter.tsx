@@ -82,7 +82,7 @@ export default function SiteFooter() {
           <nav aria-label="About this site" className="flex flex-wrap gap-2">{[...v3FooterLinks().map((x): [string, string] => [x.label, x.href]), ...LEGAL].map(([l, h]) => <Link key={h} href={h} className="rounded-full border border-white/10 px-3 py-1 text-xs text-zinc-300 hover:border-cyan hover:text-white">{l}</Link>)}</nav>
           <a href="#top" aria-label="Back to top" className="fx-top ml-auto"><span aria-hidden="true">↑</span></a>
         </div>
-        <p className="mt-3 border-t border-white/10 pt-3 text-xs text-zinc-400">Esports Hub is an independent project and is not affiliated with any game publisher. Game names and logos are trademarks of their owners and are used only to identify the games.</p>
+        <p className="mt-3 border-t border-white/10 pt-3 text-xs text-zinc-400">Esports Hub is an independent project and is not affiliated with any game publisher. Game names are trademarks of their owners and are used only to identify the games. Esports Hub draws its own badges and does not use publishers' logos or artwork.</p>
       </div>
     </footer>
   );

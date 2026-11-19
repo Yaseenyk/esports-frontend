@@ -43,7 +43,7 @@ export default function GuidePage({ params }: { params: { slug: string } }) {
         {
           "@context": "https://schema.org", "@type": "Article", headline: g.title, description: g.description, datePublished: g.published, dateModified: g.updated,
           mainEntityOfPage: url, image: `${SITE_URL}${og}`, inLanguage: "en-IN",
-          author: { "@id": ORG_ID }, publisher: { "@id": ORG_ID },
+          author: { "@type": "Person", "@id": "https://yk.streamerosai.com/#person", name: "Yaseen Khatib", url: "https://yk.streamerosai.com/" }, publisher: { "@id": ORG_ID },
         },
         { "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [{ "@type": "ListItem", position: 1, name: "Home", item: `${SITE_URL}/` }, { "@type": "ListItem", position: 2, name: "Guides", item: `${SITE_URL}/guides/` }, { "@type": "ListItem", position: 3, name: g.title, item: url }] },
         ...(g.faq?.length ? [{ "@context": "https://schema.org", "@type": "FAQPage", mainEntity: g.faq.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })) }] : []),
@@ -51,7 +51,7 @@ export default function GuidePage({ params }: { params: { slug: string } }) {
       <header>
         <nav aria-label="Breadcrumb" className="text-sm text-zinc-400"><Link href="/guides/" className="hover:text-zinc-200">Guides</Link> / {g.tag}</nav>
         <h1 className="mt-3 text-3xl font-black leading-tight text-zinc-50 sm:text-4xl">{g.title}</h1>
-        <p className="mt-3 text-sm text-zinc-400">Updated {dateText(g.updated)} · {g.minutes} min read · By the Esports Hub team</p>
+        <p className="mt-3 text-sm text-zinc-400">Updated {dateText(g.updated)} · {g.minutes} min read · By <Link href="/about/" className="underline-offset-4 hover:underline">Yaseen Khatib</Link></p>
         {g.answer && <div role="note" aria-label="Short answer" className="mt-5 rounded-xl border border-cyan/40 bg-[#0a0b0d] p-4"><p className="text-sm font-semibold uppercase tracking-wide text-cyan">Short answer</p><p className="mt-1 leading-relaxed text-zinc-100"><Inline text={g.answer} /></p></div>}
         <p className="mt-5 text-lg leading-relaxed text-zinc-200">{g.intro}</p>
         {g.slug === "best-free-esports-id-card-makers" && <p className="mt-5"><Link href={g.cta.href} className="btn">{g.cta.label}</Link></p>}

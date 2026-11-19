@@ -17,8 +17,11 @@ export interface Game {
   hue: string;
   blurb: string;
 }
-/** Games whose official store icon is in public/games/<slug>.webp (192 px). Drop a file there and add the slug to use another. */
-export const LOGOS = new Set(["bgmi", "free-fire-max", "valorant", "cs2", "cod-mobile", "mobile-legends", "dota-2", "ea-fc", "clash-royale", "fortnite", "minecraft", "roblox", "gta-v", "among-us", "fall-guys", "apex-legends", "pubg", "overwatch-2", "rainbow-six-siege", "rocket-league", "tekken-8", "street-fighter-6", "brawl-stars", "clash-of-clans", "pokemon-unite", "genshin-impact", "wild-rift", "chess"]);
+/**
+ * Games shown with an image instead of our own text badge. Empty on purpose (19 Nov 2026): publishers' store icons
+ * are their artwork, so every game now uses the drawn badge. Add a slug only for an image we have the right to use.
+ */
+export const LOGOS = new Set<string>([]);
 export const GAMES: Game[] = [
   { slug: "bgmi", name: "Battlegrounds Mobile India", short: "BGMI", platform: "Mobile", genre: "Battle royale", team: "Squads of 4", hue: "from-amber-400 to-orange-600", blurb: "Squad battle royale on phones. The biggest grassroots circuit for mobile in India." },
   { slug: "free-fire-max", name: "Free Fire MAX", short: "FF MAX", platform: "Mobile", genre: "Battle royale", team: "Squads of 4", hue: "from-rose-400 to-red-600", blurb: "Fast battle royale that runs on modest phones, with a large community-run scene." },
