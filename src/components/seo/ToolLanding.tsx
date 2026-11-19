@@ -4,7 +4,7 @@ import JsonLd from "./JsonLd";
 import Faq from "@/components/seo/Faq";
 import { Inline } from "@/components/seo/Prose";
 import ScrollTable from "@/components/seo/ScrollTable";
-import { GUIDES } from "@/content/guides";
+import { LISTED_GUIDES as GUIDES } from "@/content/guides";
 import { SITE_URL } from "@/lib/site";
 
 export interface ToolPage {

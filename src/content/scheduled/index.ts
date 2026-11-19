@@ -15,13 +15,17 @@ import { BATCH_10 } from "./batch-10";
 import { BATCH_11 } from "./batch-11";
 import { BATCH_12 } from "./batch-12";
 import { LIVE_NOW_DRAFTS } from "./live-now";
+import { HELD } from "./held";
 
 /** Every scheduled guide, in release order. The order of this list IS the release schedule. */
 /**
  * Order: post 1 (already released on Monday 16 Nov 2026), then the 20 demand-led guides of batches 11 and 12 (added 16 Nov 2026, from the
  * treg volume check in docs/seo-research-2026-11-16-blogs.md), then the original posts 2 to 100, which moved back by 20 slots.
  */
-export const DRAFTS: Draft[] = [BATCH_01[0], ...BATCH_11, ...BATCH_12, ...BATCH_01.slice(1), ...BATCH_02, ...BATCH_03, ...BATCH_04, ...BATCH_05, ...BATCH_06, ...BATCH_07, ...BATCH_08, ...BATCH_09, ...BATCH_10];
+const ALL_DRAFTS: Draft[] = [BATCH_01[0], ...BATCH_11, ...BATCH_12, ...BATCH_01.slice(1), ...BATCH_02, ...BATCH_03, ...BATCH_04, ...BATCH_05, ...BATCH_06, ...BATCH_07, ...BATCH_08, ...BATCH_09, ...BATCH_10];
+/** 19 Nov 2026: near-duplicate and off-topic guides were taken off the schedule (see held.ts). They are kept, not released. */
+export const DRAFTS: Draft[] = ALL_DRAFTS.filter((d) => !HELD[d.slug]);
+export const HELD_DRAFTS: Draft[] = ALL_DRAFTS.filter((d) => HELD[d.slug]);
 
 const wordsOf = (d: Draft) => [d.intro, d.answer, ...d.sections.flatMap((s) => [s.h2, s.md]), ...d.faq.flatMap((f) => [f.q, f.a])].join(" ").split(/\s+/).length;
 
@@ -34,7 +38,7 @@ export function toGuideOn(d: Draft, date: string): Guide {
     tag: d.tag,
     minutes: Math.min(15, Math.max(4, Math.round(wordsOf(d) / 200))),
     published: date,
-    updated: date,
+    updated: d.updated && d.updated > date ? d.updated : date,
     intro: d.intro,
     answer: d.answer,
     faq: d.faq,

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Item, Stagger } from "@/components/Motion";
 import TiltLink from "@/components/TiltLink";
 import JsonLd from "@/components/seo/JsonLd";
-import { GUIDES } from "@/content/guides";
+import { LISTED_GUIDES as GUIDES } from "@/content/guides";
 import { SITE_URL } from "@/lib/site";
 
 export const metadata: Metadata = {

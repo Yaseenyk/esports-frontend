@@ -1,7 +1,7 @@
 # Scheduled guides: how they work
 
-120 guides are written ahead of time and released three a week (Monday, Wednesday, Friday), starting
-Monday 16 November 2026. No API key and no bot writes them: they were written in a Claude Code session,
+Guides are written ahead of time and released two a week (Monday and Wednesday), starting Monday 16 November 2026.
+Until 19 Nov 2026 the rate was three a week; see the 19 Nov section at the end for what changed. No API key and no bot writes them: they were written in a Claude Code session,
 tested, and committed. The site's daily deploy releases them.
 
 ## Where things are
@@ -27,7 +27,7 @@ To preview a future date: `GUIDES_NOW=2027-01-01 npm run build`.
 - Move a post: move it in its batch or between batches. Every later post shifts by one slot.
 - After moving, run the tests. Links may point only at tools, core guides, or posts released earlier, so a
   moved post can break a link. Fix the link, do not disable the test.
-- Never schedule more than three a week. Auto-publishing floods cost the sister portfolio its index once.
+- Never schedule more than two a week (the test enforces it). Auto-publishing floods cost the sister portfolio its index once.
 
 ## The quality bar (enforced by tests)
 
@@ -55,3 +55,20 @@ Research: `docs/seo-research-2026-11-16-blogs.md` (treg volumes for 303 phrases,
   (list position is the date), so the schedule now holds 120 posts.
 - Facts for these live in `facts-live.ts`, `facts-b11.ts`, `facts-b12.ts`, each with a source and a check date.
 - Releasing ten at once is a deliberate exception to the three-a-week rule. If indexing stalls, check Search Console before adding more at that pace.
+
+## 19 Nov 2026: slower and fewer (AdSense low-value review)
+
+AdSense rejected streamerosai.com for "low-value content" on 16 Nov 2026, and the review covers every subdomain. Volume on one skeleton is
+what a reviewer reads as scaled content, so:
+
+- **Cadence: two a week, Monday and Wednesday** (`schedule.ts`, `OFFSETS = [0, 2]`). Posts 1 and 2 (16 and 18 Nov) keep their dates.
+  `tests/scheduled-guides.test.mjs` fails on any Friday release or a third guide in a week.
+- **35 guides held** (`held.ts`): near-duplicates of a live or kept guide (four more poster guides, four schedule templates, per-game
+  copies of points, rules, scrims and registration guides, third Minecraft, second Fortnite and Dota, fifth chess) and the two money guides
+  (prize pool split, entry fee policy). They stay in their batch files with a reason each; they are not built or linked. A test checks
+  that nothing scheduled links to a held guide.
+- **85 guides scheduled**; the last one, `qualifier-system-for-a-year-end-championship`, releases on Monday 6 Sep 2027.
+- **Merged live guides** (`src/content/merged-guides.json`): BGMI and Free Fire team names into `esports-team-names-ideas`, and the
+  second Free Fire poster guide into `free-fire-tournament-poster`. Merged pages still build for old links, show a "merged into" note,
+  are `noindex, follow`, and are left out of the sitemap, llms.txt and lists. `verify-seo.mjs` reads the same file.
+- The identical "Common mistakes" heading (on all 130 guides) was replaced by a topic-specific heading on every live and scheduled guide.

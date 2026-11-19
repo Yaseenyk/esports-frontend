@@ -6,7 +6,7 @@ import HeroArtLazy from "@/components/home/HeroArtLazy";
 import { Counter, Item, Marquee, Reveal, Stagger } from "@/components/Motion";
 import JsonLd from "@/components/seo/JsonLd";
 import TiltLink from "@/components/TiltLink";
-import { GUIDES } from "@/content/guides";
+import { LISTED_GUIDES as GUIDES } from "@/content/guides";
 import { HOME_FAQ } from "@/content/home-faq";
 import { GAMES, TOOLS } from "@/lib/data";
 import { CARD_DESIGNS, CARD_SHAPES, LANGUAGES_COUNT, SCREEN_DESIGNS, SITE_DESCRIPTION } from "@/lib/facts";

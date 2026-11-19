@@ -1,14 +1,16 @@
 /**
- * Three guides a week: Monday, Wednesday and Friday. The first is Monday 16 November 2026; the list position decides the date.
- * (Weeks of three were chosen over a daily post on purpose: a flood of new pages on a young domain has cost this owner an
- * index before. See docs/guide-schedule.md.)
+ * Two guides a week: Monday and Wednesday. The first is Monday 16 November 2026; the list position decides the date.
+ * Until 19 Nov 2026 it was three a week (Monday, Wednesday, Friday). It was slowed to two after the AdSense "low-value content"
+ * review of 16 Nov 2026: fewer, deeper guides read better than volume on a young domain. The first two releases (16 and 18 Nov)
+ * keep their dates under both rules. A flood of new pages has cost this owner an index before. See docs/guide-schedule.md.
  */
 export const FIRST_RELEASE = "2026-11-16";
-const OFFSETS = [0, 2, 4];
+const OFFSETS = [0, 2];
+export const PER_WEEK = OFFSETS.length;
 
 export function releaseDate(index: number): string {
   const d = new Date(`${FIRST_RELEASE}T00:00:00Z`);
-  d.setUTCDate(d.getUTCDate() + Math.floor(index / 3) * 7 + OFFSETS[index % 3]);
+  d.setUTCDate(d.getUTCDate() + Math.floor(index / PER_WEEK) * 7 + OFFSETS[index % PER_WEEK]);
   return d.toISOString().slice(0, 10);
 }
 

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Mark } from "./Logo";
-import { GUIDES } from "@/content/guides";
+import { LISTED_GUIDES as GUIDES } from "@/content/guides";
 import { TOOLS } from "@/lib/data";
 import { v3FooterLinks } from "@/features/shared/flags";
 

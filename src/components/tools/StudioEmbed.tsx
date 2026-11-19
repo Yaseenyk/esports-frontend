@@ -18,5 +18,6 @@ export default function StudioEmbed() {
       </div>
     );
   }
-  return <div className={cardFontVars}><IdCardStudio /></div>;
+  // data-clarity-mask: Microsoft Clarity (loaded on /tools/ pages) must never record the names, birth dates, card digits or photos shown in the studio.
+  return <div className={cardFontVars} data-clarity-mask="true"><IdCardStudio /></div>;
 }

@@ -102,7 +102,7 @@ Write down every fault and fix it that day. A fault on the morning costs you the
       { h2: "Roles on the day", md: `Assign a technical lead who does nothing else, a referee for each match area, and a person at the entrance. Give the technical lead a list of spare parts and a phone number for the venue manager.
 
 Use the [referee roles guide](/guides/tournament-referee-roles-and-duties/) to split the work, and print signs and station labels with the [print kits tool](/tools/print-kits/).` },
-      { h2: "Common mistakes", md: `- Not visiting the venue first.
+      { h2: "LAN setup mistakes", md: `- Not visiting the venue first.
 - Relying on one extension board for many machines.
 - Skipping the full test on the real equipment.
 - No spare cables, mice or keyboards.
@@ -150,7 +150,7 @@ Decide the scale once and publish it. At the end of a season, say four or eight 
       { h2: "Share the work and keep it light", md: `You will burn out if you do everything every week. Find two or three regulars who can run the bracket, report results or referee. A short rota, with a briefing sheet, keeps it going when you are away.
 
 Keep costs low. Most weekly cups run on a free bracket and a free chat group. If you add prizes, keep them small and sourced from sponsors, as in the [sponsor pitch guide](/guides/sponsor-pitch/).` },
-      { h2: "Common mistakes", md: `- Changing the day or time often.
+      { h2: "Why weekly cups fade (and how to avoid it)", md: `- Changing the day or time often.
 - Running a different format every week.
 - No check-in, so the bracket breaks at the start.
 - Doing everything yourself.
@@ -198,7 +198,7 @@ Even with no stream, ask a referee to watch important matches, and ask players t
       { h2: "Disconnects and pauses", md: `Write the rule before it is needed. A common approach: a player may reconnect, the team may pause for a short, fixed time, and a team that cannot field the required players after that time forfeits the round or the map. Choose your own limits, publish them and apply them evenly.
 
 Record each pause with the time and the reason in the match thread.` },
-      { h2: "Common mistakes", md: `- Changing lobby settings between matches.
+      { h2: "Valorant lobby mistakes", md: `- Changing lobby settings between matches.
 - Starting before the veto is finished.
 - Not checking names against the roster.
 - No rule for disconnects.
@@ -251,7 +251,7 @@ A line like "Internet is down; we are switching to the backup connection; next u
       { h2: "The backup date", md: `State a backup date when you announce the event: "If we cannot finish, the remaining matches run on this date." Players can plan around a known date, and you avoid arguments about what to do with unfinished rounds.
 
 Decide how results carry over: matches already finished stand, and unfinished ones restart. Put it in the [rules template](/guides/esports-tournament-rules-template/).` },
-      { h2: "Common mistakes", md: `- No second connection.
+      { h2: "Backup plans that fail when needed (avoid these)", md: `- No second connection.
 - Keeping the only copy of results online.
 - No time limit on waiting for a fix.
 - Different decisions for different teams.
@@ -306,7 +306,7 @@ The [schedule maker](/tools/schedule/) helps you check whether the day has room 
       { h2: "Announce it before the match", md: `Read the rule aloud at the toss, both captains and umpires present. One sentence for the super over, one for what happens if that ties. Ask the scorer to write it on the scoresheet.
 
 A rule read out and written down is much harder to dispute. The [dispute process guide](/guides/tournament-dispute-process-protest-window/) covers what happens if someone still objects.` },
-      { h2: "Common mistakes", md: `- Not writing any tie rule.
+      { h2: "Tie rule mistakes in cricket", md: `- Not writing any tie rule.
 - Using a different rule in different matches.
 - No time buffer for extra overs.
 - Letting teams argue over who bats first.
@@ -416,7 +416,7 @@ Respond to questions within a set time during event hours, and say when you are 
       { h2: "Privacy", md: `Phone numbers and in-game IDs are personal data. Share them only with those who need them, such as referees and captains. For under-18 players, follow your school's or club's policy. Do not post screenshots of private chats without consent.
 
 After the event, close or archive the groups, so players are not left in a channel that keeps pinging.` },
-      { h2: "Common mistakes", md: `- Everything in one chat group.
+      { h2: "Group chat mistakes to avoid", md: `- Everything in one chat group.
 - Allowing anyone to post in announcements.
 - Results reported in several places.
 - No pinned rules.
@@ -450,7 +450,7 @@ Tell players the platform, the event link and how to join. For the basics of rul
 | Swiss | Fixed rounds, players with similar scores meet | A fair result with a fixed number of games each |
 | Arena | Play as many games as you can in a time window | A casual, drop-in event |
 
-A Swiss event gives each player the same number of games and a clearer winner. An arena is looser but easier to join late. See [how to run a Swiss chess tournament](/guides/how-to-run-a-swiss-chess-tournament/) for the logic.` },
+A Swiss event gives each player the same number of games and a clearer winner. An arena is looser but easier to join late. See [Swiss system explained](/guides/swiss-system-tournament-explained/) for the logic.` },
       { h2: "Time controls", md: `Choose the time control to match the time you have. Rapid and blitz suit an evening event, and longer games suit a weekend. Remember to add time between rounds for late starts and disputes.
 
 Publish the control in a simple form, such as the base time and the increment per move. Players should know before they register. Keep the control the same for every round.` },
@@ -468,7 +468,7 @@ Set a rule for late arrival: a player who is not present a few minutes after the
       { h2: "Before round one", md: `Send players a short message: the link, the format, the time control, the rules, and who to contact. Open a check-in period, and confirm accounts match registered names.
 
 Use the [registration form tool](/tools/registration/) to collect names and usernames, and the [certificate maker](/tools/certificates/) for results.` },
-      { h2: "Common mistakes", md: `- Not checking the platform's current features.
+      { h2: "Online chess event mistakes", md: `- Not checking the platform's current features.
 - Mixing time controls between rounds.
 - No fair play rule.
 - Not explaining tie-breaks.
@@ -479,7 +479,7 @@ Use the [registration form tool](/tools/registration/) to collect names and user
       { q: "How do I prevent engine cheating in online chess?", a: "You cannot remove it entirely, but you can reduce it: require established real accounts, state that engine help is banned and what the penalty is, use the platform's fair play tools, and for prize events consider asking top finishers to explain a game or play a short verification match." },
       { q: "What should I tell players before an online chess event?", a: "Send the event link, the platform, the format, the time control with increment, the fair play and late arrival rules, the tie-break order and who to contact. Collect names and usernames in a form beforehand so you can match accounts to registered players at check-in." },
     ],
-    related: ["chess-tournament-rules-for-organisers", "how-to-run-a-swiss-chess-tournament", "chess-points-system-and-tiebreaks", "preventing-cheating-in-online-tournaments"],
+    related: ["chess-tournament-rules-for-organisers", "swiss-system-tournament-explained", "chess-points-system-and-tiebreaks", "preventing-cheating-in-online-tournaments"],
     cta: { label: "Collect names and usernames", href: "/tools/registration/" },
   },
 
@@ -527,7 +527,7 @@ Use the [schedule maker](/tools/schedule/) to test the numbers, and publish the 
       { h2: "Explaining it to teams", md: `Put it in the rules in plain words, with a worked example like the one above. Read it aloud at the captains' briefing and ask for questions. Show a live table with a marker when a team is on match point.
 
 The [BGMI scrims guide](/guides/bgmi-scrims-how-to-organise/) and the [BGMI custom room guide](/guides/bgmi-custom-room-tournament/) cover the room side. Confirm current room and scoring options in the game before your event.` },
-      { h2: "Common mistakes", md: `- Not writing the exact win condition.
+      { h2: "Cutoff mistakes in BGMI qualifiers", md: `- Not writing the exact win condition.
 - No cap on the number of matches.
 - Setting the cutoff by guess with no example.
 - Not telling teams who is on match point.

@@ -59,7 +59,7 @@ Choose something else when:
 - Post pairings on a screen or a board the moment they are ready. A [display screen](/tools/display-screen/) on a TV works well for this.
 - Set a rule for a player who is late: a short grace period, then a loss for that round.
 - Decide in advance what a bye is worth. A common choice is one full point, and only once per player.` },
-      { h2: "Common mistakes", md: `- Pairing before all results are in. One missing result changes every pairing below it.
+      { h2: "Swiss pairing mistakes", md: `- Pairing before all results are in. One missing result changes every pairing below it.
 - Letting two players meet twice because the group ran out of fresh opponents. Move a player down a group instead.
 - Choosing the tie-break after seeing who is tied.
 - Using too few rounds for the field, so two players finish unbeaten and the winner is decided by a tie-break.
@@ -116,7 +116,7 @@ For local leagues, a fixed rule is easier to explain: for example, a match needs
 You can build the table by hand in a spreadsheet, or use the [round robin generator](/tools/round-robin/) for the fixtures and keep the results in one sheet. The guide to the [cricket league points table](/guides/cricket-league-points-table/) shows the columns and a common points scheme.
 
 > Publish the tie-break order (points, then NRR, then head-to-head, then a coin toss) in the rules before the first match.` },
-      { h2: "Common mistakes", md: `- Averaging each match's NRR instead of adding up totals first.
+      { h2: "Net run rate mistakes on the points table", md: `- Averaging each match's NRR instead of adding up totals first.
 - Forgetting that an all-out team is counted for its full overs.
 - Using the wrong overs when a match is reduced by rain.
 - Mixing T20 and longer matches in one table without saying so.
@@ -172,7 +172,7 @@ Number every match on the sheet. Printed match numbers save a lot of questions o
 - A tournament where players travelled or paid an entry fee and expect to play more than one match.
 
 It is the wrong choice when the schedule is tight, when you have a very large field (use groups and a knockout, or a [Swiss system](/guides/swiss-system-tournament-explained/)), or when matches are long and expensive to run.` },
-      { h2: "Common mistakes", md: `- Dropping losers into the losers bracket in the same order every round, so two teams meet again straight away.
+      { h2: "Double elimination errors to avoid", md: `- Dropping losers into the losers bracket in the same order every round, so two teams meet again straight away.
 - Not telling players how the reset works until the final.
 - Forgetting that the losers bracket needs its own schedule and referees at the same time as the winners bracket.
 - Drawing the bracket after registration closed with a wrong number of teams. Fill empty slots with byes for the top seeds.` },
@@ -291,7 +291,7 @@ If you would rather not use byes, run a short first round to get down to a power
       { h2: "Random draws that people trust", md: `A random draw is fair, but it also has to look fair. Draw in front of the captains, in a video call or in the room, and keep the method simple: write the team names on paper, fold them, and pull them one at a time into bracket slots.
 
 You can also draw with a tool and share a screenshot. Do not redraw because you do not like a pairing. If you promise a random draw and then change it, the event loses trust.` },
-      { h2: "Common mistakes", md: `- Seeding after the draw, so people suspect favouritism.
+      { h2: "Seeding mistakes that skew a bracket", md: `- Seeding after the draw, so people suspect favouritism.
 - Putting teams from the same college or club into the same half when you could split them.
 - Forgetting to give byes to the top seeds instead of random teams.
 - Re-drawing after an unlucky pairing.
@@ -356,7 +356,7 @@ If A and B both had +1, you would check goals scored next, and then the head-to-
       { h2: "Group stage to knockout", md: `If the group winners go into a knockout stage, decide how the draw works. A common choice is that the winner of each group plays the runner-up of another group, so teams from the same group cannot meet again in the first knockout round.
 
 The [groups and knockout maker](/tools/groups/) sets up the groups, the table and the knockout stage. For the fixtures within each group, the [round robin generator](/tools/round-robin/) writes them in rounds.` },
-      { h2: "Common mistakes", md: `- Choosing the tie-break order after the tie happens.
+      { h2: "Points-table mistakes in football leagues", md: `- Choosing the tie-break order after the tie happens.
 - Counting goal difference only from matches between the tied teams when your rule says all matches.
 - Not saying what happens to a team that forfeits. A common rule is a 3-0 loss and no points.
 - Forgetting a final tie-break, so a perfect tie ends in an argument.
@@ -439,7 +439,7 @@ For cricket, net run rate takes the place of score difference; the guide to [net
 Then add a one-page set of local rules for the things the Laws leave to the organiser: the time control, the tie-breaks, the late-arrival rule, the use of phones, and who the arbiter is.` },
       { h2: "Scoring", md: `${F.chess.text} Every tournament format uses these points: a Swiss event, a round robin or a knockout of short matches.
 
-If you run a school or club event with many players, a [Swiss system](/guides/swiss-system-tournament-explained/) lets everyone play every round. For 6 to 8 players, a single [round robin](/guides/round-robin-single-double-and-tiebreaks/) is simple and fair.` },
+If you run a school or club event with many players, a [Swiss system](/guides/swiss-system-tournament-explained/) lets everyone play every round. For 6 to 8 players, a single [round robin](/guides/round-robin-schedule/) is simple and fair.` },
       { h2: "Time control", md: `Choose one time control and use it for every game. State it in the rules and on the pairing sheet.
 
 - Rapid events give each player a longer time for the whole game, often between 10 and 25 minutes.
@@ -460,7 +460,7 @@ Use a chess clock for every board if you can. If you must run without clocks, sa
 Give players a short window to appeal to a second person, such as the head organiser. Set a time limit, for example 10 minutes after the game ends. Late appeals are not heard.
 
 If you cannot find a qualified arbiter, ask a strong player who is not taking part in the event, such as a coach or a teacher.` },
-      { h2: "Common mistakes", md: `- Starting round 1 without a written time control, so players assume different ones.
+      { h2: "What goes wrong at club chess events", md: `- Starting round 1 without a written time control, so players assume different ones.
 - Having no named arbiter, which leaves every dispute to the organiser who is also running the pairings.
 - Allowing take-backs "just this once". It becomes the rule for the whole event.
 - Choosing the late-arrival limit after a player is late.
@@ -481,7 +481,7 @@ You can fill in the brackets and print this on the [registration page](/tools/re
       { q: "What time control should a school chess tournament use?", a: "Rapid is the easiest to supervise for schools: a single time for the whole game, for example 15 to 25 minutes per player. It keeps every round to under an hour and avoids very long games. Use a clock on every board if possible, and say so on the pairing sheet." },
       { q: "How late can a player be for a chess round?", a: "There is no single rule, so the organiser chooses it. Many events use a limit of 15 to 30 minutes after the round starts, after which the player loses the game. Pick a number that fits your schedule, write it in the rules and apply it to every player the same way." },
     ],
-    related: ["swiss-system-tournament-explained", "esports-tournament-rules-template", "round-robin-single-double-and-tiebreaks"],
+    related: ["swiss-system-tournament-explained", "esports-tournament-rules-template", "round-robin-schedule"],
     cta: { label: "Build the registration page", href: "/tools/registration/" },
   },
 
@@ -531,7 +531,7 @@ Here is a plan for 16 players that fits an evening:
 | Final | 1 | Best of 5 | Livestream or voice call |
 
 Put the results on a [display screen](/tools/display-screen/) or share a screenshot of the bracket after each round. Winners can receive a [certificate](/tools/certificates/) at the end.` },
-      { h2: "Common mistakes", md: `- Starting without a rule for disconnects.
+      { h2: "Clash Royale event mistakes", md: `- Starting without a rule for disconnects.
 - Accepting a result with no screenshot.
 - Copying menu steps from a guide for an older version of the game.
 - Letting players agree their own match times with no deadline, so the bracket stalls.

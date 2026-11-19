@@ -6,7 +6,7 @@ import Faq from "@/components/seo/Faq";
 import { notFound } from "next/navigation";
 import JsonLd from "@/components/seo/JsonLd";
 import { Blocks, Inline } from "@/components/seo/Prose";
-import { GUIDES, guideBySlug } from "@/content/guides";
+import { GUIDES, MERGED, guideBySlug } from "@/content/guides";
 import { ORG_ID, SITE_URL } from "@/lib/site";
 
 export const dynamicParams = false;
@@ -24,6 +24,8 @@ export function generateMetadata({ params }: { params: { slug: string } }): Meta
   const og = ogFor(g.slug);
   return {
     title: g.seoTitle ?? g.title, description: g.description, alternates: { canonical: url },
+    // A merged guide stays online for old links, but search engines are pointed at the guide that replaced it.
+    ...(MERGED[g.slug] ? { robots: { index: false, follow: true } } : {}),
     openGraph: { type: "article", title: g.seoTitle ?? g.title, description: g.description, url, publishedTime: g.published, modifiedTime: g.updated, images: [og] },
     twitter: { card: "summary_large_image", title: g.seoTitle ?? g.title, description: g.description, images: [og] },
   };
@@ -36,7 +38,8 @@ export default function GuidePage({ params }: { params: { slug: string } }) {
   if (!g) notFound();
   const url = `${SITE_URL}/guides/${g.slug}/`;
   const og = ogFor(g.slug);
-  const related = g.related.map((s) => guideBySlug(s)).filter((x): x is NonNullable<typeof x> => !!x);
+  const related = g.related.filter((s) => !MERGED[s]).map((s) => guideBySlug(s)).filter((x): x is NonNullable<typeof x> => !!x);
+  const mergedInto = MERGED[g.slug] ? guideBySlug(MERGED[g.slug]) : undefined;
   return (
     <article className="mx-auto max-w-3xl space-y-10">
       <JsonLd data={[
@@ -50,6 +53,7 @@ export default function GuidePage({ params }: { params: { slug: string } }) {
       ]} />
       <header>
         <nav aria-label="Breadcrumb" className="text-sm text-zinc-400"><Link href="/guides/" className="hover:text-zinc-200">Guides</Link> / {g.tag}</nav>
+        {mergedInto && <p role="note" className="mt-4 rounded-xl border border-amber-500/30 bg-[#0a0b0d] px-4 py-2.5 text-sm text-amber-200">This guide has been merged into <Link href={`/guides/${mergedInto.slug}/`} className="underline underline-offset-4">{mergedInto.title}</Link>, which covers the same ground in more depth. This page stays online for old links and is not listed in search results.</p>}
         <h1 className="mt-3 text-3xl font-black leading-tight text-zinc-50 sm:text-4xl">{g.title}</h1>
         <p className="mt-3 text-sm text-zinc-400">Updated {dateText(g.updated)} · {g.minutes} min read · By <Link href="/about/" className="underline-offset-4 hover:underline">Yaseen Khatib</Link></p>
         {g.answer && <div role="note" aria-label="Short answer" className="mt-5 rounded-xl border border-cyan/40 bg-[#0a0b0d] p-4"><p className="text-sm font-semibold uppercase tracking-wide text-cyan">Short answer</p><p className="mt-1 leading-relaxed text-zinc-100"><Inline text={g.answer} /></p></div>}

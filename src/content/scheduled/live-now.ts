@@ -64,7 +64,7 @@ Pick one order, publish it before match 1 and apply it the same way to every tea
 5. Lock the table once the last match is entered and share the final version as an image or CSV.
 
 If you want the same system for another game, read the [Free Fire points system and points table](/guides/free-fire-points-system-and-points-table/) guide. For the room side, use the [BGMI and Free Fire custom room setup guide](/guides/bgmi-and-free-fire-custom-room-setup-guide/). Ready to enter a lobby? Open the [BGMI points table](/points-table/bgmi/) page.` },
-      { h2: "Common mistakes", md: `- Counting kills twice, once in the kill column and again inside the total.
+      { h2: "Where BGMI points tables go wrong", md: `- Counting kills twice, once in the kill column and again inside the total.
 - Giving points to the match winner only and forgetting the teams below.
 - Using last season's values after the game or event changed them.
 - Entering a team under two spellings, so it splits into two rows.
@@ -132,7 +132,7 @@ Whatever you pick, publish it in the rules page before registration closes. The 
 5. After the last match, freeze the table and share it as an image.
 
 For a screen at the venue, the [display screen](/tools/display-screen/) shows standings full screen on a TV or in OBS.` },
-      { h2: "Common mistakes", md: `- Mixing up the BGMI and Free Fire scales. The two games use different placement values, so do not reuse the table. See the [BGMI points system](/guides/bgmi-points-system-explained/) guide for that side.
+      { h2: "Scoring errors to avoid in Free Fire lobbies", md: `- Mixing up the BGMI and Free Fire scales. The two games use different placement values, so do not reuse the table. See the [BGMI points system](/guides/bgmi-points-system-explained/) guide for that side.
 - Forgetting positions below the last scoring place, so teams in 11th and 12th get blank cells.
 - Counting eliminations from the kill feed instead of the result screen.
 - Not recording Booyahs, then having no way to break a tie.
@@ -227,7 +227,7 @@ Template:
 3. Cheating or collusion: disqualification of the team and removal of prizes.
 
 The official rules leave penalties to the administrator's discretion, so give your own referee the same freedom but list the ladder in advance, so players can see it is fair. If your event ends with a series, say how long it is: in the official finals, ${L.codSeries.text.replace("In the World Championship Finals, matches", "matches")}` },
-      { h2: "Common mistakes", md: `- Copying a league's rules wholesale, including roster-lock and regional clauses that do not apply to your event.
+      { h2: "Gaps in CODM rulebooks that cause disputes (avoid these)", md: `- Copying a league's rules wholesale, including roster-lock and regional clauses that do not apply to your event.
 - Leaving out the disconnect rule, so the first dropped player starts an argument.
 - Not saying whether a drawn match is replayed.
 - Publishing rules after teams have registered, which invites complaints.
@@ -302,7 +302,7 @@ For a battle royale lobby, a restart is rare and costly, so many organisers allo
 | Major | Hacking, collusion, deliberate disconnect | Disqualification |
 
 Publish the table with the rules. The [tournament rules template](/guides/esports-tournament-rules-template/) and the [COD Mobile rules template](/guides/cod-mobile-tournament-rules-template/) show how the same ladder fits into a full rules page.` },
-      { h2: "Common mistakes", md: `- Writing the rules after registration closes.
+      { h2: "Rule gaps that go wrong on match day", md: `- Writing the rules after registration closes.
 - Leaving the point values out, which sends teams to ask in chat. Link your [points system](/guides/free-fire-points-system-and-points-table/) from the rules.
 - Not naming a referee, so every decision is a debate.
 - Having rules but no evidence process. Ask teams to record their own matches.
@@ -377,7 +377,7 @@ For the squad-versus-squad mode, Clash Squad is a 4v4 round-based format and nee
 | 18:00 | Results and prizes |
 
 Adjust the match count and breaks to your own timings. Show the plan to captains a few days before, and use the [Plan my tournament](/tools/plan/) tool if you want it generated from your numbers.` },
-      { h2: "Common mistakes", md: `- Choosing a format that needs more hours than the venue is booked for.
+      { h2: "Format choices to avoid", md: `- Choosing a format that needs more hours than the venue is booked for.
 - Letting each group play a different number of matches, so the cutoff is not fair.
 - Setting the cutoff after seeing who is on the edge.
 - Mixing Clash Squad rounds into a battle royale table.
@@ -448,7 +448,7 @@ Teams that do not reply by the deadline lose the slot, and the waitlist moves up
 - Check that the number of confirmed teams fits your lobbies. The [battle royale format](/guides/free-fire-battle-royale-tournament-format/) guide shows how to count.
 - Print a check-in list. For larger events, the [gate check-in scanner](/tools/check-in/) works with QR passes.
 - Delete personal data you no longer need after the event, as you promised on the form.` },
-      { h2: "Common mistakes", md: `- Asking for too much, so teams give up halfway through the form.
+      { h2: "Form mistakes that cost you teams", md: `- Asking for too much, so teams give up halfway through the form.
 - No deadline, so registrations trickle in during the event.
 - Forgetting the captain's phone number.
 - Not saying where to find the UID.
@@ -466,12 +466,13 @@ Teams that do not reply by the deadline lose the slot, and the waitlist moves up
 
   {
     slug: "esports-team-names-ideas",
-    title: "Esports team names: original ideas and how to pick one",
-    seoTitle: "Esports team names: original ideas and how to pick",
-    description: "Esports team names grouped by style, with original ideas for any game, plus how to check a name is free, how long it should be and how to avoid copying a team.",
+    title: "Esports team names: original ideas for BGMI, Free Fire and any game",
+    seoTitle: "Esports team names: ideas for BGMI, Free Fire and more",
+    description: "Esports team names by style and by game (BGMI, Free Fire and others), how to build a tag for the lobby, and the checks to run before you register a name.",
     tag: "Name ideas",
-    answer: "Good esports team names are short, easy to say out loud and not already used by another team. Use the style groups below for ideas, mix two words from different lists, and check the name on search and social sites before you register it.",
-    intro: "A team name goes on a poster, a scoreboard, a jersey and a stream overlay, so it has to be easy to read and say. Below are original ideas grouped by style, a way to build your own, and a checklist for making sure nobody else already owns the name. The lists are for any game; BGMI and Free Fire have their own pages.",
+    updated: "2026-11-19",
+    answer: "Good esports team names are short, easy to say out loud and not already used by another team. Pick a style, join two words, add a two to four letter tag for the lobby, and check the name on search, social sites and the event's team list before you register it.",
+    intro: "A team name goes on a registration form, a poster, a points table, a jersey and a stream overlay, so it has to be easy to read and say. This page puts the general method, original ideas by style, and the BGMI and Free Fire specifics (squad size, tags in the custom room, words that belong to the game) in one place. It replaces the separate BGMI and Free Fire name pages.",
     sections: [
       { h2: "How to choose a name that works", md: `A name that looks good in a chat message can fail on a scoreboard. Test each idea against five points:
 
@@ -481,35 +482,18 @@ Teams that do not reply by the deadline lose the slot, and the waitlist moves up
 4. Check it is family friendly. Many events have young players and sponsors.
 5. Check it is not already taken (see the last section).
 
-A short name also helps on the [tournament poster](/tools/poster/), where long names get shrunk.` },
-      { h2: "Sharp and fast names", md: `Names that sound like speed and edge. These are invented combinations, not copies of known teams:
+A short name also helps on the [tournament poster](/tools/poster/), where long names get shrunk to fit, and on the [BGMI points table](/points-table/bgmi/), where the team column is narrow.` },
+      { h2: "Ideas by style, for any game", md: `Choose the feeling the squad wants first, then the words. Ask every player to vote on the style; the name has to suit all of them. These are invented combinations, not copies of known teams, and none has been checked for you.
 
-- Ashen Relay
-- Cobalt Drift
-- Nova Static
-- Quiet Voltage
-- Razor Orbit
-- Static Harbour
-- Tidal Spark
-- Zero Latency
-- Hollow Signal
-- Rapid Ember
-- Sharp Margin
-- Cinder Pulse` },
-      { h2: "Animal and nature names", md: `Easy to remember and easy to turn into a logo:
+| Style | Feels like | Ideas |
+|---|---|---|
+| Sharp and fast | Aim, pushes, rotations | Ashen Relay, Cobalt Drift, Razor Orbit, Zero Latency, Rapid Ember |
+| Calm | Patient, tactical squads | Quiet Voltage, Hollow Signal, Still Aim, Cold Margin |
+| Animal | Easy to turn into a logo | Iron Heron, Dusk Lynx, Copper Mantis, Granite Fox, Ridge Falcon |
+| Place | College or local teams | Campus Cipher, North Block Gaming, Hostel Hawks, Lakeside Legion |
+| Team spirit | Squads of friends | Last Four, One Circle, Fourth Floor, Silent Four |
 
-- Iron Heron
-- Dusk Lynx
-- Ember Moth
-- Storm Pelican
-- Lone Jackal
-- Silent Otter
-- Copper Mantis
-- Midnight Finch
-- Granite Fox
-- Violet Hornet
-- Frost Marlin
-- Ridge Falcon` },
+To build your own, take one word from a style and pair it with a noun, or put a place from your city or college in front of a style word.` },
       { h2: "Word-play and short names", md: `These work well when you want a one-word handle:
 
 | Pattern | How to build it | Examples |
@@ -520,41 +504,54 @@ A short name also helps on the [tournament poster](/tools/poster/), where long n
 | Number or letter | One number or letter at the end | Orbit9, Kite7, Zenith X |
 
 Be careful with dropped vowels: they look cool and are hard to search. Use them only if you can still spell the name to someone over the phone.` },
-      { h2: "Names for a college or local team", md: `A name that points to a place or a group makes it easy for supporters to share:
+      { h2: "BGMI squad names", md: `${F.bgmi.text} A squad name has to suit four people and fit one row of a points table. Names that nod to the game without using any game or publisher trademark:
 
-- Campus Cipher
-- North Block Gaming
-- Rooftop Raiders
-- Metro Mavericks
-- Lakeside Legion
-- Hostel Hawks
-- Canteen Crew
-- Terrace Titans
+- Last Circle, Edge Of Zone, Final Ring
+- Rooftop Rotation, Quiet Compound, Second Floor
+- Bridge Holders, Ridge Runners, Shoreline Crew
+- Pulse Nine, Kiteline, Rushmark, Frostbyte Crew
 
-You can mix a place with a style word: take a place from your city or college, add a word from the sharp or animal lists. The [campus tournament guide](/guides/run-a-campus-tournament/) is useful if the team plays college events. For games with their own naming habits, see the [BGMI team names](/guides/bgmi-team-names-ideas/) and [Free Fire team names](/guides/free-fire-team-names-ideas/) pages.` },
-      { h2: "Check that the name is free", md: `A name is only yours if nobody else is using it. Before you print jerseys, check:
+Short names are easier to shout in comms and read on a stream. Twelve characters or fewer is a safe length for a points table column. For scoring and lobby setup once the name is registered, see [how BGMI points work](/guides/bgmi-points-system-explained/).` },
+      { h2: "Free Fire squad names", md: `${F.freeFire.text} Mode names and character names belong to the game, so use your own words rather than theirs.
+
+- Ember Rush, Cinder Crew, Flarepoint, Ashline
+- Rapid Orbit, Quickmark, Blur Squad
+- Final Circle Four, Last Zone Standing, Crown Chase, Last Light
+- Riverside Rush, Old Town Orbit, Station Road Squad
+
+Treat the word "Booyah" with care: it is a word the game uses, so a name built on it may be too close to the game's own branding for a sponsored event. Ask the organiser before you print it. The [Free Fire rules for organisers](/guides/free-fire-tournament-rules-for-organisers/) explain how the roster and names are locked before the event.` },
+      { h2: "Tags and names in the custom room", md: `Referees have to match a name in the room to a team on their list. A short tag in front of every player's in-game name makes that quick:
+
+1. Pick a tag of two to four letters, usually the initials of the team name.
+2. Put it in front of each player's in-game name, and keep the player name readable, with no long chains of symbols.
+3. Send the exact names on the registration form, capital letters and symbols included.
+4. Do not change a name after registration without telling the organiser.
+
+Name length and allowed symbols are set by the game and by each event, so check both before you print jerseys. Big events can hide names altogether: in the official FFWS MEA 2025 rulebook, the game configuration hides player nicknames and the kill feed in matches, so referees there work from the roster they hold. Rooms for smaller events usually show names, which is why the [custom room setup guide](/guides/bgmi-and-free-fire-custom-room-setup-guide/) asks for exact names at registration.` },
+      { h2: "Check that the name is free", md: `A name is only yours if nobody else is using it. Before you print jerseys:
 
 1. Search the name in quotes on a search engine, then check the first two pages.
-2. Search it on the social sites you will use, and on YouTube.
+2. Search it on the social sites and video sites you will use.
 3. Check the game's own player and clan search, if it has one.
-4. Look for registered brands or well-known teams with the same or a close name.
-5. Check your tournament's registration list for the same name.
+4. Look for registered brands, creators or well-known teams with the same or a close name.
+5. Check your tournament's registration list for the same name; organisers can catch clashes with the [registration form tool](/tools/registration/).
 6. Claim the handle on the social sites you need the same day you choose the name.
 
-None of the names above is checked for you. They are ideas, and the check is your job. If you want a mood board or a logo next, start from the style group you liked best.` },
-      { h2: "Common mistakes", md: `- Copying a known team's name with one letter changed.
-- Choosing a name with a joke that stops being funny, or one that can offend a sponsor.
-- A name too long for the scoreboard.
-- Special characters that the registration form does not accept.
-- Changing the name every month, so the audience never learns it.
+None of the names on this page is checked for you. They are ideas, and the check is your job.` },
+      { h2: "Naming mistakes that cost a registration", md: `- Copying a known team's name with one letter changed, or adding a number to it.
+- Putting the game's name, logo or a game word in the team name.
+- A joke that stops being funny, or one a sponsor will not put on a poster.
+- A name too long for the scoreboard, or symbols the registration form rejects.
+- Registering one spelling and playing under another.
 - Not asking the whole team. The name has to be one every player is happy to wear.` },
     ],
     faq: [
       { q: "What makes a good esports team name?", a: "A good name is short, easy to say and spell, family friendly and not already used. Test it by saying it out loud, writing it on a scoreboard row and searching it online. If you cannot find the team's page by typing the name, new fans will not find it either." },
       { q: "How can I check if an esports team name is already taken?", a: "Search the name in quotes on a search engine, then on the social sites and video sites you plan to use. Check the game's clan or player search, and ask the tournament organiser for the registered list. A name used by a well-known team or a brand should be avoided." },
       { q: "How long should an esports team name be?", a: "Keep it to one or two words, and short enough to fit a scoreboard row and a jersey print, which in practice means about 14 characters or fewer. A short name is easier to chant, type in chat and show in a stream overlay. Longer names can use a short tag, such as three letters." },
+      { q: "Can one squad use the same name in BGMI and Free Fire events?", a: "Yes, and it helps people recognise you across events. Use the same spelling and the same tag everywhere, check that the name is free in both games' communities, and keep a short note of where it is registered. If another team already uses it in one game, pick a new name rather than adding a number." },
     ],
-    related: ["bgmi-team-names-ideas", "free-fire-team-names-ideas", "run-a-campus-tournament", "player-id-cards"],
+    related: ["bgmi-points-system-explained", "free-fire-tournament-rules-for-organisers", "run-a-campus-tournament", "player-id-cards"],
     cta: { label: "Make a poster with your team name", href: "/tools/poster/" },
   },
 
@@ -778,7 +775,7 @@ The [printable kits](/tools/print-kits/) include a referee checklist if you pref
 - A leaked password: stop, remove strangers, change the password and restart if the match has not begun.
 
 Record every decision in a log with the time. It protects you in a dispute.` },
-      { h2: "Common mistakes", md: `- Creating all rooms the night before and sharing the details early.
+      { h2: "What goes wrong in custom rooms", md: `- Creating all rooms the night before and sharing the details early.
 - Reusing a password.
 - Starting before the roster check, so an extra player is in a team's slot.
 - Changing settings between matches without telling captains.

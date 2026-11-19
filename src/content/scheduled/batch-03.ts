@@ -39,7 +39,7 @@ The numbers above are examples, not a standard. Walk the arena with the venue ma
 If you want a rule that keeps pace high, add a "last man stands" option so a team can continue with a single batter, or require batters to retire after a number of runs so everyone gets a turn. Whatever you choose, apply it equally.` },
       { h2: "Points, ties and tie-breaks", md: `A simple league scheme is 2 points for a win, 1 each for a tie, 0 for a loss. For ties on points, use net run rate if you have a scorer, as in [net run rate explained](/guides/cricket-net-run-rate-explained/), and finish with a super over for knockout matches.
 
-For a short event, a [round robin](/guides/round-robin-single-double-and-tiebreaks/) followed by a final works well, with fixtures from the [round robin generator](/tools/round-robin/).` },
+For a short event, a [round robin](/guides/round-robin-schedule/) followed by a final works well, with fixtures from the [round robin generator](/tools/round-robin/).` },
       { h2: "A one-page rulebook", md: `1. [6] players per side; squads up to [9].
 2. [5] overs per innings; bowlers bowl up to [1] over each.
 3. Scoring: [side net on the full = 4; back net on the full = 6; other hits as marked on the arena plan].
@@ -50,7 +50,7 @@ For a short event, a [round robin](/guides/round-robin-single-double-and-tiebrea
 8. Umpire's decision is final; protests go to [name] before the next match.
 
 You can build the registration page for teams with the [registration form tool](/tools/registration/), and use the ideas in the [cricket rules template](/guides/cricket-tournament-rules-template/) for anything this page leaves out.` },
-      { h2: "Common mistakes", md: `- Not agreeing how the nets are scored until a ball hits one.
+      { h2: "Box cricket rules to avoid leaving vague", md: `- Not agreeing how the nets are scored until a ball hits one.
 - Letting match slots overrun, so the whole evening shifts.
 - Using different rules for different matches because an umpire "remembers" them differently.
 - Forgetting to set a bowling limit.
@@ -104,7 +104,7 @@ Game features for custom matches change with updates. Check what is available an
       { h2: "Recording the results", md: `After each match, a referee or organiser enters placement and eliminations for every team. Keep one results sheet and update it live on a [display screen](/tools/display-screen/) so teams can see the standings.
 
 At the end, check the total and publish the final ranking with the tie-break rule: the best single-match placement, or most eliminations, or a play-off match.` },
-      { h2: "Common mistakes", md: `- Publishing the points table after players ask questions.
+      { h2: "Fortnite scoring mistakes", md: `- Publishing the points table after players ask questions.
 - Allowing teams to submit results without a screenshot.
 - Not writing a teaming rule.
 - Running too many matches for the time available.
@@ -153,7 +153,7 @@ Use high contrast: light text on a dark area, or dark text on a light area. Avoi
 Point it at a registration page or form. Print the web address in small text beneath it as a backup. Test it with two phones at the final size. The [registration form tool](/tools/registration/) gives you the link.` },
       { h2: "Exporting and sharing", md: `Export the stories and feed versions as PNG or high-quality JPEG. For print, export a high-resolution PDF or image and check it at actual size.
 
-When you share on WhatsApp, send the image as a photo for viewing, and keep a clean file for people who want to forward it. For the same poster idea in another sport, see the guide to [football tournament posters](/guides/football-tournament-poster-ideas/).` },
+When you share on WhatsApp, send the image as a photo for viewing, and keep a clean file for people who want to forward it. For the same poster idea in another sport, see the guide to [football tournament posters](/guides/cricket-tournament-poster-ideas/).` },
       { h2: "Common mistakes", md: `- Sharing the print file on WhatsApp, which compresses it and blurs the text.
 - Putting the date at the very top of a story where the app covers it.
 - A QR code that is too small to scan.
@@ -165,7 +165,7 @@ When you share on WhatsApp, send the image as a photo for viewing, and keep a cl
       { q: "What size should a tournament poster be for printing?", a: "A4 or A3 portrait are the usual notice-board sizes. Export a high-resolution PDF or image, leave a margin of at least 1 cm, and check the QR code at actual size before you print a batch. For banners and standees, use fewer words and larger text because they are read from a distance." },
       { q: "How big should a QR code be on a poster?", a: "For A4 print, at least 2 cm wide with a blank border around it, and larger for a standee. On a phone image, make it large enough to scan from another screen, around a fifth of the poster's width. Always test the final file on two phones, and add the web address in small text as a backup." },
     ],
-    related: ["football-tournament-poster-ideas", "cricket-tournament-poster-ideas", "college-fest-esports-poster"],
+    related: ["cricket-tournament-poster-ideas", "college-fest-esports-poster"],
     cta: { label: "Make your poster in every size", href: "/tools/poster/" },
   },
 
@@ -189,7 +189,7 @@ When you share on WhatsApp, send the image as a photo for viewing, and keep a cl
 Multiply the total by the slot length. For 15 matches at 13 minutes, that is just under 3.5 hours on one pitch. Use two pitches to halve it.` },
       { h2: "Choose the format", md: `Groups of 4 play 3 matches each, which means every team gets at least three games, a good deal for an entry fee. Our guide to [group stage plus knockout](/guides/group-stage-and-knockout-planning/) covers the draw and the cross-over.
 
-If you have only 4 to 6 teams, a single [round robin](/guides/round-robin-single-double-and-tiebreaks/) is simpler, and the [round robin generator](/tools/round-robin/) writes the fixtures.` },
+If you have only 4 to 6 teams, a single [round robin](/guides/round-robin-schedule/) is simpler, and the [round robin generator](/tools/round-robin/) writes the fixtures.` },
       { h2: "Points and tie-breaks", md: `${F.football.text} Use the same points as the main game so players know them. For ties, use goal difference, then goals scored, then the result between the tied teams, then a penalty shoot-out. The [football points guide](/guides/football-points-system-and-tiebreakers/) explains the order.
 
 For a knockout match that is level at full time, go straight to penalties, to protect the schedule.` },
@@ -215,7 +215,7 @@ Write the six points above on one page and share it with every captain before re
 | 14:45 | Final and prizes |
 
 Use the [schedule maker](/tools/schedule/) to check the real numbers for your pitch count and match length.` },
-      { h2: "Common mistakes", md: `- Planning the schedule without counting the changeover time.
+      { h2: "Five-a-side planning mistakes", md: `- Planning the schedule without counting the changeover time.
 - Using groups of 5 on a single pitch, which adds 10 matches per group.
 - Not publishing the tie-break order.
 - Letting matches run over their slot.
@@ -226,7 +226,7 @@ Use the [schedule maker](/tools/schedule/) to check the real numbers for your pi
       { q: "How many teams can play on one pitch in a day?", a: "It depends on the slot length and your booking. With 13-minute slots, one pitch fits about 4.5 matches an hour, so 16 teams with a group stage and knockout need roughly 31 matches, which is about 7 hours. Use two pitches or a smaller field if the booking is shorter." },
       { q: "What is the best format for a five-a-side tournament?", a: "Groups of 4 followed by a knockout is a good default, because each team plays at least three matches and the knockout gives a clear end. For 4 to 6 teams, a single round robin is simpler. Choose after you count the pitch time, not before." },
     ],
-    related: ["football-points-system-and-tiebreakers", "group-stage-and-knockout-planning", "round-robin-single-double-and-tiebreaks"],
+    related: ["football-points-system-and-tiebreakers", "group-stage-and-knockout-planning", "round-robin-schedule"],
     cta: { label: "Build the groups and knockout", href: "/tools/groups/" },
   },
 
@@ -266,7 +266,7 @@ This is an example scale, not an official one. Use your own, publish it, and app
       { h2: "Proof and fair play", md: `Ask each team to send a screenshot of the match result with its placement and eliminations. Keep a referee in the room as an observer if you can, to see teaming or other violations.
 
 Write a short rule on teaming, emulators, hacks and abusive chat, with a penalty, such as losing the points of that match or being removed from future scrims. Apply it the same way every time.` },
-      { h2: "Common mistakes", md: `- Sharing room details publicly, so uninvited players join.
+      { h2: "Why scrim groups fall apart (and how to avoid it)", md: `- Sharing room details publicly, so uninvited players join.
 - Starting late because teams are still joining.
 - Changing the points scale mid-evening.
 - No proof of results.
@@ -300,7 +300,7 @@ Write a short rule on teaming, emulators, hacks and abusive chat, with a penalty
 | Round robin, double | n times (n minus 1) |
 | Swiss, r rounds | n divided by 2, times r |
 
-These are the numbers that drive your schedule. See the guides on [double elimination](/guides/double-elimination-bracket-explained/), [round robin](/guides/round-robin-single-double-and-tiebreaks/) and [Swiss](/guides/swiss-system-tournament-explained/) for how each works.` },
+These are the numbers that drive your schedule. See the guides on [double elimination](/guides/double-elimination-bracket-explained/), [round robin](/guides/round-robin-schedule/) and [Swiss](/guides/swiss-system-tournament-explained/) for how each works.` },
       { h2: "A comparison for 16 teams", md: `| Format | Matches |
 |---|---|
 | Single elimination | 15 |
@@ -331,7 +331,7 @@ A worked example: a hall is booked from 10:00 to 17:00, which is 7 hours. Take o
 - Close registration and keep a waiting list.
 
 The [plan my tournament tool](/tools/plan/) walks through these choices for your numbers.` },
-      { h2: "Common mistakes", md: `- Opening registration with no team cap.
+      { h2: "Sizing mistakes to avoid", md: `- Opening registration with no team cap.
 - Forgetting the changeover time in the slot.
 - Planning the knockout rounds for the average length, not the longest.
 - Using a round robin for 12 or more teams in one day.
@@ -342,7 +342,7 @@ The [plan my tournament tool](/tools/plan/) walks through these choices for your
       { q: "How do I calculate how long a tournament will take?", a: "Count the matches your format needs, multiply by the slot length (match plus changeover), and divide by the number of courts or screens in use at once. Compare the result with the hours you have. Plan for the longest series in each round, not the average." },
       { q: "How many teams should I accept?", a: "Work backwards from your time: total hours minus set-up and breaks, divided by the slot length, times the number of courts, gives the matches you can play. Then choose the largest team count whose match total fits your format. Set that as the cap and keep a waiting list." },
     ],
-    related: ["choosing-a-tournament-format", "round-robin-single-double-and-tiebreaks", "double-elimination-bracket-explained"],
+    related: ["choosing-a-tournament-format", "round-robin-schedule", "double-elimination-bracket-explained"],
     cta: { label: "Plan your tournament", href: "/tools/plan/" },
   },
 
@@ -385,8 +385,8 @@ Many events choose two or three in order, then end with a play-off or a draw of 
 Order by Buchholz first: Asha and Ravi tie on 14.5, and Meera has 13, so Meera is third. Between Asha and Ravi, the next rule is head-to-head, and Asha beat Ravi, so Asha is first and Ravi second. Wins would also have favoured Asha.` },
       { h2: "A rule to copy", md: `"Players tied on points are ranked in this order: 1. Buchholz, 2. result between the tied players, 3. number of wins, 4. a play-off game for first place, otherwise a draw of lots."
 
-Print it on the registration page built with the [registration form tool](/tools/registration/), and again on the first pairing sheet. For the pairing and round structure, see [how to run a Swiss chess tournament](/guides/how-to-run-a-swiss-chess-tournament/).` },
-      { h2: "Common mistakes", md: `- Not choosing the tie-break before round one.
+Print it on the registration page built with the [registration form tool](/tools/registration/), and again on the first pairing sheet. For the pairing and round structure, see [Swiss system explained](/guides/swiss-system-tournament-explained/).` },
+      { h2: "Chess tie-break mistakes", md: `- Not choosing the tie-break before round one.
 - Using Buchholz for a round robin, where every player met the same opponents.
 - Forgetting a final rule that cannot tie.
 - Confusing players by changing the points scheme.
@@ -397,7 +397,7 @@ Print it on the registration page built with the [registration form tool](/tools
       { q: "What is Buchholz in chess?", a: "Buchholz is the sum of the final scores of all the opponents a player has faced. It is the most common first tie-break in Swiss tournaments, because a player who faced stronger opposition ranks above one who faced weaker players on the same score. Some events cut the lowest score before summing." },
       { q: "Should I use Buchholz in a round robin?", a: "Usually not. In a round robin every player faces the same opponents, so Buchholz is nearly the same for everyone and does not separate players well. Use head-to-head, number of wins or Sonneborn-Berger instead, and finish with a play-off if first place is tied." },
     ],
-    related: ["swiss-system-tournament-explained", "how-to-run-a-swiss-chess-tournament", "chess-tournament-rules-for-organisers"],
+    related: ["swiss-system-tournament-explained", "chess-tournament-rules-for-organisers"],
     cta: { label: "Build the registration page", href: "/tools/registration/" },
   },
 
@@ -441,7 +441,7 @@ Write the setup in the rules so no team can say it was not told. Our general [cu
 - Teams must send a screenshot of the final score to the referee.
 - Disputes go to the organiser within 10 minutes of the match.
 - If the team count is not a power of two, the top seeds get byes. See [byes explained](/guides/tournament-bracket-byes-explained/) for how many you need.` },
-      { h2: "Common mistakes", md: `- Using a points table for a 4v4 mode.
+      { h2: "Clash Squad event mistakes", md: `- Using a points table for a 4v4 mode.
 - Not locking rosters, so teams change players between rounds.
 - Starting without a disconnect rule.
 - Letting captains agree match times privately.
@@ -493,7 +493,7 @@ For a team that tells you in advance, you may allow a reschedule within a window
       { h2: "Tell teams, then record it", md: `Send the rules on no-shows with the schedule. Remind captains the day before. On the day, call the missing team once, record the time, and mark the forfeit on the sheet and the [match schedule](/tools/schedule/).
 
 Write the record in one place: team, match, time called, time recorded. If a team disputes it, you have the answer.` },
-      { h2: "Common mistakes", md: `- Changing the grace period for some teams.
+      { h2: "No-show handling that goes wrong", md: `- Changing the grace period for some teams.
 - Not saying how a forfeit appears in the table.
 - Confusing a walkover with a bye.
 - Waiting for a late team so long that the whole schedule slips.
@@ -556,7 +556,7 @@ Protests must be made in writing to the organiser before the next match, with th
 7. A team more than [10] minutes late forfeits 3-0.
 8. Knockout draws go to penalties.
 9. The referee's decisions are final; protests in writing to [name] before the next match.` },
-      { h2: "Common mistakes", md: `- Not setting a squad limit, so teams add players all day.
+      { h2: "Football rule gaps to avoid", md: `- Not setting a squad limit, so teams add players all day.
 - No rule for cards across stages.
 - Forgetting the penalty-shoot-out rule for knockouts.
 - Not telling teams the match length.

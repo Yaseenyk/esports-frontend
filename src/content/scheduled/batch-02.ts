@@ -33,9 +33,9 @@ If you have no ranking and are drawing at random, draw the byes openly like any 
 
 - Say in the rules who gets byes and why, before registration closes.
 - Run a play-in round instead: the lowest-seeded teams play first to get the field down to a power of two, and nobody gets a free pass.
-- Choose a format that needs no byes, such as a [round robin](/guides/round-robin-single-double-and-tiebreaks/) or a [Swiss system](/guides/swiss-system-tournament-explained/), where every team plays every round.` },
+- Choose a format that needs no byes, such as a [round robin](/guides/round-robin-schedule/) or a [Swiss system](/guides/swiss-system-tournament-explained/), where every team plays every round.` },
       { h2: "Byes in a double elimination bracket", md: `The same rule applies, but the effect is smaller: a team that gets a bye in round one still has a second life if it loses its first real match. The [double elimination tool](/tools/double-elimination/) places byes automatically. See [double elimination explained](/guides/double-elimination-bracket-explained/) for how the losers bracket handles a missing team.` },
-      { h2: "Common mistakes", md: `- Giving byes to friends or to the organiser's own team.
+      { h2: "Bye mistakes to avoid", md: `- Giving byes to friends or to the organiser's own team.
 - Putting all the byes in one half, so one half of the bracket is weaker than the other.
 - Announcing the byes after the draw.
 - Forgetting that a bye is not a win for tie-break purposes in a group stage. In a knockout it does not matter, in a league you must say what it counts for.` },
@@ -93,7 +93,7 @@ Decide whether players may play for more than one team, and what the transfer de
 8. Points: win 2, tie or no result 1, loss 0.
 9. Tie-breaks: net run rate, then head-to-head, then a toss.
 10. Protests: to [name], in writing, within [30] minutes of the match.` },
-      { h2: "Common mistakes", md: `- Not stating the bowling limit and finding out mid-match.
+      { h2: "Rule gaps that go wrong in local cricket", md: `- Not stating the bowling limit and finding out mid-match.
 - Letting each team supply its own umpire without a rule for disputes.
 - Leaving rain rules until it rains.
 - Changing the points scheme between groups.
@@ -145,7 +145,7 @@ Our [tournament rules template](/guides/esports-tournament-rules-template/) has 
       { h2: "Proving who won", md: `Use an admin or referee in the server to watch each match, or ask teams to record their screen. A recording settles most disputes in minutes.
 
 Have each match's result posted by the referee in a shared channel with the team names. If you have no referees, ask both captains to post a screenshot of the end screen and treat a mismatch as a dispute to be settled by the organiser.` },
-      { h2: "Common mistakes", md: `- Not checking the edition, so players cannot join.
+      { h2: "Server and judging mistakes to avoid", md: `- Not checking the edition, so players cannot join.
 - Running a mode nobody has tried in a test.
 - Allowing mods without saying which ones.
 - Having no admin on the server when a match starts.
@@ -220,7 +220,7 @@ If prizes depend on a tie, such as first place, you may play a short play-off ga
       { q: "How many rounds should a school chess tournament have?", a: "Use the base-2 logarithm of the players as a minimum: 3 rounds for 8 players, 4 for 16 and 5 for 32. If time allows, add one more round. For a school event with limited time, 4 or 5 short rounds of rapid chess is a common choice and finishes within a day." },
       { q: "Do I need software to run a Swiss tournament?", a: "No. For up to about 30 players you can run it with a printed sheet and pencil, or a spreadsheet sorted by score before each round. Software saves time above that, but the most important skills are recording results carefully and never pairing two players twice." },
     ],
-    related: ["swiss-system-tournament-explained", "chess-tournament-rules-for-organisers", "round-robin-single-double-and-tiebreaks"],
+    related: ["swiss-system-tournament-explained", "chess-tournament-rules-for-organisers", "round-robin-schedule"],
     cta: { label: "Build the registration form", href: "/tools/registration/" },
   },
 
@@ -264,7 +264,7 @@ The [match schedule maker](/tools/schedule/) turns series lengths and match dura
       { h2: "Special cases", md: `- Double elimination: use a shorter series in the winners bracket and losers bracket, and a longer series for the grand final. See [double elimination explained](/guides/double-elimination-bracket-explained/).
 - Round robin and group stages: usually best of 1, because every team plays many matches and the table averages out luck.
 - Games with sides or maps: in a series, alternate sides or maps so neither team has the same advantage every game. Map-based games such as Valorant and CS2 handle this with a veto, which later guides in this series cover.` },
-      { h2: "Common mistakes", md: `- Scheduling for the average length and running late.
+      { h2: "Series-length mistakes", md: `- Scheduling for the average length and running late.
 - Using an even number of games, leaving a possible draw.
 - Using best of 1 for the final of a big event.
 - Changing the series length mid-event.
@@ -319,7 +319,7 @@ For overtime sides, follow the game's built-in rules unless your rulebook says o
 - Give each captain a time limit per decision, such as 30 seconds, and a default if time runs out.
 - Post the result in the match thread so both teams can see the maps and sides before the match.
 - Keep a single page called "Map pool and veto" in your rules. You can link to it from the [rules template](/guides/esports-tournament-rules-template/) and from your [bracket](/tools/brackets/).` },
-      { h2: "Common mistakes", md: `- Letting teams agree maps privately and then dispute them.
+      { h2: "Map veto mistakes", md: `- Letting teams agree maps privately and then dispute them.
 - Not writing the veto order, so each match uses a different one.
 - Changing the map pool mid-event.
 - No time limit per decision.
@@ -410,7 +410,7 @@ Put the rules link at the top of the form, so teams read it before they pay. Aft
 | 16 | 4 groups of 4 | 24 |
 | 20 | 4 groups of 5 | 40 |
 
-Match counts are 6 per group of 4 and 3 per group of 3. Use the [round robin guide](/guides/round-robin-single-double-and-tiebreaks/) for the formula.` },
+Match counts are 6 per group of 4 and 3 per group of 3. Use the [round robin guide](/guides/round-robin-schedule/) for the formula.` },
       { h2: "How many teams qualify", md: `Choose so that the knockout stage is a clean power of two.
 
 - 4 groups, top 2 from each: 8 teams in the quarter-finals.
@@ -437,7 +437,7 @@ This keeps teams from the same group apart, and rewards group winners with the w
       { h2: "Scheduling the stages", md: `Run the group matches in rounds, so every team plays once before anyone plays twice. The final group round should be played at the same time for the two matches in each group, so no team knows the exact result it needs.
 
 Leave a gap between the last group round and the first knockout, for results, tie-breaks and a new draw sheet. The [schedule maker](/tools/schedule/) builds a timetable for the whole event.` },
-      { h2: "Common mistakes", md: `- Not writing the tie-break order for the groups. Use the order in the [football points guide](/guides/football-points-system-and-tiebreakers/) as a starting point.
+      { h2: "Group stage mistakes that break the knockout", md: `- Not writing the tie-break order for the groups. Use the order in the [football points guide](/guides/football-points-system-and-tiebreakers/) as a starting point.
 - Drawing groups after seeing results from earlier events with no rule.
 - Letting group winners meet their own group's runner-up in round one.
 - Playing the last group round at different times.` },
@@ -447,7 +447,7 @@ Leave a gap between the last group round and the first knockout, for results, ti
       { q: "How many matches are in a group stage?", a: "A group of 4 has 6 matches, a group of 3 has 3 and a group of 5 has 10. Multiply by the number of groups. Four groups of 4 therefore play 24 group matches before the knockout stage starts. Use that figure to check the schedule against your venue and hours." },
       { q: "How do I avoid group rematches in the knockout?", a: "Pair each group winner with another group's runner-up in the first knockout round, as in winner A against runner-up B. Teams from the same group are then placed in different halves and can only meet again in the final. A groups-and-knockout tool will generate this cross-over for you." },
     ],
-    related: ["round-robin-single-double-and-tiebreaks", "how-to-seed-a-tournament-bracket", "football-points-system-and-tiebreakers"],
+    related: ["round-robin-schedule", "how-to-seed-a-tournament-bracket", "football-points-system-and-tiebreakers"],
     cta: { label: "Build the groups and knockout", href: "/tools/groups/" },
   },
 
@@ -493,7 +493,7 @@ Add a clear rule on cheating and a penalty. The [rules template](/guides/esports
 5. Results written down by the referee, then posted on the bracket.
 
 Give captains one contact number or chat channel for problems, and answer it quickly. Most match-day delays in CS2 events come from server details sent late, not from the game.` },
-      { h2: "Common mistakes", md: `- Not testing the server config before the event.
+      { h2: "Where CS2 events go wrong", md: `- Not testing the server config before the event.
 - Leaving pause rules unwritten.
 - Planning each match for one hour with a best-of-3 in the schedule.
 - Not setting an overtime rule.
@@ -550,7 +550,7 @@ Two teams are level on points and goal difference here, so the next rule applies
       { h2: "Publish it, and stick to it", md: `Put the tie-break order on your rules page and on the registration form, and read it out at the captains' meeting. Use the [round robin generator](/tools/round-robin/) and keep the table in one place so it can be checked.
 
 If you spot a gap during the event, fix it for the next event. Do not change the order mid-tournament, because whichever way you change it, some team benefits.` },
-      { h2: "Common mistakes", md: `- Choosing the order after the tie appears.
+      { h2: "Tie-breaker wording that goes wrong", md: `- Choosing the order after the tie appears.
 - Ending with a rule that can also tie.
 - Not covering a three-way tie.
 - Using different orders for different groups.
@@ -561,7 +561,7 @@ If you spot a gap during the event, fix it for the next event. Do not change the
       { q: "How do you break a three-way tie?", a: "Use a mini-table that only counts the matches among the three tied teams, and rank them by points, then score difference within those matches. If they are still level, return to the overall record, and finish with a play-off or draw of lots. Write the three-way rule in advance." },
       { q: "Should head-to-head come before goal difference?", a: "Either order is used by real competitions. What matters is that you choose one before the event, write it in the rules and apply it equally. Many local events put head-to-head first when two teams are tied, and score difference first when three or more are tied." },
     ],
-    related: ["football-points-system-and-tiebreakers", "round-robin-single-double-and-tiebreaks", "cricket-net-run-rate-explained"],
+    related: ["football-points-system-and-tiebreakers", "round-robin-schedule", "cricket-net-run-rate-explained"],
     cta: { label: "Generate fixtures and keep the table", href: "/tools/round-robin/" },
   },
 ];

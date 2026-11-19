@@ -105,7 +105,7 @@ At a LAN, you can see the screens, control the devices and check IDs at the gate
       { h2: "A worked example", md: `A college fest expects 16 teams from four cities. Travel is hard, and the fest hall is booked for one afternoon only.
 
 A workable plan: run online qualifiers over two evenings with a bracket and referees on a call, then bring the top 4 teams to the hall for a LAN final. Stream the final. The cost stays low, the semi-finals and final are watched by referees in the room, and the venue time is used only for the matches that matter most.` },
-      { h2: "Common mistakes", md: `- Booking a venue before you know how many teams will come.
+      { h2: "Wrong reasons to pick online or LAN", md: `- Booking a venue before you know how many teams will come.
 - Running a LAN without testing the network with the real number of devices.
 - Running an online event with no way to check results.
 - Mixing both without telling players which rules apply to which stage.
@@ -154,7 +154,7 @@ Do not redraw because someone dislikes a result. If you promise a random draw an
       { h2: "A worked draw", md: `Take 12 teams and 3 groups of 4. Make 4 pots of 3: seeds 1 to 3, seeds 4 to 6, seeds 7 to 9 and seeds 10 to 12.
 
 Draw pot 1 first, one team into each of groups A, B and C. Then draw pot 2 the same way, then pot 3, then pot 4. Each group ends with one team from every pot, so no group has two top seeds and none is left with all the weakest teams. Post the finished groups straight away, with the recording link.` },
-      { h2: "Common mistakes", md: `- Drawing in private and announcing the result.
+      { h2: "Draw mistakes that look unfair", md: `- Drawing in private and announcing the result.
 - Forming pots after seeing who is entered.
 - Redrawing when captains complain.
 - Not recording the draw.
@@ -216,7 +216,7 @@ The [rules template](/guides/esports-tournament-rules-template/) has wording for
 | 21:00 | Final, best of 3 |
 
 If you have fewer referees than matches, stagger the quarter-finals and add an hour. Check the schedule against the real length of a match in your chosen mode.` },
-      { h2: "Common mistakes", md: `- Not choosing the mode until registration is full.
+      { h2: "CODM format mistakes", md: `- Not choosing the mode until registration is full.
 - Using different settings in different matches.
 - Having no rule for disconnects.
 - Not recording results.
@@ -270,7 +270,7 @@ Give each person a printed sheet with these points and a phone number.` },
 | Floating helper | 1 | Fetches, replaces, covers breaks |
 
 That is about 9 to 10 people for a one-day event with four matches running at once. Volunteers can cover several of these roles in turn if the schedule has gaps.` },
-      { h2: "Common mistakes", md: `- One person doing refereeing, scoring and announcements.
+      { h2: "Refereeing mistakes to avoid", md: `- One person doing refereeing, scoring and announcements.
 - Letting each team supply its own referee with no neutral check.
 - Not briefing officials before the first match.
 - Leaving results in several places.
@@ -330,7 +330,7 @@ Add a second category in the afternoon if you have the courts.` },
       { h2: "Seeding and odd numbers", md: `If you have an odd number of entries, use byes for the top seeds. Eleven players need a 16-player bracket with 5 byes, and the bracket maker places them automatically. See [byes explained](/guides/tournament-bracket-byes-explained/) for the rule.
 
 Seed the strongest players so they meet late, using the standard order in the [seeding guide](/guides/how-to-seed-a-tournament-bracket/). In doubles, seed pairs, not individuals, and keep pairs fixed once the bracket is drawn.` },
-      { h2: "Common mistakes", md: `- Using a rulebook that is out of date on scoring.
+      { h2: "Badminton draw and scoring mistakes", md: `- Using a rulebook that is out of date on scoring.
 - Planning match slots without the warm-up.
 - Too many categories for the courts available.
 - No rule for a late player.
@@ -389,7 +389,7 @@ Now run the checks: Can someone spell it after hearing it once? Is another event
       { q: "Should a tournament name include the year?", a: "Only for a one-off event. For one you plan to repeat, use a fixed name and an edition number or season, such as Season 2. That way, the name builds recognition over time and the date can change without a rename. Put the year on the poster as a separate line." },
       { q: "Can I use a game's name in my tournament name?", a: "You can say that a tournament is for a game, such as a Valorant open or a BGMI squad cup, but do not suggest the publisher runs it. Publishers have their own conditions for tournaments and prizes, and they change, so check them before you advertise prize money." },
     ],
-    related: ["football-tournament-poster-ideas", "college-fest-esports-poster", "tournament-poster-sizes-whatsapp-instagram-print"],
+    related: ["cricket-tournament-poster-ideas", "college-fest-esports-poster", "free-fire-tournament-poster"],
     cta: { label: "Put the name on a poster", href: "/tools/poster/" },
   },
 
@@ -430,7 +430,7 @@ Treat everyone as innocent until the evidence says otherwise. False accusations 
 6. The head referee decides in writing; appeals go to the organiser within [30] minutes.
 
 Put this on the registration page and ask each captain to confirm they have read it.` },
-      { h2: "Common mistakes", md: `- Relying on trust with no way to check.
+      { h2: "Anti-cheat mistakes that backfire", md: `- Relying on trust with no way to check.
 - Writing rules without penalties.
 - Not locking rosters.
 - Accepting results from one team only.
@@ -481,7 +481,7 @@ Each extra category adds matches and table time. Choose the categories you can f
       { h2: "Odd numbers and byes", md: `If 11 players enter a straight knockout, the bracket has 16 places and 5 byes, and the top 5 seeds skip the first round. See [byes explained](/guides/tournament-bracket-byes-explained/) for the arithmetic.
 
 In groups, a group of 3 plays 3 matches and a group of 5 plays 10. When entries do not divide evenly, mix groups of 3 and 4 and say how the qualifiers are chosen, such as the top 2 from each group plus the best third-placed players.` },
-      { h2: "Common mistakes", md: `- Taking more entries than the tables can handle.
+      { h2: "Table tennis event mistakes", md: `- Taking more entries than the tables can handle.
 - Not planning table time for the longest matches.
 - Mixing categories on the same bracket.
 - No rule for a late player.
@@ -541,7 +541,7 @@ The [rules template](/guides/esports-tournament-rules-template/) has conduct wor
 | Grand final | 1 |
 
 Check the real length of a series in a test match, then fit the evening around it. Use the [match schedule maker](/tools/schedule/) for the timetable.` },
-      { h2: "Common mistakes", md: `- Not fixing the team size before registration.
+      { h2: "Rocket League event mistakes", md: `- Not fixing the team size before registration.
 - Using different settings in different matches.
 - No rule for overtime or disconnects.
 - Scheduling a best-of-5 as if it were a best-of-1.

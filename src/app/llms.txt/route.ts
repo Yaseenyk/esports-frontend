@@ -1,4 +1,4 @@
-import { GUIDES } from "@/content/guides";
+import { LISTED_GUIDES as GUIDES } from "@/content/guides";
 import { TOOLS } from "@/lib/data";
 import { ESPORTS_PAGE } from "@/lib/esports-id-page";
 import { STUDENT_PAGE } from "@/lib/student-page";
@@ -24,7 +24,7 @@ export function GET() {
 - Draws brackets (single and double elimination), round robin and group-stage fixtures, and ranks points tables for battle royale lobbies.
 - Makes tournament posters, ID cards, certificates and printable kits, and builds registration forms.
 - Scans players in at the gate with QR codes, and shows live standings on a TV or in OBS.
-- Guides explain formats, scoring, rules and running an event. New guides are published three times a week (Monday, Wednesday, Friday).
+- Guides explain formats, scoring, rules and running an event. New guides are published twice a week (Monday and Wednesday).
 
 ## Free tools
 

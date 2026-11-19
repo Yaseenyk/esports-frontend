@@ -2,6 +2,7 @@ import { EXAMPLE_SCALE, standings, type TeamEntry } from "@/lib/points";
 import { MORE_GUIDES } from "./guides-more";
 import { GROWTH_GUIDES } from "./guides-growth";
 import { LIVE_NOW, RELEASED } from "./scheduled";
+import MERGED_JSON from "./merged-guides.json";
 
 /** Inline links are written as [text](/path/) inside paragraphs, lists and notes. */
 export type Block =
@@ -856,3 +857,12 @@ export const CORE_GUIDES: Guide[] = [...BASE_GUIDES, ...MORE_GUIDES, ...GROWTH_G
 export const GUIDES: Guide[] = [...CORE_GUIDES, ...LIVE_NOW, ...RELEASED].sort((a, b) => b.published.localeCompare(a.published));
 
 export const guideBySlug = (slug: string) => GUIDES.find((g) => g.slug === slug);
+
+/**
+ * Guides merged into a stronger one (19 Nov 2026, AdSense low-value review). Their pages still build, so old links and shares work,
+ * but they are noindex, left out of the sitemap, llms.txt and every list, and they point readers to the guide that replaced them.
+ * scripts/verify-seo.mjs reads the same JSON file and checks the noindex.
+ */
+export const MERGED: Record<string, string> = MERGED_JSON;
+/** The guides a visitor or a search engine is pointed to: every live guide except the merged ones. */
+export const LISTED_GUIDES: Guide[] = GUIDES.filter((g) => !MERGED[g.slug]);

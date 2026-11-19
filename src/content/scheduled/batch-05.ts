@@ -42,7 +42,7 @@ The whole process takes about 20 minutes, and the schedule moves on.` },
       { h2: "Wording to copy", md: `"A protest must be made in writing to the head referee within [15] minutes of the match ending, with evidence. The head referee decides in writing. A team may appeal once to [name] within [10] minutes, and the appeal can only review whether the rules were applied correctly. Decisions after the appeal are final."
 
 Put it in your [rules template](/guides/esports-tournament-rules-template/) and on the registration page.` },
-      { h2: "Common mistakes", md: `- Letting protests come in after the next match.
+      { h2: "Dispute handling that goes wrong", md: `- Letting protests come in after the next match.
 - Deciding on the spot without looking at evidence.
 - Having several people decide, and getting several answers.
 - Not writing the decision down.
@@ -106,7 +106,7 @@ Use the [schedule maker](/tools/schedule/) to check with your real match length.
 - Ball and net height: state them for age groups.
 - Who referees pool matches: neutral referees if you can.
 - Protests: in writing before the next match.` },
-      { h2: "Common mistakes", md: `- Planning each match for three sets and finding it takes five.
+      { h2: "Volleyball points-table mistakes", md: `- Planning each match for three sets and finding it takes five.
 - Not stating the format by stage.
 - Leaving tie-breaks until after the pools.
 - Booking a hall for the pool matches only, with no time for the knockout.
@@ -159,7 +159,7 @@ For conduct, ban cheating tools and abusive chat with a penalty. The [rules temp
       { h2: "A sample timeline", md: `For 8 teams in double elimination, there are 14 matches. If a best-of-3 takes about 90 minutes, and you run two matches at once, plan for around 10 hours of matches. That is why many organisers use best of 1 early, run the event over two days, or cap the field at 8.
 
 Check the real length of a game in a test match, then cut the format to fit. The [schedule maker](/tools/schedule/) helps you test the numbers.` },
-      { h2: "Common mistakes", md: `- Scheduling a best-of-3 as if it were an hour.
+      { h2: "Dota 2 event mistakes", md: `- Scheduling a best-of-3 as if it were an hour.
 - Not testing the lobby and draft with two teams.
 - Leaving pauses and disconnects unwritten.
 - Allowing roster changes between games.
@@ -258,7 +258,7 @@ Keep a points table: typically points for a win, a tie and a loss, plus score di
       { h2: "Safety and the playing surface", md: `Kabaddi is a contact sport. Check the playing surface for hard or uneven areas, and use proper mats where you can. Have first aid on site, and a plan for an injury, including a nearby hospital and a person with a phone.
 
 Set a rule on players who are injured: a substitute may replace them. Write the safety plan on one page and give it to the head referee.` },
-      { h2: "Common mistakes", md: `- Not stating which rule set applies.
+      { h2: "Kabaddi event mistakes to avoid", md: `- Not stating which rule set applies.
 - Planning too many matches for one court.
 - No first aid or injury plan.
 - Letting each referee interpret a different rule set.
@@ -321,7 +321,7 @@ Alpha leads by 4 points even though Bravo won a match, because Alpha was consist
 - Hacks and modified clients mean removal.
 - A disconnected squad keeps the points it earned; there is no replay.
 - Results are final after the protest window, as in the [dispute process guide](/guides/tournament-dispute-process-protest-window/).` },
-      { h2: "Common mistakes", md: `- Publishing the points table late.
+      { h2: "Apex lobby and scoring mistakes", md: `- Publishing the points table late.
 - Changing the table mid-event.
 - Accepting results with no screenshot.
 - Not writing a teaming rule.
@@ -421,13 +421,13 @@ Write the rules for common disputes: wide and no-ball, caught off a boundary lin
       { h2: "Points, ties and net run rate", md: `A common scheme is 2 points for a win and 1 for a tie or no result. Use net run rate to separate teams on equal points, as in [net run rate explained](/guides/cricket-net-run-rate-explained/), and a super over for a tied knockout match.
 
 Print the points table and update it after every match, so teams know where they stand. The [cricket league points table guide](/guides/cricket-league-points-table/) shows the columns.` },
-      { h2: "Registration, fees and prizes", md: `Build a registration form with team name, captain, contact, squad names and ages. The [registration form tool](/tools/registration/) does this, and the [cricket registration form guide](/guides/cricket-tournament-registration-form/) lists the fields.
+      { h2: "Registration, fees and prizes", md: `Build a registration form with team name, captain, contact, squad names and ages. The [registration form tool](/tools/registration/) does this, and the [registration form guide](/guides/tournament-registration-form-fields/) lists the fields.
 
-Decide the entry fee and the prizes before you advertise. See [prize pool and payout split](/guides/tournament-prize-pool-and-payout-split/) for how to plan them honestly. Make certificates with the [certificate maker](/tools/certificates/).` },
+Decide the prizes before you advertise, and fund them from a sponsor or your club rather than from entry fees. Trophies, certificates and sponsor products are the simplest prizes for a local event. Make certificates with the [certificate maker](/tools/certificates/).` },
       { h2: "Match day", md: `Arrive early and check the pitch, the boundary and the ball. Start on time, and keep each match to its slot. Post the fixtures where captains can see them, and the results after each match.
 
 Have a plan for rain: a covered area, a reserve day or a shortened format. Our [cricket rules template](/guides/cricket-tournament-rules-template/) shows how to write the rain rule.` },
-      { h2: "Common mistakes", md: `- Rules that exist only in people's heads.
+      { h2: "Tennis-ball cricket mistakes", md: `- Rules that exist only in people's heads.
 - Too many matches for the daylight.
 - Letting teams supply their own umpires without a rule for disputes.
 - No rain plan.
@@ -438,7 +438,7 @@ Have a plan for rain: a covered area, a reserve day or a shortened format. Our [
       { q: "How do I organise a tennis ball cricket tournament?", a: "Fix the overs, team size and local rules, choose a format that fits your daylight and ground, register teams with a squad list, appoint neutral umpires and a scorer, publish fixtures and a points table, and plan for rain. Write all of it on one page and share it before the first match." },
       { q: "What is the best format for a local cricket tournament?", a: "A knockout is quickest: 8 teams need 7 matches. Groups followed by a knockout give every team more matches: 8 teams in two groups need 15. A round robin suits 4 to 6 teams. Count the matches against your daylight and grounds before you choose." },
     ],
-    related: ["cricket-tournament-rules-template", "cricket-tournament-registration-form", "cricket-net-run-rate-explained"],
+    related: ["cricket-tournament-rules-template", "tournament-registration-form-fields", "cricket-net-run-rate-explained"],
     cta: { label: "Build the registration form", href: "/tools/registration/" },
   },
 
@@ -490,7 +490,7 @@ Post each round's pairings as soon as the previous round ends, with a deadline f
       { q: "How do you prove the score in an online football game?", a: "Ask both players to send a screenshot of the full-time score showing both names, and keep results in one place. If the screenshots disagree, ask for a replay of the match or have the pair replay on a call with a referee. A player who will not send proof should forfeit, per the rules." },
       { q: "What if a player disconnects in the match?", a: "Write the rule beforehand. A common approach is a replay if the disconnect happens early, and the score standing if it happens late, with a player who disconnects repeatedly being removed. Choose the cut-off yourself, publish it, and apply it to every match in the event." },
     ],
-    related: ["clash-royale-tournament-how-to-run", "football-points-system-and-tiebreakers", "round-robin-single-double-and-tiebreaks"],
+    related: ["clash-royale-tournament-how-to-run", "football-points-system-and-tiebreakers", "round-robin-schedule"],
     cta: { label: "Make the bracket", href: "/tools/brackets/" },
   },
 
@@ -511,7 +511,7 @@ Post each round's pairings as soon as the previous round ends, with a deadline f
 4. What it costs and what you can win.
 5. How to register, and the last date.
 
-Put a registration link and a contact. Make the poster with the [poster maker](/tools/poster/), and see [poster sizes](/guides/tournament-poster-sizes-whatsapp-instagram-print/) for the shapes.` },
+Put a registration link and a contact. Make the poster with the [poster maker](/tools/poster/), and see [poster sizes](/tools/poster/) for the shapes.` },
       { h2: "A message to copy", md: `"[Tournament name]: [game or sport], [format]. [Date], [time], [venue or platform]. Open to [who]. Entry [fee], prize [prize]. Register at [link] before [date]. Questions: [name, contact]."
 
 Keep it short enough to read without tapping "read more". The details go on the registration page.` },
@@ -548,7 +548,7 @@ A short list of frequently asked questions on the registration page, built with 
 5. The closing date and the first match date are both written clearly.
 
 Do this the day before the launch. Ten minutes of checking saves a week of corrections.` },
-      { h2: "Common mistakes", md: `- Posting once and hoping.
+      { h2: "Announcement mistakes that cost entries", md: `- Posting once and hoping.
 - Using a different message in each channel.
 - Leaving out the last registration date.
 - No place for questions.
@@ -559,7 +559,7 @@ Do this the day before the launch. Ten minutes of checking saves a week of corre
       { q: "When should I start announcing a tournament?", a: "About four weeks before the event is a sensible start for a local tournament, with reminders at three weeks, two weeks, one week and two days. Give teams enough time to form a squad and pay, and close registration a few days before the event so you can plan." },
       { q: "Where should I post my tournament poster?", a: "Where your players already spend time: WhatsApp groups for colleges and clubs, Instagram for wider reach, Discord servers for game communities, and notice boards on campus. Ask captains and club presidents to forward it, since a message from a known person gets read more than one from a stranger." },
     ],
-    related: ["football-tournament-poster-ideas", "tournament-poster-sizes-whatsapp-instagram-print", "how-to-name-your-tournament"],
+    related: ["cricket-tournament-poster-ideas", "free-fire-tournament-poster", "college-fest-esports-poster"],
     cta: { label: "Make your poster", href: "/tools/poster/" },
   },
 ];

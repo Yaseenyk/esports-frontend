@@ -1,7 +1,7 @@
 // The guides are the site's main content, so they are checked like code: complete fields, working links, and numbers that agree with the tools.
 import test from "node:test";
 import assert from "node:assert/strict";
-// The hand-written guides only: the scheduled ones (three a week, released by date) have their own, separate tests in scheduled-guides.test.mjs.
+// The hand-written guides only: the scheduled ones (two a week, released by date) have their own, separate tests in scheduled-guides.test.mjs.
 import { CORE_GUIDES as GUIDES, guideBySlug } from "../src/content/guides.ts";
 import { standings, EXAMPLE_SCALE } from "../src/lib/points.ts";
 import { TOOLS } from "../src/lib/data.ts";

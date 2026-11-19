@@ -60,7 +60,7 @@ You can reuse that order or choose your own. Whatever you pick, keep these rules
 4. Open the [points table calculator](/tools/points-table/), enter placement and eliminations for each match and let it rank the teams.
 5. Show the table on a screen after every match, so teams see their standing while the next lobby loads.
 
-For a short walk-through of the layout, read [how to build a points table](/guides/points-table-maker-guide/). For the same idea in another game, see [Free Fire points system and points table](/guides/free-fire-points-system-and-points-table/).` },
+For a short walk-through of the layout, read [how to build a points table](/guides/points-table/). For the same idea in another game, see [Free Fire points system and points table](/guides/free-fire-points-system-and-points-table/).` },
       { h2: "Common mistakes", md: `- Changing the scale after seeing the first lobby. If a scale needs a fix, announce it before the next match and apply it to every match from then on, in writing.
 - Counting eliminations from screenshots without checking the match results screen. Agree one source of truth, such as the in-game results screen shown to an admin.
 - Giving full points to a team that was disqualified in the match. Write down what a disqualified team scores.
@@ -72,7 +72,7 @@ For a short walk-through of the layout, read [how to build a points table](/guid
       { q: "What breaks a tie on a PUBG Mobile points table?", a: "The 2025 PMNC Qatar rulebook uses first-place finishes, then total placement points, then total eliminations, then the finish in the most recent match. For your own event, pick an order, write it on the rules page before match one, and apply every step in order for every tied pair of teams." },
       { q: "Is the PUBG Mobile points system the same as BGMI's?", a: "Do not assume so. The two games have separate event rules, and each organiser sets its own scoring. This guide uses one real PUBG Mobile rulebook as an example. For BGMI, use the BGMI guide on this site, then check the rulebook of the event you are copying." },
     ],
-    related: ["bgmi-points-system-explained", "points-table", "points-table-maker-guide"],
+    related: ["bgmi-points-system-explained", "points-table"],
     cta: { label: "Open the points table calculator", href: "/tools/points-table/" },
   },
 
@@ -120,7 +120,7 @@ ${B.pubgmRoster.text} Name the substitute slots in the roster check, so nobody s
 
 If you have more teams than one lobby holds, set two lobbies running at the same time, and remember that each extra lobby needs its own admin to watch the room and read the results.
 
-For the room details that go with the schedule, such as the room ID and password card, see [custom room card, ID and password template](/guides/custom-room-card-id-password-template/).` },
+For the room details that go with the schedule, such as the room ID and password card, see [custom room card, ID and password template](/guides/bgmi-and-free-fire-custom-room-setup-guide/).` },
       { h2: "What to publish to teams", md: `A schedule teams can act on fits on one phone screen. Include:
 
 - The date, the start time and the time the room opens
@@ -142,7 +142,7 @@ For the check-in side of an in-person event, the [gate check-in scanner](/tools/
       { q: "How many matches should one day of a PUBG Mobile tournament have?", a: "Pick the number that your players and admins can stay sharp for. The example uses six matches with one longer break, which runs about five hours of play. If your lobby is on phones, plan for tired players late in the day, and keep the final day for the matches that decide the winner." },
       { q: "Do points carry over from the qualifier to the PUBG Mobile final?", a: "That is an organiser choice, not a game rule. Many events reset the table for the final, but others carry over some points. Pick one, write it on the rules page before the qualifier, and repeat it on the final-day schedule so no team can claim they were told something else." },
     ],
-    related: ["pubg-mobile-points-system-and-table", "bgmi-tournament-schedule-template", "custom-room-card-id-password-template"],
+    related: ["pubg-mobile-points-system-and-table", "bgmi-tournament-schedule-template", "bgmi-and-free-fire-custom-room-setup-guide"],
     cta: { label: "Build the timed run-sheet", href: "/tools/schedule/" },
   },
 
@@ -265,7 +265,7 @@ For the format itself, a [round robin generator](/tools/round-robin/) writes the
 - A second admin reviews only if the first admin played in the event.
 
 Keep protest records in one place so you can look back if the same issue returns in the next round.` },
-      { h2: "Common mistakes", md: `- Leaving match time unwritten, so one player expects 10 minutes and the other 15.
+      { h2: "Where eFootball events go wrong", md: `- Leaving match time unwritten, so one player expects 10 minutes and the other 15.
 - Allowing pauses at any moment. A late pause during an attack is how fights start.
 - Taking results by chat message with no screenshot.
 - Using a rulebook from another year without checking that settings still exist in your version of the game.
@@ -276,7 +276,7 @@ Keep protest records in one place so you can look back if the same issue returns
       { q: "How should eFootball tournament players report results?", a: "Ask both players to take a screenshot of the final screen and send it to the admin. The rulebook used here treats a result the referee has not confirmed as not counted. Copy that rule if you want a clean record, and say which chat or form the screenshots must go to." },
       { q: "Do eFootball tournament rules need a tie-break for groups?", a: "Yes, whenever players can finish level on points. One rulebook looks only at the matches between the tied players: head-to-head result, then goal difference, then goals scored. Choose your own order, write it before the first game and apply every step in the same sequence for every group." },
     ],
-    related: ["esports-tournament-rules-template", "choosing-a-tournament-format", "tournament-fixture-generator-guide"],
+    related: ["esports-tournament-rules-template", "choosing-a-tournament-format", "fixture-maker-for-football-and-cricket"],
     cta: { label: "Generate the group fixtures", href: "/tools/round-robin/" },
   },
 
@@ -324,7 +324,7 @@ The final is the only match that can run long: if it ends in two maps, you finis
 If your bracket has an odd number of teams, a [bracket maker](/tools/brackets/) places byes for you.` },
       { h2: "Build and print it", md: `The [match schedule maker](/tools/schedule/) takes a start time, a number of matches, minutes per match, and how many matches run at once. For the example above: start 10:00, 4 matches, 60 minutes, 2 at the same time. Run it again for the semi-finals and the final. Print the result and tape it by the check-in desk.
 
-For the fixtures of a league instead of a bracket, read the [tournament fixture generator guide](/guides/tournament-fixture-generator-guide/). To write the rules that go with this schedule, start from the [esports tournament rules template](/guides/esports-tournament-rules-template/).` },
+For the fixtures of a league instead of a bracket, read the [tournament fixture generator guide](/guides/fixture-maker-for-football-and-cricket/). To write the rules that go with this schedule, start from the [esports tournament rules template](/guides/esports-tournament-rules-template/).` },
       { h2: "Common mistakes", md: `- Scheduling exact times for rounds that depend on earlier results. Give semi-finals a planned time and say it moves if a quarter-final runs long.
 - Forgetting overtime in the plan. A slot that fits only a 24-round match will break.
 - One admin for two servers.
@@ -336,7 +336,7 @@ For the fixtures of a league instead of a bracket, read the [tournament fixture 
       { q: "How long should a CS2 tournament match slot be?", a: "There is no fixed length, because rounds vary and overtime can be played. The example here uses 60 minutes. Time your own scrim matches, add the map veto and a warm-up, then pad for overtime. The final should get a longer reserve than earlier rounds." },
       { q: "Does CS2 competitive play overtime?", a: "Yes. Regulation is capped at 24 rounds, 12 per half, and a tied score goes to a 6-round overtime, according to HLTV's report on Valve's change. Your schedule should leave room for that, and your rules should say whether you play overtime or use another tie-break in the early rounds." },
     ],
-    related: ["tournament-fixture-generator-guide", "esports-tournament-rules-template", "choosing-a-tournament-format"],
+    related: ["fixture-maker-for-football-and-cricket", "esports-tournament-rules-template", "choosing-a-tournament-format"],
     cta: { label: "Build the timed run-sheet", href: "/tools/schedule/" },
   },
 
@@ -374,12 +374,12 @@ Make all three from the same details. It takes a minute and each place gets the 
 3. Download the picture or use the share button. On a phone the share button opens the share sheet. On a computer it saves the file.
 
 The text fields have length limits so that every line fits the layout, which also keeps your poster readable. If your event name is long, shorten it.` },
-      { h2: "Valorant-specific choices", md: `- Say how teams join: a registration link beats a phone number, because it collects the information you need. The [registration form template](/guides/esports-tournament-registration-form-template/) lists the fields.
+      { h2: "Valorant-specific choices", md: `- Say how teams join: a registration link beats a phone number, because it collects the information you need. The [registration form template](/guides/tournament-registration-form-fields/) lists the fields.
 - State the region or server for online play, since players choose where they queue.
 - Name the format in one line, such as "knockout, best of one", so teams know the commitment.
 - Do not copy game artwork or logos from the publisher onto your poster unless the publisher's content policy allows it. The poster maker uses its own design, so you do not need them.
 
-For a BGMI event, see the [BGMI tournament poster guide](/guides/bgmi-tournament-poster-guide/), which covers the same steps with that game's details.` },
+For a BGMI event, see the [BGMI tournament poster guide](/guides/free-fire-tournament-poster/), which covers the same steps with that game's details.` },
       { h2: "Where to post it", md: `- Send the square to every team captain and to your Discord or WhatsApp community.
 - Post the 4:5 version on the feed with the sign-up link in the caption.
 - Put the story on your status the day registration opens, and again three days before the deadline.
@@ -397,7 +397,7 @@ After sign-up closes, replace the poster with the bracket or the schedule. A pos
       { q: "What should a Valorant tournament poster say?", a: "The event name, game, date and start time, venue or online platform, prize if confirmed, how and when to sign up, and who runs it. If the team size matters, write the size your rules require. Leave out any detail you are not sure of, since a wrong date does more harm than a missing one." },
       { q: "Can I use Valorant artwork on my poster?", a: "Check the publisher's fan content or community policy before you do. The simplest safe route is to avoid the publisher's logos and character art and use your own design. The poster maker here draws its own layout in the Valorant colour look and does not include game artwork." },
     ],
-    related: ["free-fire-tournament-poster-guide", "bgmi-tournament-poster-guide", "esports-tournament-registration-form-template"],
+    related: ["free-fire-tournament-poster-guide", "free-fire-tournament-poster", "tournament-registration-form-fields"],
     cta: { label: "Make a Valorant tournament poster", href: "/tools/poster/" },
   },
 
@@ -533,11 +533,11 @@ Nobody can promise a spot, a prize or a career. A reliable habit of showing up i
       { h2: "Name, practise and register", md: `1. Pick a name that is short and easy to say. [Esports team name ideas](/guides/esports-team-names-ideas/) has patterns to start from.
 2. Agree practice days and hold to them for a month before judging the team.
 3. Review one match a week: what went well, what to fix. Keep it to three points.
-4. Find events. Local and college events often have a registration form, and the [esports tournament registration form template](/guides/esports-tournament-registration-form-template/) shows the fields you will be asked for: team name, captain, player IDs and contact.
+4. Find events. Local and college events often have a registration form, and the [registration form fields guide](/guides/tournament-registration-form-fields/) shows the fields you will be asked for: team name, captain, player IDs and contact.
 5. Keep a document with every player's in-game ID, so registration takes minutes.
 
 Organisers who want to see how teams are asked to sign up can open the [registration form tool](/tools/registration/).` },
-      { h2: "Common mistakes", md: `- Recruiting the best players available without checking their schedules.
+      { h2: "Why new teams fall apart (and how to avoid it)", md: `- Recruiting the best players available without checking their schedules.
 - No captain. Decisions and registration then land on whoever is loudest.
 - Picking a name the day of the event.
 - Entering an event without reading its rules on roster size, substitutes and eligibility.
@@ -549,7 +549,7 @@ Organisers who want to see how teams are asked to sign up can open the [registra
       { q: "How do I join an esports team with no experience?", a: "Play in open scrims and community servers, tell teams plainly what you play, your role and your free time, and be reliable. Teams often pick up players they already know from scrims. Expect some refusals. A trial period lets both sides decide without a long commitment." },
       { q: "What roles does an esports team need?", a: "It depends on the game. In a squad game you usually want someone who calls the plan, someone who leads the fight and someone who supports, plus a substitute. Agree the roles during trials by watching who is comfortable where, not by assigning them from a rank or a screenshot." },
     ],
-    related: ["esports-team-names-ideas", "random-team-generator-for-fair-teams", "esports-tournament-registration-form-template"],
+    related: ["esports-team-names-ideas", "random-team-generator-for-fair-teams", "tournament-registration-form-fields"],
     cta: { label: "See a team registration form", href: "/tools/registration/" },
   },
 
@@ -590,7 +590,7 @@ Keep the sentence short and in the plain past tense. For a team, put the team na
 Because the pages are drawn in the browser, names in Hindi or Marathi print correctly too.` },
       { h2: "Winners and participation, one file or two", md: `If you give every player a participation certificate and also give prizes, make two files: one for the top places with "Award: Name" lines, one for everyone with the participation wording. Print the winners on better paper if you can.
 
-Pull the winner names from your final table. If you used the [points table calculator](/tools/points-table/) or a [points table maker](/guides/points-table-maker-guide/), the order is already there, so copy the top rows into the award lines instead of retyping them.` },
+Pull the winner names from your final table. If you used the [points table calculator](/tools/points-table/) or a [points table maker](/guides/points-table/), the order is already there, so copy the top rows into the award lines instead of retyping them.` },
       { h2: "Free Fire and BGMI events", md: `For a Free Fire or BGMI event, put the game in the event line, such as "Monsoon Clash, Free Fire squad tournament". That keeps the certificate useful to the player when they show it to a college or a recruiter.
 
 - Do not add publisher logos unless you have permission.
@@ -609,7 +609,7 @@ For rules on the event itself, see [Free Fire tournament rules for organisers](/
       { q: "How do I make a Free Fire tournament certificate for free?", a: "Open the certificate maker on this site, add the names or award lines, fill in the event and date and pick a design. It draws each certificate in your browser and gives you one PDF. Put Free Fire in the event line, and skip the publisher's logo unless you have permission to use it." },
       { q: "Can I make a BGMI tournament certificate for every participant?", a: "Yes. Add one name per line, set the award to Participation, and download one PDF with a page for each person. If you also want winner certificates, use the Name plus award mode with lines such as Winner: Team A, and print those on better paper." },
     ],
-    related: ["points-table-maker-guide", "free-fire-tournament-rules-for-organisers", "esports-tournament-rules-template"],
+    related: ["points-table", "free-fire-tournament-rules-for-organisers", "esports-tournament-rules-template"],
     cta: { label: "Make certificates in the browser", href: "/tools/certificates/" },
   },
 
@@ -660,7 +660,7 @@ For banners, do not guess. Ask the printer for the finished size, the file type 
 
 It makes feed, story and square pictures. It does not make wide banners for a printer, so for a large venue banner use a design program or ask your printer to set the layout from your text and logos.
 
-If you are making posters for a specific game, see the [Free Fire poster guide](/guides/free-fire-tournament-poster-guide/) and the [BGMI poster guide](/guides/bgmi-tournament-poster-guide/). For the sign-up link that goes on the flyer, use the [registration form tool](/tools/registration/).` },
+If you are making posters for a specific game, see the [Free Fire poster guide](/guides/free-fire-tournament-poster-guide/) and the [BGMI poster guide](/guides/free-fire-tournament-poster/). For the sign-up link that goes on the flyer, use the [registration form tool](/tools/registration/).` },
       { h2: "Common mistakes", md: `- Designing a banner at flyer size and stretching it, which makes it blurry.
 - Too much text on the banner. People read the name and nothing else.
 - A QR code too small to scan from where people stand. Test it before printing.
@@ -673,7 +673,7 @@ If you are making posters for a specific game, see the [Free Fire poster guide](
       { q: "What size should an esports tournament banner be?", a: "It depends on where it hangs and what your printer accepts, so ask the printer for the finished size, file type and resolution before you design. Do not stretch a flyer to fit. Keep the banner to the event name, date, venue and sponsor logos, so it reads from across the room." },
       { q: "What is the difference between a flyer and a banner?", a: "A flyer is handed out and read up close, so it carries the full details: game, date, venue, prize and sign-up. A banner is a large sign read from a distance, so it carries only the name, date and venue. Make both from the same branding so they look like one event." },
     ],
-    related: ["free-fire-tournament-poster-guide", "bgmi-tournament-poster-guide", "valorant-tournament-poster-guide"],
+    related: ["free-fire-tournament-poster-guide", "free-fire-tournament-poster", "valorant-tournament-poster-guide"],
     cta: { label: "Make a tournament poster", href: "/tools/poster/" },
   },
 ];

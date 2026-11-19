@@ -207,7 +207,7 @@ That is the order the calculator uses, ending with team name only to keep the ta
       { q: "How do you break ties in a points table?", a: "Decide the order in advance and publish it. For battle royale a common order is wins, then kills, then placement in the last match. For leagues it is score difference, scores for, then the result between the tied teams. If everything is equal, play a decider match instead of picking a name." },
       { q: "Can I make a points table in Excel or Google Sheets?", a: "Yes. Use one row per team, a placement and a kills column per match, and a lookup table for placement points. Add the kill points, sum the matches and sort by total. Add helper columns for wins and kills to sort ties. Lock the scale cells and keep one master copy with a single editor." },
     ],
-    related: ["points-table", "free-fire-tournament-poster-guide", "bgmi-tournament-poster-guide"],
+    related: ["points-table", "free-fire-tournament-poster-guide", "free-fire-tournament-poster"],
     cta: { label: "Open the points table calculator", href: "/tools/points-table/" },
   },
 
@@ -251,7 +251,7 @@ For battle royale scrims there is nothing to seed: all teams play in one lobby a
 - If the draw produces a team that has already played together in the last event and you wanted to avoid that, apply the rule you published and nothing else.
 
 Keep a copy of the final list with the date and time. It ends most arguments in one message.` },
-      { h2: "Common mistakes", md: `- Not saying whether the draw is pure random or balanced, so players guess the worst.
+      { h2: "Ways a random draw goes wrong", md: `- Not saying whether the draw is pure random or balanced, so players guess the worst.
 - Letting the best player draw first, or draw twice.
 - Redoing the draw until a favourite team appears.
 - Using a spreadsheet RAND() column and forgetting to copy it as values, so the order changes every time the sheet opens.
@@ -265,7 +265,7 @@ Keep a copy of the final list with the date and time. It ends most arguments in 
       { q: "When should I allow a re-draw of teams?", a: "Only for a clear fault, such as a missing player or a duplicate entry, and only once. Replace a dropped player from the same skill pot. Write these rules before the draw and post the final list with the date, so no one can ask for a re-draw because they dislike the teams." },
       { q: "How do I randomize teams in Excel or Google Sheets?", a: "Put the names in one column and a random number formula in the next, sort by the random column, then give the first four rows to team 1, the next four to team 2, and so on. Copy the result as values before you share it, because the random numbers change every time the sheet recalculates." },
     ],
-    related: ["choosing-a-tournament-format", "points-table-maker-guide", "run-a-custom-room-tournament"],
+    related: ["choosing-a-tournament-format", "points-table", "run-a-custom-room-tournament"],
     cta: { label: "Split teams into groups with pots", href: "/tools/groups/" },
   },
 
@@ -551,7 +551,7 @@ If you send many cards in one day, name them by match, for example "Match 3 room
       { q: "How do I stop stream snipers from joining my room?", a: "Delay the stream by a few minutes, keep the room card and the game's lobby off the screen, and use a new room and password per match. If you think the details leaked, close the room, make a new one and resend the card to captains." },
       { q: "Can I use the same room for several matches?", a: "It is safer not to. A new room and password for each match limit how far a leaked ID can spread and keep results clean. Create each room just before you send its card, and label the cards by match number so captains do not use an old one." },
     ],
-    related: ["bgmi-custom-room-tournament", "run-a-custom-room-tournament", "esports-tournament-registration-form-template"],
+    related: ["bgmi-custom-room-tournament", "run-a-custom-room-tournament", "tournament-registration-form-fields"],
     cta: { label: "Plan the match schedule", href: "/tools/schedule/" },
   },
 
@@ -566,7 +566,7 @@ If you send many cards in one day, name them by match, for example "Match 3 room
     sections: [
       { h2: "How to use this template", md: `Copy each section into a document, replace the values in square brackets, and share the final version as a pinned link, not a screenshot. Number the rules so you can cite them in disputes.
 
-This template sits next to your other documents: the [BGMI poster](/guides/bgmi-tournament-poster-guide/) states the date and format, the [registration form](/guides/esports-tournament-registration-form-template/) collects teams, and the room card shares each match's room details. For a generic version covering any game, see the [esports tournament rules template](/guides/esports-tournament-rules-template/).` },
+This template sits next to your other documents: the [poster maker](/tools/poster/) states the date and format, the [registration form](/guides/tournament-registration-form-fields/) collects teams, and the room card shares each match's room details. For a generic version covering any game, see the [esports tournament rules template](/guides/esports-tournament-rules-template/).` },
       { h2: "Eligibility and teams", md: `1. Who can play: [for example students of named colleges, or open to anyone in India]. Players under 18 need guardian consent.
 2. Team size: ${B.bgmiSquad.text} Set your own, for example 4 players and [number] substitute.
 3. One player may be registered in one team only.
@@ -602,7 +602,7 @@ State plainly who decides: the organiser or a named referee, and that the decisi
 5. Results are final once the table is posted and no dispute is open.
 
 A single published scale is fairer than deciding each case fresh.` },
-      { h2: "Common mistakes", md: `- Publishing the rules after registration, so teams say they never agreed.
+      { h2: "Rules that cause BGMI disputes (avoid these)", md: `- Publishing the rules after registration, so teams say they never agreed.
 - Copying an official scoring scale without saying it is only an example, then arguing when the official rules change.
 - Leaving out the penalty scale, so every breach becomes a debate.
 - No dispute window, so complaints arrive hours later.
@@ -615,7 +615,7 @@ A single published scale is fairer than deciding each case fresh.` },
       { q: "How do I handle cheating accusations?", a: "Ask the captain to report it in writing within a set time, with the match number and any recording. A named referee reviews it, and the penalty follows a scale you published in advance, from a warning up to disqualification. Do not decide on rumour, and tell both teams the result." },
       { q: "Should substitutes be allowed in a BGMI tournament?", a: "That is your choice, but state it. Many events allow one substitute per team, who must be registered in advance and may replace a player between matches, not during one. Writing the limit down avoids disputes about borrowed players on the day." },
     ],
-    related: ["bgmi-tournament-poster-guide", "esports-tournament-registration-form-template", "custom-room-card-id-password-template", "points-table"],
+    related: ["free-fire-tournament-poster", "tournament-registration-form-fields", "bgmi-and-free-fire-custom-room-setup-guide", "points-table"],
     cta: { label: "Open the BGMI points table", href: "/points-table/bgmi/" },
   },
 
@@ -662,8 +662,8 @@ Share it with captains as a list, and tell them that start times can move by a f
 The schedule maker does this arithmetic: you enter the start time, the number of matches, the duration, the gap, how many matches run at the same time and the break pattern, and it gives a timed list you can print or download. Matches are numbered M1, M2 and so on, so you can match them to your rooms.` },
       { h2: "Lobbies, rooms and large fields", md: `One battle royale lobby holds a limited number of teams, so a bigger event needs several lobbies. Check the room size of your game mode and your tool, then split the registered teams into groups that play in parallel or in turns. If you run lobbies at the same time, one referee per lobby is useful.
 
-For a two-stage event, run groups first and a final for the top teams. The [format guide](/guides/choosing-a-tournament-format/) explains the choices, and the [points table](/tools/points-table/) can carry points from earlier rounds. Each room needs its own [room card](/guides/custom-room-card-id-password-template/) and its own result sheet.` },
-      { h2: "Common mistakes", md: `- No slack, so a 20 minute delay in match 2 becomes an hour by match 6.
+For a two-stage event, run groups first and a final for the top teams. The [format guide](/guides/choosing-a-tournament-format/) explains the choices, and the [points table](/tools/points-table/) can carry points from earlier rounds. Each room needs its own [room card](/guides/bgmi-and-free-fire-custom-room-setup-guide/) and its own result sheet.` },
+      { h2: "Scheduling mistakes in BGMI events", md: `- No slack, so a 20 minute delay in match 2 becomes an hour by match 6.
 - Using hopeful times from a poster instead of times from a practice match.
 - Putting the long break at the end, when everyone is tired and leaving.
 - Forgetting the results time and starting the next room before the table is updated.
@@ -685,7 +685,7 @@ The [tournament planner](/tools/plan/) can produce a first draft of the format, 
       { q: "How do I schedule several lobbies at once?", a: "Split the registered teams into groups that fit one room, then run the groups in parallel with one referee per lobby, or one after another if you have a single room. For a final, take the top teams into one lobby. Give each lobby its own room card and result sheet." },
       { q: "What should I do when the schedule runs late?", a: "Tell captains the new start time straight away, shorten the next gap if possible and trim the break rather than the matches. Do not change the rules or the scoring to catch up. That is why you add slack at the start. If delays continue, decide early whether to drop the last match." },
     ],
-    related: ["bgmi-tournament-rules-template", "custom-room-card-id-password-template", "bgmi-tournament-poster-guide"],
+    related: ["bgmi-tournament-rules-template", "bgmi-and-free-fire-custom-room-setup-guide", "free-fire-tournament-poster"],
     cta: { label: "Build your match schedule", href: "/tools/schedule/" },
   },
 ];

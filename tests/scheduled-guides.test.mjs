@@ -1,9 +1,10 @@
-// The scheduled guides (three a week, released by date) are held to a quality bar of their own, because they are written in batches
+// The scheduled guides (two a week, released by date) are held to a quality bar of their own, because they are written in batches
 // ahead of time and published by a daily job nobody watches. Everything here runs on ALL of them, released or not.
 import test from "node:test";
 import assert from "node:assert/strict";
 import { CORE_GUIDES } from "../src/content/guides.ts";
-import { DRAFTS, LIVE_NOW, SCHEDULED } from "../src/content/scheduled/index.ts";
+import { DRAFTS, HELD_DRAFTS, LIVE_NOW, SCHEDULED } from "../src/content/scheduled/index.ts";
+import { HELD } from "../src/content/scheduled/held.ts";
 import { FIRST_RELEASE, releaseDate } from "../src/content/scheduled/schedule.ts";
 import { FACTS } from "../src/content/scheduled/facts.ts";
 import { TOOLS } from "../src/lib/data.ts";
@@ -30,19 +31,31 @@ test("there are no more than 120 scheduled guides and 10 live-now guides, each w
   assert.equal(new Set(allTitles).size, allTitles.length, "a scheduled title repeats a hand-written one");
 });
 
-test("the schedule is Monday, Wednesday, Friday, in order, never more than three in any week", () => {
+test("the schedule is Monday and Wednesday, in order, never more than two in any week", () => {
   assert.equal(new Date(`${FIRST_RELEASE}T00:00:00Z`).getUTCDay(), 1, "the first release must be a Monday");
   let prev = "";
   const perWeek = new Map();
   SCHEDULED.forEach((g, i) => {
     assert.equal(g.published, releaseDate(i));
-    assert.ok([1, 3, 5].includes(new Date(`${g.published}T00:00:00Z`).getUTCDay()), `${g.slug} is not on a Monday, Wednesday or Friday`);
+    assert.ok([1, 3].includes(new Date(`${g.published}T00:00:00Z`).getUTCDay()), `${g.slug} is not on a Monday or Wednesday`);
     assert.ok(g.published > prev, `${g.slug} is not after the previous guide`);
     prev = g.published;
     const wk = Math.floor((Date.parse(g.published) - Date.parse(FIRST_RELEASE)) / (7 * 864e5));
     perWeek.set(wk, (perWeek.get(wk) ?? 0) + 1);
   });
-  for (const [wk, n] of perWeek) assert.ok(n <= 3, `week ${wk} has ${n} guides`);
+  for (const [wk, n] of perWeek) assert.ok(n <= 2, `week ${wk} has ${n} guides`);
+});
+
+test("held guides are off the schedule, each with a reason, and nothing live links to them", () => {
+  const held = new Set(Object.keys(HELD));
+  assert.equal(HELD_DRAFTS.length, held.size, "every held slug must name a real draft");
+  for (const [slug, why] of Object.entries(HELD)) assert.ok(why.length >= 20, `${slug} needs a reason`);
+  for (const g of [...CORE_GUIDES, ...ALL_NEW]) {
+    assert.ok(!held.has(g.slug), `${g.slug} is held but still scheduled`);
+    const all = [...textOf(g), ...(g.faq ?? []).flatMap((f) => [f.a])].join(" ");
+    for (const m of all.matchAll(/\(\/guides\/([a-z0-9-]+)\/\)/g)) assert.ok(!held.has(m[1]), `${g.slug} links to the held guide ${m[1]}`);
+    for (const r of g.related) assert.ok(!held.has(r), `${g.slug} relates to the held guide ${r}`);
+  }
 });
 
 test("every scheduled guide is complete and inside search limits", () => {

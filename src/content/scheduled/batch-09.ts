@@ -45,12 +45,12 @@ Reduce the effect:
       { h2: "Alternatives to a rest round", md: `If you do not want a team to sit idle, you can:
 
 - Add a friendly or exhibition match for the resting team.
-- Use the rest round to schedule a rematch, which makes a double round robin, as in [round robin types](/guides/round-robin-single-double-and-tiebreaks/).
+- Use the rest round to schedule a rematch, which makes a double round robin, as in [round robin guide](/guides/round-robin-schedule/).
 - Invite one more team to make the number even, if your resources allow.
 
 For a Swiss event, byes are handled automatically. See [the Swiss system](/guides/swiss-system-tournament-explained/).` },
       { h2: "Points and tie-breaks", md: `A rest is not a match. It earns no points and no wins. Make sure your table shows matches played, so a team with fewer matches played is not wrongly ranked. Use a fixed tie-break order, as in [how to write tie-breaker rules](/guides/tournament-tiebreaker-rules-how-to-write/), and the [points table tool](/tools/points-table/) to compute it.` },
-      { h2: "Common mistakes", md: `- Letting a team rest twice.
+      { h2: "Odd-number fixture mistakes", md: `- Letting a team rest twice.
 - Counting a rest as a win or a walkover.
 - Forgetting the extra round that an odd number adds.
 - Changing the order of rounds after publishing.
@@ -61,7 +61,7 @@ For a Swiss event, byes are handled automatically. See [the Swiss system](/guide
       { q: "How many rounds does an odd round robin need?", a: "As many rounds as there are teams. Five teams need five rounds, seven teams need seven, nine teams need nine. Each team plays one fewer match than the number of rounds, because it rests once. The total number of matches is n times n minus one, divided by two." },
       { q: "Is it unfair that one team rests each round?", a: "It is fair on average, because every team rests exactly once. It can matter in a tight table, since a team resting last sees its rivals' results. Publish the schedule in advance, draw the team order by lot, and consider playing the last round at the same time." },
     ],
-    related: ["round-robin-single-double-and-tiebreaks", "how-to-draw-a-fair-tournament-draw", "tournament-tiebreaker-rules-how-to-write", "swiss-system-tournament-explained"],
+    related: ["round-robin-schedule", "how-to-draw-a-fair-tournament-draw", "tournament-tiebreaker-rules-how-to-write", "swiss-system-tournament-explained"],
     cta: { label: "Generate the round robin", href: "/tools/round-robin/" },
   },
 
@@ -134,7 +134,7 @@ A fee also improves commitment, since players who paid are more likely to show u
 | 5,600 | 3,000 | 16 | 163, round to 170 |
 
 The numbers are an example. Test it with fewer teams, and decide the minimum number you need to run the event.` },
-      { h2: "Say what the fee covers", md: `Write one line: "The entry fee covers the venue, referees, printing and the prize pool." If part of it goes to prizes, give the prize pool or the share, and the payout split, as in [prize pool and payout split](/guides/tournament-prize-pool-and-payout-split/).
+      { h2: "Say what the fee covers", md: `Write one line: "The entry fee covers the venue, referees, printing and the prize pool." If part of it goes to prizes, give the prize pool or the share, and the payout split, as in [prize pool and payout split](/guides/sponsor-pitch/).
 
 Players accept a fee more easily when they see where it goes.` },
       { h2: "A refund policy to copy", md: `Publish this before taking payment, and adapt the numbers.
@@ -165,7 +165,7 @@ Avoid changing the policy after people have paid. If you must, tell everyone and
       { q: "What should a tournament refund policy say?", a: "It should give a full refund if you cancel, a cut-off date for teams to withdraw with a refund, no refund after the cut-off or for no-shows and disqualifications, and what happens if the event is postponed. Publish it before taking payment and ask captains to accept it at registration." },
       { q: "How do I keep records of entry fees?", a: "Use a payment method that leaves a record, such as a bank transfer or payment link, and keep a sheet with team, amount, date, reference and status. Send each captain a confirmation. If anyone asks whether a payment arrived, you can answer from the record instead of from memory." },
     ],
-    related: ["tournament-budget-template", "tournament-prize-pool-and-payout-split", "run-a-tournament-with-no-budget", "tournament-registration-form-fields"],
+    related: ["tournament-budget-template", "sponsor-pitch", "run-a-tournament-with-no-budget", "tournament-registration-form-fields"],
     cta: { label: "Add the policy to the registration form", href: "/tools/registration/" },
   },
 
@@ -216,7 +216,7 @@ Six slots, and every team plays once per two slots. Add semi-finals and a final 
       { h2: "Publish and keep it live", md: `Publish the schedule with times, courts and teams, and a note that times may shift. Put it on a wall and share it digitally, and update it as matches finish. A [display screen](/tools/display-screen/) works well.
 
 Appoint one person to keep the schedule, and tell teams to check it. If you must move a match, announce it in the same place as the schedule.` },
-      { h2: "Common mistakes", md: `- Planning the best case rather than the worst.
+      { h2: "Court scheduling mistakes", md: `- Planning the best case rather than the worst.
 - No gap between slots.
 - A team playing two matches at once.
 - Unbalanced rest between teams.
@@ -267,7 +267,7 @@ Ask players to record their screens in later rounds, so you can settle disputes 
       { h2: "Seeding and byes in a solo bracket", md: `Solo events often have uneven numbers, so some players get a bye in the first round. Seed by past results if you have them, or draw by lot in public. The [seeding guide](/guides/how-to-seed-a-tournament-bracket/) and [byes explained](/guides/tournament-bracket-byes-explained/) cover both. Give byes to the top seeds, and say so in advance.
 
 Publish the bracket with times for each round, and ask players to be ready ten minutes before. A player who is not present within the grace period forfeits, as in the [no-shows guide](/guides/handling-no-shows-and-walkovers/).` },
-      { h2: "Common mistakes", md: `- No written settings, so each match differs.
+      { h2: "Settings mistakes in 1v1 events", md: `- No written settings, so each match differs.
 - No time limit for creating the room.
 - Accepting results without a screenshot.
 - Vague disconnect rules.
@@ -326,7 +326,7 @@ Post the same results in your announcement channel, as in [tournament communicat
       { h2: "Adding sponsors and a stream", md: `A scoreboard is also a place to thank sponsors. Add a rotating slide with their names and a short line, and agree the wording with them first. Keep it brief, so the useful information still dominates the screen.
 
 If you also stream, the same page can serve as an overlay or as a source for your broadcast software. Test it at the same resolution as your stream, and keep the text large enough to read on a phone. The [sponsor pitch guide](/guides/sponsor-pitch/) explains how to describe what sponsors get, so you can list the screen as one of the benefits.` },
-      { h2: "Common mistakes", md: `- Showing too much on one screen.
+      { h2: "Scoreboard screen mistakes", md: `- Showing too much on one screen.
 - Text too small for the back of the room.
 - Screen sleeping during the event.
 - Nobody assigned to update results.
@@ -498,7 +498,7 @@ Make sure your table shows the measure you use.` },
       { h2: "Write it down before the event", md: `Add a "Ranking ties" section to your rules, with the order of steps. Read it aloud at the captains' meeting. Arguments about tie-breaks nearly always start when a rule is invented after the result.
 
 The [points table tool](/tools/points-table/) can rank teams by a chosen order, so you do not need to calculate by hand.` },
-      { h2: "Common mistakes", md: `- Counting matches against teams outside the tied group in the mini table.
+      { h2: "Three-way tie mistakes", md: `- Counting matches against teams outside the tied group in the mini table.
 - Using head to head alone for three teams.
 - Not writing the order of tie-breaks.
 - Drawing lots in private.
@@ -535,7 +535,7 @@ Give a deadline and say how decisions will be announced. Ask applicants to agree
 3. A review round, where applicants and trial staff discuss one match.
 4. A short individual conversation.
 
-Using [scrims](/guides/free-fire-scrims-how-to-run/) as the base keeps it close to real play. Swap applicants between temporary teams so you see them with different partners.` },
+Using [scrims](/guides/bgmi-scrims-how-to-organise/) as the base keeps it close to real play. Swap applicants between temporary teams so you see them with different partners.` },
       { h2: "What to score", md: `Score a few criteria, each on a simple scale, on a sheet shared by the trial staff.
 
 | Criterion | What to look for |
@@ -556,7 +556,7 @@ Feedback is the part that keeps people in your community. A rejected player who 
       { h2: "After the trials: onboarding", md: `Selection is only the start. Give new members a short onboarding: the schedule, roles, the code of conduct and who to ask for help. Set a trial period, such as a month, after which you review how it is working for both sides.
 
 Keep a reserve list and a development squad, so players who were not selected still have a place to improve. Re-run trials once or twice a year, so there is always a route in. A club that opens its doors regularly keeps its standards high and its community growing.` },
-      { h2: "Common mistakes", md: `- No written brief of the roles needed.
+      { h2: "Trial mistakes to avoid", md: `- No written brief of the roles needed.
 - Judging only on rank, not teamwork.
 - A single scorer.
 - No feedback to unsuccessful applicants.
@@ -567,7 +567,7 @@ Keep a reserve list and a development squad, so players who were not selected st
       { q: "What should I measure in a trial?", a: "Game skill in the role, communication, teamwork, attitude when losing or receiving feedback and availability for the practice schedule. Score each on a simple scale on a shared sheet, publish the criteria and weight them as you like. Rank alone says little about how someone plays in a team." },
       { q: "How do I keep trials fair?", a: "Use more than one scorer, score before discussing, write a reason for each score, ask staff to declare friendships with applicants, publish the criteria and give every applicant feedback. A visible method does not remove judgement, but it makes decisions easier to explain and accept." },
     ],
-    related: ["free-fire-scrims-how-to-run", "player-code-of-conduct-template", "tournament-registration-form-fields", "divisions-and-skill-levels-in-one-tournament"],
+    related: ["bgmi-scrims-how-to-organise", "player-code-of-conduct-template", "tournament-registration-form-fields", "divisions-and-skill-levels-in-one-tournament"],
     cta: { label: "Build the application form", href: "/tools/registration/" },
   },
 ];

@@ -20,4 +20,6 @@ export interface Draft {
   /** 2 to 4 slugs of guides released EARLIER than this one (or existing guides). */
   related: string[];
   cta: { label: string; href: string };
+  /** Set when a guide is substantially rewritten after it went live (YYYY-MM-DD). Defaults to the release date. */
+  updated?: string;
 }

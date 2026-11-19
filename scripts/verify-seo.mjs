@@ -9,6 +9,9 @@ const bad = (page, msg) => problems.push(`${page}: ${msg}`);
 
 // Pages that must stay out of search results (demo data, private screens, one-off links).
 const NOINDEX = [/^\/games\//, /^\/events\//, /^\/communities\//, /^\/manage\//, /^\/arcade\//, /^\/login\//, /^\/signup\//, /^\/forgot-password\//, /^\/reset-password\//, /^\/app\//, /^\/gate\//, /^\/join\//, /^\/pass\//, /^\/register\//, /^\/display\//, /^\/live\//, /^\/overlay\//, /^\/embed\//, /^\/score\//, /^\/report\//, /^\/ready\//, /^\/run\//, /^\/league\//, /^\/lft\//, /^\/players\//, /^\/team\//, /^\/unsubscribe\//, /^\/verify-email\//, /^\/admin\//, /^\/developers\//];
+// Guides merged into a stronger guide (src/content/merged-guides.json): their pages stay for old links but must be noindex and out of the sitemap.
+const MERGED_GUIDES = Object.keys(JSON.parse(fs.readFileSync(path.resolve("src/content/merged-guides.json"), "utf8")));
+for (const slug of MERGED_GUIDES) NOINDEX.push(new RegExp(`^/guides/${slug}/$`));
 // ---- v3: tournament pages are indexable only when the thin-page guard passed (see src/features/tournaments/seo/thin-page-guard.ts) ----
 // The guard runs here too, from the TypeScript source, on the input each page shipped in its <script id="eh-guard">.
 import ts from "typescript";

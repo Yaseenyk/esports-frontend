@@ -46,7 +46,7 @@ Fewer matches mean fewer referees and a shorter day. The [how many teams guide](
       { h2: "Grow it, then add money", md: `Run the first event free and record what happened: number of entries, matches, photos, feedback. Use that record to ask for support next time. A sponsor says yes more easily to something that already happened.
 
 Add an entry fee only when you have something to spend it on, and tell players what it covers.` },
-      { h2: "Common mistakes", md: `- Waiting for money before starting.
+      { h2: "No-budget mistakes to avoid", md: `- Waiting for money before starting.
 - Promising prizes you cannot pay for.
 - Doing every job yourself.
 - Printing everything in colour.
@@ -95,7 +95,7 @@ A reset keeps new players interested, since the top is not permanently held by w
 
 A simple shared sheet works. If a dispute arises, use the [dispute process](/guides/tournament-dispute-process-protest-window/).` },
       { h2: "When to use a ladder or a bracket", md: `Use a ladder when you want ongoing play, flexible times and a ranking. Use a bracket for a single event with a clear champion. Use both: a ladder through a season, then a bracket for the top eight as a finals event. The [group and knockout planning guide](/guides/group-stage-and-knockout-planning/) shows how to build the finals.` },
-      { h2: "Common mistakes", md: `- No limit on how far up a player may challenge.
+      { h2: "Ladder mistakes", md: `- No limit on how far up a player may challenge.
 - No deadline on challenges.
 - No rule for inactive players.
 - Letting the ladder run forever without a season.
@@ -211,11 +211,11 @@ Add one photo of the winners, with their permission. Tag teams only if they agre
 Ask a second person to read it. Two minutes of checking prevents a correction later.` },
       { h2: "Certificates and prizes", md: `Send certificates the same day if you can. The [certificate maker](/tools/certificates/) prints one page per name, and the [certificate wording guide](/guides/certificate-wording/) has text for winners and participants.
 
-For cash prizes, say when and how they will be paid. For example: "Winners will be contacted within three days". Then do it, and note the date. See [prize pool and payout split](/guides/tournament-prize-pool-and-payout-split/) for planning.` },
+If a sponsor gives prizes, say when and how winners will receive them. For example: "Winners will be contacted within three days". Then do it, and note the date.` },
       { h2: "Handling a close or disputed result", md: `If the final was close or a protest was upheld, say so briefly and neutrally. For example: "The final was decided after a review by the head referee." Do not name the player or team that raised the protest, and do not add opinion.
 
 If there is still an open issue, post the confirmed placings and add a short line that one result is under review, with a date for the decision. Players accept a delay when they are told why, and a calm, factual tone protects both the winners and the losers from an argument in the comments.` },
-      { h2: "Common mistakes", md: `- Posting before the protest window closes.
+      { h2: "Results announcements that go wrong", md: `- Posting before the protest window closes.
 - Misspelling team or player names.
 - Forgetting to thank volunteers.
 - Not saying when prizes will be paid.
@@ -226,7 +226,7 @@ If there is still an open issue, post the confirmed placings and add a short lin
       { q: "What should a results announcement include?", a: "The event name and winner, a line on how many teams and matches took part, a short table of the top placings, thanks to teams, referees, volunteers and sponsors, a link to full results and the date of the next event. Add one photo, and keep the post readable on a phone." },
       { q: "How do I avoid mistakes in a results post?", a: "Check team names against the registration list, the placings against the final table, the winners' spellings for certificates and that every sponsor and helper is thanked. Ask a second person to read it before posting, since a two minute check is quicker than a public correction." },
     ],
-    related: ["tournament-dispute-process-protest-window", "certificate-wording", "tournament-prize-pool-and-payout-split", "how-to-announce-a-tournament"],
+    related: ["tournament-dispute-process-protest-window", "certificate-wording", "sponsor-pitch", "how-to-announce-a-tournament"],
     cta: { label: "Print the certificates", href: "/tools/certificates/" },
   },
 
@@ -262,7 +262,7 @@ Guaranteeing matches matters more than finding a champion for the youngest playe
 Never display results in a way that embarrasses a child, and be careful with photos: get permission before posting. The [school sports day guide](/guides/school-sports-day-tournament-planning/) shows a points and recognition approach.` },
       { h2: "Online games and age ratings", md: `If you run an online game event, check the game's age rating and the platform's terms. Some games and platforms have minimum ages. Ask parents to confirm the child's account and permission. Do not collect passwords.` },
       { h2: "Parents and spectators", md: `Tell parents where to stand or sit, how to behave and who to contact. A short note in the invite works: "Cheer for everyone. Leave decisions to the referees." Sideline behaviour is a common problem at junior events, and a clear line helps referees.` },
-      { h2: "Common mistakes", md: `- Using different age cut-off dates for different teams.
+      { h2: "Age group mistakes to avoid", md: `- Using different age cut-off dates for different teams.
 - Skipping consent forms and emergency contacts.
 - Running senior length matches for young children.
 - Posting photos without permission.
@@ -367,7 +367,7 @@ Then check it in order:
 2. Count the sockets for each match area.
 3. Walk the route from the entrance to the exit with a volunteer.
 4. If the route is awkward, redo the layout.` },
-      { h2: "Common mistakes", md: `- Not measuring the room.
+      { h2: "Room layout mistakes", md: `- Not measuring the room.
 - Seating opposing teams where they can see each other's screens.
 - Cables across walkways.
 - No sign for the results desk.
@@ -425,7 +425,7 @@ Print the bracket with the [bracket maker](/tools/brackets/), and include the th
       { h2: "A worked example with eight teams", md: `In an eight team single elimination bracket there are seven matches: four quarter-finals, two semi-finals and a final. Add a third place match and the total is eight. The two semi-final losers play it before the final, so the audience stays for the best match last.
 
 Now add a consolation bracket for the four quarter-final losers: they play two semi-finals and a final for fifth place, which adds three more matches, so eleven in total. That is a reasonable cost for a two day event, and probably too much for a single evening.` },
-      { h2: "Common mistakes", md: `- Not saying whether third place is shared or played.
+      { h2: "Consolation bracket mistakes", md: `- Not saying whether third place is shared or played.
 - Forgetting the match in the schedule.
 - Adding a consolation bracket without counting the matches.
 - Scheduling the third place match after the final.
@@ -481,7 +481,7 @@ Penalties should be proportionate. A genuine mistake, quickly reported, is diffe
       { h2: "Put it in the rules page", md: `Add a short section to your rules with these points: team size, substitutes, lock date, mid-series changes, accounts and penalties. Start from the [rules template](/guides/esports-tournament-rules-template/) and the [Valorant organiser guide](/guides/valorant-tournament-organiser/).
 
 Keep it to a screen of text. Rules nobody reads do not protect anyone.` },
-      { h2: "Common mistakes", md: `- No roster lock.
+      { h2: "Roster rule gaps to avoid", md: `- No roster lock.
 - Unclear rules on mid-series substitutes.
 - Not checking names in the lobby.
 - Letting a team play short without a rule.
@@ -538,7 +538,7 @@ Then ask players two questions: what worked, and what to change. Write the answe
 | After the final | Close the protest window, then announce |
 
 Add your own dates next to each line, and share the table with your helpers so everybody works from the same plan.` },
-      { h2: "Common mistakes", md: `- Starting too big for a first event.
+      { h2: "First-timer mistakes", md: `- Starting too big for a first event.
 - Skipping the check-in.
 - Results in several places.
 - No backup date.

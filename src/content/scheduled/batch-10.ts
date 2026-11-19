@@ -97,7 +97,7 @@ Choose the best ten photos right after the event and mark them. When you ask a s
       { h2: "Short video and stories", md: `Short clips travel further than photos. Capture a few ten second moments: a decisive point, a crowd reaction, the winners lifting a certificate. Shoot vertically, hold the phone steady and keep the sound on if the venue allows.
 
 Post one or two clips on the day and a longer highlight reel a few days later, if you have the time. Keep the same style each time, so followers recognise your events. Credit the people who helped, and check any music you add is allowed on the platform before you post.` },
-      { h2: "Common mistakes", md: `- No plan, so nobody takes photos of the final.
+      { h2: "Photo and content mistakes", md: `- No plan, so nobody takes photos of the final.
 - Posting photos without consent.
 - Photos stored on one phone only.
 - Long, complicated captions.
@@ -121,7 +121,7 @@ Post one or two clips on the day and a longer highlight reel a few days later, i
     answer: "A tiered league has divisions. At the end of each split, the top teams of a lower division move up and the bottom teams of a higher one move down. Fix the number of divisions, how many move, and how new teams enter, and publish it before the season.",
     intro: "A one-off tournament has a winner. A league with promotion and relegation has stakes all the way down, since every match can move a team up or keep it from going down. It gives a community a reason to keep playing, and it needs careful rules to stay fair.",
     sections: [
-      { h2: "Divisions", md: `Divide teams into tiers, for example Division 1, Division 2 and Division 3. Each division plays its own table, as a round robin or a shorter format. See [round robin types](/guides/round-robin-single-double-and-tiebreaks/) and [odd numbers of teams](/guides/round-robin-with-an-odd-number-of-teams/).
+      { h2: "Divisions", md: `Divide teams into tiers, for example Division 1, Division 2 and Division 3. Each division plays its own table, as a round robin or a shorter format. See [round robin guide](/guides/round-robin-schedule/) and [odd numbers of teams](/guides/round-robin-with-an-odd-number-of-teams/).
 
 Keep division sizes similar, and large enough for a meaningful season. A division of four plays only a few matches, and one of twelve may take too long.` },
       { h2: "How many move", md: `Decide how many teams go up and down. A common pattern is two up and two down between neighbouring divisions, but pick numbers to suit your sizes.
@@ -148,7 +148,7 @@ Show it on a [display screen](/tools/display-screen/) or a shared page, and upda
       { h2: "A sample season for three divisions", md: `Imagine three divisions of eight teams. Each division plays a single round robin in Split 1, which is seven rounds of four matches. The top four of each division play a short playoff in Split 2, and the bottom four play a placement round. After Split 2, the top two of Division 2 and Division 3 move up, and the bottom two of Division 1 and Division 2 move down.
 
 Publish the calendar with the dates of each split, the playoffs and the promotion decisions. Teams make plans around it, and a clear calendar is the best protection against complaints about fairness.` },
-      { h2: "Common mistakes", md: `- Divisions of very different sizes.
+      { h2: "Season structure mistakes", md: `- Divisions of very different sizes.
 - Different numbers going up and down.
 - No rule for withdrawals.
 - Starting without a written structure.
@@ -159,7 +159,7 @@ Publish the calendar with the dates of each split, the playoffs and the promotio
       { q: "How many divisions should a league have?", a: "As few as your numbers allow. Each division should have enough teams for a meaningful table, such as six to ten, so a small community may need only two. Add a third tier when you have enough teams to fill each division, rather than splitting thinly." },
       { q: "What happens when a team withdraws mid-season?", a: "Decide in advance whether its results are voided or kept as forfeits, and whether another team takes its place. Write the rule on the rules page and apply it the same way every time, so teams know the effect on the table before they commit to the season." },
     ],
-    related: ["round-robin-single-double-and-tiebreaks", "round-robin-with-an-odd-number-of-teams", "divisions-and-skill-levels-in-one-tournament", "tournament-tiebreaker-rules-how-to-write"],
+    related: ["round-robin-schedule", "round-robin-with-an-odd-number-of-teams", "divisions-and-skill-levels-in-one-tournament", "tournament-tiebreaker-rules-how-to-write"],
     cta: { label: "Generate each division's fixtures", href: "/tools/round-robin/" },
   },
 
@@ -186,7 +186,7 @@ Use these as a guide only, and work out your own numbers with the [schedule make
       { h2: "Who is playing", md: `Beginners and juniors often do better with a longer control, since they need time to think and to write moves if the rules require it. Experienced players enjoy blitz because it rewards instincts, but a very fast game can be frustrating for a newcomer.
 
 For school events, rapid is the safer choice. For a casual evening club night, blitz is fun. If you have both, run a rapid event and a blitz side event.` },
-      { h2: "Format and tie-breaks", md: `Both work in a Swiss or a round robin. A Swiss with fewer rounds suits rapid, and with more rounds suits blitz. See [how to run a Swiss chess tournament](/guides/how-to-run-a-swiss-chess-tournament/) for the logic, and [chess points and tie-breaks](/guides/chess-points-system-and-tiebreaks/) for scoring.
+      { h2: "Format and tie-breaks", md: `Both work in a Swiss or a round robin. A Swiss with fewer rounds suits rapid, and with more rounds suits blitz. See [Swiss system explained](/guides/swiss-system-tournament-explained/) for the logic, and [chess points and tie-breaks](/guides/chess-points-system-and-tiebreaks/) for scoring.
 
 A drawn game is half a point in both, per the FIDE rules.` },
       { h2: "Equipment and online play", md: `Over the board, you need clocks that support the time control, including increments. Check the clocks before the event, and have spares. Online, the platform's clock handles it, as in [online chess tournaments](/guides/chess-online-tournaments-lichess-and-chesscom/).
@@ -207,7 +207,7 @@ Write the plan as a table of round start times and publish it. Add ten minutes a
       { q: "Which time control is better for a school event?", a: "Rapid is usually safer, because beginners and juniors need time to think and, where required, to record moves. Blitz suits casual club nights and experienced players. If you have time, run a rapid main event and a blitz side event, and say the control clearly in the announcement." },
       { q: "How do I schedule rounds for rapid or blitz?", a: "Estimate the longest game, which is the base time for both players plus increments over a typical number of moves, add a margin and the time between rounds, then divide your available time by that to get the number of rounds. Plan for the longest case, not the average." },
     ],
-    related: ["chess-tournament-rules-for-organisers", "how-to-run-a-swiss-chess-tournament", "chess-online-tournaments-lichess-and-chesscom", "chess-points-system-and-tiebreaks"],
+    related: ["chess-tournament-rules-for-organisers", "swiss-system-tournament-explained", "chess-online-tournaments-lichess-and-chesscom", "chess-points-system-and-tiebreaks"],
     cta: { label: "Plan the round times", href: "/tools/schedule/" },
   },
 
@@ -247,14 +247,14 @@ Add the best two or three photos, chosen from your [photo plan](/guides/tourname
 Be concrete. "Late start" is a note. "Started 30 minutes late because check-in opened at the start time. Open check-in 30 minutes earlier." is a lesson.` },
       { h2: "Costs and income", md: `Summarise the money in a few lines: income by source, costs by group, and the balance. Compare with your plan and explain big differences. If there is a surplus, say what happens to it.
 
-Keep receipts and the sheet. Note any cost you did not expect, such as extra printing or a replacement cable, with the amount, and add a line on how you would budget for it next time. A sponsor who sees an honest summary, including the surprises, is more likely to return, and you will plan the next budget with real figures instead of guesses. See [prize pool and payout split](/guides/tournament-prize-pool-and-payout-split/) for how prizes fit in.` },
+Keep receipts and the sheet. Note any cost you did not expect, such as extra printing or a replacement cable, with the amount, and add a line on how you would budget for it next time. A sponsor who sees an honest summary, including the surprises, is more likely to return, and you will plan the next budget with real figures instead of guesses.` },
       { h2: "Feedback", md: `Ask players and volunteers two questions: what was best, and what should change. A short form works, built with the [registration form tool](/tools/registration/). Quote one or two comments, with permission.
 
 Honest critical feedback is useful. Report it and say what you will do about it.` },
       { h2: "One page for sponsors", md: `Make a one page version for supporters: event name, date, headline numbers, two photos, a line of thanks and what is next. Send it within a week, with a thank-you message.
 
 This page is the start of your next [sponsor pitch](/guides/sponsor-pitch/), so keep it clean and save it with the other event files.` },
-      { h2: "Common mistakes", md: `- Waiting weeks before writing it.
+      { h2: "Report mistakes to avoid", md: `- Waiting weeks before writing it.
 - Claiming numbers you did not count.
 - Lessons too vague to act on.
 - Hiding the money summary.
@@ -321,7 +321,7 @@ If a leader is far ahead after the first games, the audience loses interest. A w
       { h2: "Handling teams that skip games", md: `In a multi game event, some teams will skip a game they are weak at. Decide in advance whether that is allowed, and what it costs. A fair rule is that a team scores zero in a game it skips, which discourages strategic skipping, or that every team must enter a minimum number of games.
 
 Also decide how to treat forfeits and disqualifications: a team that forfeits scores nothing for that game, and a disqualified team loses its points there. Publish these rules with the scale, so the overall table cannot be gamed or argued over.` },
-      { h2: "Common mistakes", md: `- Changing the points scale after results.
+      { h2: "Overall champion scoring mistakes", md: `- Changing the points scale after results.
 - No tie-break for the overall total.
 - Not saying whether small games count the same.
 - Letting teams enter only their strongest games without a rule.
@@ -441,7 +441,7 @@ Put a short participation statement on the registration form, if your institutio
 8. Who speaks to parents, the college or the press if something goes wrong.
 
 Print it, put a copy at the results desk and brief the volunteers at the start. A plan that sits in an email nobody opens will not help in an emergency. Go through it once aloud, so every person knows their part, and update it after each event with what you learned. If the event is under a college or club, ask a staff member to read it and add their requirements.` },
-      { h2: "Common mistakes", md: `- Announcing before permission is confirmed.
+      { h2: "Safety gaps to avoid", md: `- Announcing before permission is confirmed.
 - No first aid kit or emergency contact.
 - Exceeding the venue capacity.
 - Skipping consent for minors.
@@ -501,7 +501,7 @@ Plan pack-down with roles: who collects equipment, who cleans, who returns the k
       { h2: "Roles by time", md: `A timeline works best when each time block has an owner. Next to each row, write who is in charge: the technical lead at 08:00, the registration desk at 09:30, the head referee at 10:15, the results desk through the afternoon, the host at 16:30 and the pack-down lead at 17:00.
 
 Share the sheet with every volunteer the day before, and print one copy for the results desk. When something slips, the owner of the block knows to tell the others. A timeline without owners is only a wish, and one with owners becomes a plan the whole team can follow.` },
-      { h2: "Common mistakes", md: `- Planning the clock from the best case.
+      { h2: "Timeline mistakes that run a day late", md: `- Planning the clock from the best case.
 - No buffer before the final.
 - Starting setup too late.
 - No lunch break.
@@ -567,7 +567,7 @@ Use a [display screen](/tools/display-screen/) for the bracket and keep a printe
       { h2: "Online versus in person", md: `If you run online, the number of courts is the number of matches your referees can supervise at once, since players need no physical space. With eight referees you can run eight matches at once, and the round of 32 finishes in two slots. That changes the maths a lot: the whole bracket takes only a handful of slots.
 
 The limit online is people, not rooms, plus the time players need between rounds. Even so, give every round a start time and a late arrival limit, and use the [no-shows guide](/guides/handling-no-shows-and-walkovers/) to keep the bracket moving.` },
-      { h2: "Common mistakes", md: `- Not counting slots before announcing.
+      { h2: "One-day knockout mistakes", md: `- Not counting slots before announcing.
 - Planning with the shortest match length.
 - One court for 31 matches.
 - No plan for delays.
@@ -624,7 +624,7 @@ Keep the system the same through the year. If you must change it, say so early a
       { h2: "A sample season calendar", md: `Here is a calendar you can adapt. Four qualifying events in the first nine months, each with points. An open qualifier in month ten. The season points table closes at the end of month ten, and the finalists are announced in month eleven. The final takes place in month twelve.
 
 Put the dates on one page and repeat them in each announcement. Players who know that the last qualifying event is in three weeks will plan for it. Add a reminder a week before every deadline, and publish the table the day after each event so the standings are always current.` },
-      { h2: "Common mistakes", md: `- Announcing the final without saying how to qualify.
+      { h2: "Qualifier system mistakes", md: `- Announcing the final without saying how to qualify.
 - Only one route, which shuts out new teams.
 - Changing the points scale mid-season.
 - No rule for a qualified team that cannot attend.

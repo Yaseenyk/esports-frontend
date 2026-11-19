@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { GUIDES } from "@/content/guides";
+import { LISTED_GUIDES as GUIDES } from "@/content/guides";
 import { TOOLS } from "@/lib/data";
 import { GROWTH_PAGES } from "@/lib/growth-pages";
 import { SITE_URL } from "@/lib/site";

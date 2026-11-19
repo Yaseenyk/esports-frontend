@@ -32,7 +32,7 @@ Two players qualify and two go out, and nobody is out after a single loss.` },
 D and A qualify. C went out after losing twice, to D and B. B lost to A twice. A lost once and still qualified, which is the point of the format.` },
       { h2: "Why use it instead of a round robin", md: `A round robin of four players is six matches, and the last matches may not matter, or may be decided by a tie-break. The dual tournament has five matches, and every match matters.
 
-It also avoids ties completely, since each result is a win or a loss, and the final qualification is decided by a match, not a table. This is why it suits games with no draws. A [round robin](/guides/round-robin-single-double-and-tiebreaks/) is fairer when draws are possible and tie-breaks are accepted.` },
+It also avoids ties completely, since each result is a win or a loss, and the final qualification is decided by a match, not a table. This is why it suits games with no draws. A [round robin](/guides/round-robin-schedule/) is fairer when draws are possible and tie-breaks are accepted.` },
       { h2: "Scaling up to a bigger event", md: `The group is the building block. For 16 players, make 4 groups of 4. That is 20 group matches, and 8 players qualify, who then enter a knockout.
 
 | Players | Groups | Group matches | Qualifiers | Knockout |
@@ -48,7 +48,7 @@ The decider cannot start until matches 3 and 4 finish. The [schedule maker](/too
       { h2: "Seeding the groups", md: `Seed the players so the best are in different groups, using pots as in [how to run a fair draw](/guides/how-to-draw-a-fair-tournament-draw/). Inside a group, A and B and C and D in the opening matches should pair a higher seed with a lower seed. Seed 1 plays seed 4, and seed 2 plays seed 3, so the top two meet only in the winners' match.
 
 The [groups and knockout maker](/tools/groups/) can draw the groups, and the [bracket maker](/tools/brackets/) draws the knockout stage.` },
-      { h2: "Common mistakes", md: `- Using it with fewer or more than four players per group.
+      { h2: "GSL group mistakes", md: `- Using it with fewer or more than four players per group.
 - Starting the decider before both earlier matches finish.
 - Forgetting to explain the format to players before the first match.
 - Not seeding the groups.
@@ -59,7 +59,7 @@ The [groups and knockout maker](/tools/groups/) can draw the groups, and the [br
       { q: "How many matches are in a dual tournament group?", a: "Five. Two opening matches, one winners' match, one losers' match and one decider. A plain round robin of four players has six matches, so the dual tournament is shorter, and every match matters. For 16 players in four groups, that is 20 group matches before the knockout." },
       { q: "Can I use a dual tournament for team games with draws?", a: "It works best for games where every match has a winner. If draws are possible, add a rule that decides a drawn match, such as a replay or a short tiebreaker, because the format needs a winner and a loser in every match. Otherwise, a round robin with tie-breaks is a better fit." },
     ],
-    related: ["group-stage-and-knockout-planning", "round-robin-single-double-and-tiebreaks", "how-to-draw-a-fair-tournament-draw"],
+    related: ["group-stage-and-knockout-planning", "round-robin-schedule", "how-to-draw-a-fair-tournament-draw"],
     cta: { label: "Build the groups and knockout", href: "/tools/groups/" },
   },
 
@@ -88,7 +88,7 @@ Seed the bracket by past results or a rating, or use a random draw if you have n
 | Winners and losers semi-finals | Best of 5 |
 | Grand final | Best of 5, with the bracket reset if you use one |
 
-See [series length](/guides/best-of-1-3-5-series-length-explained/) and [bracket reset](/guides/bracket-reset-and-grand-final-explained/) for the details.` },
+See [series length](/guides/best-of-1-3-5-series-length-explained/) and [bracket reset](/guides/double-elimination-bracket-explained/) for the details.` },
       { h2: "Game settings and controllers", md: `Write the settings once and use them for every set: game version, timer, rounds per game, stage selection method, and any banned items or modes. Settings can change with updates, so test on your own equipment before the event.
 
 For controllers, decide who supplies them and whether players may bring their own. Many events allow personal controllers as long as they are standard, and ban any with unfair features. Say which. Have spare controllers at every station.` },
@@ -102,7 +102,7 @@ Write the rule in two lines and ask a referee to enforce it. The idea of banning
       { h2: "The bracket runner", md: `Appoint one person to be the bracket runner. They call the next sets, send players to free stations, record results and update the bracket. Without one, players wait for each other and the event runs late.
 
 Make results public as they happen, on a [display screen](/tools/display-screen/) or a shared page. Tell players how long they have to arrive at a station once called, such as 5 minutes, before they forfeit.` },
-      { h2: "Common mistakes", md: `- Taking more players than stations can handle.
+      { h2: "Fighting game bracket mistakes", md: `- Taking more players than stations can handle.
 - No bracket runner, so players hunt for their sets.
 - Leaving settings and character rules unwritten.
 - Using best of 5 everywhere and running over time.
@@ -113,7 +113,7 @@ Make results public as they happen, on a [display screen](/tools/display-screen/
       { q: "How many stations do I need for a fighting game event?", a: "Count the sets your format needs, multiply by the time per set, and divide by the stations you have. Sixteen players in double elimination need 30 sets. At 15 minutes each on 4 stations that is about two hours. Stations, not players or space, are the real limit on the size of the event." },
       { q: "Should players be allowed to bring their own controllers?", a: "Many events allow standard personal controllers and ban any with unfair features. Decide and write the rule, tell players what is allowed at registration, and keep spare controllers at each station. Check the game's current settings and any controller restrictions before the event, because they can change with updates." },
     ],
-    related: ["double-elimination-bracket-explained", "best-of-1-3-5-series-length-explained", "bracket-reset-and-grand-final-explained"],
+    related: ["double-elimination-bracket-explained", "best-of-1-3-5-series-length-explained"],
     cta: { label: "Draw the double elimination bracket", href: "/tools/double-elimination/" },
   },
 
@@ -121,10 +121,10 @@ Make results public as they happen, on a [display screen](/tools/display-screen/
     slug: "tournament-budget-template",
     title: "Tournament budget template: what to count before you promise a prize",
     seoTitle: "Tournament budget template",
-    description: "A tournament budget template with every cost to count, an example with numbers for a campus event, income sources and a safe way to set the prize pool.",
+    description: "A tournament budget template: every cost to count, a worked campus example, where the money can come from, and why prizes stay separate from player fees.",
     tag: "Organiser guide",
-    answer: "List every cost first: venue, power and network, referees, printing, refreshments, prizes and a reserve. List the income you hold: entry fees and confirmed sponsors. Subtract, and set the prize pool from what is left. Never spend money you only hope to receive.",
-    intro: "Most tournaments that fail financially do not fail because of one big cost. They fail because of a long list of small ones nobody wrote down, and a prize announced before the money existed. A budget on one page prevents both.",
+    answer: "List every cost first: venue, power and network, referees, printing, refreshments, prizes and a reserve. List the money you actually hold: a college or club budget, confirmed sponsors and any fee that covers running costs. Fund prizes from sponsors or the organiser, never from a pot of player fees, and never spend money you only hope to receive.",
+    intro: "Most tournaments that fail financially do not fail because of one big cost. They fail because of a long list of small ones nobody wrote down, and a prize announced before the money existed. A budget on one page prevents both. This page is about counting money honestly; Esports Hub itself takes no payments and runs no prizes.",
     sections: [
       { h2: "List the costs", md: `Go through the event in order and write each cost down, even small ones.
 
@@ -135,61 +135,68 @@ Make results public as they happen, on a [display screen](/tools/display-screen/
 | People | Referees, scorers, security, first aid |
 | Printing | Posters, ID cards, certificates, score sheets |
 | Hospitality | Water, refreshments for officials |
-| Prizes | Cash, trophies, merchandise |
+| Prizes | Trophies, medals, sponsor products |
 | Reserve | A small amount for surprises |
 
 The [print kits tool](/tools/print-kits/) and the [ID card maker](/tools/id-cards/) cover most of the printing, and you can estimate the cost of each before you start.` },
-      { h2: "List the income", md: `Income comes from three places:
+      { h2: "Where the money comes from", md: `Money for a small event usually comes from three places:
 
-- Entry fees: teams multiplied by the fee. Use the number of teams you are confident about, not the number you hope for.
+- Your college, club or fest committee: an approved budget line, in writing.
 - Sponsors: only agreed amounts count. See the [sponsor pitch guide](/guides/sponsor-pitch/).
-- Your own contribution, or your club's.
+- A participation fee, if your college or venue allows one, set to cover running costs such as the hall and printing.
 
 A sponsor's "maybe" is not income. Move it into the budget only when it is confirmed in writing.` },
-      { h2: "An example for a campus event", md: `A one-day event for 16 teams with a ₹300 entry fee per team.
+      { h2: "Keep prizes separate from player fees", md: `When players pay in and the prize is paid out of what they paid, the event starts to look like a contest of chance or a money game, whatever the skill involved. Rules on that differ by place and change over time, and game publishers have their own conditions on paid entry and cash prizes. This site does not give legal advice, so check your college's rules, the publisher's current policy and the law that applies to you before you take any fee.
+
+The simple way to stay clear of the question:
+
+1. Charge no fee at all if the college or a sponsor covers the costs. Free entry also brings more teams.
+2. If a fee is needed, set it to cover listed running costs only, and say so on the registration form.
+3. Fund prizes from a sponsor or the organiser, fixed before registration opens, so the prize never depends on how many teams paid.
+4. Prefer trophies, certificates and sponsor products to cash.
+
+> A prize that "scales with entries" is the warning sign. Fix the prize first, then open registration.` },
+      { h2: "A worked example for a campus event", md: `A one-day event for 16 teams, free to enter, with the college and one sponsor paying.
 
 | Item | Amount |
 |---|---|
-| Entry fees (16 × ₹300) | ₹4,800 |
-| Sponsor (confirmed) | ₹3,000 |
-| **Income** | **₹7,800** |
+| College fest budget (approved) | ₹4,000 |
+| Sponsor (confirmed in writing) | ₹3,000 |
+| **Money held** | **₹7,000** |
 | Hall and power | ₹2,000 |
 | Printing | ₹1,200 |
 | Referees' refreshments | ₹600 |
-| Certificates and trophy | ₹1,000 |
+| Trophies and certificates | ₹1,400 |
+| Sponsor product prizes (bought with the sponsor's money) | ₹1,000 |
 | Reserve | ₹800 |
-| **Costs** | **₹5,600** |
-| **Left for prizes** | **₹2,200** |
+| **Costs** | **₹7,000** |
 
-Income minus costs is ₹2,200, so that is the cash prize pool. See [prize pool and payout split](/guides/tournament-prize-pool-and-payout-split/) for how to share it.` },
-      { h2: "Sensitivity: what if fewer teams come?", md: `Test the budget with a worse case. If only 12 teams enter, entry fees fall to ₹3,600, and income to ₹6,600. Costs stay near ₹5,600, so the prize pool drops to ₹1,000.
-
-Two ways to protect yourself: set a minimum number of teams before the event runs, or state that the prize depends on entries. The first is safer. The second needs a rule on the poster: "prize pool is ₹X for 16 teams and scales down for fewer".` },
+The prizes are fixed at ₹2,400 of trophies, certificates and products before registration opens. If only 12 teams come, nothing about the prizes changes; you print fewer certificates and keep the difference in the reserve.` },
       { h2: "Track spending during the event", md: `Keep one sheet with the planned amount, the actual amount and a note for each line. Write down who paid and when. Keep receipts.
 
-After the event, finish the sheet. If there is money left, say what you will do with it: carry it to the next event, or give it to the club. A clear record makes the next sponsor easier to win.
+After the event, finish the sheet. If there is money left, say what you will do with it: carry it to the next event, or give it back to the club. A clear record makes the next sponsor easier to win.
 
 Name one person as the treasurer. Everyone else asks that person before spending. Two people spending from the same pot without telling each other is how a small event ends up ₹1,000 over budget by the afternoon.` },
       { h2: "Cutting costs without cutting quality", md: `If the numbers do not work, cut in this order:
 
 1. Printing: use fewer colours, or print only what the day needs. The [print kits tool](/tools/print-kits/) lets you choose which sheets to make.
 2. Refreshments: water for officials, and let players bring their own food.
-3. Prizes: swap some cash for certificates and a trophy that is reused each year.
+3. Prizes: a trophy that is passed on each year, and certificates for every player.
 4. Venue: ask the college or club for a free hall, in return for the sponsor's name on the banner.
 
 Do not cut the reserve, referees or first aid. Those are the lines that protect the event on a bad day.` },
-      { h2: "Common mistakes", md: `- Announcing a prize before counting costs.
+      { h2: "Budget mistakes that sink small events", md: `- Announcing a prize before counting costs.
+- Paying prizes out of player fees, or promising a prize that grows with entries.
 - Counting income that is not confirmed.
 - Forgetting printing, power or refreshments.
-- No reserve.
-- Not keeping receipts.` },
+- No reserve, and no receipts.` },
     ],
     faq: [
-      { q: "What should a tournament budget include?", a: "Venue and power, network and screens, referees and first aid, printing, refreshments, prizes and a small reserve on the cost side, and entry fees, confirmed sponsors and your own contribution on the income side. Subtract costs from confirmed income, and the remainder is the most you can offer as prizes." },
-      { q: "How do I set the prize pool safely?", a: "Add up the income you hold or have confirmed in writing, subtract all costs and a reserve, and use the remainder. Test it with fewer teams than you expect. If entries drop, the prize pool drops too, so either set a minimum number of teams or state on the poster how the prize scales." },
-      { q: "Should I count a sponsor who has not confirmed?", a: "No. Count only sponsors who have agreed in writing, and only the amount they agreed. A possible sponsor is a bonus, not income. If the money arrives, you can add to the prize pool or reduce the entry fee next time, but do not spend it before it exists." },
+      { q: "What should a tournament budget include?", a: "Venue and power, network and screens, referees and first aid, printing, refreshments, prizes and a small reserve on the cost side; on the money side, the college or club budget, sponsors who confirmed in writing and any running-cost fee your venue allows. If costs are bigger than the money you hold, cut costs before the event, not after." },
+      { q: "Can I pay the prizes out of the entry fees?", a: "It is safer not to. When players pay in and the prize comes out of what they paid, the event can be treated as a contest of chance or a money game in some places, and publishers have their own conditions on paid entry and cash prizes. Fund prizes from a sponsor or the organiser, fix them before registration, and check the rules that apply to you." },
+      { q: "Should I count a sponsor who has not confirmed?", a: "No. Count only sponsors who have agreed in writing, and only the amount they agreed. A possible sponsor is a bonus, not income. If the money arrives, you can add a better trophy or more certificates next time, but do not spend it before it exists or promise it on a poster." },
     ],
-    related: ["sponsor-pitch", "tournament-prize-pool-and-payout-split", "run-a-campus-tournament"],
+    related: ["sponsor-pitch", "run-a-campus-tournament", "certificate-wording"],
     cta: { label: "Plan the event and the numbers", href: "/tools/plan/" },
   },
 
@@ -245,7 +252,7 @@ Publish the schedule a week ahead, and put the venue map on the notice board. Th
       { h2: "Results and certificates", md: `Record every result on one sheet, and update the house points after each event. A [display screen](/tools/display-screen/) or a notice board shows the running totals, which keeps everyone engaged.
 
 Give every participant a certificate if you can. The [certificate maker](/tools/certificates/) makes one page per name, and the [certificate wording guide](/guides/certificate-wording/) has text for winners and participants.` },
-      { h2: "Common mistakes", md: `- Too many events for the time and staff.
+      { h2: "Sports day planning mistakes", md: `- Too many events for the time and staff.
 - No tie-break for the overall winner.
 - Unbalanced houses.
 - Skipping consent or first aid.
@@ -277,7 +284,7 @@ Give every participant a certificate if you can. The [certificate maker](/tools/
 | 8 to 16 | Single or double elimination |
 | 16 to 32 | Groups, then a knockout |
 
-The [round robin generator](/tools/round-robin/) makes fixtures for leagues, the [bracket maker](/tools/brackets/) draws knockouts, and the [football points guide](/guides/football-points-system-and-tiebreakers/) gives the points and tie-breaks for a league table. The [eFootball guide](/guides/efootball-tournament-organise/) covers the setup that applies to both games.` },
+The [round robin generator](/tools/round-robin/) makes fixtures for leagues, the [bracket maker](/tools/brackets/) draws knockouts, and the [football points guide](/guides/football-points-system-and-tiebreakers/) gives the points and tie-breaks for a league table. The [eFootball guide](/guides/efootball-tournament-rules-template/) covers the setup that applies to both games.` },
       { h2: "Match settings", md: `Fix the settings in writing, and test them in a match before the event:
 
 - Match length for each half.
@@ -302,7 +309,7 @@ These are examples. Pick the numbers and the cut-off yourself, publish them, and
       { h2: "Proof and disputes", md: `Both players send a screenshot of the final score with both names visible. If they disagree, ask for the match highlights or a replay on a call.
 
 Collect results in one place and keep them until the protest window ends. The [dispute process guide](/guides/tournament-dispute-process-protest-window/) has a window and wording you can copy.` },
-      { h2: "Common mistakes", md: `- Not fixing settings or the game version.
+      { h2: "EA FC event mistakes", md: `- Not fixing settings or the game version.
 - Leaving team selection open without saying so.
 - No rule for extra time and penalties.
 - Writing no disconnect rule.
@@ -313,7 +320,7 @@ Collect results in one place and keep them until the protest window ends. The [d
       { q: "How do you handle disconnects in an EA FC match?", a: "Write a rule in advance: for example a replay if the disconnect is early, the score standing or the disconnecting player losing if it is late, and a loss for a repeat disconnect. The cut-off and the numbers are your choice, but they must be published and applied the same way to every match." },
       { q: "Should players be able to use any team?", a: "That is your decision. Open choice is fine for a casual event, but the strongest teams get picked. For fairness, you can limit team ratings, ban the top few sides, or draw teams. Write the rule, check team selection at the start of each match and set the penalty for breaking it." },
     ],
-    related: ["efootball-tournament-organise", "football-points-system-and-tiebreakers", "tournament-dispute-process-protest-window"],
+    related: ["efootball-tournament-rules-template", "football-points-system-and-tiebreakers", "tournament-dispute-process-protest-window"],
     cta: { label: "Generate league fixtures", href: "/tools/round-robin/" },
   },
 
@@ -361,7 +368,7 @@ Use the [schedule maker](/tools/schedule/) to fit it into your day, and the [bra
       { h2: "Explaining it to players", md: `Print a small diagram on the rules page, and read the rule aloud at the captains' briefing: "Seeds 1 and 2 play first. The winner goes to the final. The loser gets another chance in the semi-final against the winner of 3 v 4."
 
 Put it in your [rules template](/guides/esports-tournament-rules-template/) so that nobody is surprised.` },
-      { h2: "Common mistakes", md: `- Using a Page playoff after a very short league.
+      { h2: "Page playoff mistakes", md: `- Using a Page playoff after a very short league.
 - Not explaining why the top two get a second chance.
 - Forgetting the order of the matches in the schedule.
 - Applying it to more than four teams without a clear rule.
@@ -418,7 +425,7 @@ Tell all volunteers where first aid is, who to call in an emergency, and which a
       { h2: "Thank them, then ask them back", md: `Thank volunteers in person at the end, and again in writing. Give them a [certificate](/tools/certificates/) with their role, which is useful on a student's record, and see the [certificate wording guide](/guides/certificate-wording/) for text.
 
 Ask each volunteer one question: what would have made the day easier? Use the answers next time, and invite the same people back.` },
-      { h2: "Common mistakes", md: `- Turning up without a list of jobs.
+      { h2: "Volunteer briefing mistakes", md: `- Turning up without a list of jobs.
 - Several volunteers asking several different people for help.
 - Long shifts with no break.
 - No briefing, so volunteers improvise.
@@ -473,7 +480,7 @@ For fair play, use a short checklist at the start of each match: device is the o
 6. A phone problem is the player's responsibility; the disconnect rule applies.
 
 Add it to the rules built from the [rules template](/guides/esports-tournament-rules-template/).` },
-      { h2: "Common mistakes", md: `- Not stating whether emulators are banned.
+      { h2: "Device and network rules that go wrong", md: `- Not stating whether emulators are banned.
 - Ignoring VPN use.
 - No rule for interruptions from calls.
 - Not testing screen recording.
@@ -535,7 +542,7 @@ Add it to the [rules template](/guides/esports-tournament-rules-template/).` },
       { h2: "Apply it evenly", md: `A code that is applied to some people and not others is worse than none. Apply it the same way to the best team and the newest one. If you must make an exception, write down why.
 
 Record each warning and decision in one place: who, when, what and the outcome. If a player appeals, you have the record.` },
-      { h2: "Common mistakes", md: `- A code too long to read.
+      { h2: "Code of conduct mistakes", md: `- A code too long to read.
 - Penalties that are not stated.
 - No way to report a problem.
 - Applying it to some players and not others.
@@ -588,10 +595,10 @@ Each division should have at least 8 players, so it can run a real bracket. Use 
       { h2: "Scheduling several divisions", md: `Divisions multiply your matches. Two divisions of 16 in single elimination need 30 matches instead of 31 for one of 32, so the total is similar, but it needs two brackets running side by side. The same holds for stations, courts or lobbies.
 
 Run divisions in parallel if you have the resources, or one after the other if you do not. The [schedule maker](/tools/schedule/) tests both, and the [how many teams guide](/guides/how-many-teams-for-your-format/) gives the match counts.` },
-      { h2: "Prizes and recognition", md: `Give each division its own prizes, scaled to its size, and its own certificates. A beginner division winner deserves the same respect as an open winner. See [prize pool and payout split](/guides/tournament-prize-pool-and-payout-split/) for the allocation, and the [certificate maker](/tools/certificates/) for the printing.
+      { h2: "Prizes and recognition", md: `Give each division its own trophies and certificates. A beginner division winner deserves the same respect as an open winner. The [certificate maker](/tools/certificates/) prints one page per name for every division.
 
 Announce all divisions' results together, so everybody celebrates the same afternoon.` },
-      { h2: "Common mistakes", md: `- Relying on self-selection with no check.
+      { h2: "Division mistakes to avoid", md: `- Relying on self-selection with no check.
 - Creating a division with only three or four players.
 - No rule on moving up.
 - Forgetting the extra scheduling load.
