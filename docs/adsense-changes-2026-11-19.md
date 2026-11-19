@@ -71,3 +71,22 @@ from `sitemap.xml`; no AdSense code in `out/`; `check:third-party` ok.
 - Demand is small (see the research files), so "genuine user interest" depends on real traffic, which this work cannot create.
 - The demo pages under /events/, /games/ and /communities/ are noindex and labelled, but a reviewer can still click into them. Replacing them with
   real tournaments (the v3 pages) is the lasting fix.
+
+## Privacy and crawl audit (19 Nov 2026)
+
+Method: home and /id-card-maker/student/ loaded in headless Chromium with every third-party request and cookie recorded,
+/tools/plan/ and /tools/poster/ fetched raw, and `src/app/layout.tsx`, `src/lib/gtm.ts` and `src/components/GoogleTag.tsx`
+read for scripts injected later.
+
+- Loaded on esports.streamerosai.com public pages: Google Analytics 4 through GTM (googletagmanager.com,
+  analytics.google.com, stats.g.doubleclick.net; cookies `_ga`, `_ga_7BZ71GPLDW`), Microsoft Clarity (clarity.ms,
+  c.bing.com; cookies `_clck`, `_clsk`, plus Microsoft's `MUID`/`MR`/`SM`), Pulse (pulse.yaseenyk.workers.dev, no
+  cookies), the site's own API (esports-api.yaseenyk.workers.dev). On /id-card-maker/ pages only the Pulse script file
+  and the API load: no GA, no Clarity, and Pulse records nothing there (path excluded). On demand: jsDelivr for OCR and
+  background removal, Google sign-in on sign-in pages. No AdSense.
+- Privacy page: already named every service and nothing unused. Fixed the Pulse paragraph, which said only "counts page
+  visits and referring sites": it now lists what Pulse records (country, network name, clicks, form name on submit), the
+  daily-rotating visitor code, 90-day deletion and the DNT/GPC switch-off. AdSense "future use" paragraph kept.
+- Crawl: robots.txt allows the public site, blocks app and private-link paths, and names the sitemap. All 66 sitemap URLs
+  return 200, none redirects, none is noindex, every canonical matches, none is blocked by robots.txt.
+- Raw HTML: main text is in the static HTML (home about 2,680 words, tool pages 1,400 to 1,650 words).
