@@ -39,7 +39,7 @@ test("an empty team page or resume address has an h1 and a useful way on, not on
   for (const p of ["/teams/view/?s=abcdefghijkl", "/players/view/?s=ravi"]) {
     await page.goto(p);
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(/No shared team page here|No public resume here/);
-    await expect(page.getByRole("link", { name: /Find a team|See tournaments/ })).toBeVisible();
+    await expect(page.locator("#main").getByRole("link", { name: /Find a team|See tournaments/ })).toBeVisible();
   }
 });
 

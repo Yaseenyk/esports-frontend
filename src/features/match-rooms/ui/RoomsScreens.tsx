@@ -5,7 +5,7 @@ import { useState } from "react";
 import { explainFailure } from "@/features/shared/failure";
 import { Field, SelectInput, TextInput } from "@/features/shared/ui/Fields";
 import { EmptyState, ErrorState, NotAvailable, SignInPrompt, SkeletonRows, StatusBadge } from "@/features/shared/ui/States";
-import { box, btnDanger, btnPrimary, btnSecondary, h1, h2, h3, helper, input, link, section } from "@/features/shared/ui/styles";
+import { box, btnDanger, btnPrimary, btnSecondary, h1, h2, h3, helper, input, link, section, focus } from "@/features/shared/ui/styles";
 import { CRED_MAX, PHASE_TEXT, REVEAL_CHOICES, matchText, revealText, whenText, type CaptainRoom, type OrganiserRoom, type RevealedRoom, type RoomPhase } from "@/features/match-rooms/domain";
 import { useCaptainRooms, useOrganiserRooms, type Msg } from "@/features/match-rooms/hooks/useRooms";
 import { useCopy } from "@/features/shared/hooks/useCopy";
@@ -123,7 +123,7 @@ function RoomCard({ r, v, canEdit }: { r: OrganiserRoom; v: ReturnType<typeof us
       {views && (
         <div className="space-y-2" aria-label={`Who has seen ${r.label}`} role="region">
           {views.length === 0 ? <p className="text-sm text-zinc-300">Nobody has looked yet.</p> : (
-            <div className="overflow-x-auto"><table className="w-full min-w-max text-left text-sm">
+            <div className={`overflow-x-auto ${focus}`} tabIndex={0}><table className="w-full min-w-max text-left text-sm">
               <thead className="text-zinc-400"><tr><th scope="col" className="py-1 pr-3 font-medium">Team captain</th><th scope="col" className="py-1 pr-3 font-medium">When</th><th scope="col" className="py-1 font-medium">Password version</th></tr></thead>
               <tbody>{views.map((x, i) => <tr key={`${x.viewedAt}-${i}`} className="border-t border-white/10 text-zinc-200"><td className="py-1 pr-3">{x.team}</td><td className="py-1 pr-3">{whenText(x.viewedAt)}</td><td className="py-1">{x.version}</td></tr>)}</tbody>
             </table></div>
