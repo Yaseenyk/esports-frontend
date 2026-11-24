@@ -34,6 +34,15 @@ for (const [p, heading, signed] of OFF) {
   });
 }
 
+test("an empty team page or resume address has an h1 and a useful way on, not only the home link", async ({ page }) => {
+  await mockV3(page);
+  for (const p of ["/teams/view/?s=abcdefghijkl", "/players/view/?s=ravi"]) {
+    await page.goto(p);
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(/No shared team page here|No public resume here/);
+    await expect(page.getByRole("link", { name: /Find a team|See tournaments/ })).toBeVisible();
+  }
+});
+
 test("flags off: the resume editor shows no profile-page panel and keeps its own visibility choice", async ({ page }) => {
   const profile = { slug: "ravi", handle: "Ravi", bio: null, city: null, state: null, languages: [], visibility: "private", games: [], stats: null, adultConfirmedAt: "2030-01-01T00:00:00.000Z", resumeConsentAt: null, createdAt: "2030-01-01T00:00:00.000Z", updatedAt: "2030-01-01T00:00:00.000Z" };
   await v3SignedIn(page, { ...adultOk, "GET /v3/me/profile": () => ({ body: { profile } }) });

@@ -7,7 +7,7 @@ import { explainFailure } from "@/features/shared/failure";
 import { gameLabel, ROLE_LABELS } from "@/features/shared/games";
 import { SelectInput, TextArea } from "@/features/shared/ui/Fields";
 import Modal from "@/features/shared/ui/Modal";
-import { EmptyState, ErrorState, NotAvailable, SignInPrompt, SkeletonRows, StatusBadge } from "@/features/shared/ui/States";
+import { EmptyState, FindNext, ErrorState, NotAvailable, SignInPrompt, SkeletonRows, StatusBadge } from "@/features/shared/ui/States";
 import { box, btnPrimary, btnSecondary, h1, h2, h3, helper, link, section } from "@/features/shared/ui/styles";
 import { BLOCKER_TEXT, REPORT_REASONS, visibilityLabel, type Entry, type OwnPage } from "@/features/profiles/domain";
 import { useMyPlayerPage, useMyTeamPages, usePlayerPage, useReportPage, useSlugParam, useTeamPage, useTeamPageEditor } from "@/features/profiles/hooks/useProfiles";
@@ -86,7 +86,7 @@ export function TeamProfileScreen() {
   const res = useTeamPage(slug);
   if (slug === null || res.phase === "loading") return <div className="mx-auto max-w-3xl">{res.phase === "loading" && res.showSkeleton ? <Loading label="Loading the team page" /> : <p className="sr-only">Loading the team page</p>}</div>;
   if (res.phase === "error") return <div className="mx-auto max-w-3xl"><ErrorState message={explainFailure(res.failure)} onRetry={res.reload} /></div>;
-  if (res.phase === "unavailable" || (res.phase === "ready" && !res.data)) return <div className="mx-auto max-w-3xl"><EmptyState title="No shared team page here" body={GONE} action={<Link href="/" className={btnSecondary}>Back to the home page</Link>} /></div>;
+  if (res.phase === "unavailable" || (res.phase === "ready" && !res.data)) return <div className="mx-auto max-w-3xl"><EmptyState asPage title="No shared team page here" body={GONE} action={<FindNext />} /></div>;
   if (res.phase !== "ready" || !res.data) return null;
   const t = res.data;
   return (

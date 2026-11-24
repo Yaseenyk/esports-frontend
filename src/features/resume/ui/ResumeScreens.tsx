@@ -10,7 +10,7 @@ import type { GameRow, PublicProfile } from "@/features/resume/domain";
 import { PlayerPagePanel } from "@/features/profiles";
 import { explainFailure } from "@/features/shared/failure";
 import { SelectInput, TextArea, TextInput } from "@/features/shared/ui/Fields";
-import { EmptyState, ErrorState, NotAvailable, SkeletonRows } from "@/features/shared/ui/States";
+import { EmptyState, FindNext, ErrorState, NotAvailable, SkeletonRows } from "@/features/shared/ui/States";
 import { box, btnDanger, btnPrimary, btnSecondary, h1, h2, h3, section } from "@/features/shared/ui/styles";
 
 const when = (iso: string | null) => { const t = iso ? Date.parse(iso) : NaN; return Number.isFinite(t) ? new Date(t).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" }) : ""; };
@@ -200,9 +200,9 @@ export function PublicResumeScreen() {
   if (slug === null || res.phase === "loading") return <div className="mx-auto max-w-3xl">{res.phase === "loading" && res.showSkeleton ? <SkeletonRows n={2} label="Loading the resume" /> : <p className="sr-only">Loading the resume</p>}</div>;
   return (
     <div className="mx-auto max-w-3xl space-y-6">
-      {res.phase === "unavailable" && <EmptyState title="No public resume here" body="This address has no public resume. The owner may have made it private, or it never existed." action={<Link href="/" className={btnSecondary}>Back to the home page</Link>} />}
+      {res.phase === "unavailable" && <EmptyState asPage title="No public resume here" body="This address has no public resume. The owner may have made it private, or it never existed." action={<FindNext />} />}
       {res.phase === "error" && <ErrorState message={explainFailure(res.failure)} onRetry={res.reload} />}
-      {res.phase === "ready" && !res.data && <EmptyState title="No public resume here" body="This address has no public resume. The owner may have made it private, or it never existed." action={<Link href="/" className={btnSecondary}>Back to the home page</Link>} />}
+      {res.phase === "ready" && !res.data && <EmptyState asPage title="No public resume here" body="This address has no public resume. The owner may have made it private, or it never existed." action={<FindNext />} />}
       {res.phase === "ready" && res.data && <PublicResumeView p={res.data} />}
     </div>
   );

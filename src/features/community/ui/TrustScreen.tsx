@@ -8,15 +8,17 @@ import { RatingForm } from "@/features/community/ui/RatingForm";
 import { HowItWorks, ReviewItem, ScoreBlock } from "@/features/community/ui/TrustParts";
 import { explainFailure } from "@/features/shared/failure";
 import { AdultGate, ErrorState, NotAvailable, SkeletonRows } from "@/features/shared/ui/States";
-import { box, btnDanger, btnPrimary, h1, h2, link, section } from "@/features/shared/ui/styles";
+import { box, btnDanger, btnPrimary, btnSecondary, h1, h2, link, section } from "@/features/shared/ui/styles";
+
+const SEE_TOURNAMENTS = <Link href="/tournaments/" className={btnSecondary}>See tournaments</Link>;
 
 function Body({ slug }: { slug: string }) {
   const t = useTrust(slug);
   const s = t.summary;
-  if (s.phase === "unavailable") return <NotAvailable what="Organiser ratings" />;
+  if (s.phase === "unavailable") return <NotAvailable what="Organiser ratings" asPage action={SEE_TOURNAMENTS} />;
   if (s.phase === "loading") return s.showSkeleton ? <SkeletonRows n={3} label="Loading ratings" /> : null;
   if (s.phase === "error") return <ErrorState message={explainFailure(s.failure)} onRetry={s.reload} />;
-  if (s.phase !== "ready" || !s.data) return <NotAvailable what="Organiser ratings" />;
+  if (s.phase !== "ready" || !s.data) return <NotAvailable what="Organiser ratings" asPage action={SEE_TOURNAMENTS} />;
   const d = s.data;
   const me = t.me;
   const canRate = me && !me.isOrganiser && !me.myRating && d.window.state === "open";
@@ -68,6 +70,6 @@ export default function TrustScreen() {
   const [slug, setSlug] = useState<string | null>(null);
   useEffect(() => { const v = new URLSearchParams(window.location.search).get("t") ?? ""; setSlug(/^[a-z0-9-]{1,80}$/.test(v) ? v : ""); }, []);
   if (slug === null) return null;
-  if (!slug) return <NotAvailable what="This organiser page" />;
+  if (!slug) return <NotAvailable what="This organiser page" asPage action={SEE_TOURNAMENTS} />;
   return <Body slug={slug} />;
 }
