@@ -27,7 +27,9 @@ export default function OverlayKitPanel() {
   const age = k.chosen ? Math.max(0, Math.round((Date.now() - k.chosen.at) / 60000)) : 0;
 
   return (
-    <div className="space-y-8">
+    // Phones: steps, then the preview, then player kills. From lg: the steps on the left and the preview sticky on the right.
+    <div className="flex flex-col gap-8 lg:grid lg:grid-cols-2 lg:items-start lg:gap-10">
+      <div className="order-1 space-y-8 lg:col-start-1 lg:row-start-1">
       <section aria-labelledby="kit-data" className="space-y-3">
         <h2 id="kit-data" className="font-display text-2xl text-zinc-100">1. Your table in this browser</h2>
         {!k.ready ? null : k.chosen ? (
@@ -39,8 +41,8 @@ export default function OverlayKitPanel() {
             No table yet. Open a points table tool in this browser, enter your teams and switch on &ldquo;Send to the OBS overlay&rdquo; under the table.
           </p>
         )}
-        <ul className="flex flex-wrap gap-x-4 gap-y-2 text-sm">
-          {KIT_SOURCES.map((s) => <li key={s}><Link href={SOURCE_PATH[s]} className="inline-flex min-h-11 items-center text-cyan-400 underline underline-offset-2">{SOURCE_LABEL[s]}</Link></li>)}
+        <ul className="flex flex-wrap gap-2" aria-label="Points table tools">
+          {KIT_SOURCES.map((s) => <li key={s}><Link href={SOURCE_PATH[s]} className={secondary}>{SOURCE_LABEL[s]}</Link></li>)}
         </ul>
         <label className={`${label} max-w-sm`}>Which tool feeds the overlays
           <select className={field} value={k.look.src} onChange={(e) => k.setLook({ ...k.look, src: e.target.value as KitSource | "auto" })}>
@@ -77,7 +79,7 @@ export default function OverlayKitPanel() {
               <li key={v} className="space-y-3 border-t border-white/10 pt-4 first:border-t-0 first:pt-0" data-testid={`kit-view-${v}`}>
                 <h3 className="font-display text-lg text-zinc-100">{VIEW_NAME[v]}</h3>
                 <p className="text-sm text-zinc-300">{HELP[v]}</p>
-                <div className="grid gap-3 sm:grid-cols-3">
+                <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-2">
                   <label className={label}>Where on screen
                     <select className={field} value={cfg.area} onChange={(e) => k.setView(v, { area: e.target.value as KitArea })}>
                       {KIT_AREAS.map((a) => <option key={a} value={a}>{AREA_NAME[a]}</option>)}
@@ -97,7 +99,7 @@ export default function OverlayKitPanel() {
                 </label>
                 <div className="flex flex-wrap items-center gap-3">
                   <button type="button" className={primary} disabled={!url} onClick={async () => { const ok = await k.copy(v); setMsg((m) => ({ ...m, [v]: ok ? "Copied. Paste it into the URL box of an OBS Browser Source." : "Copying is blocked here: select the URL above and copy it yourself." })); }}>Copy OBS URL</button>
-                  <button type="button" className={secondary} aria-pressed={k.preview === v} onClick={() => k.setPreview(v)}>Preview below</button>
+                  <button type="button" className={secondary} aria-pressed={k.preview === v} onClick={() => k.setPreview(v)}>Show in preview</button>
                   <a className={secondary} href={url || undefined} target="_blank" rel="noopener">Open in a new tab</a>
                 </div>
                 <p role="status" aria-live="polite" className="min-h-5 text-xs text-zinc-400">{msg[v] ?? ""}</p>
@@ -107,21 +109,25 @@ export default function OverlayKitPanel() {
         </ul>
       </section>
 
-      <section aria-labelledby="kit-preview" className="space-y-3 border-t border-white/10 pt-6">
+      </div>
+
+      <section aria-labelledby="kit-preview" className="order-2 space-y-3 border-t border-white/10 pt-6 lg:sticky lg:top-24 lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:border-t-0 lg:pt-0">
         <h2 id="kit-preview" className="font-display text-2xl text-zinc-100">Preview: {VIEW_NAME[k.preview]}</h2>
         <p className="text-sm text-zinc-300">A 16:9 frame, like a 1920 by 1080 OBS canvas. The dark box stands in for your gameplay; in OBS the background is transparent. It updates live from the tool.</p>
-        <div className="aspect-video w-full overflow-hidden rounded-xl border border-white/10 bg-surface">
+        <div className="relative aspect-video w-full overflow-hidden rounded-xl border border-white/10 bg-surface">
           {k.previewUrl && <iframe key={k.preview} title={`Preview of the ${VIEW_NAME[k.preview]} overlay`} src={k.previewUrl} className="h-full w-full" data-testid="kit-preview" />}
+          {k.example && <p className="absolute right-2 top-2 rounded-lg border border-warning bg-ink px-2 py-1 text-xs font-semibold text-warning" data-testid="kit-example">Example data</p>}
         </div>
+        {k.example && <p className="text-sm text-zinc-400" role="note">Example data: sample teams so you can see the look. It stays in this preview: it is never sent to your OBS links or saved. Send a real table from a points table tool to replace it.</p>}
       </section>
 
-      <section aria-labelledby="kit-players" className="space-y-3 border-t border-white/10 pt-6">
+      <section aria-labelledby="kit-players" className="order-3 space-y-3 border-t border-white/10 pt-6 lg:col-start-1 lg:row-start-2">
         <h2 id="kit-players" className="font-display text-2xl text-zinc-100">Player kills for top fraggers (optional)</h2>
         <p className="text-sm text-zinc-300">The points tools count kills per team. To show player names, type each player&apos;s kills here; the overlay changes as you type. Saved in this browser only.</p>
         {k.rows.length === 0 ? <p className="text-sm text-zinc-400">No players yet. Without players, the top fraggers overlay shows team kills.</p> : (
           <ul className="space-y-2">
             {k.rows.map((r, i) => (
-              <li key={i} className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+              <li key={i} className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-2">
                 <input aria-label={`Player ${i + 1} name`} className={field} value={r.name} maxLength={60} placeholder="Player" onChange={(e) => k.setPlayer(i, { name: e.target.value })} />
                 <input aria-label={`Player ${i + 1} team`} className={field} value={r.team} maxLength={60} placeholder="Team" onChange={(e) => k.setPlayer(i, { team: e.target.value })} />
                 <input aria-label={`Player ${i + 1} kills`} className={field} inputMode="numeric" value={String(r.kills)} onChange={(e) => k.setPlayer(i, { kills: e.target.value })} />

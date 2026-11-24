@@ -19,24 +19,32 @@ const link = "text-cyan-400 underline underline-offset-2";
 
 export default function Page() {
   return (
-    <article className="mx-auto max-w-5xl space-y-10">
+    <article className="mx-auto max-w-6xl space-y-10">
       <JsonLd data={{ "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [{ "@type": "ListItem", position: 1, name: "Home", item: `${SITE_URL}/` }, { "@type": "ListItem", position: 2, name: "OBS overlay kit", item: `${SITE_URL}${KIT_PATH}` }] }} />
       <header className="max-w-3xl space-y-4">
         <nav aria-label="Breadcrumb" className="text-sm text-zinc-400"><Link href="/" className="hover:text-zinc-100">Home</Link> / OBS overlay kit</nav>
         <h1 className="font-display text-3xl text-zinc-100 sm:text-4xl">OBS overlay kit for esports points tables</h1>
         <p className="text-base leading-7 text-zinc-300">
+          A live points table, top fraggers and team cards for your tournament stream, added to OBS as Browser Sources. Free, no account, and
+          the data never leaves your PC (<Link href={KIT_GUIDE_PATH} className={link}>OBS setup guide</Link>).
+        </p>
+      </header>
+
+      <OverlayKitPanel />
+
+      <section aria-labelledby="kit-about" className="max-w-3xl space-y-3 border-t border-white/10 pt-6">
+        <h2 id="kit-about" className="font-display text-2xl text-zinc-100">About the kit</h2>
+        <p className="leading-7 text-zinc-300">
           Three overlays for your tournament stream: a live points table, the top fraggers and team cards. Each one is a web page you add to
           OBS as a Browser Source. The page has a transparent background, is drawn for a 1920 by 1080 canvas and keeps its text inside a
           safe margin. The numbers come from our points table tools for Free Fire, BGMI, COD Mobile and Valorant leagues, using the same
           ranking and tie-breakers as the tool, so the stream never shows a different order from the sheet you announce.
         </p>
-        <p className="text-base leading-7 text-zinc-300">
+        <p className="leading-7 text-zinc-300">
           No account, no upload and no server: the tool and the overlay talk to each other inside one browser on your streaming PC. New to
           browser sources? Read the <Link href={KIT_GUIDE_PATH} className={link}>OBS setup guide</Link> first; it takes about five minutes.
         </p>
-      </header>
-
-      <OverlayKitPanel />
+      </section>
 
       <section aria-labelledby="kit-how" className="max-w-3xl space-y-3 border-t border-white/10 pt-6">
         <h2 id="kit-how" className="font-display text-2xl text-zinc-100">How the data reaches OBS</h2>

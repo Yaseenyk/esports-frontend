@@ -116,7 +116,7 @@ test.describe("overlay kit, flag on", () => {
     await view.getByRole("button", { name: "Copy OBS URL" }).click();
     await expect(view.getByRole("status")).not.toBeEmpty();
     // The live preview on the kit page follows the tool.
-    await kit.getByTestId("kit-view-points").getByRole("button", { name: "Preview below" }).click();
+    await kit.getByTestId("kit-view-points").getByRole("button", { name: "Show in preview" }).click();
     await expect(kit.frameLocator('[data-testid="kit-preview"]').locator('[data-kit-view="points"]')).toContainText("Charlie");
     // A fresh browser (like OBS's own) has no saved data: the snapshot in the link fills the overlay.
     const fresh = await browser.newContext();
@@ -126,6 +126,32 @@ test.describe("overlay kit, flag on", () => {
     await expect(p.locator('[data-kit-area="right"]')).toBeVisible();
     await transparent(p);
     await fresh.close();
+  });
+
+  test("with no table yet the preview shows a sample labelled Example data, which never reaches the OBS links or this browser's storage", async ({ page }) => {
+    await page.goto("/overlay-kit/");
+    await expect(page.getByTestId("kit-source")).toContainText("No table yet");
+    await expect(page.getByTestId("kit-example")).toHaveText("Example data");
+    const frame = page.frameLocator('[data-testid="kit-preview"]');
+    await expect(frame.locator('[data-kit-view="points"]')).toContainText("Example data");
+    await expect(frame.locator('[data-kit-view="points"]')).toContainText("Team A");
+    // The OBS links carry no data snapshot at all (there is no real table), so the example cannot leak into OBS.
+    for (const v of ["points", "fraggers", "cards"]) expect(await page.getByTestId(`kit-url-${v}`).inputValue()).not.toContain("d=");
+    expect(await page.getByTestId("kit-preview").getAttribute("src")).toContain("d=");
+    const stored = await page.evaluate(() => Object.keys(localStorage).filter((k) => k.startsWith("eh-overlay-kit:feed")));
+    expect(stored).toEqual([]);
+    // Game links are touch-sized chips.
+    const chip = page.getByRole("list", { name: "Points table tools" }).getByRole("link").first();
+    expect((await chip.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+  });
+
+  test("the OBS guide puts the Custom CSS line in its own box with a Copy button", async ({ page, context, browserName }) => {
+    if (browserName === "chromium") await context.grantPermissions(["clipboard-read", "clipboard-write"]).catch(() => undefined);
+    await page.goto("/overlay-kit/obs-setup/");
+    const pre = page.locator("pre", { hasText: "background-color: rgba(0, 0, 0, 0)" });
+    await expect(pre).toBeVisible();
+    await pre.locator("xpath=..").getByRole("button", { name: "Copy" }).click();
+    await expect(page.getByRole("status").filter({ hasText: /Copied|Copying is blocked/ })).toBeVisible();
   });
 
   test("an overlay with no data waits quietly, and a damaged link never breaks it", async ({ page }) => {

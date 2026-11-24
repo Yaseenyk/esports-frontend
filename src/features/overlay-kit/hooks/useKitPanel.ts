@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-  DEFAULT_SETTINGS, KILLS_MAX, kitUrl, pickFeed, sanitizePlayers,
+  DEFAULT_SETTINGS, KILLS_MAX, exampleFeed, kitUrl, pickFeed, sanitizePlayers,
   type KitArea, type KitPlayer, type KitSettings, type KitSource, type KitView,
 } from "@/features/overlay-kit/domain";
 import { clearPlayers, publishPlayers } from "@/features/overlay-kit/services/kit-store";
@@ -34,8 +34,13 @@ export function useKitPanel() {
   const chosen = useMemo(() => pickFeed(feeds, look.src), [feeds, look.src]);
   const settingsFor = useCallback((view: KitView): KitSettings => ({ ...DEFAULT_SETTINGS, ...look, view, ...views[view] }), [look, views]);
   const urlFor = useCallback((view: KitView) => (origin ? kitUrl(origin, settingsFor(view), withData ? { feed: chosen, players } : undefined) : ""), [origin, settingsFor, withData, chosen, players]);
-  /** The preview follows the live data, so it carries settings only. */
-  const previewUrl = origin ? kitUrl(origin, settingsFor(preview)) : "";
+  /**
+   * The preview follows the live data, so it carries settings only. With no table in this browser yet it carries the labelled example
+   * instead, so the frame is never an empty box. The example lives only in this preview link: it is not saved, not broadcast to the
+   * overlay channel and never part of a copied OBS link (urlFor uses the real table only).
+   */
+  const example = ready && !chosen;
+  const previewUrl = origin ? kitUrl(origin, settingsFor(preview), example ? { feed: exampleFeed(look.src === "auto" ? "points-table" : look.src), players: null } : undefined) : "";
 
   const setView = (view: KitView, patch: Partial<ViewConfig>) => setViews((o) => ({ ...o, [view]: { ...o[view], ...patch } }));
   const copy = useCallback(async (view: KitView): Promise<boolean> => {
@@ -58,5 +63,5 @@ export function useKitPanel() {
     savePlayers(rows.map((r, j) => (j === i ? { ...r, ...(patch.name !== undefined ? { name: patch.name } : null), ...(patch.team !== undefined ? { team: patch.team } : null), ...(patch.kills !== undefined ? { kills: killsOf(patch.kills) } : null) } : r)));
   const removePlayer = (i: number) => savePlayers(rows.filter((_, j) => j !== i));
 
-  return { feed, chosen, feeds, ready, look, setLook, views, setView, withData, setWithData, urlFor, copy, preview, setPreview, previewUrl, rows, addPlayer, setPlayer, removePlayer, clearAll: () => savePlayers([]) };
+  return { feed, chosen, feeds, ready, look, setLook, views, setView, withData, setWithData, urlFor, copy, preview, setPreview, previewUrl, example, rows, addPlayer, setPlayer, removePlayer, clearAll: () => savePlayers([]) };
 }

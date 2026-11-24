@@ -58,6 +58,20 @@ export function feedFromMapLeague(rows: readonly MapLeagueRow[], o: { source?: K
   };
 }
 
+/**
+ * The fixed sample the kit page's preview shows while this browser has no table yet. It travels only in the preview frame's link (never
+ * stored, never broadcast, never in a copied OBS link), its title says "Example data", and `at: 0` makes any real table win at once.
+ */
+export const EXAMPLE_TITLE = "Example data (sample teams)";
+export function exampleFeed(source: KitSource = "points-table"): KitFeed {
+  const league = source === "valorant";
+  const rows: [string, number, number, number][] = [["Team A", 34, 16, 1], ["Team B", 30, 14, 1], ["Team C", 30, 11, 0], ["Team D", 24, 9, 1], ["Team E", 19, 7, 0]];
+  return {
+    v: 1, source, mode: league ? "league" : "br", title: EXAMPLE_TITLE, at: 0,
+    teams: rows.map(([team, points, kills, wins], i) => ({ rank: i + 1, team, points: league ? 12 - i * 3 : points, kills: league ? null : kills, wins: league ? 4 - i : wins, played: league ? 4 : 3, lost: league ? i : null })),
+  };
+}
+
 /** Same feed apart from the time it was sent. Used so an unchanged table is not sent again. */
 export const sameFeed = (a: KitFeed | null, b: KitFeed | null): boolean => JSON.stringify(a && { ...a, at: 0 }) === JSON.stringify(b && { ...b, at: 0 });
 
@@ -116,8 +130,10 @@ export const COUNT_MAX: Record<KitView, number> = { points: 16, fraggers: 10, ca
 /** The points table as the display system's TableData, so the overlay reuses the TV screen's table (TableView) and its 14 designs. */
 export function pointsTableData(feed: KitFeed, n: number): TableData {
   const rows = feed.teams.slice(0, Math.max(1, n));
-  if (feed.mode === "br") return { title: feed.title, subtitle: SOURCE_LABEL[feed.source], head: ["#", "Team", "Kills", "Wins", "Pts"], strong: 4, rows: rows.map((t) => [String(t.rank), t.team, String(t.kills ?? 0), String(t.wins), String(t.points)]) };
-  return { title: feed.title, subtitle: SOURCE_LABEL[feed.source], head: ["#", "Team", "P", "W", "L", "Pts"], strong: 5, rows: rows.map((t) => [String(t.rank), t.team, String(t.played), String(t.wins), String(t.lost ?? 0), String(t.points)]) };
+  // "Free Fire standings" over "Free Fire" says the game twice: the subtitle only shows when the title does not already name it.
+  const label = SOURCE_LABEL[feed.source], subtitle = feed.title.toLowerCase().includes(label.toLowerCase()) ? undefined : label;
+  if (feed.mode === "br") return { title: feed.title, subtitle, head: ["#", "Team", "Kills", "Wins", "Pts"], strong: 4, rows: rows.map((t) => [String(t.rank), t.team, String(t.kills ?? 0), String(t.wins), String(t.points)]) };
+  return { title: feed.title, subtitle, head: ["#", "Team", "P", "W", "L", "Pts"], strong: 5, rows: rows.map((t) => [String(t.rank), t.team, String(t.played), String(t.wins), String(t.lost ?? 0), String(t.points)]) };
 }
 
 export interface FraggerRow { rank: number; name: string; team: string; kills: number }

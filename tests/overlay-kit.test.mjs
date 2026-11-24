@@ -168,3 +168,16 @@ test("the build removes the overlay kit pages while the flag is off, and keeps t
   assert.equal(run(""), false);
   assert.equal(run("1"), true);
 });
+
+test("the example feed is labelled, loses to any real table, and the subtitle does not repeat the game", async () => {
+  const D = await import("../src/features/overlay-kit/domain.ts");
+  const ex = D.exampleFeed("free-fire");
+  assert.equal(ex.title, D.EXAMPLE_TITLE);
+  assert.match(ex.title, /Example data/);
+  assert.equal(ex.at, 0);
+  const real = { ...ex, title: "Real", at: 5 };
+  assert.equal(D.pickFeed([ex, real], "auto").title, "Real");
+  assert.equal(D.exampleFeed("valorant").mode, "league");
+  assert.equal(D.pointsTableData({ ...ex, title: "Free Fire standings" }, 5).subtitle, undefined);
+  assert.equal(D.pointsTableData({ ...ex, title: "Night cup" }, 5).subtitle, "Free Fire");
+});
