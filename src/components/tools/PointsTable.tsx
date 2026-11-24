@@ -101,7 +101,7 @@ export default function PointsTable({ preset, lang = "en", path = TOOL_PATHS["po
         </div>
         <p id="scale-help" className={`text-sm leading-6 ${placement ? "text-zinc-300" : "text-red-300"}`} role={placement ? undefined : "alert"}>{placement ? c.help(scaleSample, placement.length > 3) : c.helpBad}</p>
         <div className="flex flex-wrap items-center gap-2">
-          <button type="button" className="btn-ghost !min-h-10 px-4 text-sm" onClick={exampleButton}>{pre?.own ? c.exampleBtnOwn : c.exampleBtn}</button>
+          <button type="button" className="btn-ghost !min-h-11 px-4 text-sm" onClick={exampleButton}>{pre?.own ? c.exampleBtnOwn : c.exampleBtn}</button>
           <span className="text-xs text-zinc-400">{c.exampleNote}</span>
         </div>
         <p role="status" aria-live="polite" className="empty:hidden text-sm text-emerald-200" data-testid="scale-note">{scaleNote && <span key={scaleNote}>{scaleNote}</span>}</p>
@@ -112,9 +112,9 @@ export default function PointsTable({ preset, lang = "en", path = TOOL_PATHS["po
         hint={c.s2Hint}
         status={normalised.length ? c.s2Status(filled, cells) : undefined}
         actions={<>
-          <button type="button" className="btn-ghost !min-h-10 px-3 text-sm" onClick={() => setTeams([...normalised, { name: c.teamN(normalised.length + 1), matches: [] }])}>{c.addTeam}</button>
-          <button type="button" className="btn-ghost !min-h-10 px-3 text-sm" onClick={() => { setTeams(SAMPLE); setMatches(3); loadExampleScale(); }}>{c.useExample}</button>
-          {filled > 0 && <button type="button" className="btn-ghost !min-h-10 px-3 text-sm" onClick={() => setTeams(normalised.map((t) => ({ ...t, matches: t.matches.map(() => ({ placement: 0, kills: 0 })) })))}>{c.clear}</button>}
+          <button type="button" className="btn-ghost !min-h-11 px-3 text-sm" onClick={() => setTeams([...normalised, { name: c.teamN(normalised.length + 1), matches: [] }])}>{c.addTeam}</button>
+          <button type="button" className="btn-ghost !min-h-11 px-3 text-sm" onClick={() => { setTeams(SAMPLE); setMatches(3); loadExampleScale(); }}>{c.useExample}</button>
+          {filled > 0 && <button type="button" className="btn-ghost !min-h-11 px-3 text-sm" onClick={() => setTeams(normalised.map((t) => ({ ...t, matches: t.matches.map(() => ({ placement: 0, kills: 0 })) })))}>{c.clear}</button>}
         </>}>
         {normalised.length === 0 ? <p className="rounded-xl border border-dashed border-white/15 p-6 text-center text-zinc-300">{c.noTeams}</p> : (
           <ul className="space-y-3">
@@ -144,7 +144,7 @@ export default function PointsTable({ preset, lang = "en", path = TOOL_PATHS["po
       <ToolStep n={3} id="pt-standings" title={c.s3Title} done={table.length > 0 && filled > 0} stepWord={T.stepWord}
         hint={c.s3Hint}
         status={table.length && filled > 0 ? c.leading(table[0]!.name, table[0]!.total) : undefined}
-        actions={<button type="button" className="btn-ghost !min-h-10 px-3 text-sm" disabled={!table.length} onClick={csv}>{c.csvBtn}</button>}>
+        actions={<button type="button" className="btn-ghost !min-h-11 px-3 text-sm" disabled={!table.length} onClick={csv}>{c.csvBtn}</button>}>
         <section aria-label={c.standings} aria-live="polite" className="space-y-3">
           {table.length === 0 ? <p className="rounded-xl border border-dashed border-white/15 p-6 text-center text-zinc-300" role={placement ? undefined : "alert"}>{placement ? c.noStandings : c.fixScale}</p> : (
             <>
@@ -153,7 +153,7 @@ export default function PointsTable({ preset, lang = "en", path = TOOL_PATHS["po
               <div ref={tableBox} role="region" aria-label={c.tableLabel} tabIndex={0} className="overflow-x-auto outline-none focus-visible:ring-2 focus-visible:ring-cyan">
                 <table className="w-full min-w-[30rem] border-collapse text-left text-sm">
                   <thead><tr className="bg-[#0f1013] text-zinc-200"><th scope="col" className="px-3 py-2">{c.th.rank}</th><th scope="col" className="px-3 py-2">{c.th.team}</th>{Array.from({ length: matches }, (_, i) => <th key={i} scope="col" className="px-3 py-2">{c.th.m(i + 1)}</th>)}<th scope="col" className="px-3 py-2">{c.th.kills}</th><th scope="col" className="px-3 py-2">{c.th.wins}</th><th scope="col" className="sticky right-0 bg-[#0f1013] px-3 py-2 shadow-[-6px_0_6px_-6px_rgba(0,0,0,0.8)]">{c.th.total}</th></tr></thead>
-                  <tbody>{table.map((s) => <tr key={s.name + s.rank} className="border-t border-white/[0.08]"><th scope="row" className="px-3 py-2 font-bold text-cyan">{s.rank}</th><td className="px-3 py-2 font-medium text-white"><span>{s.name}</span>{s.tied && <span className="ml-2 text-xs text-amber-300" title={c.tieTitle}>{c.tie}</span>}</td>{s.perMatch.map((p, i) => <td key={i} className="px-3 py-2 text-zinc-300">{p}</td>)}<td className="px-3 py-2 text-zinc-300">{s.kills}</td><td className="px-3 py-2 text-zinc-300">{s.wins}</td><td className="sticky right-0 bg-[#0a0b0d] px-3 py-2 font-bold text-white shadow-[-6px_0_6px_-6px_rgba(0,0,0,0.8)]">{s.total}</td></tr>)}</tbody>
+                  <tbody>{table.map((s) => <tr key={s.name + s.rank} className="border-t border-white/[0.08]"><th scope="row" className="px-3 py-2 font-bold text-cyan">{s.rank}</th><td className="px-3 py-2 font-medium text-white"><span>{s.name}</span>{s.tied && <span className="ml-2 whitespace-nowrap text-xs text-amber-300" title={c.tieTitle}>{c.tie}</span>}</td>{s.perMatch.map((p, i) => <td key={i} className="px-3 py-2 text-zinc-300">{p}</td>)}<td className="px-3 py-2 text-zinc-300">{s.kills}</td><td className="px-3 py-2 text-zinc-300">{s.wins}</td><td className="sticky right-0 bg-[#0a0b0d] px-3 py-2 font-bold text-white shadow-[-6px_0_6px_-6px_rgba(0,0,0,0.8)]">{s.total}</td></tr>)}</tbody>
                 </table>
               </div>
               <p className="text-xs leading-5 text-zinc-400">{c.footnote}</p>

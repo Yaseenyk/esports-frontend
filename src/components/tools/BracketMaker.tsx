@@ -77,7 +77,7 @@ export default function BracketMaker({ path = TOOL_PATHS.brackets }: { /** The p
           {ready && (
             <div className="flex flex-wrap items-center gap-3 text-sm text-zinc-300">
               <span>Not sure who is the best? </span>
-              <button type="button" className="btn-ghost !min-h-10 px-4 text-sm" onClick={shuffle}>Shuffle the order</button>
+              <button type="button" className="btn-ghost !min-h-11 px-4 text-sm" onClick={shuffle}>Shuffle the order</button>
               {size > teams.length && <span>A bye means a team goes straight to the next round without playing.</span>}
             </div>
           )}
@@ -88,7 +88,7 @@ export default function BracketMaker({ path = TOOL_PATHS.brackets }: { /** The p
         hint={ready ? "After each match, tap the team that won. It moves on to the next round. Tapped the wrong one? Tap it again to undo." : "Your bracket appears here as soon as you add two teams in step 1."}
         status={ready ? (champion ? "Champion decided" : `${Math.min(decided, total)} of ${total} matches decided`) : undefined}
         done={Boolean(champion)}
-        actions={ready && decided > 0 ? <button type="button" className="btn-ghost !min-h-10 px-3 text-sm no-print" onClick={() => setPicks({})}>Clear results</button> : undefined}>
+        actions={ready && decided > 0 ? <button type="button" className="btn-ghost !min-h-11 px-3 text-sm no-print" onClick={() => setPicks({})}>Clear results</button> : undefined}>
         <p className="text-xs text-zinc-400 sm:hidden no-print">Swipe sideways to see every round.</p>
         <div className="overflow-x-auto pb-2 outline-none focus-visible:ring-2 focus-visible:ring-cyan" role="region" aria-label="Bracket" tabIndex={0}>
           {!ready ? <p className="rounded-xl border border-dashed border-white/15 p-6 text-center text-zinc-300">No bracket yet. Add at least two teams above.</p> : (

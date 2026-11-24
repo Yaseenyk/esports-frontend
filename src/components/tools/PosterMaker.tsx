@@ -117,10 +117,10 @@ export default function PosterMaker() {
               </li>
             ))}
           </ul>
-          <button type="button" className="btn-ghost !min-h-10 px-4 text-sm" disabled={data.sponsors.length >= MAX_POSTER_SPONSORS} onClick={() => setData((d) => ({ ...d, sponsors: [...d.sponsors, { name: `Sponsor ${d.sponsors.length + 1}` }] }))}>Add a sponsor</button>
+          <button type="button" className="btn-ghost !min-h-11 px-4 text-sm" disabled={data.sponsors.length >= MAX_POSTER_SPONSORS} onClick={() => setData((d) => ({ ...d, sponsors: [...d.sponsors, { name: `Sponsor ${d.sponsors.length + 1}` }] }))}>Add a sponsor</button>
           <p className="text-xs leading-5 text-zinc-400">Logos are shrunk to fit in your browser and stay on your device. Use a logo you have the right to use.</p>
         </div>
-        <button type="button" className="btn-ghost !min-h-10 px-4 text-sm" onClick={() => { setData(EMPTY_POSTER); setMsg(null); }}>Clear everything</button>
+        <button type="button" className="btn-ghost !min-h-11 px-4 text-sm" onClick={() => { setData(EMPTY_POSTER); setMsg(null); }}>Clear everything</button>
       </ToolStep>
 
       <ToolStep n={2} id="po-look" title="Pick a look" done={ready} hint="Each look uses the colours and lettering of one of the 14 TV screen designs. Choose the shape for where you will post it."

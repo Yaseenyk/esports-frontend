@@ -83,8 +83,8 @@ export default function RoundRobin({ path = TOOL_PATHS["round-robin"] }: { /** T
         hint="Type each team's score next to its name when a match ends. A match counts in the table once both boxes are filled in."
         status={ready ? (finished ? "All matches have a score" : `${scored} of ${total} matches have a score`) : undefined}
         actions={ready ? <>
-          <button type="button" className="btn-ghost !min-h-10 px-3 text-sm" onClick={() => csv("fixtures")}>Download fixtures (CSV)</button>
-          {scored > 0 && <button type="button" className="btn-ghost !min-h-10 px-3 text-sm" onClick={() => setScores({})}>Clear all scores</button>}
+          <button type="button" className="btn-ghost !min-h-11 px-3 text-sm" onClick={() => csv("fixtures")}>Download fixtures (CSV)</button>
+          {scored > 0 && <button type="button" className="btn-ghost !min-h-11 px-3 text-sm" onClick={() => setScores({})}>Clear all scores</button>}
         </> : undefined}>
         {!ready ? <p className="rounded-xl border border-dashed border-white/15 p-6 text-center text-zinc-300">No fixtures yet. Add at least two teams in step 1.</p> : (
           <div className="grid gap-4 md:grid-cols-2">
@@ -113,7 +113,7 @@ export default function RoundRobin({ path = TOOL_PATHS["round-robin"] }: { /** T
       <ToolStep n={4} id="rr-table" title="Read the league table" done={finished}
         hint="It updates by itself every time you enter a score. Nothing to press."
         status={ready && rows.length ? (finished ? `Winner: ${rows[0]!.team}` : scored > 0 ? `Leading: ${rows[0]!.team}` : undefined) : undefined}
-        actions={ready ? <button type="button" className="btn-ghost !min-h-10 px-3 text-sm" onClick={() => csv("table")}>Download table (CSV)</button> : undefined}>
+        actions={ready ? <button type="button" className="btn-ghost !min-h-11 px-3 text-sm" onClick={() => csv("table")}>Download table (CSV)</button> : undefined}>
         {!ready ? <p className="rounded-xl border border-dashed border-white/15 p-6 text-center text-zinc-300">No table yet. It appears once you have two teams.</p> : (
           <section aria-label="League table" aria-live="polite" className="space-y-3">
             {scored === 0 && <p className="text-sm text-zinc-300">No scores yet, so every team is on 0 points. Enter a score in step 3 to see it move.</p>}

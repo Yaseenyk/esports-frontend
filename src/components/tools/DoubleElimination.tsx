@@ -86,7 +86,7 @@ export default function DoubleElimination({ path = TOOL_PATHS["double-eliminatio
       <ToolStep n={2} id="de-pick" title="Tap the team that won" done={Boolean(champion)}
         hint={bracket ? "After each match, tap the team that won. Winners move on and losers drop down. Tapped the wrong one? Tap it again to undo." : "Your bracket appears here as soon as you add three teams in step 1."}
         status={bracket ? (champion ? "Champion decided" : `${decided} result${decided === 1 ? "" : "s"} entered`) : undefined}
-        actions={bracket && decided > 0 ? <button type="button" className="btn-ghost !min-h-10 px-3 text-sm" onClick={() => setPicks({})}>Clear all results</button> : undefined}>
+        actions={bracket && decided > 0 ? <button type="button" className="btn-ghost !min-h-11 px-3 text-sm" onClick={() => setPicks({})}>Clear all results</button> : undefined}>
         {!bracket ? <p className="rounded-xl border border-dashed border-white/15 p-6 text-center text-zinc-300">No bracket yet. Add at least three teams above.</p> : (
           <>
             {champion && <p role="status" className="rounded-xl border border-emerald-400/40 bg-[#0a0b0d] p-4 text-center font-display text-xl font-bold text-white">Champion: {champion.name}</p>}

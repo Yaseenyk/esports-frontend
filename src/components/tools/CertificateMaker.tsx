@@ -112,7 +112,7 @@ export default function CertificateMaker() {
               <label htmlFor="ce-awards" className="block text-sm font-semibold text-white">Award and name, one per line</label>
               <p id="ce-awards-help" className="text-sm leading-6 text-zinc-300">Write the award, a colon, then the name. For example <span className="font-mono text-zinc-100">Winner: Team A</span>. Each certificate says its own award. A line with no award uses the box &quot;Award or result&quot; in step 2. Up to 100 lines.</p>
               <textarea id="ce-awards" aria-describedby="ce-awards-help" className="field min-h-40 py-2" spellCheck={false} value={awardText} onChange={(e) => { setPrefilled(false); setAwardText(e.target.value); }} placeholder={"Winner: Team A\nRunner-up: Team B\nParticipation: Team C"} />
-              <button type="button" className="btn-ghost !min-h-10 px-4 text-sm" onClick={() => { setPrefilled(false); setAwardText(""); }}>Clear</button>
+              <button type="button" className="btn-ghost !min-h-11 px-4 text-sm" onClick={() => { setPrefilled(false); setAwardText(""); }}>Clear</button>
             </div>}
       </ToolStep>
 

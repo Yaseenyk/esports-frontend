@@ -41,9 +41,9 @@ export default function TeamsInput({ value, onChange, noun = "team", min = 2, ma
       <textarea id={id} aria-describedby={`${id}-help ${id}-count`} className={`field py-2 ${mono ? "font-mono text-sm" : ""}`} style={{ minHeight: `${rows * 1.6 + 1}rem` }} value={value} onChange={(e) => { setNote(""); onChange(e.target.value); }} spellCheck={false}
         placeholder={`${example.slice(0, 3).join("\n")}\n…`} />
       <div className="flex flex-wrap items-center gap-2">
-        <button type="button" className="btn-ghost !min-h-10 px-4 text-sm" onClick={paste}>Paste from clipboard</button>
-        <button type="button" className="btn-ghost !min-h-10 px-4 text-sm" onClick={() => { setNote(""); onChange(example.join("\n")); }}>Use an example list</button>
-        {value.trim() && <button type="button" className="btn-ghost !min-h-10 px-4 text-sm" onClick={() => { setNote(""); onChange(""); }}>Clear</button>}
+        <button type="button" className="btn-ghost !min-h-11 px-4 text-sm" onClick={paste}>Paste from clipboard</button>
+        <button type="button" className="btn-ghost !min-h-11 px-4 text-sm" onClick={() => { setNote(""); onChange(example.join("\n")); }}>Use an example list</button>
+        {value.trim() && <button type="button" className="btn-ghost !min-h-11 px-4 text-sm" onClick={() => { setNote(""); onChange(""); }}>Clear</button>}
       </div>
       <p id={`${id}-count`} role="status" aria-live="polite" className={`text-sm font-semibold ${ready ? "text-emerald-300" : "text-amber-300"}`}>
         {ready ? `✓ ${plural(unique)}, ready.` : over ? `${plural(unique)} is too many. The most this tool takes is ${max}.` : unique === 0 ? `Add at least ${plural(min)} to begin.` : `${plural(unique)} so far. Add ${min - unique} more to continue.`}
