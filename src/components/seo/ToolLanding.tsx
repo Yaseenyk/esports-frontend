@@ -6,6 +6,13 @@ import { Inline } from "@/components/seo/Prose";
 import ScrollTable from "@/components/seo/ScrollTable";
 import { LISTED_GUIDES as GUIDES } from "@/content/guides";
 import { SITE_URL } from "@/lib/site";
+import type { UiLang } from "@/lib/pt-br";
+
+/** The page's own words around the tool. Only the Portuguese Free Fire page passes "pt-BR". */
+const UI = {
+  en: { inLanguage: "en-IN", home: "Home", howToName: (hn: string) => `How to use the ${hn}`, use: "Use it now", words: "What these words mean", why: (hn: string) => `Why use this ${hn}`, how: (hn: string) => `How to use the ${hn}`, guides: "Guides that help", related: "Related pages", faq: (n: string) => `${n}: questions and answers`, faqLead: "Straight answers about how this tool works, what it can and cannot do, and where your data goes.", saveH: "Want to save your work online?", saveP: "The tools are free without an account. A free account adds saving events online, player invite links and live gate check-in.", signup: "Create a free account" },
+  "pt-BR": { inLanguage: "pt-BR", home: "Início", howToName: (hn: string) => `Como usar a ${hn}`, use: "Use agora", words: "O que estas palavras significam", why: (hn: string) => `Por que usar esta ${hn}`, how: (hn: string) => `Como usar a ${hn}`, guides: "Guias que ajudam (em inglês)", related: "Páginas relacionadas", faq: (n: string) => `${n}: perguntas e respostas`, faqLead: "Respostas diretas sobre como esta ferramenta funciona, o que ela faz e não faz, e para onde vão os seus dados.", saveH: "Quer salvar o seu trabalho online?", saveP: "As ferramentas são grátis e funcionam sem conta. Uma conta grátis adiciona eventos salvos online, links de convite para jogadores e check-in ao vivo na entrada do evento.", signup: "Criar uma conta grátis" },
+} as const;
 
 export interface ToolPage {
   slug: string;
@@ -56,17 +63,18 @@ export const headingName = (t: ToolPage) => t.shortName ?? ((n) => n.charAt(0).t
  * A public page for one tool: what it does, the working tool itself (free, no account) and the questions people ask.
  * It is plain server-rendered HTML, so search engines read the full text; the tool loads on top of it.
  */
-export default function ToolLanding({ t, children }: { t: ToolPage; children?: React.ReactNode }) {
+export default function ToolLanding({ t, children, lang = "en" }: { t: ToolPage; children?: React.ReactNode; lang?: UiLang }) {
+  const u = UI[lang];
   const path = t.path ?? `/tools/${t.slug}/`, url = `${SITE_URL}${path}`, crumb = t.crumb ?? { name: "Tools", href: "/tools/" };
   const guides = (t.guides ?? []).map((s) => GUIDES.find((g) => g.slug === s)).filter((g): g is NonNullable<typeof g> => !!g);
   const hn = headingName(t);
   return (
     <article className="space-y-12">
       <JsonLd data={[
-        { "@context": "https://schema.org", "@type": "SoftwareApplication", name: t.name, applicationCategory: "UtilitiesApplication", operatingSystem: "Web", url, description: t.lead, inLanguage: "en-IN", isAccessibleForFree: true, browserRequirements: "Requires JavaScript. Works in any current browser.", featureList: t.benefits.map((b) => b.title), offers: { "@type": "Offer", price: "0", priceCurrency: "INR" } },
-        ...(t.howTo ? [{ "@context": "https://schema.org", "@type": "HowTo", name: `How to use the ${hn}`, description: t.lead, step: t.steps.map((x, i) => ({ "@type": "HowToStep", position: i + 1, name: x.split(/[.,:]/)[0], text: x })) }] : []),
+        { "@context": "https://schema.org", "@type": "SoftwareApplication", name: t.name, applicationCategory: "UtilitiesApplication", operatingSystem: "Web", url, description: t.lead, inLanguage: u.inLanguage, isAccessibleForFree: true, browserRequirements: "Requires JavaScript. Works in any current browser.", featureList: t.benefits.map((b) => b.title), offers: { "@type": "Offer", price: "0", priceCurrency: "INR" } },
+        ...(t.howTo ? [{ "@context": "https://schema.org", "@type": "HowTo", name: u.howToName(hn), description: t.lead, step: t.steps.map((x, i) => ({ "@type": "HowToStep", position: i + 1, name: x.split(/[.,:]/)[0], text: x })) }] : []),
         { "@context": "https://schema.org", "@type": "FAQPage", mainEntity: t.faq.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })) },
-        { "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [{ "@type": "ListItem", position: 1, name: "Home", item: `${SITE_URL}/` }, { "@type": "ListItem", position: 2, name: crumb.name, item: `${SITE_URL}${crumb.href}` }, { "@type": "ListItem", position: 3, name: t.name, item: url }] },
+        { "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [{ "@type": "ListItem", position: 1, name: u.home, item: `${SITE_URL}/` }, { "@type": "ListItem", position: 2, name: crumb.name, item: `${SITE_URL}${crumb.href}` }, { "@type": "ListItem", position: 3, name: t.name, item: url }] },
       ]} />
       <header className="no-print">
         <nav aria-label="Breadcrumb" className="text-sm text-zinc-400"><Link href={crumb.href} className="hover:text-zinc-200">{crumb.name}</Link> / {t.name}</nav>
@@ -74,16 +82,16 @@ export default function ToolLanding({ t, children }: { t: ToolPage; children?: R
         <p className="mt-4 max-w-2xl text-lg text-zinc-200">{t.intro ?? t.lead}</p>
       </header>
 
-      {children && <section aria-labelledby="use"><h2 id="use" className="mb-4 font-display text-2xl font-bold text-white">{t.useHeading ?? "Use it now"}</h2>{children}</section>}
+      {children && <section aria-labelledby="use"><h2 id="use" className="mb-4 font-display text-2xl font-bold text-white">{t.useHeading ?? u.use}</h2>{children}</section>}
 
       {t.glossary && t.glossary.length > 0 && (
         <aside className="no-print -mt-6 max-w-3xl rounded-xl border border-white/[0.14] bg-[#0a0b0d] p-4 text-sm text-zinc-300" aria-labelledby="words">
-          <h2 id="words" className="font-semibold text-white">What these words mean</h2>
+          <h2 id="words" className="font-semibold text-white">{u.words}</h2>
           <dl className="mt-2 space-y-1.5">{t.glossary.map((g) => <div key={g.term}><dt className="inline font-semibold text-zinc-100">{g.term}</dt><dd className="inline">{": "}{g.meaning}</dd></div>)}</dl>
         </aside>
       )}
 
-      <section className="no-print" aria-labelledby="why"><h2 id="why" className="font-display text-2xl font-bold text-white">{`Why use this ${hn}`}</h2>
+      <section className="no-print" aria-labelledby="why"><h2 id="why" className="font-display text-2xl font-bold text-white">{u.why(hn)}</h2>
         <Stagger className="mt-4 grid gap-4 md:grid-cols-3">{t.benefits.map((b) => <Item key={b.title}><div className="card h-full"><h3 className="font-display font-bold text-white">{b.title}</h3><p className="mt-2 text-sm text-zinc-300">{b.body}</p></div></Item>)}</Stagger>
       </section>
 
@@ -93,7 +101,7 @@ export default function ToolLanding({ t, children }: { t: ToolPage; children?: R
         </section>
       )}
 
-      <section className="no-print" aria-labelledby="how"><h2 id="how" className="font-display text-2xl font-bold text-white">{`How to use the ${hn}`}</h2>
+      <section className="no-print" aria-labelledby="how"><h2 id="how" className="font-display text-2xl font-bold text-white">{u.how(hn)}</h2>
         <Stagger className="mt-4 space-y-3"><ol className="contents">{t.steps.map((s, i) => <li key={s} className="list-none"><Item><div className="card flex gap-4 !p-4"><span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-cyan font-bold text-ink">{i + 1}</span><span className="text-zinc-200">{s}</span></div></Item></li>)}</ol></Stagger>
       </section>
 
@@ -116,26 +124,26 @@ export default function ToolLanding({ t, children }: { t: ToolPage; children?: R
       ))}
 
       {guides.length > 0 && (
-        <section className="no-print" aria-labelledby="read"><h2 id="read" className="font-display text-2xl font-bold text-white">Guides that help</h2>
+        <section className="no-print" aria-labelledby="read"><h2 id="read" className="font-display text-2xl font-bold text-white">{u.guides}</h2>
           <ul className="mt-4 grid gap-3 sm:grid-cols-3">{guides.map((g) => <li key={g.slug}><Link href={`/guides/${g.slug}/`} className="card block h-full !p-4"><span className="tag">{g.tag}</span><span className="mt-2 block font-semibold text-white">{g.title}</span></Link></li>)}</ul>
         </section>
       )}
 
       {t.related && t.related.length > 0 && (
-        <section className="no-print" aria-labelledby="related"><h2 id="related" className="font-display text-2xl font-bold text-white">Related pages</h2>
+        <section className="no-print" aria-labelledby="related"><h2 id="related" className="font-display text-2xl font-bold text-white">{u.related}</h2>
           <ul className="mt-4 grid gap-3 sm:grid-cols-2">{t.related.map((r) => <li key={r.href}><Link href={r.href} className="card block h-full !p-4"><span className="block font-semibold text-white">{r.label}</span><span className="mt-1 block text-sm text-zinc-300">{r.blurb}</span></Link></li>)}</ul>
         </section>
       )}
 
       <section className="no-print grid gap-6 lg:grid-cols-[minmax(0,15rem)_minmax(0,1fr)] lg:gap-10" aria-labelledby="faq">
         <div className="lg:sticky lg:top-24 lg:self-start">
-          <h2 id="faq" className="font-display text-2xl font-bold text-white">{`${((n) => n.charAt(0).toUpperCase() + n.slice(1))(t.shortName ?? t.name)}: questions and answers`}</h2>
-          <p className="mt-2 text-sm leading-6 text-zinc-300">Straight answers about how this tool works, what it can and cannot do, and where your data goes.</p>
+          <h2 id="faq" className="font-display text-2xl font-bold text-white">{u.faq(((n) => n.charAt(0).toUpperCase() + n.slice(1))(t.shortName ?? t.name))}</h2>
+          <p className="mt-2 text-sm leading-6 text-zinc-300">{u.faqLead}</p>
         </div>
         <Faq items={t.faq} className="max-w-3xl" />
       </section>
 
-      <section className="card text-center"><h2 className="font-display text-xl font-bold text-white">Want to save your work online?</h2><p className="mt-1 text-sm text-zinc-300">The tools are free without an account. A free account adds saving events online, player invite links and live gate check-in.</p><div className="mt-4 flex justify-center gap-3"><Link href="/signup/" className="btn">Create a free account</Link></div></section>
+      <section className="card text-center"><h2 className="font-display text-xl font-bold text-white">{u.saveH}</h2><p className="mt-1 text-sm text-zinc-300">{u.saveP}</p><div className="mt-4 flex justify-center gap-3"><Link href="/signup/" className="btn">{u.signup}</Link></div></section>
     </article>
   );
 }

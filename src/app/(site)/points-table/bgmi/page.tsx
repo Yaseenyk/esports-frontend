@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import PointsTable from "@/components/tools/PointsTable";
+import PointsTable from "@/components/tools/PointsTableLazy";
 import ToolLanding from "@/components/seo/ToolLanding";
 import { GAME_PAGES } from "@/lib/game-pages";
 

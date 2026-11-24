@@ -38,7 +38,7 @@ test("validatePathInput accepts only a path on this site", () => {
 
 // ---------- exclusion list ----------
 test("the hidden-route list is pinned and matches whole segments", () => {
-  assert.deepEqual([...HIDDEN_ROUTE_PREFIXES], ["/gate", "/display", "/pass", "/overlay", "/embed"]);
+  assert.deepEqual([...HIDDEN_ROUTE_PREFIXES], ["/gate", "/display", "/pass", "/overlay", "/embed", "/pt-br"]);
   for (const p of ["/gate/", "/gate", "/display/", "/display/x/", "/pass/", "/pass/?t=1", "/overlay/", "/embed/", "/GATE/"]) assert.equal(isHiddenPath(p), true, p);
   for (const p of ["/", "/tools/", "/gatehouse/", "/passport/", "/displays/", "/tools/display-screen/", "/app/", "/live/", ""]) assert.equal(isHiddenPath(p), false, p);
   assert.equal(isHiddenPath(null), false);

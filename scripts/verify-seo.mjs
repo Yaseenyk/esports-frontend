@@ -12,6 +12,9 @@ const NOINDEX = [/^\/games\//, /^\/events\//, /^\/communities\//, /^\/manage\//,
 // Guides merged into a stronger guide (src/content/merged-guides.json): their pages stay for old links but must be noindex and out of the sitemap.
 const MERGED_GUIDES = Object.keys(JSON.parse(fs.readFileSync(path.resolve("src/content/merged-guides.json"), "utf8")));
 for (const slug of MERGED_GUIDES) NOINDEX.push(new RegExp(`^/guides/${slug}/$`));
+// Portuguese (Brazil) pages stay noindex and out of the sitemap until a native reader approves them (PT_BR_REVIEWED in src/lib/pt-br.ts).
+const PT_BR_REVIEWED = /export const PT_BR_REVIEWED = true;/.test(fs.readFileSync(path.resolve("src/lib/pt-br.ts"), "utf8"));
+if (!PT_BR_REVIEWED) NOINDEX.push(/^\/pt-br\//);
 // ---- v3: tournament pages are indexable only when the thin-page guard passed (see src/features/tournaments/seo/thin-page-guard.ts) ----
 // The guard runs here too, from the TypeScript source, on the input each page shipped in its <script id="eh-guard">.
 import ts from "typescript";

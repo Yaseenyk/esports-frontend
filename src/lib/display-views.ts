@@ -5,8 +5,11 @@ import type { Row } from "./roundrobin";
 import type { Slot } from "./schedule";
 
 /** Standings from the points table calculator, as a screen. */
-export function pointsView(rows: Standing[], matches: number, title = "Standings"): Payload {
-  return { v: "table", d: { title, subtitle: `After ${matches} match${matches === 1 ? "" : "es"}`, head: ["#", "Team", ...Array.from({ length: matches }, (_, i) => `M${i + 1}`), "Kills", "Total"], rows: rows.map((r) => [String(r.rank), r.name, ...r.perMatch.map(String), String(r.kills), String(r.total)]), strong: 2 + matches + 1 } };
+/** Words on the screen and share picture for the points table; English unless a page passes its own (the Portuguese page does). */
+export interface PointsViewLabels { subtitle: (matches: number) => string; team: string; m: (n: number) => string; kills: string; total: string }
+const POINTS_EN: PointsViewLabels = { subtitle: (m) => `After ${m} match${m === 1 ? "" : "es"}`, team: "Team", m: (n) => `M${n}`, kills: "Kills", total: "Total" };
+export function pointsView(rows: Standing[], matches: number, title = "Standings", l: PointsViewLabels = POINTS_EN): Payload {
+  return { v: "table", d: { title, subtitle: l.subtitle(matches), head: ["#", l.team, ...Array.from({ length: matches }, (_, i) => l.m(i + 1)), l.kills, l.total], rows: rows.map((r) => [String(r.rank), r.name, ...r.perMatch.map(String), String(r.kills), String(r.total)]), strong: 2 + matches + 1 } };
 }
 
 /** The league table from the round robin generator, as a screen. */

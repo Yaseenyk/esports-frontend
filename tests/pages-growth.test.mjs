@@ -74,7 +74,8 @@ test("the game pages live outside the noindex group at their own routes and name
     assert.ok(g.faq.some((f) => /official/i.test(f.q)), `${g.path} should have a question about what is official`);
   }
   const pt = read("src/components/tools/PointsTable.tsx");
-  assert.ok(pt.includes("preset-note") && /not \{pre\.game\}&apos;s official scale/.test(pt), "the points table shows the example note");
+  const copy = read("src/lib/tool-copy.ts");
+  assert.ok(pt.includes("preset-note") && pt.includes("c.presetA(pre.game)") && /not \$\{game\}'s official scale/.test(copy) && /não é a tabela oficial de \$\{game\}/.test(copy), "the points table shows the example note, in English and Portuguese");
 });
 
 test("internal links resolve: guides exist, breadcrumb parents and growth paths have routes", () => {

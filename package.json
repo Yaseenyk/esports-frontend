@@ -5,7 +5,7 @@
   "scripts": {
     "lint:v3": "node scripts/lint-v3.mjs",
     "dev": "next dev",
-    "build": "next build && node scripts/prune-v3.mjs",
+    "build": "next build && node scripts/prune-v3.mjs && node scripts/set-lang.mjs",
     "start": "next start",
     "test": "node --import tsx --test --test-reporter=spec tests/*.test.mjs",
     "test:e2e": "playwright test",

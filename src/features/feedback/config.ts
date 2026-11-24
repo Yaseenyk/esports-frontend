@@ -8,7 +8,7 @@ export const CONSENT_VERSION = "feedback-v1";
  * overlay page (they are on a stream or a venue screen), and pass pages (a private link for one person). Prefix match on whole segments.
  * Print and fullscreen are handled separately (CSS `no-print`, and `isFullscreenNow`).
  */
-export const HIDDEN_ROUTE_PREFIXES = ["/gate", "/display", "/pass", "/overlay", "/embed"] as const;
+export const HIDDEN_ROUTE_PREFIXES = ["/gate", "/display", "/pass", "/overlay", "/embed", "/pt-br"] as const; // /pt-br: the widget is English only
 
 /** True when the widget must not exist on this path. `/gate`, `/gate/` and `/gate/x` match; `/gatehouse` does not. */
 export function isHiddenPath(pathname: string | null | undefined): boolean {

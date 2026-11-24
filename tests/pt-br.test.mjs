@@ -1,0 +1,69 @@
+// The two Portuguese (Brazil) pages: held out of search until a native reader approves them, linked to the English pages with hreflang,
+// and carrying the same facts (numbers, limits, structure) as the English pages they translate.
+import test from "node:test";
+import assert from "node:assert/strict";
+import fs from "node:fs";
+import { PT_BR_PAGES, PT_BR_REVIEWED, PT_BR_ROBOTS, enPathFor, hreflangFor } from "../src/lib/pt-br.ts";
+import { GAME_PAGES } from "../src/lib/game-pages.ts";
+import { FREE_FIRE_PT } from "../src/lib/game-pages-pt.ts";
+import { FREE_FIRE_TEAM_NAMES_PT } from "../src/content/pt-br/free-fire-team-names-ideas.ts";
+import { LIVE_NOW_DRAFTS } from "../src/content/scheduled/live-now.ts";
+import { toolCopy } from "../src/lib/tool-copy.ts";
+
+const read = (p) => fs.readFileSync(new URL(`../${p}`, import.meta.url), "utf8");
+const nums = (s) => (s.match(/\d+/g) ?? []).sort().join(",");
+
+test("the review switch is off and keeps the pages noindex, follow and out of the sitemap", () => {
+  assert.equal(PT_BR_REVIEWED, false, "only switch on after a native Brazilian Portuguese reader approved both pages");
+  assert.deepEqual(PT_BR_ROBOTS, { index: false, follow: true });
+  assert.match(read("src/app/sitemap.ts"), /PT_BR_REVIEWED \? Object\.values\(PT_BR_PAGES\)/);
+  assert.match(read("scripts/verify-seo.mjs"), /if \(!PT_BR_REVIEWED\) NOINDEX\.push\(\/\^\\\/pt-br\\\/\/\)/);
+});
+
+test("exactly two pages, each with en, pt-BR and x-default links, and routes that exist", () => {
+  assert.deepEqual(Object.entries(PT_BR_PAGES), [["/points-table/free-fire/", "/pt-br/points-table/free-fire/"], ["/guides/free-fire-team-names-ideas/", "/pt-br/guides/free-fire-team-names-ideas/"]]);
+  for (const [en, pt] of Object.entries(PT_BR_PAGES)) {
+    assert.deepEqual(hreflangFor(en), { en, "pt-BR": pt, "x-default": en });
+    assert.equal(enPathFor(pt), en);
+    assert.ok(fs.existsSync(new URL(`../src/app/(pt)${pt}page.tsx`, import.meta.url)), pt);
+  }
+  assert.equal(hreflangFor("/points-table/bgmi/"), undefined);
+  assert.match(read("package.json"), /node scripts\/set-lang\.mjs/, "the build sets lang=pt-BR on the Portuguese pages");
+});
+
+test("the Portuguese points table page keeps the English page's facts", () => {
+  const en = GAME_PAGES["free-fire"], pt = FREE_FIRE_PT;
+  assert.equal(pt.preset, en.preset);
+  assert.deepEqual(pt.table.rows.map((r) => nums(r.join(" "))), en.table.rows.map((r) => nums(r.join(" "))));
+  assert.equal(pt.faq.length, en.faq.length);
+  assert.equal(pt.steps.length, en.steps.length);
+  assert.equal(pt.benefits.length, en.benefits.length);
+  pt.faq.forEach((f, i) => assert.equal(nums(f.a), nums(en.faq[i].a), `FAQ ${i + 1} numbers`));
+  assert.ok(pt.lead.includes("exemplo") && pt.faq.some((f) => /oficial/i.test(f.q)));
+});
+
+test("the Portuguese guide keeps the English guide's structure and numbers", () => {
+  const en = LIVE_NOW_DRAFTS.find((d) => d.slug === "free-fire-team-names-ideas"), pt = FREE_FIRE_TEAM_NAMES_PT;
+  assert.ok(en);
+  assert.equal(pt.slug, en.slug);
+  assert.equal(pt.sections.length, en.sections.length);
+  assert.equal(pt.faq.length, en.faq.length);
+  assert.deepEqual(pt.related, en.related);
+  const ptText = pt.sections.map((s) => s.md).join(" ");
+  for (const n of ["50", "4v4", "FFWS MEA 2025"]) assert.ok(ptText.includes(n), n);
+  for (const m of ptText.matchAll(/\]\((\/[^)]+)\)/g)) assert.ok(/\(em inglês\)/.test(ptText.slice(m.index, m.index + m[0].length + 14)), `link ${m[1]} says it is English`);
+});
+
+test("every Portuguese tool string exists and differs from English where it is a sentence", () => {
+  const en = toolCopy("en"), pt = toolCopy("pt-BR");
+  const walk = (a, b, at) => {
+    for (const k of Object.keys(a)) {
+      assert.ok(k in b, `${at}.${k} missing in Portuguese`);
+      if (typeof a[k] === "string" && a[k].split(" ").length > 3) assert.notEqual(a[k], b[k], `${at}.${k} not translated`);
+      else if (a[k] && typeof a[k] === "object" && !Array.isArray(a[k])) walk(a[k], b[k], `${at}.${k}`);
+    }
+  };
+  walk(en, pt, "copy");
+  assert.equal(pt.points.ord(1), "1º");
+  assert.equal(pt.points.leading("Alpha", 1), "Na liderança: Alpha, 1 ponto");
+});

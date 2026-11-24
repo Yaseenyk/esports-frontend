@@ -10,6 +10,8 @@ import { pointsView } from "@/lib/display-views";
 import { downloadBlob } from "@/lib/idcard/download";
 import NumberField from "./NumberField";
 import ToolStep from "./ToolStep";
+import { toolCopy } from "@/lib/tool-copy";
+import type { UiLang } from "@/lib/pt-br";
 
 const EXAMPLE: TeamEntry[] = [
   { name: "Alpha", matches: [{ placement: 1, kills: 5 }, { placement: 4, kills: 2 }, { placement: 2, kills: 3 }] },
@@ -18,14 +20,17 @@ const EXAMPLE: TeamEntry[] = [
   { name: "Delta", matches: [{ placement: 4, kills: 3 }, { placement: 3, kills: 1 }, { placement: 3, kills: 6 }] },
 ];
 const num = (v: string) => { const n = Math.floor(Number(v)); return Number.isFinite(n) && n >= 0 ? Math.min(n, 9999) : 0; };
-const ord = (n: number) => `${n}${n % 100 >= 11 && n % 100 <= 13 ? "th" : ["th", "st", "nd", "rd"][n % 10] ?? "th"}`;
 
-const PRESETS = { bgmi: { game: "BGMI", guide: "/guides/bgmi-custom-room-tournament/", guideLabel: "BGMI custom room guide" }, "free-fire": { game: "Free Fire", guide: "/guides/free-fire-tournament-organiser/", guideLabel: "Free Fire tournament guide" } } as const;
+const PRESETS = { bgmi: { game: "BGMI", guide: "/guides/bgmi-custom-room-tournament/" }, "free-fire": { game: "Free Fire", guide: "/guides/free-fire-tournament-organiser/" } } as const;
 export type PointsPreset = keyof typeof PRESETS;
 
-/** Four steps: set the points, enter each team's results, read the standings, optionally show them on a TV. Nothing is sent anywhere. */
-export default function PointsTable({ preset }: { /** A game landing page: the same tool, with a note that the starting scale is only an example. */ preset?: PointsPreset } = {}) {
+/**
+ * Four steps: set the points, enter each team's results, read the standings, optionally show them on a TV. Nothing is sent anywhere.
+ * Rendered in the browser only (see PointsTableLazy), so Google Translate finishing before React starts has no server HTML here to clash with.
+ */
+export default function PointsTable({ preset, lang = "en" }: { /** A game landing page: the same tool, with a note that the starting scale is only an example. */ preset?: PointsPreset; /** The words on screen; numbers and rules are the same in every language. */ lang?: UiLang } = {}) {
   const pre = preset ? PRESETS[preset] : null;
+  const T = toolCopy(lang), c = T.points;
   const [scaleText, setScaleText] = useState(EXAMPLE_SCALE.placement.join(", "));
   const [kill, setKill] = useState(EXAMPLE_SCALE.perKill);
   const [matches, setMatches] = useState(3);
@@ -40,7 +45,7 @@ export default function PointsTable({ preset }: { /** A game landing page: the s
   const normalised = useMemo(() => teams.map((t) => ({ ...t, matches: Array.from({ length: matches }, (_, i) => t.matches[i] ?? { placement: 0, kills: 0 }) })), [teams, matches]);
   const table = useMemo(() => (placement ? standings(normalised.filter((t) => t.name.trim()), { placement, perKill: kill }) : []), [normalised, placement, kill]);
 
-  const screen = useMemo(() => (table.length ? pointsView(table, matches) : null), [table, matches]);
+  const screen = useMemo(() => (table.length ? pointsView(table, matches, c.view.title, c.view) : null), [table, matches, c]);
   const cells = normalised.length * matches;
   const filled = normalised.reduce((n, t) => n + t.matches.filter((m) => m.placement > 0).length, 0);
   const setCell = (ti: number, mi: number, key: "placement" | "kills", v: string) => {
@@ -54,9 +59,9 @@ export default function PointsTable({ preset }: { /** A game landing page: the s
     const ro = new ResizeObserver(check); ro.observe(el); return () => ro.disconnect();
   }, [table.length, matches]);
   const csv = () => {
-    const head = ["Rank", "Team", ...Array.from({ length: matches }, (_, i) => `Match ${i + 1}`), "Placement points", "Kill points", "Total"];
+    const h = c.csvHead, head = [h.rank, h.team, ...Array.from({ length: matches }, (_, i) => h.match(i + 1)), h.placement, h.kill, h.total];
     const rows = table.map((s) => [s.rank, s.name, ...s.perMatch, s.placementPoints, s.killPoints, s.total]);
-    downloadBlob(new Blob([[head, ...rows].map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\r\n")], { type: "text/csv" }), "points-table.csv"); sendEvent("tool_complete", "points-table");
+    downloadBlob(new Blob([[head, ...rows].map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\r\n")], { type: "text/csv" }), c.csvFile); sendEvent("tool_complete", "points-table");
   };
   // The button used to give no sign when the example was already in the boxes (the default), so people pressed it again and again.
   const [scaleNote, setScaleNote] = useState("");
@@ -64,54 +69,52 @@ export default function PointsTable({ preset }: { /** A game landing page: the s
   const exampleButton = () => {
     const already = placement?.join(", ") === EXAMPLE_SCALE.placement.join(", ") && kill === EXAMPLE_SCALE.perKill;
     loadExampleScale();
-    setScaleNote(already
-      ? `The example scale is already in the boxes above: ${EXAMPLE_SCALE.placement.join(", ")}, and ${EXAMPLE_SCALE.perKill} per kill. Change the numbers to match your rules.`
-      : `Example scale filled in: ${EXAMPLE_SCALE.placement.join(", ")}, and ${EXAMPLE_SCALE.perKill} per kill. The standings below use it now.`);
+    setScaleNote((already ? c.already : c.filled)(EXAMPLE_SCALE.placement.join(", "), EXAMPLE_SCALE.perKill));
   };
-  const scaleSample = placement ? placement.slice(0, 3).map((p, i) => `${ord(i + 1)} place gets ${p} point${p === 1 ? "" : "s"}`).join(", ") : "";
+  const scaleSample = placement ? placement.slice(0, 3).map((p, i) => c.sampleItem(c.ord(i + 1), p)).join(", ") : "";
 
   return (
     <div className="space-y-5">
-      <ToolStep n={1} id="pt-scale" title="Set how points work" done={Boolean(placement)}
-        hint="In battle royale, a team earns points for where it finished (placement) plus points for every kill. Tell the tool your rulebook's numbers, or just tap the example button."
-        status={placement ? `${placement.length} places score` : undefined}>
+      <ToolStep n={1} id="pt-scale" title={c.s1Title} done={Boolean(placement)} stepWord={T.stepWord}
+        hint={c.s1Hint}
+        status={placement ? c.s1Status(placement.length) : undefined}>
         <div className="grid gap-4 sm:grid-cols-[1fr_9rem_9rem]">
-          <label className="block text-sm text-zinc-200">Placement points, 1st place first<input className="field mt-1 font-mono" value={scaleText} onChange={(e) => { setScaleText(e.target.value); setScaleNote(""); }} aria-invalid={!placement} aria-describedby="scale-help" /></label>
-          <NumberField label="Points per kill" value={kill} min={0} max={1000} decimal onChange={setKill} />
-          <NumberField label="Matches played" value={matches} min={1} max={12} onChange={setMatches} />
+          <label className="block text-sm text-zinc-200">{c.scaleLabel}<input className="field mt-1 font-mono" value={scaleText} onChange={(e) => { setScaleText(e.target.value); setScaleNote(""); }} aria-invalid={!placement} aria-describedby="scale-help" /></label>
+          <NumberField label={c.perKill} value={kill} min={0} max={1000} decimal onChange={setKill} />
+          <NumberField label={c.matchesPlayed} value={matches} min={1} max={12} onChange={setMatches} />
         </div>
-        <p id="scale-help" className={`text-sm leading-6 ${placement ? "text-zinc-300" : "text-red-300"}`} role={placement ? undefined : "alert"}>{placement ? `Type the points for each finishing position, separated by commas. With this list, ${scaleSample}${placement.length > 3 ? ", and so on" : ""}. A team below the end of the list gets 0 placement points.` : "Enter numbers only, separated by commas, for example 10, 6, 5, 4, 3, 2, 1, 1."}</p>
+        <p id="scale-help" className={`text-sm leading-6 ${placement ? "text-zinc-300" : "text-red-300"}`} role={placement ? undefined : "alert"}>{placement ? c.help(scaleSample, placement.length > 3) : c.helpBad}</p>
         <div className="flex flex-wrap items-center gap-2">
-          <button type="button" className="btn-ghost !min-h-10 px-4 text-sm" onClick={exampleButton}>Use a common example scale</button>
-          <span className="text-xs text-zinc-400">The example is only a sample. Use your own rulebook&apos;s scale for a real event.</span>
+          <button type="button" className="btn-ghost !min-h-10 px-4 text-sm" onClick={exampleButton}>{c.exampleBtn}</button>
+          <span className="text-xs text-zinc-400">{c.exampleNote}</span>
         </div>
         <p role="status" aria-live="polite" className="empty:hidden text-sm text-emerald-200" data-testid="scale-note">{scaleNote && <span key={scaleNote}>{scaleNote}</span>}</p>
-        {pre && <p className="rounded-lg border border-amber-300/30 bg-amber-300/5 p-3 text-sm leading-6 text-amber-100" data-testid="preset-note">Example only: the scale above is a sample often used in custom rooms, not {pre.game}&apos;s official scale, and it may not match the current rules. For an official event follow the publisher&apos;s own rulebook; for a custom room use your own rules. See the <Link href={pre.guide} className="underline">{pre.guideLabel}</Link> and the <Link href="/guides/esports-tournament-rules-template/" className="underline">rules template</Link>.</p>}
+        {pre && <p className="rounded-lg border border-amber-300/30 bg-amber-300/5 p-3 text-sm leading-6 text-amber-100" data-testid="preset-note">{c.presetA(pre.game)}<Link href={pre.guide} className="underline">{c.guideLabel[preset!]}</Link>{c.presetAnd}<Link href="/guides/esports-tournament-rules-template/" className="underline">{c.rulesTemplate}</Link>{c.presetEnd}</p>}
       </ToolStep>
 
-      <ToolStep n={2} id="pt-results" title="Enter each team's results" done={cells > 0 && filled >= cells}
-        hint="Add a row per team. For every match write Place (where the team finished) and Kills (how many kills it got) once the match ends."
-        status={normalised.length ? `${filled} of ${cells} results entered` : undefined}
+      <ToolStep n={2} id="pt-results" title={c.s2Title} done={cells > 0 && filled >= cells} stepWord={T.stepWord}
+        hint={c.s2Hint}
+        status={normalised.length ? c.s2Status(filled, cells) : undefined}
         actions={<>
-          <button type="button" className="btn-ghost !min-h-10 px-3 text-sm" onClick={() => setTeams([...normalised, { name: `Team ${normalised.length + 1}`, matches: [] }])}>Add a team</button>
-          <button type="button" className="btn-ghost !min-h-10 px-3 text-sm" onClick={() => { setTeams(EXAMPLE); setMatches(3); loadExampleScale(); }}>Use an example</button>
-          {filled > 0 && <button type="button" className="btn-ghost !min-h-10 px-3 text-sm" onClick={() => setTeams(normalised.map((t) => ({ ...t, matches: t.matches.map(() => ({ placement: 0, kills: 0 })) })))}>Clear results</button>}
+          <button type="button" className="btn-ghost !min-h-10 px-3 text-sm" onClick={() => setTeams([...normalised, { name: c.teamN(normalised.length + 1), matches: [] }])}>{c.addTeam}</button>
+          <button type="button" className="btn-ghost !min-h-10 px-3 text-sm" onClick={() => { setTeams(EXAMPLE); setMatches(3); loadExampleScale(); }}>{c.useExample}</button>
+          {filled > 0 && <button type="button" className="btn-ghost !min-h-10 px-3 text-sm" onClick={() => setTeams(normalised.map((t) => ({ ...t, matches: t.matches.map(() => ({ placement: 0, kills: 0 })) })))}>{c.clear}</button>}
         </>}>
-        {normalised.length === 0 ? <p className="rounded-xl border border-dashed border-white/15 p-6 text-center text-zinc-300">No teams yet. Press Add a team, or Use an example to see how it works.</p> : (
+        {normalised.length === 0 ? <p className="rounded-xl border border-dashed border-white/15 p-6 text-center text-zinc-300">{c.noTeams}</p> : (
           <ul className="space-y-3">
             {normalised.map((t, ti) => (
               <li key={ti} className="rounded-xl border border-white/[0.14] bg-[#0f1013] p-3">
                 <div className="flex items-center gap-2">
-                  <input aria-label={`Team ${ti + 1} name`} className="field !min-h-11 min-w-0 flex-1 font-semibold" value={t.name} onChange={(e) => setTeams(normalised.map((x, i) => (i === ti ? { ...x, name: e.target.value } : x)))} />
-                  <button type="button" className="chip !min-h-11 shrink-0" aria-label={`Remove ${t.name || `team ${ti + 1}`}`} onClick={() => setTeams(normalised.filter((_, i) => i !== ti))}>Remove</button>
+                  <input aria-label={c.teamName(ti + 1)} className="field !min-h-11 min-w-0 flex-1 font-semibold" value={t.name} onChange={(e) => setTeams(normalised.map((x, i) => (i === ti ? { ...x, name: e.target.value } : x)))} />
+                  <button type="button" className="chip !min-h-11 shrink-0" aria-label={c.removeTeam(t.name || c.removeTeamN(ti + 1))} onClick={() => setTeams(normalised.filter((_, i) => i !== ti))}>{c.remove}</button>
                 </div>
                 <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
                   {t.matches.map((m, mi) => (
                     <fieldset key={mi} className="min-w-0 rounded-lg border border-white/[0.1] p-2">
-                      <legend className="px-1 text-xs font-medium text-zinc-300">Match {mi + 1}</legend>
+                      <legend className="px-1 text-xs font-medium text-zinc-300">{c.match(mi + 1)}</legend>
                       <div className="flex gap-2">
-                        <label className="block min-w-0 flex-1 text-[11px] text-zinc-300">Place<input aria-label={`${t.name || `Team ${ti + 1}`}, match ${mi + 1}, placement`} className="field !min-h-11 mt-0.5 !px-2 text-center" inputMode="numeric" value={shown(`${ti}:${mi}:placement`, m.placement, true)} onChange={(e) => setCell(ti, mi, "placement", e.target.value)} /></label>
-                        <label className="block min-w-0 flex-1 text-[11px] text-zinc-300">Kills<input aria-label={`${t.name || `Team ${ti + 1}`}, match ${mi + 1}, kills`} className="field !min-h-11 mt-0.5 !px-2 text-center" inputMode="numeric" value={shown(`${ti}:${mi}:kills`, m.kills, true)} onChange={(e) => setCell(ti, mi, "kills", e.target.value)} /></label>
+                        <label className="block min-w-0 flex-1 text-[11px] text-zinc-300">{c.place}<input aria-label={c.cellPlace(t.name || c.teamN(ti + 1), mi + 1)} className="field !min-h-11 mt-0.5 !px-2 text-center" inputMode="numeric" value={shown(`${ti}:${mi}:placement`, m.placement, true)} onChange={(e) => setCell(ti, mi, "placement", e.target.value)} /></label>
+                        <label className="block min-w-0 flex-1 text-[11px] text-zinc-300">{c.kills}<input aria-label={c.cellKills(t.name || c.teamN(ti + 1), mi + 1)} className="field !min-h-11 mt-0.5 !px-2 text-center" inputMode="numeric" value={shown(`${ti}:${mi}:kills`, m.kills, true)} onChange={(e) => setCell(ti, mi, "kills", e.target.value)} /></label>
                       </div>
                     </fieldset>
                   ))}
@@ -122,30 +125,30 @@ export default function PointsTable({ preset }: { /** A game landing page: the s
         )}
       </ToolStep>
 
-      <ToolStep n={3} id="pt-standings" title="Read the standings" done={table.length > 0 && filled > 0}
-        hint="Teams are ranked by total points, best first. It updates by itself as you type, so there is nothing to press."
-        status={table.length && filled > 0 ? `Leading: ${table[0]!.name}, ${table[0]!.total} points` : undefined}
-        actions={<button type="button" className="btn-ghost !min-h-10 px-3 text-sm" disabled={!table.length} onClick={csv}>Download as CSV</button>}>
-        <section aria-label="Standings" aria-live="polite" className="space-y-3">
-          {table.length === 0 ? <p className="rounded-xl border border-dashed border-white/15 p-6 text-center text-zinc-300" role={placement ? undefined : "alert"}>{placement ? "No standings yet. Add a team with a name in step 2." : "Fix the points scale in step 1 to see the table."}</p> : (
+      <ToolStep n={3} id="pt-standings" title={c.s3Title} done={table.length > 0 && filled > 0} stepWord={T.stepWord}
+        hint={c.s3Hint}
+        status={table.length && filled > 0 ? c.leading(table[0]!.name, table[0]!.total) : undefined}
+        actions={<button type="button" className="btn-ghost !min-h-10 px-3 text-sm" disabled={!table.length} onClick={csv}>{c.csvBtn}</button>}>
+        <section aria-label={c.standings} aria-live="polite" className="space-y-3">
+          {table.length === 0 ? <p className="rounded-xl border border-dashed border-white/15 p-6 text-center text-zinc-300" role={placement ? undefined : "alert"}>{placement ? c.noStandings : c.fixScale}</p> : (
             <>
-              {filled === 0 && <p className="text-sm text-zinc-300">No results yet, so every team is on 0. Enter a Place for each match in step 2.</p>}
-              {scrolls && <p className="text-xs text-zinc-300">Swipe sideways to see every match. Total stays in view.</p>}
-              <div ref={tableBox} role="region" aria-label="Standings table" tabIndex={0} className="overflow-x-auto outline-none focus-visible:ring-2 focus-visible:ring-cyan">
+              {filled === 0 && <p className="text-sm text-zinc-300">{c.noResults}</p>}
+              {scrolls && <p className="text-xs text-zinc-300">{c.swipe}</p>}
+              <div ref={tableBox} role="region" aria-label={c.tableLabel} tabIndex={0} className="overflow-x-auto outline-none focus-visible:ring-2 focus-visible:ring-cyan">
                 <table className="w-full min-w-[30rem] border-collapse text-left text-sm">
-                  <thead><tr className="bg-[#0f1013] text-zinc-200"><th scope="col" className="px-3 py-2">Rank</th><th scope="col" className="px-3 py-2">Team</th>{Array.from({ length: matches }, (_, i) => <th key={i} scope="col" className="px-3 py-2">M{i + 1}</th>)}<th scope="col" className="px-3 py-2">Kills</th><th scope="col" className="px-3 py-2">Wins</th><th scope="col" className="sticky right-0 bg-[#0f1013] px-3 py-2 shadow-[-6px_0_6px_-6px_rgba(0,0,0,0.8)]">Total</th></tr></thead>
-                  <tbody>{table.map((s) => <tr key={s.name + s.rank} className="border-t border-white/[0.08]"><th scope="row" className="px-3 py-2 font-bold text-cyan">{s.rank}</th><td className="px-3 py-2 font-medium text-white"><span>{s.name}</span>{s.tied && <span className="ml-2 text-xs text-amber-300" title="Same points as another team; the tie-breakers decided the order">tie-break</span>}</td>{s.perMatch.map((p, i) => <td key={i} className="px-3 py-2 text-zinc-300">{p}</td>)}<td className="px-3 py-2 text-zinc-300">{s.kills}</td><td className="px-3 py-2 text-zinc-300">{s.wins}</td><td className="sticky right-0 bg-[#0a0b0d] px-3 py-2 font-bold text-white shadow-[-6px_0_6px_-6px_rgba(0,0,0,0.8)]">{s.total}</td></tr>)}</tbody>
+                  <thead><tr className="bg-[#0f1013] text-zinc-200"><th scope="col" className="px-3 py-2">{c.th.rank}</th><th scope="col" className="px-3 py-2">{c.th.team}</th>{Array.from({ length: matches }, (_, i) => <th key={i} scope="col" className="px-3 py-2">{c.th.m(i + 1)}</th>)}<th scope="col" className="px-3 py-2">{c.th.kills}</th><th scope="col" className="px-3 py-2">{c.th.wins}</th><th scope="col" className="sticky right-0 bg-[#0f1013] px-3 py-2 shadow-[-6px_0_6px_-6px_rgba(0,0,0,0.8)]">{c.th.total}</th></tr></thead>
+                  <tbody>{table.map((s) => <tr key={s.name + s.rank} className="border-t border-white/[0.08]"><th scope="row" className="px-3 py-2 font-bold text-cyan">{s.rank}</th><td className="px-3 py-2 font-medium text-white"><span>{s.name}</span>{s.tied && <span className="ml-2 text-xs text-amber-300" title={c.tieTitle}>{c.tie}</span>}</td>{s.perMatch.map((p, i) => <td key={i} className="px-3 py-2 text-zinc-300">{p}</td>)}<td className="px-3 py-2 text-zinc-300">{s.kills}</td><td className="px-3 py-2 text-zinc-300">{s.wins}</td><td className="sticky right-0 bg-[#0a0b0d] px-3 py-2 font-bold text-white shadow-[-6px_0_6px_-6px_rgba(0,0,0,0.8)]">{s.total}</td></tr>)}</tbody>
                 </table>
               </div>
-              <p className="text-xs leading-5 text-zinc-400">M1, M2... = points earned in each match. Wins = matches finished 1st. A tie-break is the rule that orders teams on the same total: most wins, then most kills, then the better place in the last match, then team name. Put your own tie-breakers in your rules before the event.</p>
+              <p className="text-xs leading-5 text-zinc-400">{c.footnote}</p>
             </>
           )}
         </section>
       </ToolStep>
 
-      {table.length > 0 && filled > 0 && <WinnersBlock first={table[0]!.name} second={table[1]?.name} third={table[2]?.name} title={`Winners after ${matches} match${matches === 1 ? "" : "es"}`} />}
+      {table.length > 0 && filled > 0 && <WinnersBlock first={table[0]!.name} second={table[1]?.name} third={table[2]?.name} title={c.winnersTitle(matches)} lang={lang} />}
 
-      <ScreenButtons payload={screen} what="standings" step={4} />
+      <ScreenButtons payload={screen} what={c.what} step={4} lang={lang} />
     </div>
   );
 }
