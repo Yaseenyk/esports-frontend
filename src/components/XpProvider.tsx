@@ -78,9 +78,19 @@ export default function XpProvider({ children }: { children: ReactNode }) {
   useEffect(() => { document.documentElement.toggleAttribute("data-overdrive", p.overdrive); }, [p.overdrive]);
 
   // Exploring is rewarded: each section once, and a bonus for seeing them all.
+  // The welcome toast waits for the first real action (a tap, a key or typing in a tool), so it never covers the hero or the menu on
+  // landing. Scrolling does not count.
+  useEffect(() => {
+    if (!ready || ref.current.done.includes("first-visit")) return;
+    const evs = ["pointerdown", "keydown", "input"] as const;
+    const go = () => { off(); window.setTimeout(() => award("first-visit", 10, "Player one has entered the hub"), 400); };
+    const off = () => evs.forEach((e) => document.removeEventListener(e, go, true));
+    evs.forEach((e) => document.addEventListener(e, go, true));
+    return off;
+  }, [ready, award]);
+
   useEffect(() => {
     if (!ready) return;
-    award("first-visit", 10, "Player one has entered the hub");
     const seg = path.split("/")[1];
     if (SECTIONS.includes(seg)) {
       award(`visit:${seg}`, 5);
@@ -113,7 +123,7 @@ export default function XpProvider({ children }: { children: ReactNode }) {
   return (
     <Ctx.Provider value={api}>
       {children}
-      <div className="xp-toasts no-print pointer-events-none fixed inset-x-0 bottom-20 z-[60] flex flex-col-reverse items-center gap-2 px-3 sm:bottom-auto sm:top-24 sm:flex-col sm:items-end sm:pr-5" role="status" aria-live="polite">
+      <div className="xp-toasts no-print pointer-events-none fixed inset-x-0 bottom-20 z-[45] flex flex-col-reverse items-center gap-2 px-3 sm:bottom-auto sm:top-24 sm:flex-col sm:items-end sm:pr-5" role="status" aria-live="polite">
         <AnimatePresence>
           {toasts.map((t) => (
             <motion.div key={t.id} layout initial={reduce ? false : { opacity: 0, x: 40, scale: 0.9 }} animate={{ opacity: 1, x: 0, scale: 1 }} exit={{ opacity: 0, x: 40, scale: 0.9 }} transition={{ type: "spring", stiffness: 380, damping: 26 }}

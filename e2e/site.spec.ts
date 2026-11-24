@@ -517,3 +517,17 @@ test("the menu search opens a result with Enter, and a number key for the page y
   await page.keyboard.press("1"); // Tools: the page we are already on
   await expect(page.getByRole("dialog")).toHaveCount(0);
 });
+
+test("the first-visit XP toast does not cover the landing page; it waits for the first real action", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+  await page.waitForTimeout(1500);
+  await expect(page.getByText("Player one has entered the hub")).toHaveCount(0);
+  await page.mouse.wheel(0, 400); // scrolling is not an action
+  await page.waitForTimeout(600);
+  await expect(page.getByText("Player one has entered the hub")).toHaveCount(0);
+  await page.locator("main").click({ position: { x: 5, y: 5 } });
+  await expect(page.getByText("Player one has entered the hub")).toBeVisible();
+  // It sits below the hub menu overlay (z 50) so it never covers the menu.
+  expect(Number(await page.locator(".xp-toasts").evaluate((e) => getComputedStyle(e).zIndex))).toBeLessThan(50);
+});
