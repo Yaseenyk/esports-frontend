@@ -97,9 +97,13 @@ export default function RulebookTool() {
         <Field id="rb-text" label="Your rulebook (edit freely)" help="Lines starting with # are headings and lines starting with - are bullet points in the PDF.">
           <textarea id="rb-text" value={r.text} rows={22} onChange={(e) => r.edit(e.target.value)} aria-describedby="rb-text-help" className={`${input} py-2 font-mono text-sm leading-6`} />
         </Field>
+        {r.edited && <p className="text-sm text-zinc-300" aria-live="polite"><span key="ed">You have edited the text, so the form above no longer changes it.</span></p>}
+      </section>
+
+      {/* On phones the download bar sticks to the bottom of the screen while the tool is in view, so the PDF is never 4000 px away. */}
+      <div data-testid="rb-actions" className="sticky bottom-0 z-10 -mx-4 space-y-2 border-t border-white/10 bg-ink px-4 py-3 sm:static sm:mx-0 sm:border-t-0 sm:bg-transparent sm:px-0 sm:py-0">
         <p className="text-sm text-zinc-300" aria-live="polite">
           <span key={r.left}>{r.left === 0 ? "No [brackets] left to fill." : `${r.left} [bracket] ${r.left === 1 ? "item is" : "items are"} still to fill in.`}</span>
-          {r.edited && <span key="ed"> You have edited the text, so the form above no longer changes it.</span>}
         </p>
         <div className="flex flex-wrap gap-3">
           <button type="button" className={btnPrimary} disabled={r.busy} onClick={r.pdf}><span key={r.busy ? "b" : "i"}>{r.busy ? "Making the PDF…" : "Download PDF"}</span></button>
@@ -107,7 +111,7 @@ export default function RulebookTool() {
           {r.edited && <button type="button" className={btnSecondary} onClick={r.rebuild}>Rebuild from the form</button>}
         </div>
         <p role="status" aria-live="polite" className={`min-h-5 text-xs ${r.msg?.ok === false ? "text-warning" : "text-success"}`}>{r.msg && <span key={r.msg.text}>{r.msg.text}</span>}</p>
-      </section>
+      </div>
     </div>
   );
 }

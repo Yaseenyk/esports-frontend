@@ -309,3 +309,18 @@ test("the tools page is grouped by when you need each tool, and each whole card 
   if (process.env.NEXT_PUBLIC_OVERLAY_KIT === "1") await expect(kit).toHaveAttribute("href", "/overlay-kit/");
   else await expect(kit).toHaveCount(0);
 });
+
+test("rulebook: on a phone the Download PDF bar stays on screen while the form is in view", async ({ page }) => {
+  await page.goto("/tools/rulebook/");
+  await page.getByLabel("Event name").scrollIntoViewIfNeeded();
+  const btn = page.getByRole("button", { name: "Download PDF" });
+  const vh = page.viewportSize()!.height;
+  const box = (await btn.boundingBox())!;
+  if ((page.viewportSize()?.width ?? 1280) < 640) {
+    expect(box.y + box.height).toBeLessThanOrEqual(vh + 1); // visible at the bottom of the screen, not 4000 px down
+    expect(box.y).toBeGreaterThan(vh / 2);
+    await expect(page.getByTestId("rb-actions")).toContainText(/\[bracket\]|No \[brackets\]/);
+  } else {
+    await expect(btn).toBeVisible();
+  }
+});
