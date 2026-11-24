@@ -1,6 +1,7 @@
 import type { ToolPage } from "@/components/seo/ToolLanding";
 import { GROUPS_PAGE } from "./tool-page-groups";
 import { PRINTKITS_PAGE } from "./tool-page-printkits";
+import { PRIZE_SPLIT_PAGE, RULEBOOK_PAGE, SENSITIVITY_PAGE, TEAM_NAME_PAGE } from "./tool-page-extra";
 
 /** The words on the public tool pages. Written to describe what the tools really do today, and nothing more. */
 export const TOOL_PAGES: Record<string, ToolPage & { title: string; description: string }> = {
@@ -156,18 +157,18 @@ export const TOOL_PAGES: Record<string, ToolPage & { title: string; description:
     ],
   },
   schedule: {
-    slug: "schedule", name: "Fixture generator and match timetable", shortName: "fixture maker", updated: "2026-11-12", 
+    slug: "schedule", name: "Fixture generator and match timetable", shortName: "fixture maker", updated: "2026-11-24", 
     title: "Free fixture maker and match timetable for any sport",
     description: "Free fixture timetable for cricket, football, kabaddi and esports: set matches, pitches or rooms, match length and breaks, and get start and end times for the day.",
     h1: "Fixture schedule maker for cricket, football, kabaddi and esports",
-    lead: "Use this free fixture maker to build a match timetable for cricket, football, kabaddi or esports, with no download and no APK. Turn a fixture list into a plan for the day. Enter how many matches you have, how many can be played at the same time (pitches, courts or game rooms), how long each takes and when you want breaks, and get a round-by-round timetable with the finish time. It suits cricket, football, kabaddi and esports. Need the pairings first? The round robin generator lists every fixture. Free, no account.",
+    lead: "Use this free fixture maker to build a match timetable for cricket, football, kabaddi or esports, with no download and no APK. Turn a fixture list into a plan for the day. Enter how many matches you have, how many can be played at the same time (pitches, courts or game rooms), how long each takes and when you want breaks, and get a round-by-round timetable with the finish time. For a college fest over several days, switch to the day-wise plan: give the number of teams and the bracket (single or double elimination, or round robin), the hours of each day, a daily break and the number of stations, and every match is placed in order so none starts before the matches that feed it are over. It suits cricket, football, kabaddi and esports. Need the pairings first? The round robin generator lists every fixture. Free, no account.",
     useHeading: "Build your schedule",
     benefits: [
       { title: "Plan the whole day", body: "See straight away what time the last match ends, so you know whether the day fits before you announce it." },
       { title: "Lobbies and breaks", body: "Run several matches at once, add a gap between rounds for joining and results, and a longer break every few rounds." },
-      { title: "Share it", body: "Download the schedule as a CSV file and paste it into a message, a sheet or a printed notice." },
+      { title: "Day by day, from a bracket", body: "For multi-day fests, pick a bracket and the hours of each day. Matches are placed on your stations in an order that respects who must finish first, with the daily break kept clear." },
     ],
-    steps: ["Enter the start time and the number of matches.", "Enter how many matches run at the same time and how long each takes.", "Add the gap between rounds and any longer breaks.", "Check the finish time, then download the schedule."],
+    steps: ["Enter the start time and the number of matches, or switch to From a bracket, day by day.", "Enter how many matches run at the same time and how long each takes.", "Add the gap between rounds and any longer breaks.", "Check the finish time, then download the schedule."],
     guides: ["choosing-a-tournament-format", "run-a-campus-tournament", "stream-your-event", "free-fire-tournament-organiser", "bgmi-custom-room-tournament"],
     faq: [
       { q: "Is this a fixture generator for cricket, football or kabaddi?", a: "It is the timing half of a fixture list. It does not choose who plays whom: it takes the number of matches, how many can run at once on pitches, courts or game rooms, how long each lasts and your breaks, and returns start and end times for every round, numbered M1, M2 and so on. For the pairings, use the round robin generator or the bracket maker, then match their fixtures to the numbered slots here. That works the same for cricket grounds, football pitches, kabaddi courts and esports rooms." },
@@ -175,7 +176,8 @@ export const TOOL_PAGES: Record<string, ToolPage & { title: string; description:
       { q: "How is the finish time worked out?", a: "Matches are split into rounds of as many as you can run at once. Each round lasts the match length. After it comes the gap you set, for joining, results and resetting, and after every set number of rounds comes a longer break. No break is added after the last round. With 12 matches, 2 lobbies, 25 minutes per match and a 5 minute gap, you get 6 rounds and a finish at 12:55 if you start at 10:00. Change one number and the finish time updates straight away." },
       { q: "How long should I plan for one match?", a: "Use the real length of a match, plus the time for teams to join the lobby and report the result, then add slack. Matches almost always run longer than planned, and a schedule with no slack falls behind in the first hour and never recovers. The gap between rounds is the place to put that time. A longer break every few rounds gives players food and water, and gives you time to fix problems. Check the finish time before you announce the day, not after." },
       { q: "Can it plan several lobbies, rooms or pitches at once?", a: "Yes. Set how many matches can run at the same time, from 1 up to 100, and it fills each round with that many matches. This fits battle royale lobbies, several gaming stations, or football pitches in the same time slot. The last round may be smaller if the numbers do not divide evenly. You can plan up to 500 matches. The Free Fire, BGMI and football guides have worked examples with real numbers for each type of event." },
-      { q: "Does it work out who plays whom?", a: "No. It gives you the times and numbers the matches M1, M2 and so on. To decide who plays in each match, use the bracket maker for knockouts, the double elimination generator, the round robin generator for leagues, or the points table for battle royale lobbies. Then use the match numbers from this tool to label your fixtures. Keeping these jobs separate means you can plan the day's timing first and fill in the teams later, even before registration closes." },
+      { q: "Does it work out who plays whom?", a: "Only in the day-wise plan, and only as placeholders. In the simple one-day mode it gives the times and numbers the matches M1, M2 and so on. In the day-wise plan it lists every match of the bracket you chose with seed numbers, such as Seed 1 vs Winner of M1, or team numbers for a round robin, so you can write in the real teams after the draw. To draw the bracket itself and pick winners, use the bracket maker, the double elimination generator or the round robin generator, and match their fixtures to the numbers here." },
+      { q: "How does the day-wise plan for a college fest work?", a: "Choose where the matches come from: a single or double elimination bracket for a number of teams, a round robin, or just a number of matches. Set the minutes per match, the gap between matches, the number of stations or lobbies, the number of days with the start and end time of each, and a daily break such as lunch. Each match goes to the station where it can start soonest, never before the matches it waits for have ended plus the gap, never across the break and never after the day ends. Matches that do not fit are listed so you can add a day or a station." },
       { q: "Can I share the schedule or show it on a screen?", a: "Yes. Download it as a CSV file to paste into a sheet, a message or a printed notice. You can also press Open the screen to show the timed run-sheet full screen on the venue TV, projector or in OBS, in any of the 14 designs, so teams see when the next round starts. Nothing is uploaded and no account is needed. Times are clock times on a 24 hour basis, so a schedule that goes past midnight shows a +1d next to the time." },
       { q: "What are the limits of the schedule maker?", a: "Up to 500 matches and up to 100 matches at the same time. Match length and the number of matches must be whole numbers of at least 1, and the gap and break values must be whole numbers from 0. If a value is not valid, the tool does not make a schedule. Times use the 24 hour format, such as 09:30 or 18:00. It is a planning tool for timing, so it does not know about different match lengths in the same event." },
       { q: "Is a schedule maker better than planning the day in a spreadsheet?", a: "A spreadsheet works, but you need to build the formulas for rounds, gaps and breaks yourself, and one wrong cell moves every later time. Here you enter six numbers and the schedule, the number of rounds and the finish time come out together. You can try what happens if you add one lobby or cut the gap by five minutes, and see the new finish time at once. When you want to keep editing, download the CSV and continue in a sheet." },
@@ -308,4 +310,8 @@ export const TOOL_PAGES: Record<string, ToolPage & { title: string; description:
   },
   groups: GROUPS_PAGE,
   "print-kits": PRINTKITS_PAGE,
+  "sensitivity-converter": SENSITIVITY_PAGE,
+  "team-name-generator": TEAM_NAME_PAGE,
+  "prize-split": PRIZE_SPLIT_PAGE,
+  rulebook: RULEBOOK_PAGE,
 };

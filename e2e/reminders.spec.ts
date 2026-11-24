@@ -122,7 +122,7 @@ test("the registration form has an optional email with a consent box, sent only 
   let sent: Record<string, unknown> | null = null;
   await page.route(`${A}/public/registration/tok/submit`, async (r) => { sent = r.request().postDataJSON(); await r.fulfill(json({ ok: true }, 201)); });
   await page.goto("/register/?t=tok");
-  await page.getByLabel("Team name").fill("Konkan Kings");
+  await page.getByLabel("Team name", { exact: true }).fill("Konkan Kings");
   await page.getByLabel(/Captain.s name/).fill("Asha Captain");
   await page.getByLabel(/Captain.s phone or email/).fill("9999900000");
   await page.getByLabel(/Player 1, full name/).fill("Aarav Mehta");

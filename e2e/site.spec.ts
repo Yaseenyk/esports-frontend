@@ -2,7 +2,7 @@ import fs from "node:fs";
 import { expect, test } from "@playwright/test";
 import { appNav, json, preflight, signedIn } from "./helpers";
 
-const PAGES = ["/", "/games/", "/events/", "/communities/", "/arcade/", "/guides/", "/tools/", "/tools/id-cards/", "/tools/check-in/", "/tools/brackets/", "/tools/points-table/", "/tools/round-robin/", "/tools/double-elimination/", "/tools/display-screen/", "/tools/registration/", "/tools/schedule/", "/tools/plan/", "/tools/poster/", "/points-table/bgmi/", "/points-table/free-fire/", "/points-table/cod-mobile/", "/points-table/valorant/", "/compare/free-tournament-software-india/", "/tools/certificates/", "/manage/", "/login/", "/signup/", "/gate/", "/about/", "/privacy/", "/terms/", "/contact/", "/guides/points-table/", "/guides/run-a-campus-tournament/"];
+const PAGES = ["/", "/games/", "/events/", "/communities/", "/arcade/", "/guides/", "/tools/", "/tools/id-cards/", "/tools/check-in/", "/tools/brackets/", "/tools/points-table/", "/tools/round-robin/", "/tools/double-elimination/", "/tools/display-screen/", "/tools/registration/", "/tools/schedule/", "/tools/plan/", "/tools/poster/", "/points-table/bgmi/", "/points-table/free-fire/", "/points-table/cod-mobile/", "/points-table/valorant/", "/compare/free-tournament-software-india/", "/tools/certificates/", "/tools/sensitivity-converter/", "/tools/team-name-generator/", "/tools/prize-split/", "/tools/rulebook/", "/manage/", "/login/", "/signup/", "/gate/", "/about/", "/privacy/", "/terms/", "/contact/", "/guides/points-table/", "/guides/run-a-campus-tournament/"];
 
 for (const path of PAGES) {
   test(`${path} loads with no errors and no sideways scroll`, async ({ page }) => {
@@ -241,7 +241,7 @@ test("a captain registers a team through a registration link", async ({ page }) 
   await expect(page.getByText("5 places left")).toBeVisible();
   const send = page.getByRole("button", { name: "Register my team" });
   await expect(send).toBeDisabled();
-  await page.getByLabel("Team name").fill("Konkan Kings");
+  await page.getByLabel("Team name", { exact: true }).fill("Konkan Kings");
   await page.getByLabel(/Captain.s name/).fill("Asha Captain");
   await page.getByLabel(/Captain.s phone or email/).fill("9999900000");
   await page.getByLabel(/Player 1, full name/).fill("Aarav Mehta");

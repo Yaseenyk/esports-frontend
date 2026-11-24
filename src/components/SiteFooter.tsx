@@ -19,6 +19,10 @@ const TILE: Record<string, { label: string; d: string }> = {
   "print-kits": { label: "Print kits", d: "M7 9V4h10v5M7 17H5a2 2 0 01-2-2v-4a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2h-2M7 14h10v6H7z" },
   poster: { label: "Posters", d: "M5 3h14v18H5zM8 7h8M8 11h8M8 15h5M15 17l2-2" },
   certificates: { label: "Certificates", d: "M5 4h14v12H5zM9 20l3-3 3 3V16M8 8h8M8 12h5" },
+  rulebook: { label: "Rulebook", d: "M6 3h10l3 3v15H6zM9 8h7M9 12h7M9 16h4" },
+  "prize-split": { label: "Splits", d: "M12 3v18M5 8h14M5 8l-2 6h4zM19 8l-2 6h4zM8 21h8" },
+  "team-name-generator": { label: "Team names", d: "M12 3l7 3v6c0 4-3 7-7 9-4-2-7-5-7-9V6zM9 11h6M12 8v6" },
+  "sensitivity-converter": { label: "Sensitivity", d: "M12 3a5 5 0 015 5v8a5 5 0 01-10 0V8a5 5 0 015-5zM12 7v4M4 12h2M18 12h2" },
   "check-in": { label: "Check-in", d: "M4 7V5h3M17 5h3v2M20 17v2h-3M7 19H4v-2M8 12l3 3 5-6" },
 };
 
@@ -54,8 +58,8 @@ export default function SiteFooter() {
       <div className="mx-auto grid max-w-6xl grid-cols-[minmax(0,1fr)] gap-10 pt-10 lg:grid-cols-2 lg:gap-14">
         <nav aria-label="Tools" className="min-w-0">
           <p className="fx-kicker"><span>{slugs.length} free tools</span></p>
-          <div className="fx-comb fx-comb-wide">{chunk(slugs, [5, 5, 4]).map((row, i) => <div key={i} className="fx-row">{row.map((s) => <Hex key={s} slug={s} />)}</div>)}</div>
-          <div className="fx-comb fx-comb-narrow">{chunk(slugs, [2, 3, 2, 3, 2, 2]).map((row, i) => <div key={i} className="fx-row">{row.map((s) => <Hex key={s} slug={s} />)}</div>)}</div>
+          <div className="fx-comb fx-comb-wide">{chunk(slugs, [5, 5, 5, 3]).map((row, i) => <div key={i} className="fx-row">{row.map((s) => <Hex key={s} slug={s} />)}</div>)}</div>
+          <div className="fx-comb fx-comb-narrow">{chunk(slugs, [2, 3, 2, 3, 2, 3, 2, 1]).map((row, i) => <div key={i} className="fx-row">{row.map((s) => <Hex key={s} slug={s} />)}</div>)}</div>
           <p className="mt-4 text-xs text-zinc-400">No account needed. They run in your browser.</p>
         </nav>
 

@@ -222,6 +222,6 @@ test("next steps link to the tool that matches the format, and every link is a r
 });
 
 test("there are twelve tools and the planner is one of them", () => {
-  assert.equal(TOOLS.length, 14);
+  assert.equal(TOOLS.length, 18);
   assert.ok(TOOLS.some((t) => t.slug === "plan" && t.href === "/tools/plan/"));
 });

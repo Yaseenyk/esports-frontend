@@ -63,7 +63,7 @@ test("the panel: publishing needs consent, then the page can be taken down after
   await openPanel(page, "share", "profiles");
   await expect(page.getByText("You have no team pages yet")).toBeVisible();
   await page.getByRole("combobox", { name: "Team" }).selectOption("Alpha Wolves");
-  await expect(page.getByLabel("Team name")).toHaveValue("Alpha Wolves");
+  await expect(page.getByLabel("Team name", { exact: true })).toHaveValue("Alpha Wolves");
   await page.getByLabel("Short blurb (optional)").fill("We play for fun.");
   await expect(page.getByLabel("Live preview")).toContainText("1 won");
   await expect(page.getByRole("button", { name: "Publish page" })).toBeDisabled();
