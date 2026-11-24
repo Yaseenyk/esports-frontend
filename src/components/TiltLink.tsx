@@ -17,7 +17,7 @@ export default function TiltLink({ href, className = "", children }: { href: str
   };
   const leave = () => { el.current?.style.setProperty("--rx", "0deg"); el.current?.style.setProperty("--ry", "0deg"); };
   return (
-    <Link ref={el} href={href} onPointerMove={move} onPointerLeave={leave} className={`tilt card relative block overflow-hidden ${className}`}>
+    <Link ref={el} href={href} prefetch={false} onPointerMove={move} onPointerLeave={leave} className={`tilt card relative block overflow-hidden ${className}`}>
       {children}
     </Link>
   );
