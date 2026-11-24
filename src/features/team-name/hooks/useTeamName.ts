@@ -2,6 +2,7 @@
 
 import { useCallback, useMemo, useState } from "react";
 import { downloadBlob } from "@/lib/idcard/download";
+import { sendEvent } from "@/lib/track";
 import { badgeFileName, badgeSvg, generateNames, glossFor, nameProblem, type Pattern, type Shape, type Theme } from "@/features/team-name/domain";
 import { svgToPng } from "@/features/team-name/render";
 
@@ -31,17 +32,17 @@ export function useTeamName() {
 
   const downloadSvg = useCallback(() => {
     if (!svg) return;
-    downloadBlob(new Blob([svg], { type: "image/svg+xml" }), badgeFileName(name, "svg"));
+    downloadBlob(new Blob([svg], { type: "image/svg+xml" }), badgeFileName(name, "svg")); sendEvent("tool_complete", "team-name-generator");
     setMsg({ ok: true, text: "Badge saved as SVG." });
   }, [svg, name]);
   const downloadPng = useCallback(async () => {
     if (!svg) return;
-    try { downloadBlob(await svgToPng(svg), badgeFileName(name, "png")); setMsg({ ok: true, text: "Badge saved as PNG (1024 x 1024)." }); }
+    try { downloadBlob(await svgToPng(svg), badgeFileName(name, "png")); sendEvent("tool_complete", "team-name-generator"); setMsg({ ok: true, text: "Badge saved as PNG (1024 x 1024)." }); }
     catch (e) { setMsg({ ok: false, text: e instanceof Error ? e.message : "The badge could not be saved." }); }
   }, [svg, name]);
   const copyName = useCallback(async () => {
     if (!name) return;
-    try { await navigator.clipboard.writeText(name); setMsg({ ok: true, text: "Name copied." }); }
+    try { await navigator.clipboard.writeText(name); sendEvent("tool_complete", "team-name-generator"); setMsg({ ok: true, text: "Name copied." }); }
     catch { setMsg({ ok: false, text: "Could not copy here. Select the name and copy it yourself." }); }
   }, [name]);
 

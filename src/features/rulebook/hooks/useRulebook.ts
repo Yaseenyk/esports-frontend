@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { downloadBlob } from "@/lib/idcard/download";
+import { sendEvent } from "@/lib/track";
 import { footerLine } from "@/lib/share-cards";
 import { DEFAULT_INPUT, GAMES, buildRulebook, rulebookFileName, type GameId, type RulebookInput } from "@/features/rulebook/domain";
 import { rulebookToPdf } from "@/features/rulebook/pdf";
@@ -30,13 +31,13 @@ export function useRulebook() {
     if (busy) return;
     setBusy(true); setMsg(null);
     try {
-      downloadBlob(await rulebookToPdf(text, `Template, not official rules · ${footerLine(RULEBOOK_PATH)}`), rulebookFileName(input.eventName));
+      downloadBlob(await rulebookToPdf(text, `Template, not official rules · ${footerLine(RULEBOOK_PATH)}`), rulebookFileName(input.eventName)); sendEvent("tool_complete", "rulebook");
       setMsg({ ok: true, text: "PDF saved. Check every [bracket] is filled before you share it." });
     } catch (e) { setMsg({ ok: false, text: e instanceof Error ? e.message : "The PDF could not be made. Try again." }); }
     setBusy(false);
   };
   const copy = async () => {
-    try { await navigator.clipboard.writeText(text); setMsg({ ok: true, text: "Text copied. Paste it into a document, a Discord post or WhatsApp." }); }
+    try { await navigator.clipboard.writeText(text); sendEvent("tool_complete", "rulebook"); setMsg({ ok: true, text: "Text copied. Paste it into a document, a Discord post or WhatsApp." }); }
     catch { setMsg({ ok: false, text: "Could not copy here. Select the text and copy it yourself." }); }
   };
   const left = (text.match(/\[[^\]]+\]/g) ?? []).length;

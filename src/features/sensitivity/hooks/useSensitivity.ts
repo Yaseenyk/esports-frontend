@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { sendEvent } from "@/lib/track";
 import type { Payload } from "@/lib/display";
 import { allGames, convert, dpiError, gameById, roundFor, sensError } from "@/features/sensitivity/domain";
 
@@ -17,6 +18,15 @@ export function useSensitivity() {
     () => convert({ fromId, toId, sens: Number(sens), dpiFrom: Number(dpiFrom), dpiTo: Number(dpiChange ? dpiTo : dpiFrom) }),
     [fromId, toId, sens, dpiFrom, dpiTo, dpiChange],
   );
+  // Counts one completed conversion per visit, once the visitor has typed their own value and the answer is valid.
+  const typed = useRef(false), sent = useRef(false);
+  useEffect(() => {
+    if (!typed.current || sent.current || !check.ok) return;
+    const t = setTimeout(() => { sent.current = true; sendEvent("tool_complete", "sensitivity-converter"); }, 1500);
+    return () => clearTimeout(t);
+  }, [check]);
+  const mark = <T,>(set: (v: T) => void) => (v: T) => { typed.current = true; set(v); };
+
   const table = useMemo(() => {
     const from = gameById(fromId);
     if (!check.ok || !from) return [];
@@ -41,5 +51,5 @@ export function useSensitivity() {
 
   const swap = () => { setFromId(toId); setToId(fromId); };
   const errors = { sensError: sensError(sens), dpiFromError: dpiError(dpiFrom), dpiToError: dpiChange ? dpiError(dpiTo) : undefined };
-  return { ...errors, fromId, setFromId, toId, setToId, sens, setSens, dpiFrom, setDpiFrom, dpiTo, setDpiTo, dpiChange, setDpiChange, check, table, payload, swap };
+  return { ...errors, fromId, setFromId: mark(setFromId), toId, setToId: mark(setToId), sens, setSens: mark(setSens), dpiFrom, setDpiFrom: mark(setDpiFrom), dpiTo, setDpiTo: mark(setDpiTo), dpiChange, setDpiChange, check, table, payload, swap };
 }

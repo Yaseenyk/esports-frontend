@@ -16,7 +16,7 @@ export type TrackEvent = "tool_complete";
 export const TOOL_IDS = [
   "poster", "plan", "id-cards", "double-elimination", "registration", "round-robin", "schedule",
   "certificates", "display-screen", "check-in", "brackets", "points-table", "groups", "print-kits",
-  // Added 24 Nov 2026. They do not send tool_complete yet: the backend list (src/metrics.ts) must learn them first.
+  // Added 24 Nov 2026; tool_complete wired 25 Nov (backend src/metrics.ts knows them).
   "sensitivity-converter", "team-name-generator", "prize-split", "rulebook",
 ] as const;
 export type ToolId = (typeof TOOL_IDS)[number];

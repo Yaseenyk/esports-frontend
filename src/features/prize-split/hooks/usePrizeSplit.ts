@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { Payload } from "@/lib/display";
 import { downloadBlob } from "@/lib/idcard/download";
+import { sendEvent } from "@/lib/track";
 import { grouped, ordinal, splitPool, splitSlots, type Rule, type SlotMode } from "@/features/prize-split/domain";
 
 const num = (s: string) => (s.trim() === "" ? NaN : Number(s.replace(/,/g, "")));
@@ -40,12 +41,12 @@ export function usePrizeSplit() {
   const csvSlots = () => {
     if (!slotCheck.ok) return;
     const rows = [["Group", "Teams", "Slots"], ...slotCheck.groups.map((x) => [x.group, x.teams ?? "", x.slots])];
-    downloadBlob(new Blob([rows.map((r) => r.map(q).join(",")).join("\r\n")], { type: "text/csv" }), "slot-split.csv");
+    downloadBlob(new Blob([rows.map((r) => r.map(q).join(",")).join("\r\n")], { type: "text/csv" }), "slot-split.csv"); sendEvent("tool_complete", "prize-split");
   };
   const csvPool = () => {
     if (!poolCheck.ok) return;
     const rows = [["Place", "Percent", "Share"], ...poolCheck.places.map((x) => [ordinal(x.place), x.percent, x.share])];
-    downloadBlob(new Blob([rows.map((r) => r.map(q).join(",")).join("\r\n")], { type: "text/csv" }), "pool-split.csv");
+    downloadBlob(new Blob([rows.map((r) => r.map(q).join(",")).join("\r\n")], { type: "text/csv" }), "pool-split.csv"); sendEvent("tool_complete", "prize-split");
   };
 
   return {
