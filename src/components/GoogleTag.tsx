@@ -3,7 +3,7 @@
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 import { doNotTrack } from "@/lib/hits";
-import { gtmAllowed, GTM_ID, tagHostAllowed } from "@/lib/gtm";
+import { gtmAllowed, tagHostAllowed } from "@/lib/gtm";
 
 /**
  * Google Tag Manager (the Google Analytics 4 tag lives in the container).
@@ -16,21 +16,15 @@ export default function GoogleTag() {
   const path = usePathname() || "/";
   useEffect(() => {
     try {
-      const w = window as unknown as { dataLayer?: unknown[]; __gtmOn?: boolean; globalPrivacyControl?: boolean };
+      const w = window as unknown as { __gtmOn?: boolean };
       if (!tagHostAllowed(window.location.hostname)) return; // local runs, previews and automated tests must never send hits to the owner's analytics
       const optedOut = doNotTrack() || (navigator as Navigator & { globalPrivacyControl?: boolean }).globalPrivacyControl === true;
       if (!gtmAllowed(path) || optedOut) {
         if (w.__gtmOn) window.location.reload(); // the tag is already running: a fresh page load without it
         return;
       }
-      if (w.__gtmOn) return;
-      w.__gtmOn = true;
-      w.dataLayer = w.dataLayer || [];
-      w.dataLayer.push({ "gtm.start": Date.now(), event: "gtm.js" });
-      const s = document.createElement("script");
-      s.async = true;
-      s.src = `https://www.googletagmanager.com/gtm.js?id=${GTM_ID}`;
-      document.head.appendChild(s);
+      // Starts the same wait as the loader in the page head (first scroll, tap or key press, or 4 s after load); a no-op if the tags are already on.
+      (window as unknown as { __gtmArm?: () => void }).__gtmArm?.();
     } catch { /* analytics must never break a page */ }
   }, [path]);
   return null;

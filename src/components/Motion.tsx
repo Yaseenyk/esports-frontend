@@ -8,33 +8,45 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 
 /**
  * Scroll reveals done with CSS, so nothing is hidden until JavaScript arrives. Everything is visible in the HTML.
- * After hydration, only content that is still below the fold is tucked away, then eased in when it scrolls into view.
+ * After hydration, content that is still below the fold is tucked away (data-hide), then eased in when it scrolls into view.
+ * One shared IntersectionObserver serves every block on the page and writes the attribute straight to the element, so a page with
+ * a dozen reveals no longer pays for a dozen observers, a dozen forced layouts and a dozen React re-renders at start-up.
  */
+let revealIO: IntersectionObserver | null = null;
+function revealObserver(): IntersectionObserver {
+  if (!revealIO) {
+    revealIO = new IntersectionObserver((entries) => {
+      for (const e of entries) {
+        const el = e.target;
+        if (e.isIntersecting) { el.removeAttribute("data-hide"); revealIO?.unobserve(el); } // on screen already, or has just arrived: show it and stop watching
+        else el.setAttribute("data-hide", "1"); // below the fold: hide it until it comes into view
+      }
+    }, { rootMargin: "0px 0px -60px 0px" });
+  }
+  return revealIO;
+}
 function useReveal<T extends HTMLElement>() {
   const ref = useRef<T>(null);
-  const [hide, setHide] = useState(false);
   useEffect(() => {
     const el = ref.current;
-    if (!el || window.matchMedia("(prefers-reduced-motion: reduce)").matches || typeof IntersectionObserver === "undefined") return;
-    if (el.getBoundingClientRect().top < window.innerHeight * 0.95) return; // already on screen: leave it alone
-    setHide(true);
-    const io = new IntersectionObserver((e) => { if (e[0]?.isIntersecting) { setHide(false); io.disconnect(); } }, { rootMargin: "0px 0px -60px 0px" });
+    if (!el || typeof IntersectionObserver === "undefined" || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const io = revealObserver();
     io.observe(el);
-    return () => io.disconnect();
+    return () => io.unobserve(el);
   }, []);
-  return [ref, hide] as const;
+  return ref;
 }
 
 /** Fades and lifts its children in once, when they scroll into view. */
 export function Reveal({ children, delay = 0, className }: { children: ReactNode; delay?: number; className?: string }) {
-  const [ref, hide] = useReveal<HTMLDivElement>();
-  return <div ref={ref} className={`rv ${className ?? ""}`} data-hide={hide ? "1" : undefined} style={delay ? { transitionDelay: `${delay}s` } : undefined}>{children}</div>;
+  const ref = useReveal<HTMLDivElement>();
+  return <div ref={ref} className={`rv ${className ?? ""}`} style={delay ? { transitionDelay: `${delay}s` } : undefined}>{children}</div>;
 }
 
 /** A grid or list whose direct <Item> children rise in one after another. */
 export function Stagger({ children, className }: { children: ReactNode; className?: string; step?: number }) {
-  const [ref, hide] = useReveal<HTMLDivElement>();
-  return <div ref={ref} className={`stagger ${className ?? ""}`} data-hide={hide ? "1" : undefined}>{children}</div>;
+  const ref = useReveal<HTMLDivElement>();
+  return <div ref={ref} className={`stagger ${className ?? ""}`}>{children}</div>;
 }
 export function Item({ children, className }: { children: ReactNode; className?: string }) {
   return <div className={className}>{children}</div>;

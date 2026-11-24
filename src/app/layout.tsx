@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
-import HexField from "@/components/HexField";
+import HexField from "@/components/HexFieldLazy";
 import MotionProvider from "@/components/MotionProvider";
 import PwaRegister from "@/components/PwaRegister";
 import GoogleTag from "@/components/GoogleTag";

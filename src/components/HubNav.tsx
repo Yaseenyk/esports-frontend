@@ -59,7 +59,7 @@ function Comb({ sections, pattern, className, current, reduce }: { sections: Sec
                 <motion.li key={s.href} className="w-[--h]"
                   initial={reduce ? false : { opacity: 0, scale: 0.4, rotate: -25 }} animate={{ opacity: 1, scale: 1, rotate: 0 }} exit={{ opacity: 0, scale: 0.6 }}
                   transition={{ type: "spring", stiffness: 260, damping: 20, delay: 0.1 + i * 0.06 }}>
-                  <Link href={s.href} aria-current={on ? "page" : undefined} className="group relative block aspect-[1/1.1547] w-full outline-none">
+                  <Link prefetch={false} href={s.href} aria-current={on ? "page" : undefined} className="group relative block aspect-[1/1.1547] w-full outline-none">
                     <span aria-hidden="true" className={`absolute inset-0 transition-transform duration-300 group-hover:scale-105 group-focus-visible:scale-105 ${on ? "bg-gradient-to-br from-cyan to-purple" : "bg-white/15 group-hover:bg-gradient-to-br group-hover:from-cyan group-hover:to-purple group-focus-visible:bg-gradient-to-br group-focus-visible:from-cyan group-focus-visible:to-purple"}`} style={{ clipPath: HEX }} />
                     <span aria-hidden="true" className="absolute inset-[2px] bg-zinc-950 transition-transform duration-300 group-hover:scale-105 group-focus-visible:scale-105" style={{ clipPath: HEX }} />
                     <span aria-hidden="true" className="absolute inset-[2px] bg-gradient-to-b from-cyan/0 to-cyan/0 opacity-0 transition-opacity duration-300 group-hover:from-cyan/15 group-hover:to-purple/20 group-hover:opacity-100 group-focus-visible:opacity-100" style={{ clipPath: HEX }} />
@@ -159,7 +159,7 @@ export default function HubNav({ sections = SECTIONS, home = "/", homeAria = "Es
           <button type="button" onClick={(e) => show(e.currentTarget)} className="hidden h-11 items-center gap-2 rounded-full bg-white/5 px-4 text-sm font-medium text-zinc-200 outline-none transition-colors hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-cyan/60 sm:flex">
             Menu <kbd className="rounded border border-white/15 px-1.5 text-[11px] text-zinc-400">M</kbd>
           </button>
-          <Link href="/arcade/" aria-label={`Level ${xp.level}, ${xp.into} of ${xp.span} XP. Open the arcade`} className="group relative mx-1 flex h-11 min-w-11 items-center gap-2 rounded-full bg-white/5 px-3 outline-none transition-colors hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-cyan/60">
+          <Link prefetch={false} href="/arcade/" aria-label={`Level ${xp.level}, ${xp.into} of ${xp.span} XP. Open the arcade`} className="group relative mx-1 flex h-11 min-w-11 items-center gap-2 rounded-full bg-white/5 px-3 outline-none transition-colors hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-cyan/60">
             <span className="font-display text-xs font-bold text-white">LV <span>{xp.level}</span></span>
             <span aria-hidden="true" className="hidden h-1.5 w-10 overflow-hidden rounded-full bg-white/10 min-[420px]:block"><span className="block h-full rounded-full bg-gradient-to-r from-cyan to-purple transition-[width] duration-700" style={{ width: `${Math.min(100, (xp.into / xp.span) * 100)}%` }} /></span>
           </Link>
@@ -167,8 +167,8 @@ export default function HubNav({ sections = SECTIONS, home = "/", homeAria = "Es
             <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4 fill-none stroke-current" strokeWidth="2.4" strokeLinecap="round"><path d="M4 7h16M4 12h16M4 17h16" /></svg>Menu
           </button>
           {actions ?? (signedIn
-              ? <Link href="/app/" className="hidden h-11 items-center rounded-full bg-cyan px-4 text-sm font-semibold text-ink outline-none transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-white/70 sm:inline-flex">Open app</Link>
-              : <><Link href="/login/" className="hidden h-11 items-center rounded-full px-3 text-sm font-medium text-zinc-200 outline-none hover:text-white focus-visible:ring-2 focus-visible:ring-cyan sm:inline-flex">Log in</Link><Link href="/signup/" className="hidden h-11 items-center rounded-full bg-cyan px-4 text-sm font-semibold text-ink outline-none transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-white/70 sm:inline-flex">Sign up</Link></>
+              ? <Link prefetch={false} href="/app/" className="hidden h-11 items-center rounded-full bg-cyan px-4 text-sm font-semibold text-ink outline-none transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-white/70 sm:inline-flex">Open app</Link>
+              : <><Link prefetch={false} href="/login/" className="hidden h-11 items-center rounded-full px-3 text-sm font-medium text-zinc-200 outline-none hover:text-white focus-visible:ring-2 focus-visible:ring-cyan sm:inline-flex">Log in</Link><Link prefetch={false} href="/signup/" className="hidden h-11 items-center rounded-full bg-cyan px-4 text-sm font-semibold text-ink outline-none transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-white/70 sm:inline-flex">Sign up</Link></>
           )}
         </motion.nav>
       </div>
@@ -202,8 +202,8 @@ export default function HubNav({ sections = SECTIONS, home = "/", homeAria = "Es
               {overlayExtra && <div className="mt-6 flex justify-center">{overlayExtra}</div>}
               <div className="mt-6 flex flex-wrap items-center justify-center gap-3 sm:hidden">
                 {overlayActions ?? (signedIn
-                  ? <Link href="/app/" onClick={hide} className="btn !min-h-11 px-6">Open the app</Link>
-                  : <><Link href="/login/" onClick={hide} className="btn-ghost !min-h-11 px-6">Log in</Link><Link href="/signup/" onClick={hide} className="btn !min-h-11 px-6">Sign up</Link></>)}
+                  ? <Link prefetch={false} href="/app/" onClick={hide} className="btn !min-h-11 px-6">Open the app</Link>
+                  : <><Link prefetch={false} href="/login/" onClick={hide} className="btn-ghost !min-h-11 px-6">Log in</Link><Link prefetch={false} href="/signup/" onClick={hide} className="btn !min-h-11 px-6">Sign up</Link></>)}
               </div>
               <p className="mt-6 hidden text-center text-xs text-zinc-400 sm:block">Press <kbd className="rounded border border-white/15 px-1.5">1</kbd>–<kbd className="rounded border border-white/15 px-1.5">{Math.min(9, sections.length)}</kbd> to jump, <kbd className="rounded border border-white/15 px-1.5">Esc</kbd> to close</p>
             </div>

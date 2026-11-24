@@ -103,7 +103,7 @@ export default function Home() {
         <p className="mt-4 text-sm text-zinc-400">Not sure which tool to use? <Link href="/compare/free-tournament-software-india/" className="text-cyan underline underline-offset-2 hover:text-white">See free tournament software for India, compared honestly</Link>. Running a custom room? Make a <Link href="/points-table/bgmi/" className="text-cyan underline underline-offset-2 hover:text-white">BGMI points table</Link> or a <Link href="/points-table/free-fire/" className="text-cyan underline underline-offset-2 hover:text-white">Free Fire points table</Link>. Making ID cards for a tournament? Try the <Link href="/id-card-maker/esports/" className="text-cyan underline underline-offset-2 hover:text-white">esports ID card maker</Link>: free, no sign-up, built for tournaments.</p>
       </section>
 
-      <section aria-labelledby="proof">
+      <section aria-labelledby="proof" className="cv-auto">
         <Reveal><h2 id="proof" className="text-3xl font-bold text-white">What it really does</h2><p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-300">Plain facts about the product, nothing we cannot show you. Open any tool and check.</p></Reveal>
         <Stagger className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {[
@@ -120,7 +120,7 @@ export default function Home() {
         <p className="mt-4 text-sm text-zinc-400">Not affiliated with any game publisher. <Link href="/about/" className="text-cyan underline underline-offset-2 hover:text-white">About Esports Hub</Link></p>
       </section>
 
-      <section aria-labelledby="how">
+      <section aria-labelledby="how" className="cv-auto">
         <Reveal><h2 id="how" className="text-3xl font-bold text-white">How an event comes together</h2></Reveal>
         <Stagger className="mt-6 grid gap-4 md:grid-cols-4">
           {[
@@ -135,7 +135,7 @@ export default function Home() {
       </section>
 
       <Reveal>
-        <section aria-labelledby="games" className="relative overflow-hidden rounded-3xl border border-white/[0.14] bg-[#0a0b0d] p-6 sm:p-10">
+        <section aria-labelledby="games" className="cv-auto relative overflow-hidden rounded-3xl border border-white/[0.14] bg-[#0a0b0d] p-6 sm:p-10">
           <div className="grid items-center gap-8 lg:grid-cols-[1fr_1.1fr]">
             <div>
               <h2 id="games" className="text-3xl font-bold text-white">Made for any game</h2>
@@ -164,7 +164,7 @@ export default function Home() {
         </Stagger>
       </section>
 
-      <section aria-labelledby="faq" className="grid gap-8 lg:grid-cols-[minmax(0,17rem)_minmax(0,1fr)] lg:gap-12">
+      <section aria-labelledby="faq" className="cv-auto grid gap-8 lg:grid-cols-[minmax(0,17rem)_minmax(0,1fr)] lg:gap-12">
         <div className="lg:sticky lg:top-24 lg:self-start">
           <Reveal>
             <p className="text-sm font-semibold uppercase tracking-widest text-cyan">Good to know</p>
