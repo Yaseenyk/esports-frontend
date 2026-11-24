@@ -44,7 +44,9 @@ for (const f of files) {
   const isHtml = f.endsWith(".html");
   const isJs = f.endsWith(".js");
   if (!isHtml && !isJs) continue;
-  const text = readFileSync(f, "utf8");
+  // Next.js splits its flight data into several self.__next_f.push([1,"..."]) chunks at arbitrary points, which can cut a URL in two
+  // (seen 25 Nov 2026: "https://www.googl" + "etagmanager.com/..."). Join the chunks back before reading script URLs.
+  const text = readFileSync(f, "utf8").replace(/"\]\)<\/script><script>self\.__next_f\.push\(\[1,"/g, "");
   for (const m of text.matchAll(PAYMENT)) problems.push(`${rel}: payment provider reference ${m[0]}`);
   if (!isHtml) continue;
   pages++;
