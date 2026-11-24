@@ -103,3 +103,17 @@ test("Valorant league: Share result is under the standings once a match is finis
   await inputs.nth(0).fill("13"); await inputs.nth(1).fill("7");
   await shareFrom(page, page.locator("#ml-table"), "/points-table/valorant/", isPhone(info.project.name));
 });
+
+test("one share block on a points table: picture, design, text copy and WhatsApp text together", async ({ page }) => {
+  await page.goto("/points-table/free-fire/");
+  const box = page.getByTestId("share-result");
+  await expect(box).toHaveCount(1);
+  await expect(box.getByRole("combobox", { name: "Design" })).toBeVisible();
+  await expect(box.getByRole("link", { name: "Send the text on WhatsApp" })).toHaveAttribute("href", /^https:\/\/wa\.me\/\?text=/);
+  await expect(box.getByRole("button", { name: "Copy a text version" })).toBeEnabled();
+  // The screen-design share panel is folded away, so the page shows a single share block.
+  await expect(page.getByTestId("more-share")).not.toHaveAttribute("open", /.*/);
+  await expect(page.getByRole("button", { name: "Share on WhatsApp or Instagram" })).toBeHidden();
+  // Share result is not a second cyan primary: it is a secondary button.
+  expect(await box.getByRole("button", { name: "Share result" }).evaluate((b) => getComputedStyle(b).backgroundColor)).not.toBe("rgb(34, 211, 238)");
+});

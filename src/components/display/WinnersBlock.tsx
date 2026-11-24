@@ -43,11 +43,11 @@ export default function WinnersBlock({ first, second, third, event, title = "Win
         <button type="button" className="chip" aria-pressed={format === "portrait"} onClick={() => setFormat("portrait")}>{c.portrait}</button>
         <button type="button" className="chip" aria-pressed={format === "story"} onClick={() => setFormat("story")}>{c.story}</button>
         <label className="ml-auto flex items-center gap-2 text-sm text-zinc-200">{c.design}
-          <select className="field !min-h-10" value={theme} onChange={(e) => setTheme(e.target.value)}>{DISPLAY_THEMES.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}</select>
+          <select className="field !min-h-11" value={theme} onChange={(e) => setTheme(e.target.value)}>{DISPLAY_THEMES.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}</select>
         </label>
       </div>
       <div className="flex flex-wrap items-center gap-3">
-        <button type="button" className="btn px-5" disabled={busy} onClick={share}>{busy ? c.making : c.shareBtn}</button>
+        <button type="button" className="btn-ghost px-5 font-semibold" disabled={busy} onClick={share}>{busy ? c.making : c.shareBtn}</button>
         <a className="btn-ghost px-4 text-sm" href={certificatesHref({ first, second, third })}>{c.certificates}</a>
       </div>
       <p role="status" aria-live="polite" className={`min-h-5 text-xs ${msg?.ok ? "text-emerald-300" : "text-amber-200"}`}>{msg?.text ?? ""}</p>

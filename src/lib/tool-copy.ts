@@ -82,6 +82,7 @@ const EN = {
     now: "now:",
     transparent: "Transparent background (for streaming software such as OBS)",
     snapshot: "A copied link is a snapshot of right now. To keep a stream updating, capture the open screen window in OBS instead of using the link.",
+    moreShare: "More share options (screen design and sponsors)",
   },
   theme: {
     legend: "Screen design",
@@ -102,6 +103,7 @@ const EN = {
     savedCopied: "Picture saved and the message copied. Attach the picture in WhatsApp or Instagram and paste the message.",
     savedOnly: "Picture saved. Attach it in WhatsApp or Instagram from your downloads.",
     failed: "The picture could not be made. Try again.",
+    design: "Design",
   },
   share: {
     group: "Share a picture or message",
@@ -259,6 +261,7 @@ const PT: ToolCopy = {
     now: "atual:",
     transparent: "Fundo transparente (para programas de transmissão como o OBS)",
     snapshot: "Um link copiado é uma foto deste momento. Para a transmissão continuar atualizada, capture no OBS a janela da tela aberta em vez de usar o link.",
+    moreShare: "Mais opções de compartilhar (visual da tela e patrocinadores)",
   },
   theme: {
     legend: "Visual da tela",
@@ -279,6 +282,7 @@ const PT: ToolCopy = {
     savedCopied: "Imagem salva e mensagem copiada. Anexe a imagem no WhatsApp ou no Instagram e cole a mensagem.",
     savedOnly: "Imagem salva. Anexe-a no WhatsApp ou no Instagram a partir dos seus downloads.",
     failed: "Não foi possível criar a imagem. Tente de novo.",
+    design: "Visual",
   },
   share: {
     group: "Compartilhar uma imagem ou mensagem",

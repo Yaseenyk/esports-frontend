@@ -40,7 +40,10 @@ for (const [path, game] of [["/points-table/bgmi/", "BGMI"], ["/points-table/fre
     await expect(note).toContainText("Example only");
     await expect(note.getByRole("link").first()).toHaveAttribute("href", /\/guides\//);
     await expect(page.getByRole("table", { name: "Standings table" }).or(page.getByRole("region", { name: "Standings table" }))).toBeVisible();
-    await expect(page.getByRole("button", { name: "Share on WhatsApp or Instagram" })).toBeVisible();
+    // One share block under the result; the screen-design copy stays folded away.
+    await expect(page.getByTestId("share-result").getByRole("button", { name: "Share result" })).toBeVisible();
+    await expect(page.getByTestId("share-result")).toHaveCount(1);
+    await expect(page.getByRole("button", { name: "Share on WhatsApp or Instagram" })).toBeHidden();
     // Breadcrumb goes back to the tool page.
     await expect(page.getByRole("navigation", { name: "Breadcrumb" }).getByRole("link", { name: "Points table maker" })).toHaveAttribute("href", "/tools/points-table/");
     const faq = page.locator("section[aria-labelledby=faq]").locator("details");

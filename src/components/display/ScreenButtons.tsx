@@ -39,7 +39,16 @@ export default function ScreenButtons({ payload, what, step, lang = "en", path }
           </div>
         </details>
         <SponsorEditor value={s.extras} onChange={s.setExtras} lang={lang} />
-        <ShareCardButtons payload={s.payload} what={what} theme={s.opts.theme} extras={s.extras} lang={lang} path={path} />
+        {/* The main share block sits under the result (ShareResult). This copy, drawn in the screen's design with sponsors, stays folded away. */}
+        <details className="group rounded-xl border border-white/10 bg-[#0a0b0d]" data-testid="more-share">
+          <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-sm font-semibold text-white outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-cyan [&::-webkit-details-marker]:hidden">
+            <span>{c.moreShare}</span>
+            <svg aria-hidden="true" viewBox="0 0 16 16" className="h-4 w-4 shrink-0 fill-none stroke-current text-zinc-400 transition-transform group-open:rotate-180" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6l5 5 5-5" /></svg>
+          </summary>
+          <div className="border-t border-white/10 p-3">
+            <ShareCardButtons payload={s.payload} what={what} theme={s.opts.theme} extras={s.extras} lang={lang} path={path} />
+          </div>
+        </details>
         <PublishToLive payload={payload} what={what} lang={lang} />
         <p role="status" aria-live="polite" className={`min-h-5 text-xs ${msg === c.copied ? "text-emerald-300" : "text-amber-200"}`}>{msg}</p>
       </ToolStep>

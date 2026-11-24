@@ -91,8 +91,10 @@ test("sponsors and announcements are saved once and every tool's screen link car
 
 test("the share button gives a PNG picture, in both shapes", async ({ page }) => {
   await page.goto("/tools/points-table/");
+  // The screen-design share sits folded under "More share options" in the TV step; the main share block is under the standings.
+  await page.getByText("More share options").click();
   for (const [chip, name] of [["Portrait post (4:5)", "portrait"], ["Story (9:16)", "story"]] as const) {
-    await page.getByRole("button", { name: chip, exact: true }).last().click(); // the share step comes after the winners block, which has its own shape chips
+    await page.getByTestId("more-share").getByRole("button", { name: chip, exact: true }).click();
     const [download] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Share on WhatsApp or Instagram" }).click()]);
     expect(download.suggestedFilename()).toMatch(new RegExp(`^[a-z0-9-]+-${name}\\.png$`));
     const bytes = fs.readFileSync((await download.path())!);
