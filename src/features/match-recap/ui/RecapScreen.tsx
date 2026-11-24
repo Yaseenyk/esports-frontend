@@ -49,7 +49,7 @@ export function RecapScreen() {
             <div className="flex flex-wrap items-center gap-3">
               <button type="button" className={btnPrimary} disabled={v.busy} onClick={() => void v.share()}><span key={v.busy ? "b" : "i"}>{v.busy ? "Making the picture" : "Share recap"}</span></button>
               <div role="group" aria-label="Picture shape" className="flex flex-wrap gap-2">
-                <button type="button" className="chip" aria-pressed={v.format === "square"} onClick={() => v.setFormat("square")}>Square post</button>
+                <button type="button" className="chip" aria-pressed={v.format === "portrait"} onClick={() => v.setFormat("portrait")}>Post (4:5)</button>
                 <button type="button" className="chip" aria-pressed={v.format === "story"} onClick={() => v.setFormat("story")}>Story</button>
               </div>
             </div>

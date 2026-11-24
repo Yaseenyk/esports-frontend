@@ -24,7 +24,7 @@ export function useRecap() {
   const target = targets.find((t) => targetKey(t.target) === chosen)?.target ?? targets[0]?.target ?? null;
   const recap = useMemo(() => (facts && target ? buildRecap(facts, target) : null), [facts, target]);
   const [text, setText] = useState("");
-  const [format, setFormat] = useState<ShareFormat>("square");
+  const [format, setFormat] = useState<ShareFormat>("portrait");
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
 

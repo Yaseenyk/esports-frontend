@@ -157,11 +157,11 @@ test.describe("flags on", () => {
       await page.getByRole("button", { name: "Share recap" }).click();
       await expect.poll(() => page.evaluate(() => window.__recapShared)).not.toBeNull();
       const s = (await page.evaluate(() => window.__recapShared))!;
-      expect(s.name).toMatch(/^gokte-cup-match-1-recap-square\.png$/);
+      expect(s.name).toMatch(/^gokte-cup-match-1-recap-portrait.png$/);
       expect(s.text).toBe("Alpha Wolves won Match 1. GG everyone!");
     } else {
       const [download] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Share recap" }).click()]);
-      expect(download.suggestedFilename()).toMatch(/^gokte-cup-match-1-recap-square\.png$/);
+      expect(download.suggestedFilename()).toMatch(/^gokte-cup-match-1-recap-portrait.png$/);
       const head = fs.readFileSync((await download.path())!).subarray(0, 8);
       expect([...head]).toEqual([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
     }
