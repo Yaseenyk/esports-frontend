@@ -10,6 +10,7 @@ import { useXp } from "./XpProvider";
 import SearchBox from "./SearchBox";
 import { fitPattern } from "@/lib/comb";
 import { v3PublicEntries } from "@/features/shared/flags";
+import { KIT_PATH, OVERLAY_KIT } from "@/features/overlay-kit/flag";
 
 export interface Section { href: string; label: string; blurb: string; icon: string }
 const SECTIONS: Section[] = [
@@ -21,6 +22,8 @@ const SECTIONS: Section[] = [
   { href: "/gate/", label: "Gate scanner", blurb: "Event-day check-in", icon: "M12 3l2.4 5 5.6.8-4 3.9.9 5.5L12 15.6 7.1 18.2 8 12.7 4 8.8 9.6 8z" },
   // Sections that exist only while their backend switch is on (features/shared/flags.ts). Nothing is added while they are off.
   ...v3PublicEntries().map((e): Section => ({ href: e.href, label: e.label, blurb: e.blurb, icon: e.icon })),
+  // The OBS overlay kit, only while its build flag is on (src/features/overlay-kit/flag.ts).
+  ...(OVERLAY_KIT ? [{ href: KIT_PATH, label: "Overlay kit", blurb: "OBS overlays", icon: "M3 5h18v11H3zM8 20h8M12 16v4M14 8h4v5h-4z" }] : []),
   { href: "/about/", label: "About", blurb: "Who and why", icon: "M16 20v-1a4 4 0 00-4-4H8a4 4 0 00-4 4v1M10 11a3.5 3.5 0 100-7 3.5 3.5 0 000 7zM20 20v-1a3.5 3.5 0 00-2.5-3.4M16 4.2a3.5 3.5 0 010 6.6" },
 ];
 /** The same pill and honeycomb menu is used by the public site (defaults) and by the signed-in app (AppShell passes its own sections and actions). */
@@ -65,7 +68,7 @@ function Comb({ sections, pattern, className, current, reduce }: { sections: Sec
                     <span aria-hidden="true" className="absolute inset-[2px] bg-gradient-to-b from-cyan/0 to-cyan/0 opacity-0 transition-opacity duration-300 group-hover:from-cyan/15 group-hover:to-purple/20 group-hover:opacity-100 group-focus-visible:opacity-100" style={{ clipPath: HEX }} />
                     <span className="relative flex h-full flex-col items-center justify-center gap-1 text-center">
                       <span className={`transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:scale-110 ${on ? "text-cyan" : "text-zinc-300 group-hover:text-cyan"}`}><Icon d={s.icon} className="h-6 w-6 sm:h-7 sm:w-7" /></span>
-                      <span className="font-display text-[12.5px] font-bold text-white sm:text-base">{s.label}</span>
+                      <span className="max-w-full hyphens-auto break-words px-1 font-display text-xs font-bold leading-tight text-white sm:text-base">{s.label}</span>
                       <span className="hidden px-4 text-[11px] leading-tight text-zinc-400 sm:block">{s.blurb}</span>
                       <kbd className="absolute bottom-[14%] hidden rounded border border-white/10 px-1.5 text-[10px] text-zinc-400 sm:block">{i + 1}</kbd>
                     </span>

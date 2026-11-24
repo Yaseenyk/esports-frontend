@@ -21,7 +21,7 @@ export function v3FooterLinks(): NavLink[] {
 export interface PublicEntry { section: V3Section; label: string; href: string; blurb: string; keywords: string; icon: string }
 const PUBLIC_ENTRIES: PublicEntry[] = [
   { section: "lft", label: "Find a team", href: "/lft/", blurb: "Players and teams", keywords: "team find a team player players lft looking for team looking for player recruit", icon: "M16 20v-1a4 4 0 00-4-4H8a4 4 0 00-4 4v1M10 11a3.5 3.5 0 100-7 3.5 3.5 0 000 7zM20 20v-1a3.5 3.5 0 00-2.5-3.4M16 4.2a3.5 3.5 0 010 6.6" },
-  { section: "tournaments", label: "Tournaments", href: "/tournaments/", blurb: "Public tournament pages", keywords: "tournament tournaments create tournament my tournaments organise organiser publish a tournament", icon: "M8 21h8M12 17v4M7 4h10v5a5 5 0 01-10 0zM17 5h3v2a3 3 0 01-3 3M7 5H4v2a3 3 0 003 3" },
+  { section: "tournaments", label: "Tournaments", href: "/tournaments/", blurb: "Public tournament pages", keywords: "tournament tournaments create tournament my tournaments organise organiser publish a tournament", icon: "M3 21h18M5 21v-6h4v6M10 21V9h4v12M15 21v-9h4v9M12 3l1 2h2l-1.5 1.5.5 2-2-1-2 1 .5-2L9 5h2z" }, // a podium: the trophy is the Brackets icon
   { section: "scrims", label: "Scrim finder", href: "/scrims/", blurb: "Practice slots", keywords: "scrim scrims practice match find scrims bgmi scrims free fire scrims captain slot", icon: "M4 4l7 7M20 4l-7 7M4 20l6-6M20 20l-6-6M9 12h6" },
   { section: "calendar", label: "College calendar", href: "/calendar/", blurb: "College and fest events", keywords: "calendar college fest events upcoming tournaments near me schedule dates college esports", icon: "M7 3v3M17 3v3M4 9h16M5 5h14a1 1 0 011 1v13a1 1 0 01-1 1H5a1 1 0 01-1-1V6a1 1 0 011-1z" },
 ];

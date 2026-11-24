@@ -531,3 +531,18 @@ test("the first-visit XP toast does not cover the landing page; it waits for the
   // It sits below the hub menu overlay (z 50) so it never covers the menu.
   expect(Number(await page.locator(".xp-toasts").evaluate((e) => getComputedStyle(e).zIndex))).toBeLessThan(50);
 });
+
+test("the hub menu lists the overlay kit when it is on, and Tournaments does not share the Brackets icon", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "Open the hub menu" }).click();
+  const dlg = page.getByRole("dialog", { name: "Hub menu" });
+  await expect(dlg).toBeVisible();
+  const kit = dlg.getByRole("link", { name: /Overlay kit/ }).first();
+  if (["1", "true", "on"].includes(process.env.NEXT_PUBLIC_OVERLAY_KIT ?? "")) await expect(kit).toHaveAttribute("href", "/overlay-kit/");
+  else await expect(kit).toHaveCount(0);
+  const iconOf = async (name: RegExp) => { const l = dlg.locator("a:visible", { hasText: name }).first(); return (await l.count()) ? l.locator("path").first().getAttribute("d") : null; };
+  const t = await iconOf(/^Tournaments/);
+  if (t) expect(t).not.toBe(await iconOf(/^Brackets/));
+  // labels never spill out of their hexagon
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1)).toBe(true);
+});
