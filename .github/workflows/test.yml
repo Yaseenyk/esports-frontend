@@ -26,15 +26,37 @@ jobs:
           node-version: 22
       - run: npm install --no-audit --no-fund
       - run: npx playwright install --with-deps chromium
+      # Tests run with the flagged features on (the OBS overlay kit, NEXT_PUBLIC_OVERLAY_KIT); the job below checks the flag-off build.
       - run: npm run build
         env:
           NEXT_PUBLIC_API_URL: https://esports-api.yaseenyk.workers.dev
+          NEXT_PUBLIC_OVERLAY_KIT: "1"
       - run: npm run check:third-party
       - run: node scripts/verify-seo.mjs
+        env:
+          NEXT_PUBLIC_OVERLAY_KIT: "1"
       - run: npx playwright test
+        env:
+          NEXT_PUBLIC_OVERLAY_KIT: "1"
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: playwright-traces
           path: test-results
           retention-days: 7
+
+  # The production build has the overlay kit flag off: its pages must not be emitted, listed or linked.
+  flag-off:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install --no-audit --no-fund
+      - run: npx playwright install --with-deps chromium
+      - run: npm run build
+        env:
+          NEXT_PUBLIC_API_URL: https://esports-api.yaseenyk.workers.dev
+      - run: node scripts/verify-seo.mjs
+      - run: npx playwright test e2e/overlay-kit.spec.ts

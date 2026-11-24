@@ -45,12 +45,16 @@ jobs:
         env:
           NEXT_PUBLIC_SITE_URL: https://esports.streamerosai.com
           NEXT_PUBLIC_API_URL: https://esports-api.yaseenyk.workers.dev
+          # The OBS overlay kit stays off until the owner sets the repository variable NEXT_PUBLIC_OVERLAY_KIT to 1 (planned for February 2027).
+          NEXT_PUBLIC_OVERLAY_KIT: ${{ vars.NEXT_PUBLIC_OVERLAY_KIT }}
 
       - name: Check third-party scripts in the built site (allowlist, no payment SDKs)
         run: npm run check:third-party
 
       - name: Check the built site as a search engine would (titles, links, noindex, sitemap)
         run: node scripts/verify-seo.mjs
+        env:
+          NEXT_PUBLIC_OVERLAY_KIT: ${{ vars.NEXT_PUBLIC_OVERLAY_KIT }}
 
       - name: Disable Jekyll
         run: touch ./out/.nojekyll

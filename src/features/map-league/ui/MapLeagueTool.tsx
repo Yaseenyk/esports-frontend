@@ -10,6 +10,9 @@ import { sendEvent } from "@/lib/track";
 import { BEST_OF, TIE_WORDS, type MapLeagueRow } from "@/features/map-league/domain";
 import { EXAMPLE_TEAMS, MAX_TEAMS, MIN_TEAMS, useMapLeague } from "@/features/map-league/hooks/useMapLeague";
 import ShareResult from "@/features/share-result/ui/ShareResult";
+import { OVERLAY_KIT } from "@/features/overlay-kit/flag";
+import OverlayKitConnect from "@/features/overlay-kit/ui/OverlayKitConnect";
+import { useKitLeagueFeed } from "@/features/overlay-kit/hooks/useKitLeagueFeed";
 
 const signed = (n: number) => (n > 0 ? `+${n}` : String(n));
 const cell = "px-3 py-2 text-zinc-300 tabular-nums";
@@ -22,6 +25,7 @@ const roundInput = "field w-16 px-1 text-center font-mono tabular-nums";
  */
 export default function MapLeagueTool({ path, game = "Valorant" }: { /** The page the tool is on, for the address on share pictures. */ path: string; game?: string }) {
   const L = useMapLeague();
+  const kitFeed = useKitLeagueFeed(OVERLAY_KIT && L.ready ? L.rows : null);
   const { bestOf } = L.settings;
   const maps = bestOf > 1;
   const finished = L.ready && L.count.total > 0 && L.count.done >= L.count.total;
@@ -119,6 +123,7 @@ export default function MapLeagueTool({ path, game = "Valorant" }: { /** The pag
       </ToolStep>
 
       <ScreenButtons payload={L.view} what="league table" step={5} path={path} />
+      {OVERLAY_KIT && <OverlayKitConnect feed={kitFeed} />}
     </div>
   );
 }

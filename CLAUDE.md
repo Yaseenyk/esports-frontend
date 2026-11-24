@@ -95,6 +95,10 @@ Three layers, one direction. A layer talks only to its neighbour. Same definitio
 - **Nav switch.** `next.config.mjs` sets `NEXT_PUBLIC_V3_NAV` at build: `V3_NAV` unset or `auto` probes `/public/tournaments` and `/public/lft` (200 = link it),
   `V3_NAV=tournaments,lft,resume,disputes` or `all` forces links, `off` hides them. Read through `src/features/shared/flags.ts` (footer only today). The routes
   always exist and are noindex; the switch only controls links.
+- **OBS overlay kit flag.** `NEXT_PUBLIC_OVERLAY_KIT=1` at build turns on `/overlay-kit/` (kit page), `/overlay-kit/obs-setup/` (guide) and `/overlay-kit/live/`
+  (the noindex browser source) plus the "Send to the OBS overlay" box under the points table tools (`src/features/overlay-kit/`). Off (unset, the production
+  default until the owner sets the repository variable `NEXT_PUBLIC_OVERLAY_KIT` to 1): `prune-v3.mjs` deletes the pages, the sitemap leaves them out, no tool
+  links them, and `verify-seo.mjs` fails if any of that leaks. The Tests workflow runs e2e with it on and a `flag-off` job checks the production shape.
 - A stale `.next/cache` can serve an old API answer to a local build: `rm -rf .next` before building against a different API. CI starts clean.
 - `next/og` (tournament cards) cannot start on Windows (`path.join` on a `file:` URL); the card route falls back to the generic `/og.png` (and logs `[og]` in the build) whenever the card cannot be drawn.
 - Try the "API on" build locally: `node scripts/mock-v3-api.mjs 8799`, then `NEXT_PUBLIC_API_URL=http://localhost:8799 npm run build`, then `node scripts/verify-seo.mjs`

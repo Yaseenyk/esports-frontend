@@ -11,7 +11,7 @@ const ROOT = fileURLToPath(new URL("..", import.meta.url));
 const V3 = [
   "src/features",
   "src/app/(site)/tournaments", "src/app/(site)/colleges", "src/app/(site)/games", "src/app/(site)/cities",
-  "src/app/(site)/players", "src/app/(site)/teams", "src/app/(site)/lft", "src/app/(site)/scrims",
+  "src/app/(site)/players", "src/app/(site)/teams", "src/app/(site)/lft", "src/app/(site)/scrims", "src/app/(site)/overlay-kit", "src/app/(display)/overlay-kit",
   "src/app/(app)/app/resume", "src/app/(app)/app/lft", "src/app/(app)/app/scrims", "src/app/(app)/app/teams", "src/app/(app)/app/tournaments", "src/app/(app)/app/disputes", "src/app/(app)/app/discord",
 ];
 const ARBITRARY = /(?<![\w$.\]])[a-z][a-z0-9-]*-\[[^\]\s]+\]/g; // utility-[value]; a TS index like arr[0] has no hyphen before the bracket

@@ -8,7 +8,7 @@ const problems = [];
 const bad = (page, msg) => problems.push(`${page}: ${msg}`);
 
 // Pages that must stay out of search results (demo data, private screens, one-off links).
-const NOINDEX = [/^\/games\//, /^\/events\//, /^\/communities\//, /^\/manage\//, /^\/arcade\//, /^\/login\//, /^\/signup\//, /^\/forgot-password\//, /^\/reset-password\//, /^\/app\//, /^\/gate\//, /^\/join\//, /^\/pass\//, /^\/register\//, /^\/display\//, /^\/live\//, /^\/overlay\//, /^\/embed\//, /^\/score\//, /^\/report\//, /^\/ready\//, /^\/run\//, /^\/league\//, /^\/lft\//, /^\/players\//, /^\/team\//, /^\/teams\//, /^\/scrims\//, /^\/unsubscribe\//, /^\/verify-email\//, /^\/admin\//, /^\/developers\//];
+const NOINDEX = [/^\/games\//, /^\/events\//, /^\/communities\//, /^\/manage\//, /^\/arcade\//, /^\/login\//, /^\/signup\//, /^\/forgot-password\//, /^\/reset-password\//, /^\/app\//, /^\/gate\//, /^\/join\//, /^\/pass\//, /^\/register\//, /^\/display\//, /^\/live\//, /^\/overlay\//, /^\/embed\//, /^\/score\//, /^\/report\//, /^\/ready\//, /^\/run\//, /^\/league\//, /^\/lft\//, /^\/players\//, /^\/team\//, /^\/teams\//, /^\/scrims\//, /^\/unsubscribe\//, /^\/verify-email\//, /^\/admin\//, /^\/developers\//, /^\/overlay-kit\/live\//];
 // Guides merged into a stronger guide (src/content/merged-guides.json): their pages stay for old links but must be noindex and out of the sitemap.
 const MERGED_GUIDES = Object.keys(JSON.parse(fs.readFileSync(path.resolve("src/content/merged-guides.json"), "utf8")));
 for (const slug of MERGED_GUIDES) NOINDEX.push(new RegExp(`^/guides/${slug}/$`));
@@ -150,6 +150,13 @@ if (guard.maxInAnyWeek(idxEpochs) > guard.WEEKLY_CAP) bad("tournaments", `more t
 if (v3Pages.length) console.log(`v3: ${v3Pages.length} tournament page(s), ${v3Pages.filter((v) => v.indexable).length} indexable.`); else console.log("v3: no tournament pages emitted (API off or empty).");
 if (v3Pages.length === 0 && pages.some((q) => q.url.startsWith("/tournaments/") && q.url !== "/tournaments/")) bad("tournaments", "tournament pages exist without eh-guard data");
 
+// The OBS overlay kit flag (NEXT_PUBLIC_OVERLAY_KIT): off means none of its pages may be in the build, and nothing may link to them.
+const KIT_ON = ["1", "true", "on"].includes(process.env.NEXT_PUBLIC_OVERLAY_KIT ?? "");
+if (!KIT_ON) {
+  for (const p of pages) if (p.url.startsWith("/overlay-kit/")) bad(p.url, "overlay kit page in a build with the overlay kit flag off");
+  for (const u of smUrls) if (u.includes("/overlay-kit/")) bad("sitemap.xml", `lists ${u} with the overlay kit flag off`);
+  for (const p of pages) if (/href="\/overlay-kit\//.test(fs.readFileSync(p.file, "utf8"))) bad(p.url, "links to the overlay kit with its flag off");
+}
 console.log(`${pages.length} pages checked, ${indexable} indexable, ${smUrls.length} in the sitemap.`);
 if (problems.length) { console.error(`\n${problems.length} SEO problem(s):\n- ` + problems.join("\n- ")); process.exit(1); }
 console.log("SEO check passed.");

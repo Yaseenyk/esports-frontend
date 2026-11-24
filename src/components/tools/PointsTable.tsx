@@ -14,6 +14,9 @@ import { toolCopy } from "@/lib/tool-copy";
 import type { UiLang } from "@/lib/pt-br";
 import ShareResult from "@/features/share-result/ui/ShareResult";
 import { TOOL_PATHS } from "@/features/share-result/domain";
+import { OVERLAY_KIT } from "@/features/overlay-kit/flag";
+import { feedFromStandings } from "@/features/overlay-kit/domain";
+import OverlayKitConnect from "@/features/overlay-kit/ui/OverlayKitConnect";
 
 const EXAMPLE: TeamEntry[] = [
   { name: "Alpha", matches: [{ placement: 1, kills: 5 }, { placement: 4, kills: 2 }, { placement: 2, kills: 3 }] },
@@ -54,6 +57,8 @@ export default function PointsTable({ preset, lang = "en", path = TOOL_PATHS["po
   const table = useMemo(() => (placement ? standings(normalised.filter((t) => t.name.trim()), { placement, perKill: kill }) : []), [normalised, placement, kill]);
 
   const screen = useMemo(() => (table.length ? pointsView(table, matches, c.view.title, c.view) : null), [table, matches, c]);
+  // The OBS overlay kit (behind its flag): the same ranked rows, sent to an overlay in this browser when the organiser switches it on.
+  const kitFeed = useMemo(() => (OVERLAY_KIT && table.length ? feedFromStandings(table, { source: preset ?? "points-table", matches }) : null), [table, matches, preset]);
   const cells = normalised.length * matches;
   const filled = normalised.reduce((n, t) => n + t.matches.filter((m) => m.placement > 0).length, 0);
   const setCell = (ti: number, mi: number, key: "placement" | "kills", v: string) => {
@@ -158,6 +163,7 @@ export default function PointsTable({ preset, lang = "en", path = TOOL_PATHS["po
       {table.length > 0 && filled > 0 && <WinnersBlock first={table[0]!.name} second={table[1]?.name} third={table[2]?.name} title={c.winnersTitle(matches)} lang={lang} path={path} />}
 
       <ScreenButtons payload={screen} what={c.what} step={4} lang={lang} path={path} />
+      {OVERLAY_KIT && lang === "en" && <OverlayKitConnect feed={kitFeed} />}
     </div>
   );
 }
