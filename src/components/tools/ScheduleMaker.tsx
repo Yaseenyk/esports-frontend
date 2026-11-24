@@ -8,9 +8,12 @@ import NumberField from "./NumberField";
 import { scheduleView } from "@/lib/display-views";
 import { downloadBlob } from "@/lib/idcard/download";
 import { buildSchedule, summary, type ScheduleInput } from "@/lib/schedule";
+import DayPlan from "@/features/schedule-plan/ui/DayPlan";
+import ShareResult from "@/features/share-result/ui/ShareResult";
 
 /** Free match schedule and run-sheet maker. Everything is worked out in the browser. */
 export default function ScheduleMaker() {
+  const [mode, setMode] = useState<"day" | "plan">("day");
   const [i, setI] = useState<ScheduleInput>({ start: "10:00", matches: 19, duration: 40, gap: 10, lobbies: 4, breakEvery: 3, breakLength: 30 });
   const slots = useMemo(() => buildSchedule(i), [i]);
   const sum = slots ? summary(i, slots) : null;
@@ -28,8 +31,17 @@ export default function ScheduleMaker() {
   const plural = (n: number, w: string) => `${n} ${w}${n === 1 ? "" : "s"}`;
   const defaultsNote = `Right now: ${i.lobbies} match${i.lobbies === 1 ? "" : "es"} at a time, ${plural(i.gap, "minute")} between rounds, ${i.breakEvery > 0 && i.breakLength > 0 ? `and a ${i.breakLength}-minute break after every ${i.breakEvery === 1 ? "round" : `${i.breakEvery} rounds`}` : "and no longer breaks"}.`;
 
+  const modes = (
+    <div role="group" aria-label="Kind of schedule" className="flex flex-wrap items-center gap-2 no-print">
+      <button type="button" className="chip" aria-pressed={mode === "day"} onClick={() => setMode("day")}>One day, by number of matches</button>
+      <button type="button" className="chip" aria-pressed={mode === "plan"} onClick={() => setMode("plan")}>From a bracket, day by day</button>
+    </div>
+  );
+  if (mode === "plan") return <div className="space-y-5">{modes}<DayPlan /></div>;
+
   return (
     <div className="space-y-5">
+      {modes}
       <ToolStep n={1} id="sc-when" title="When does it start, and how many matches?" done={!!slots}
         hint="Type the time the first match begins, how many matches you will play in total, and how long one match takes."
         status={sum ? `${i.matches} match${i.matches === 1 ? "" : "es"}` : undefined}>
@@ -82,7 +94,8 @@ export default function ScheduleMaker() {
         )}
         </div>
       </ToolStep>
-      <div className="no-print"><ScreenButtons payload={screen} what="schedule" step={4} /></div>
+      <div className="no-print"><ShareResult payload={screen} what="schedule" path="/tools/schedule/" /></div>
+      <div className="no-print"><ScreenButtons payload={screen} what="schedule" step={4} path="/tools/schedule/" /></div>
     </div>
   );
 }
