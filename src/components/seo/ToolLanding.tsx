@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { Item, Reveal, Stagger } from "@/components/Motion";
 import JsonLd from "./JsonLd";
 import Faq from "@/components/seo/Faq";
 import { Inline } from "@/components/seo/Prose";
@@ -103,7 +102,8 @@ export default function ToolLanding({ t, children, lang = "en", trust }: { t: To
       {trust && <><ScoringRulesBlock rules={trust.rules} lang={lang} /><SafeToUse lang={lang} /></>}
 
       <section className="no-print" aria-labelledby="why"><h2 id="why" className="font-display text-2xl font-bold text-white">{u.why(hn)}</h2>
-        <Stagger className="mt-4 grid gap-4 md:grid-cols-3">{t.benefits.map((b) => <Item key={b.title}><div className="card h-full"><h3 className="font-display font-bold text-white">{b.title}</h3><p className="mt-2 text-sm text-zinc-300">{b.body}</p></div></Item>)}</Stagger>
+        {/* Plain grids, no scroll reveal: the text is visible at first paint and never hidden waiting for a scroll (DESIGN_SYSTEM rule 5). */}
+        <div className="mt-4 grid gap-4 md:grid-cols-3">{t.benefits.map((b) => <div key={b.title} className="card h-full"><h3 className="font-display font-bold text-white">{b.title}</h3><p className="mt-2 text-sm text-zinc-300">{b.body}</p></div>)}</div>
       </section>
 
       {t.table && (
@@ -113,7 +113,7 @@ export default function ToolLanding({ t, children, lang = "en", trust }: { t: To
       )}
 
       <section className="no-print" aria-labelledby="how"><h2 id="how" className="font-display text-2xl font-bold text-white">{u.how(hn)}</h2>
-        <Stagger className="mt-4 space-y-3"><ol className="contents">{t.steps.map((s, i) => <li key={s} className="list-none"><Item><div className="card flex gap-4 !p-4"><span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-cyan font-bold text-ink">{i + 1}</span><span className="text-zinc-200">{s}</span></div></Item></li>)}</ol></Stagger>
+        <ol className="mt-4 space-y-3">{t.steps.map((s, i) => <li key={s} className="list-none"><div className="card flex gap-4 !p-4"><span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-cyan font-bold text-ink">{i + 1}</span><span className="text-zinc-200">{s}</span></div></li>)}</ol>
       </section>
 
       {(t.sections ?? []).map((x) => (
