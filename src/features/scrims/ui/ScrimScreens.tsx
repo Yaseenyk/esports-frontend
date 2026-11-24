@@ -22,11 +22,11 @@ const RULES = "Contact details stay hidden until the poster accepts. Then each s
 
 function ZoneSwitch({ zone, onChange }: { zone: Zone; onChange: (z: Zone) => void }) {
   return (
-    <fieldset className="flex flex-wrap items-center gap-3 text-sm text-zinc-100">
+    <fieldset className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-zinc-100">
       <legend className="sr-only">Show times in</legend>
       <span className="text-zinc-300">Times in:</span>
       {([["ist", "India time (IST)"], ["device", "My device time"]] as const).map(([v, l]) => (
-        <label key={v} className="flex min-h-11 items-center gap-2"><input type="radio" name="zone" checked={zone === v} onChange={() => onChange(v)} className="h-5 w-5 accent-cyan-400" />{l}</label>
+        <label key={v} className="flex min-h-11 min-w-0 items-center gap-2"><input type="radio" name="zone" checked={zone === v} onChange={() => onChange(v)} className="h-5 w-5 accent-cyan-400" />{l}</label>
       ))}
     </fieldset>
   );
@@ -121,17 +121,19 @@ export function ScrimBoardScreen() {
   const [ask, setAsk] = useState<Slot | null>(null);
   const [more, setMore] = useState<Slot | null>(null);
   const [wait, setWait] = useState<Slot | null>(null);
+  // An empty board with no filters shows one way forward (the empty state's own "Post a scrim"), not a second button and filters over nothing.
+  const bare = b.phase === "ready" && b.items.length === 0 && !b.filtered;
   return (
     <div className="mx-auto max-w-5xl space-y-6">
       <header className="space-y-2">
         <h1 className={h1}>Scrim finder</h1>
         <p className="max-w-3xl text-zinc-300">Captains post open practice slots; other captains ask to join. You must be 18 or older and have a team page. {RULES}</p>
-        <p><Link href="/scrims/new/" className={btnPrimary}>Post a scrim</Link></p>
+        {!bare && b.phase !== "unavailable" && <p><Link href="/scrims/new/" className={btnPrimary}>Post a scrim</Link></p>}
       </header>
       {b.phase === "unavailable" ? <NotAvailable what="The scrim finder" /> : (
         <>
-          <BoardFiltersForm value={b.filters} onChange={b.setFilters} onClear={b.clear} filtered={b.filtered} minDay={b.today} />
-          <ZoneSwitch zone={b.zone} onChange={b.setZone} />
+          {!bare && <BoardFiltersForm value={b.filters} onChange={b.setFilters} onClear={b.clear} filtered={b.filtered} minDay={b.today} />}
+          {!bare && <ZoneSwitch zone={b.zone} onChange={b.setZone} />}
           <div aria-live="polite">
             {b.phase === "loading" && (b.skeleton ? <SkeletonRows label="Loading scrims" /> : <p className="sr-only">Loading scrims</p>)}
             {b.phase === "error" && <ErrorState message={b.failure ? explainFailure(b.failure) : "The scrims did not load."} onRetry={b.retry} />}

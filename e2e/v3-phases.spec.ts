@@ -177,6 +177,15 @@ test("board: IST by default, filters go to the query string and the API as a UTC
   await axe(page);
 });
 
+test("board: an empty board with no filters shows one Post a scrim and no filters over nothing", async ({ page }) => {
+  await mockV3(page, { "GET /public/scrims": () => ({ body: { items: [], nextCursor: null } }) });
+  await page.goto("/scrims/");
+  await expect(page.getByRole("heading", { name: "No open scrims yet" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Post a scrim" })).toHaveCount(1);
+  await expect(page.getByRole("search", { name: "Filter scrims" })).toHaveCount(0);
+  await expect(page.getByRole("radio", { name: "My device time" })).toHaveCount(0);
+});
+
 test("signed in: ask to join with a team page and a handle; report and block from the card", async ({ page }) => {
   const seen = await v3SignedIn(page, {
     "GET /v3/scrims": () => ({ body: { items: [{ ...SLOT, mine: false, myRequest: null }], nextCursor: null } }),
