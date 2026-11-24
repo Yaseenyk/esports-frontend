@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import PointsTable from "@/components/tools/PointsTableLazy";
 import ToolLanding from "@/components/seo/ToolLanding";
+import { PAGE_SCALES, battleRoyaleRules } from "@/features/tool-trust/domain";
 import { FREE_FIRE_PT as t } from "@/lib/game-pages-pt";
 import { PT_BR_ROBOTS, enPathFor, hreflangFor } from "@/lib/pt-br";
 
@@ -17,7 +18,7 @@ export default function Page() {
   return (
     <>
       <p className="no-print mb-6 text-sm text-zinc-400"><Link href={en} hrefLang="en" lang="en" className="underline underline-offset-4 hover:text-zinc-200">English version</Link></p>
-      <ToolLanding t={t} lang="pt-BR"><PointsTable preset={t.preset} lang="pt-BR" path={t.path} /></ToolLanding>
+      <ToolLanding t={t} lang="pt-BR" trust={{ rules: battleRoyaleRules("Free Fire", PAGE_SCALES["free-fire"], "pt-BR") }}><PointsTable preset={t.preset} lang="pt-BR" path={t.path} /></ToolLanding>
     </>
   );
 }

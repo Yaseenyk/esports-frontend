@@ -38,8 +38,9 @@ export default function MapLeagueTool({ path, game = "Valorant" }: { /** The pag
     sendEvent("tool_complete", "round-robin");
   };
 
+  // data-clarity-mask and data-pulse-label keep team names and scores out of the page analytics (see the comment in PointsTable.tsx).
   return (
-    <div className="space-y-5">
+    <div className="space-y-5" data-clarity-mask="true">
       <ToolStep n={1} id="ml-teams" title="Add your teams" done={L.ready}
         hint="Every team plays every other team once (or twice), like a round robin. Type or paste the teams, one per line."
         status={L.ready ? <span><span>{L.teams.length}</span> teams, <span>{L.count.total}</span> matches</span> : undefined}>
@@ -85,9 +86,9 @@ export default function MapLeagueTool({ path, game = "Valorant" }: { /** The pag
                           return (
                             <div key={mi} className="flex items-center gap-2 text-sm">
                               <span className="w-12 shrink-0 text-xs text-zinc-400">Map {mi + 1}</span>
-                              <input aria-label={`${label}, map ${mi + 1}, rounds won by ${f.a}`} className={roundInput} inputMode="numeric" value={m.a ?? ""} onChange={(e) => L.setRounds(ri, fi, mi, "a", e.target.value)} />
+                              <input data-pulse-label="rounds" aria-label={`${label}, map ${mi + 1}, rounds won by ${f.a}`} className={roundInput} inputMode="numeric" value={m.a ?? ""} onChange={(e) => L.setRounds(ri, fi, mi, "a", e.target.value)} />
                               <span aria-hidden="true" className="text-zinc-400">–</span>
-                              <input aria-label={`${label}, map ${mi + 1}, rounds won by ${f.b}`} className={roundInput} inputMode="numeric" value={m.b ?? ""} onChange={(e) => L.setRounds(ri, fi, mi, "b", e.target.value)} />
+                              <input data-pulse-label="rounds" aria-label={`${label}, map ${mi + 1}, rounds won by ${f.b}`} className={roundInput} inputMode="numeric" value={m.b ?? ""} onChange={(e) => L.setRounds(ri, fi, mi, "b", e.target.value)} />
                             </div>
                           );
                         })}

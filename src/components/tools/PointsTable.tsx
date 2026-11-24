@@ -86,8 +86,10 @@ export default function PointsTable({ preset, lang = "en", path = TOOL_PATHS["po
   };
   const scaleSample = placement ? placement.slice(0, 3).map((p, i) => c.sampleItem(c.ord(i + 1), p)).join(", ") : "";
 
+  // data-clarity-mask: Microsoft Clarity (loaded on these pages) never records team names or scores. data-pulse-label: the Pulse visit counter
+  // reads a clicked control's label, and these labels hold team names, so the counter gets a fixed word instead. The "Safe to use" box relies on both.
   return (
-    <div className="space-y-5">
+    <div className="space-y-5" data-clarity-mask="true">
       <ToolStep n={1} id="pt-scale" title={c.s1Title} done={Boolean(placement)} stepWord={T.stepWord}
         hint={c.s1Hint}
         status={placement ? c.s1Status(placement.length) : undefined}>
@@ -119,15 +121,15 @@ export default function PointsTable({ preset, lang = "en", path = TOOL_PATHS["po
               <li key={ti} className="rounded-xl border border-white/[0.14] bg-[#0f1013] p-3">
                 <div className="flex items-center gap-2">
                   <input aria-label={c.teamName(ti + 1)} className="field !min-h-11 min-w-0 flex-1 font-semibold" value={t.name} onChange={(e) => setTeams(normalised.map((x, i) => (i === ti ? { ...x, name: e.target.value } : x)))} />
-                  <button type="button" className="chip !min-h-11 shrink-0" aria-label={c.removeTeam(t.name || c.removeTeamN(ti + 1))} onClick={() => setTeams(normalised.filter((_, i) => i !== ti))}>{c.remove}</button>
+                  <button type="button" className="chip !min-h-11 shrink-0" data-pulse-label="remove team" aria-label={c.removeTeam(t.name || c.removeTeamN(ti + 1))} onClick={() => setTeams(normalised.filter((_, i) => i !== ti))}>{c.remove}</button>
                 </div>
                 <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
                   {t.matches.map((m, mi) => (
                     <fieldset key={mi} className="min-w-0 rounded-lg border border-white/[0.1] p-2">
                       <legend className="px-1 text-xs font-medium text-zinc-300">{c.match(mi + 1)}</legend>
                       <div className="flex gap-2">
-                        <label className="block min-w-0 flex-1 text-[11px] text-zinc-300">{c.place}<input aria-label={c.cellPlace(t.name || c.teamN(ti + 1), mi + 1)} className="field !min-h-11 mt-0.5 !px-2 text-center" inputMode="numeric" value={shown(`${ti}:${mi}:placement`, m.placement, true)} onChange={(e) => setCell(ti, mi, "placement", e.target.value)} /></label>
-                        <label className="block min-w-0 flex-1 text-[11px] text-zinc-300">{c.kills}<input aria-label={c.cellKills(t.name || c.teamN(ti + 1), mi + 1)} className="field !min-h-11 mt-0.5 !px-2 text-center" inputMode="numeric" value={shown(`${ti}:${mi}:kills`, m.kills, true)} onChange={(e) => setCell(ti, mi, "kills", e.target.value)} /></label>
+                        <label className="block min-w-0 flex-1 text-[11px] text-zinc-300">{c.place}<input data-pulse-label="placement" aria-label={c.cellPlace(t.name || c.teamN(ti + 1), mi + 1)} className="field !min-h-11 mt-0.5 !px-2 text-center" inputMode="numeric" value={shown(`${ti}:${mi}:placement`, m.placement, true)} onChange={(e) => setCell(ti, mi, "placement", e.target.value)} /></label>
+                        <label className="block min-w-0 flex-1 text-[11px] text-zinc-300">{c.kills}<input data-pulse-label="kills" aria-label={c.cellKills(t.name || c.teamN(ti + 1), mi + 1)} className="field !min-h-11 mt-0.5 !px-2 text-center" inputMode="numeric" value={shown(`${ti}:${mi}:kills`, m.kills, true)} onChange={(e) => setCell(ti, mi, "kills", e.target.value)} /></label>
                       </div>
                     </fieldset>
                   ))}

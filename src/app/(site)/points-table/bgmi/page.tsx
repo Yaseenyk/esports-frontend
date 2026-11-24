@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import PointsTable from "@/components/tools/PointsTableLazy";
 import ToolLanding from "@/components/seo/ToolLanding";
+import { PAGE_SCALES, battleRoyaleRules } from "@/features/tool-trust/domain";
 import { GAME_PAGES } from "@/lib/game-pages";
 
 const t = GAME_PAGES["bgmi"];
@@ -10,5 +11,5 @@ export const metadata: Metadata = {
 };
 
 export default function Page() {
-  return <ToolLanding t={t}><PointsTable preset={t.preset} path={t.path} /></ToolLanding>;
+  return <ToolLanding t={t} trust={{ rules: battleRoyaleRules("BGMI", PAGE_SCALES.bgmi) }}><PointsTable preset={t.preset} path={t.path} /></ToolLanding>;
 }

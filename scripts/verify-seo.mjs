@@ -157,6 +157,54 @@ console.log(calendar.present ? `community: calendar emitted, ${calendar.count ??
 if (v3Pages.length) console.log(`v3: ${v3Pages.length} tournament page(s), ${v3Pages.filter((v) => v.indexable).length} indexable.`); else console.log("v3: no tournament pages emitted (API off or empty).");
 if (v3Pages.length === 0 && pages.some((q) => q.url.startsWith("/tournaments/") && q.url !== "/tournaments/")) bad("tournaments", "tournament pages exist without eh-guard data");
 
+// The points table pages (25 Nov 2026). The calculators render in the browser only, so everything an assistant or a search engine needs to trust
+// the page must be in the static HTML around them: the h1, what it calculates, the scoring rules it really uses, who runs it, the "Safe to use"
+// box and the FAQ, with exactly one FAQPage that matches the visible questions and answers, a Person linked from the SoftwareApplication, no ratings.
+const PERSON_ID = "https://yk.streamerosai.com/#person";
+const TRUST_PAGES = {
+  "/points-table/free-fire/": "1st 10, 2nd 6", "/points-table/bgmi/": "1st 10, 2nd 6", "/points-table/cod-mobile/": "1st 15, 2nd 12",
+  "/points-table/valorant/": "3 for a match win", "/tools/points-table/": "1st 10, 2nd 6", "/pt-br/points-table/free-fire/": "1º 10, 2º 6",
+};
+const visible = (html) => decode(html.replace(/<script[\s\S]*?<\/script>/g, " ").replace(/<style[\s\S]*?<\/style>/g, " ").replace(/<[^>]+>/g, " ")).replace(/\s+/g, " ");
+const block = (html, testid) => { const m = new RegExp(`<(section|aside|p)[^>]*data-testid="${testid}"[^>]*>([\\s\\S]*?)</\\1>`).exec(html); return m ? m[2] : null; };
+for (const [u, rule] of Object.entries(TRUST_PAGES)) {
+  const file = path.join(OUT, ...u.split("/").filter(Boolean), "index.html");
+  if (!fs.existsSync(file)) { bad(u, "points table page missing from the build"); continue; }
+  const html = fs.readFileSync(file, "utf8"), text = visible(html);
+  const h1 = /<h1[^>]*>([\s\S]*?)<\/h1>/.exec(html);
+  if (!h1 || visible(h1[1]).trim().length < 10) bad(u, "no h1 text in the static HTML");
+  const who = block(html, "who-runs");
+  if (!who || !/Yaseen Khatib/.test(who) || !who.includes('href="https://yk.streamerosai.com/"') || !who.includes('href="https://www.linkedin.com/in/yaseen-yk"')) bad(u, "the 'who runs this' line with the portfolio and LinkedIn links is missing");
+  const rules = block(html, "scoring-rules");
+  if (!rules) bad(u, "the scoring rules are missing from the static HTML");
+  else {
+    const lead = /<p[^>]*>([\s\S]*?)<\/p>/.exec(rules);
+    if (!lead || (visible(lead[1]).match(/[.!?](\s|$)/g) ?? []).length < 2) bad(u, "the scoring rules need a description of at least two sentences");
+    if ((rules.match(/<li[\s>]/g) ?? []).length < 3) bad(u, "the scoring rules list is too short");
+    if (!visible(rules).includes(rule)) bad(u, `the scoring rules do not state the calculator's starting points ("${rule}")`);
+  }
+  const safe = block(html, "safe-to-use");
+  if (!safe || (safe.match(/<li[\s>]/g) ?? []).length < 5) bad(u, "the 'Safe to use' box is missing or incomplete");
+  const ld = jsonLdOf(html).flatMap((d) => (Array.isArray(d) ? d : d["@graph"] ?? [d]));
+  const faqs = ld.filter((d) => d["@type"] === "FAQPage");
+  if (faqs.length !== 1) bad(u, `${faqs.length} FAQPage blocks (want exactly 1)`);
+  else {
+    const qs = faqs[0].mainEntity ?? [];
+    const faqSection = /<section[^>]*aria-labelledby="faq"[^>]*>([\s\S]*?)<\/section>/.exec(html);
+    const shown = faqSection ? (faqSection[1].match(/<details[\s>]/g) ?? []).length : 0;
+    if (shown !== qs.length) bad(u, `FAQPage has ${qs.length} questions but the page shows ${shown}`);
+    for (const q of qs) {
+      if (!text.includes(q.name)) bad(u, `FAQ question not visible on the page: ${q.name}`);
+      if (!text.includes(q.acceptedAnswer?.text ?? "\u0000")) bad(u, `FAQ answer not visible on the page: ${q.name}`);
+    }
+  }
+  const person = ld.find((d) => d["@type"] === "Person" && d["@id"] === PERSON_ID);
+  if (!person || person.name !== "Yaseen Khatib" || !person.url?.startsWith("https://yk.streamerosai.com") || !["linkedin.com/in/yaseen-yk", "github.com/Yaseenyk"].every((s) => (person.sameAs ?? []).some((x) => x.includes(s)))) bad(u, "no Person node for Yaseen Khatib with the portfolio @id and sameAs");
+  const app = ld.find((d) => d["@type"] === "SoftwareApplication" || d["@type"] === "WebApplication");
+  if (!app || app.author?.["@id"] !== PERSON_ID || app.creator?.["@id"] !== PERSON_ID || app.offers?.price !== "0" || app.isAccessibleForFree !== true) bad(u, "the SoftwareApplication must be free (price 0) and name the Person as author and creator");
+  if (/"(aggregateRating|review|reviewRating)"/.test(JSON.stringify(ld))) bad(u, "ratings or reviews in structured data");
+}
+
 // The OBS overlay kit flag (NEXT_PUBLIC_OVERLAY_KIT): off means none of its pages may be in the build, and nothing may link to them.
 const KIT_ON = ["1", "true", "on"].includes(process.env.NEXT_PUBLIC_OVERLAY_KIT ?? "");
 if (!KIT_ON) {

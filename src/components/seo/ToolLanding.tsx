@@ -5,8 +5,10 @@ import Faq from "@/components/seo/Faq";
 import { Inline } from "@/components/seo/Prose";
 import ScrollTable from "@/components/seo/ScrollTable";
 import { LISTED_GUIDES as GUIDES } from "@/content/guides";
-import { SITE_URL } from "@/lib/site";
+import { ORG_ID, SITE_URL } from "@/lib/site";
 import type { UiLang } from "@/lib/pt-br";
+import { OWNER, personJsonLd, type ScoringRules } from "@/features/tool-trust/domain";
+import { SafeToUse, ScoringRulesBlock, WhoRuns } from "@/features/tool-trust/ui/TrustBlocks";
 
 /** The page's own words around the tool. Only the Portuguese Free Fire page passes "pt-BR". */
 const UI = {
@@ -63,7 +65,7 @@ export const headingName = (t: ToolPage) => t.shortName ?? ((n) => n.charAt(0).t
  * A public page for one tool: what it does, the working tool itself (free, no account) and the questions people ask.
  * It is plain server-rendered HTML, so search engines read the full text; the tool loads on top of it.
  */
-export default function ToolLanding({ t, children, lang = "en" }: { t: ToolPage; children?: React.ReactNode; lang?: UiLang }) {
+export default function ToolLanding({ t, children, lang = "en", trust }: { t: ToolPage; children?: React.ReactNode; lang?: UiLang; /** The points table pages: the "who runs this" line, the scoring rules as static text, the "Safe to use" box and the Person schema. */ trust?: { rules: ScoringRules } }) {
   const u = UI[lang];
   const path = t.path ?? `/tools/${t.slug}/`, url = `${SITE_URL}${path}`, crumb = t.crumb ?? { name: "Tools", href: "/tools/" };
   const guides = (t.guides ?? []).map((s) => GUIDES.find((g) => g.slug === s)).filter((g): g is NonNullable<typeof g> => !!g);
@@ -71,7 +73,9 @@ export default function ToolLanding({ t, children, lang = "en" }: { t: ToolPage;
   return (
     <article className="space-y-12">
       <JsonLd data={[
-        { "@context": "https://schema.org", "@type": "SoftwareApplication", name: t.name, applicationCategory: "UtilitiesApplication", operatingSystem: "Web", url, description: t.lead, inLanguage: u.inLanguage, isAccessibleForFree: true, browserRequirements: "Requires JavaScript. Works in any current browser.", featureList: t.benefits.map((b) => b.title), offers: { "@type": "Offer", price: "0", priceCurrency: "INR" } },
+        { "@context": "https://schema.org", "@type": "SoftwareApplication", ...(trust ? { "@id": `${url}#app` } : {}), name: t.name, applicationCategory: "UtilitiesApplication", operatingSystem: "Web", url, description: t.lead, inLanguage: u.inLanguage, isAccessibleForFree: true, browserRequirements: "Requires JavaScript. Works in any current browser.", featureList: t.benefits.map((b) => b.title), offers: { "@type": "Offer", price: "0", priceCurrency: "INR" },
+          ...(trust ? { author: { "@id": OWNER.personId }, creator: { "@id": OWNER.personId }, publisher: { "@id": ORG_ID } } : {}) },
+        ...(trust ? [personJsonLd()] : []),
         ...(t.howTo ? [{ "@context": "https://schema.org", "@type": "HowTo", name: u.howToName(hn), description: t.lead, step: t.steps.map((x, i) => ({ "@type": "HowToStep", position: i + 1, name: x.split(/[.,:]/)[0], text: x })) }] : []),
         { "@context": "https://schema.org", "@type": "FAQPage", mainEntity: t.faq.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })) },
         { "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [{ "@type": "ListItem", position: 1, name: u.home, item: `${SITE_URL}/` }, { "@type": "ListItem", position: 2, name: crumb.name, item: `${SITE_URL}${crumb.href}` }, { "@type": "ListItem", position: 3, name: t.name, item: url }] },
@@ -80,6 +84,7 @@ export default function ToolLanding({ t, children, lang = "en" }: { t: ToolPage;
         <nav aria-label="Breadcrumb" className="text-sm text-zinc-400"><Link href={crumb.href} className="hover:text-zinc-200">{crumb.name}</Link> / {t.name}</nav>
         <h1 className="mt-3 text-3xl font-black text-zinc-50 sm:text-5xl">{t.h1}</h1>
         <p className="mt-4 max-w-2xl text-lg text-zinc-200">{t.intro ?? t.lead}</p>
+        {trust && <WhoRuns lang={lang} />}
       </header>
 
       {children && <section aria-labelledby="use"><h2 id="use" className="mb-4 font-display text-2xl font-bold text-white">{t.useHeading ?? u.use}</h2>{children}</section>}
@@ -90,6 +95,8 @@ export default function ToolLanding({ t, children, lang = "en" }: { t: ToolPage;
           <dl className="mt-2 space-y-1.5">{t.glossary.map((g) => <div key={g.term}><dt className="inline font-semibold text-zinc-100">{g.term}</dt><dd className="inline">{": "}{g.meaning}</dd></div>)}</dl>
         </aside>
       )}
+
+      {trust && <><ScoringRulesBlock rules={trust.rules} lang={lang} /><SafeToUse lang={lang} /></>}
 
       <section className="no-print" aria-labelledby="why"><h2 id="why" className="font-display text-2xl font-bold text-white">{u.why(hn)}</h2>
         <Stagger className="mt-4 grid gap-4 md:grid-cols-3">{t.benefits.map((b) => <Item key={b.title}><div className="card h-full"><h3 className="font-display font-bold text-white">{b.title}</h3><p className="mt-2 text-sm text-zinc-300">{b.body}</p></div></Item>)}</Stagger>

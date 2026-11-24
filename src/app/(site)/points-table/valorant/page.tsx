@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import ToolLanding from "@/components/seo/ToolLanding";
+import { leagueRules } from "@/features/tool-trust/domain";
 import MapLeague from "@/features/map-league/ui/MapLeagueLazy";
 import { VALORANT_PAGE as t } from "@/lib/game-pages";
 
@@ -10,5 +11,5 @@ export const metadata: Metadata = {
 
 /** /points-table/valorant/: a league table (wins, maps, rounds), because Valorant is 5v5 match play, not a battle royale. */
 export default function Page() {
-  return <ToolLanding t={t}><MapLeague path={t.path} game="Valorant" /></ToolLanding>;
+  return <ToolLanding t={t} trust={{ rules: leagueRules("Valorant") }}><MapLeague path={t.path} game="Valorant" /></ToolLanding>;
 }
