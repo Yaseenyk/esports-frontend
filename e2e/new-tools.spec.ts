@@ -329,5 +329,6 @@ test("prize split: counts open the digits keypad, percentages the decimal one", 
   await page.goto("/tools/prize-split/");
   await expect(page.getByLabel("Slots to give out")).toHaveAttribute("inputmode", "numeric");
   await expect(page.getByLabel("Places that get a share")).toHaveAttribute("inputmode", "numeric");
+  await page.getByRole("group", { name: "Split rule" }).getByRole("button", { name: "My own percentages" }).click();
   await expect(page.getByLabel("1st place (%)")).toHaveAttribute("inputmode", "decimal");
 });
