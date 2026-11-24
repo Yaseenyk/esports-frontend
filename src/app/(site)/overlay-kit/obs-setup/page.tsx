@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import CopyCode from "@/features/overlay-kit/ui/CopyCode";
 import JsonLd from "@/components/seo/JsonLd";
 import { SITE_URL } from "@/lib/site";
 import { KIT_GUIDE_PATH, KIT_PATH } from "@/features/overlay-kit/flag";
@@ -70,7 +71,7 @@ export default function Page() {
           <li>On the <Link href={KIT_PATH} className={link}>overlay kit page</Link>, set the design, the safe margin and where each overlay sits, then press Copy OBS URL for the overlay you want.</li>
           <li>In OBS, in the Sources box of your scene, press the plus button and choose Browser. Name it, for example &ldquo;Points table&rdquo;.</li>
           <li>Paste the link into URL. Set Width to 1920 and Height to 1080. Leave &ldquo;Use custom frame rate&rdquo; off.</li>
-          <li>Leave the Custom CSS box as OBS fills it: <code className="font-mono text-sm text-zinc-100">body {"{"} background-color: rgba(0, 0, 0, 0); margin: 0px auto; overflow: hidden; {"}"}</code>. That line keeps the background transparent.</li>
+          <li>Leave the Custom CSS box as OBS fills it. That line keeps the background transparent; if it is gone, paste it back:<CopyCode label="OBS Custom CSS" text="body { background-color: rgba(0, 0, 0, 0); margin: 0px auto; overflow: hidden; }" /></li>
           <li>Leave &ldquo;Shutdown source when not visible&rdquo; off, so the overlay keeps receiving updates while another scene is on air.</li>
           <li>Press OK. The source fills the canvas; do not stretch it. To move an overlay, change &ldquo;Where on screen&rdquo; on the kit page instead, so text stays inside the safe margin.</li>
         </ol>
