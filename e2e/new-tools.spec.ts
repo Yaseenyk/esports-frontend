@@ -228,9 +228,16 @@ test("schedule maker: a bracket placed day by day in dependency order, CSV and S
   await expect(table).toContainText("Seed 1 vs Seed 16");
   await expect(table).toContainText("Winner of M1 vs Winner of M2");
   // The final starts after both semi-finals have ended.
-  const rows = await table.locator("tbody tr").allInnerTexts();
-  const startOf = (stage: string) => rows.filter((r) => r.includes(stage)).map((r) => r.trim().slice(0, 5));
-  const semisEnd = rows.filter((r) => r.includes("Semi-finals")).map((r) => r.trim().split(/\s+/)[1]!);
+  // Each match carries its 24-hour start and end (the page shows 12-hour time); a table on a computer, a list on a phone.
+  const rows = await table.locator("[data-match]:visible").evaluateAll((els) => els.map((e) => ({ stage: e.getAttribute("data-stage") ?? "", start: e.getAttribute("data-start")!, end: e.getAttribute("data-end")! })));
+  expect(rows.length).toBe(15);
+  const startOf = (stage: string) => rows.filter((r) => r.stage === stage).map((r) => r.start);
+  const semisEnd = rows.filter((r) => r.stage.includes("Semi-finals")).map((r) => r.end);
+  await expect(table.locator("time:visible").first()).toHaveText(/^\d{1,2}:\d{2} (AM|PM)/);
+  if ((page.viewportSize()?.width ?? 1280) < 640) {
+    await expect(table.locator("table")).toBeHidden(); // a phone gets the stacked list, not the five-column table
+    await expect(table.locator("ol")).toBeVisible();
+  }
   expect(startOf("Final").length).toBe(1);
   for (const end of semisEnd) expect(startOf("Final")[0]! > end).toBe(true);
   await page.getByLabel("Matches", { exact: true }).selectOption("double");

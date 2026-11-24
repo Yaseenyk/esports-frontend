@@ -7,6 +7,7 @@ import { btnSecondary, input } from "@/features/shared/ui/styles";
 import { MAX_COUNT, MAX_DAYS, MAX_STATIONS, MAX_TEAMS, SOURCES, type Source } from "@/features/schedule-plan/domain";
 import { useDayPlan } from "@/features/schedule-plan/hooks/useDayPlan";
 import ShareResult from "@/features/share-result/ui/ShareResult";
+import { display12 } from "@/lib/schedule";
 
 const PATH = "/tools/schedule/";
 
@@ -73,24 +74,42 @@ export default function DayPlan() {
             {plan.unplaced.length > 0 && (
               <p role="alert" className="text-sm text-warning"><span aria-hidden="true">! </span><span key={plan.unplaced.length}>{plan.unplaced.length} {plan.unplaced.length === 1 ? "match does" : "matches do"} not fit in the days given ({plan.unplaced.map((m) => m.id).join(", ")}). Add a day, a station or longer hours, or shorten the matches.</span></p>
             )}
-            <div role="region" aria-label="Day-wise schedule table" tabIndex={0} className="overflow-x-auto rounded-xl border border-white/10">
-              <table className="w-full border-collapse text-left text-sm">
-                <thead><tr className="text-zinc-300"><th scope="col" className="px-3 py-2">Start</th><th scope="col" className="px-3 py-2">End</th><th scope="col" className="px-3 py-2">Station</th><th scope="col" className="px-3 py-2">Match</th><th scope="col" className="px-3 py-2">Who plays</th></tr></thead>
-                <tbody>
-                  {plan.placed.map((x, k) => (
-                    <Fragment key={x.match.id}>
-                      {(k === 0 || plan.placed[k - 1]!.day !== x.day) && <tr className="border-t border-white/10"><th colSpan={5} scope="colgroup" className="px-3 py-2 text-left font-display text-cyan-400">Day {x.day}</th></tr>}
-                      <tr className="border-t border-white/10">
-                        <td className="px-3 py-2 font-mono text-zinc-100 tabular-nums">{x.startText}</td>
-                        <td className="px-3 py-2 font-mono text-zinc-300 tabular-nums">{x.endText}</td>
-                        <td className="px-3 py-2 text-zinc-300">{x.station}</td>
-                        <th scope="row" className="px-3 py-2 font-medium text-zinc-100">{x.match.id}{x.match.stage && <span className="block text-xs font-normal text-zinc-400">{x.match.stage}</span>}</th>
-                        <td className="px-3 py-2 text-zinc-300">{x.match.label}</td>
-                      </tr>
-                    </Fragment>
-                  ))}
-                </tbody>
-              </table>
+            {/* One region, two layouts: a five-column table from the sm breakpoint, a stacked list on phones so "Who plays" has room. */}
+            <div role="region" aria-label="Day-wise schedule table" tabIndex={0} className="rounded-xl border border-white/10">
+              <div className="hidden overflow-x-auto sm:block">
+                <table className="w-full border-collapse text-left text-sm">
+                  <thead><tr className="text-zinc-300"><th scope="col" className="px-3 py-2">Start</th><th scope="col" className="px-3 py-2">End</th><th scope="col" className="px-3 py-2">Station</th><th scope="col" className="px-3 py-2">Match</th><th scope="col" className="px-3 py-2">Who plays</th></tr></thead>
+                  <tbody>
+                    {plan.placed.map((x, k) => (
+                      <Fragment key={x.match.id}>
+                        {(k === 0 || plan.placed[k - 1]!.day !== x.day) && <tr className="border-t border-white/10"><th colSpan={5} scope="colgroup" className="px-3 py-2 text-left font-display text-cyan-400">Day {x.day}</th></tr>}
+                        <tr className="border-t border-white/10" data-match={x.match.id} data-start={x.startText} data-end={x.endText} data-stage={x.match.stage}>
+                          <td className="whitespace-nowrap px-3 py-2 font-mono text-zinc-100 tabular-nums"><time dateTime={x.startText}>{display12(x.startText)}</time></td>
+                          <td className="whitespace-nowrap px-3 py-2 font-mono text-zinc-300 tabular-nums"><time dateTime={x.endText}>{display12(x.endText)}</time></td>
+                          <td className="px-3 py-2 text-zinc-300">{x.station}</td>
+                          <th scope="row" className="px-3 py-2 font-medium text-zinc-100">{x.match.id}{x.match.stage && <span className="block text-xs font-normal text-zinc-400">{x.match.stage}</span>}</th>
+                          <td className="px-3 py-2 text-zinc-300">{x.match.label}</td>
+                        </tr>
+                      </Fragment>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <ol className="divide-y divide-white/10 sm:hidden">
+                {plan.placed.map((x, k) => (
+                  <Fragment key={x.match.id}>
+                    {(k === 0 || plan.placed[k - 1]!.day !== x.day) && <li className="px-3 py-2 font-display text-cyan-400">Day {x.day}</li>}
+                    <li className="space-y-1 px-3 py-3" data-match={x.match.id} data-start={x.startText} data-end={x.endText} data-stage={x.match.stage}>
+                      <p className="flex flex-wrap items-baseline gap-x-2 text-sm">
+                        <span className="font-mono text-zinc-100 tabular-nums"><time dateTime={x.startText}>{display12(x.startText)}</time> to <time dateTime={x.endText}>{display12(x.endText)}</time></span>
+                        <span className="text-xs text-zinc-400">Station {x.station}</span>
+                      </p>
+                      <p className="text-sm font-medium text-zinc-100">{x.match.id}{x.match.stage && <span className="font-normal text-zinc-400"> · {x.match.stage}</span>}</p>
+                      <p className="text-sm text-zinc-300">{x.match.label}</p>
+                    </li>
+                  </Fragment>
+                ))}
+              </ol>
             </div>
             <p className="text-xs leading-5 text-zinc-400">A match never starts before the matches it waits for are over, plus the gap. Seeds and team numbers are placeholders: write in your teams after the draw. A grand final reset is planned in case it is needed.</p>
           </>
