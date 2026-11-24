@@ -70,6 +70,8 @@ test("the Portuguese Free Fire points table is in Portuguese, indexable after na
   await expect(table.locator("tbody tr").first()).toContainText("34");
   await page.getByRole("button", { name: "Limpar resultados" }).click();
   await expect(page.getByText("Ainda não há resultados")).toBeVisible();
+  // The screen-design share is folded under "More share options" (in Portuguese); it opens and offers the picture.
+  await page.getByText("Mais opções de compartilhar").click();
   await expect(page.getByRole("button", { name: "Compartilhar no WhatsApp ou Instagram" })).toBeVisible();
   const ld = (await page.locator('script[type="application/ld+json"]').allInnerTexts()).map((t) => JSON.parse(t)).flat();
   expect(ld.find((x: { "@type"?: string }) => x["@type"] === "SoftwareApplication")?.inLanguage).toBe("pt-BR");
