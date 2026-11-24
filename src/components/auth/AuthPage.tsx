@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import AuthForm from "./AuthForm";
 import { hasBackend } from "@/lib/api";
 import { useSession } from "@/components/cloud/useSession";
-import { safeNext } from "@/lib/safe-next";
+import { authHref, safeNext } from "@/lib/safe-next";
 
 export default function AuthPage({ mode }: { mode: "login" | "register" }) {
   const session = useSession();
@@ -31,7 +31,7 @@ export default function AuthPage({ mode }: { mode: "login" | "register" }) {
       <div className="card">
         {hasBackend ? <AuthForm key={mode} initialMode={mode} showTabs={false} /> : <p className="text-sm text-amber-100">Accounts are not connected in this build.</p>}
       </div>
-      <p className="text-center text-sm text-zinc-300">{mode === "login" ? <>New here? <Link className="text-cyan underline" href="/signup/">Create an account</Link></> : <>Already have an account? <Link className="text-cyan underline" href="/login/">Sign in</Link></>}</p>
+      <p className="text-center text-sm text-zinc-300">{mode === "login" ? <>New here? <Link className="text-cyan underline" href={next && next !== "/app/" ? authHref("signup", next) : "/signup/"}>Create an account</Link></> : <>Already have an account? <Link className="text-cyan underline" href={next && next !== "/app/" ? authHref("login", next) : "/login/"}>Sign in</Link></>}</p>
     </div>
   );
 }

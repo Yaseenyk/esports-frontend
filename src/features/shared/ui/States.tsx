@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { box, btnPrimary, btnSecondary, h2, link } from "@/features/shared/ui/styles";
+import { authHref } from "@/lib/safe-next";
 
 /** A calm "Not available yet": the API answered 404, which means the feature flag is still off. Not an error. */
 export function NotAvailable({ what = "This" }: { what?: string }) {
@@ -37,7 +38,10 @@ export function SignInPrompt({ what, next = "/app/" }: { what: string; next?: st
     <section className={box}>
       <h2 className="font-display text-lg text-zinc-100">Sign in to continue</h2>
       <p className="mt-2 text-zinc-300">{what}</p>
-      <p className="mt-4"><Link href={`/login/?next=${encodeURIComponent(next)}`} className={btnPrimary}>Sign in</Link></p>
+      <div className="mt-4 flex flex-wrap gap-2">
+        <Link href={authHref("login", next)} className={btnPrimary}>Sign in</Link>
+        <Link href={authHref("signup", next)} className={btnSecondary}>Create a free account</Link>
+      </div>
     </section>
   );
 }
