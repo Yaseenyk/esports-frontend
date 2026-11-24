@@ -6,7 +6,7 @@ import type { FeedbackStatus } from "@/features/feedback/domain";
 import { currentPrompt, transcript } from "@/features/feedback/hooks/conversation";
 import { recentErrors } from "@/features/feedback/hooks/error-capture";
 import { useFeedback } from "@/features/feedback/hooks/useFeedback";
-import { useDialogFocus, useFullscreen, useNudge, useProbe, useStepFocus } from "@/features/feedback/hooks/useWidget";
+import { useDialogFocus, useFieldFocus, useFullscreen, useNudge, useProbe, useStepFocus } from "@/features/feedback/hooks/useWidget";
 import { imagesFromPaste } from "@/features/feedback/services/capture";
 import FeedbackBubble from "@/features/feedback/ui/FeedbackBubble";
 import FeedbackPanel from "@/features/feedback/ui/FeedbackPanel";
@@ -25,6 +25,7 @@ function Widget({ status, pathname }: { status: FeedbackStatus; pathname: string
   const bubble = useRef<HTMLButtonElement>(null);
   const panel = useRef<HTMLDivElement>(null);
   const { line, dismiss } = useNudge(pathname, open);
+  const typing = useFieldFocus();
   const s = f.state;
 
   const close = useCallback(() => setOpen(false), []);
@@ -48,8 +49,8 @@ function Widget({ status, pathname }: { status: FeedbackStatus; pathname: string
   const d = f.dispatch;
   return (
     <>
-      {/* Layer: z-bubble sits above page overlays (the hub menu, Online events) and below the dialog. Landscape phones (the `short` screen, height up to 500 px): vertically centred on the right edge, clear of the studio's top and bottom bars (about 66 px each). Phones: 9rem up. The studio's step bar (66 px tall) can end up 64 px above the screen bottom at the end of a page, so anything lower would cover it. */}
-      <div className="no-print fixed bottom-36 right-4 z-bubble sm:bottom-6 sm:right-6 short:bottom-auto short:right-2 short:top-1/2 short:-translate-y-1/2" style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
+      {/* Layer: z-bubble sits above page overlays (the hub menu, Online events) and below the dialog. Landscape phones (the `short` screen, height up to 500 px): vertically centred on the right edge, clear of the studio's top and bottom bars (about 66 px each). Phones: 9rem up, and hidden while a page field has focus (useFieldFocus) so it never covers what is being typed. The studio's step bar (66 px tall) can end up 64 px above the screen bottom at the end of a page, so anything lower would cover it. */}
+      <div data-typing={typing && !open ? "1" : undefined} className={`no-print fixed bottom-36 right-4 z-bubble ${typing && !open ? "max-sm:hidden" : ""} sm:bottom-6 sm:right-6 short:bottom-auto short:right-2 short:top-1/2 short:-translate-y-1/2`} style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
         <FeedbackBubble ref={bubble} open={open} onOpen={openIt} nudge={open ? null : line} onDismissNudge={dismiss} />
       </div>
       {open && (

@@ -99,6 +99,19 @@ test("probe 200: the bubble appears (with no account sent)", async ({ page }) =>
   expect(box.height).toBeGreaterThanOrEqual(44); expect(box.width).toBeGreaterThanOrEqual(44);
 });
 
+test("on a phone the bubble steps aside while a page field has focus, and comes back after", async ({ page }) => {
+  await mockFeedback(page);
+  await page.goto("/tools/prize-split/");
+  await expect(bubble(page)).toBeVisible({ timeout: 20_000 });
+  const field = page.locator("main input:not([type=checkbox]):not([type=radio]), main select").first();
+  await field.focus();
+  const phone = (page.viewportSize()?.width ?? 1280) < 640;
+  if (phone) await expect(bubble(page)).toBeHidden();
+  else await expect(bubble(page)).toBeVisible(); // a computer has room: the bubble stays
+  await field.evaluate((el) => (el as HTMLElement).blur());
+  await expect(bubble(page)).toBeVisible();
+});
+
 test("happy path with a screenshot: exact request, upload with the attach token, thanks, withdraw", async ({ page }) => {
   const seen = await mockFeedback(page);
   await page.goto("/about/?t=PRIVATE#frag");

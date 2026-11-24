@@ -76,3 +76,24 @@ export function useStepFocus(panel: RefObject<HTMLElement>, step: string, open: 
     el?.focus();
   }, [step, open, panel]);
 }
+
+const FIELD = "input:not([type=checkbox]):not([type=radio]):not([type=button]):not([type=submit]):not([type=range]):not([type=file]), select, textarea, [contenteditable=true]";
+/**
+ * True while someone is typing in a field on the page (not in the feedback dialog). On phones the bubble then steps aside, so it
+ * never sits over a select chevron, an input or a radio label while the on-screen keyboard is up.
+ */
+export function useFieldFocus(): boolean {
+  const [on, setOn] = useState(false);
+  useEffect(() => {
+    const check = () => {
+      const el = document.activeElement;
+      setOn(!!el && el instanceof HTMLElement && el.matches(FIELD) && !el.closest("[data-feedback-panel]"));
+    };
+    // focusout fires before the next field gets focus; wait a frame so moving between fields does not flash the bubble.
+    const later = () => requestAnimationFrame(check);
+    document.addEventListener("focusin", check);
+    document.addEventListener("focusout", later);
+    return () => { document.removeEventListener("focusin", check); document.removeEventListener("focusout", later); };
+  }, []);
+  return on;
+}
