@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Item, Stagger } from "@/components/Motion";
 import TiltLink from "@/components/TiltLink";
 import JsonLd from "@/components/seo/JsonLd";
 import { TOOLS } from "@/lib/data";
 import { SITE_URL } from "@/lib/site";
+import { KIT_PATH, OVERLAY_KIT } from "@/features/overlay-kit/flag";
+import { v3Enabled } from "@/features/shared/flags";
 
 export const metadata: Metadata = {
   title: "Free tournament tools: bracket, points table, ID card",
@@ -13,7 +14,7 @@ export const metadata: Metadata = {
 };
 
 /** Each tool, said as the job a person has in mind. Order follows a first event: people, teams, matches, the day, afterwards. */
-const TASKS: { slug: string; task: string; line: string; button: string }[] = [
+const TASKS: { slug: string; task: string; line: string; button: string; href?: string }[] = [
   { slug: "plan", task: "plan a whole tournament", line: "Say how many teams, rooms and hours you have. Get the format, the timed schedule, draft rules and a sign-up form in one pack.", button: "Plan my tournament" },
   { slug: "id-cards", task: "make ID cards", line: "Free, no sign-up, built for tournaments: print a card with a photo and a QR code for every player and volunteer.", button: "Make ID cards" },
   { slug: "registration", task: "collect team sign-ups", line: "Get a ready-made registration form to copy, or an online link that gathers teams for you.", button: "Get a sign-up form" },
@@ -32,6 +33,19 @@ const TASKS: { slug: string; task: string; line: string; button: string }[] = [
   { slug: "poster", task: "make a tournament poster", line: "Type the event name, date, venue and prize, add sponsor logos, and download a poster, story or square post for WhatsApp and Instagram.", button: "Make a poster" },
   { slug: "certificates", task: "print certificates", line: "Type the names and get one certificate for each, in a single PDF.", button: "Make certificates" },
 ];
+/** Pages that are not in TOOLS (switched sections and the OBS kit). Each appears only while its switch is on, so nothing links a page that is not built. */
+const EXTRA: { slug: string; task: string; line: string; button: string; href: string; on: boolean }[] = [
+  { slug: "scrims", task: "find a scrim", line: "Post a practice slot or find a team to scrim against, by game and time.", button: "Find a scrim", href: "/scrims/", on: v3Enabled("scrims") },
+  { slug: "calendar", task: "see college events", line: "Upcoming college esports events in one calendar, listed by the organisers.", button: "Open the calendar", href: "/calendar/", on: v3Enabled("calendar") },
+  { slug: "overlay-kit", task: "put the standings on my stream", line: "Free OBS overlays for the points table: live standings, top fraggers and match cards, fed from the points tools.", button: "Open the overlay kit", href: KIT_PATH, on: OVERLAY_KIT },
+];
+/** The order of a first event: before, on the day, after. The PC and stream tools come last. */
+const GROUPS: { title: string; slugs: string[] }[] = [
+  { title: "Before the event", slugs: ["plan", "registration", "rulebook", "brackets", "double-elimination", "round-robin", "schedule", "id-cards", "poster", "team-name-generator", "free-fire-guild-name", "scrims", "calendar"] },
+  { title: "On the day", slugs: ["check-in", "points-table", "display-screen"] },
+  { title: "After the event", slugs: ["certificates", "prize-split"] },
+  { title: "For your PC and stream", slugs: ["sensitivity-converter", "overlay-kit"] },
+];
 
 export default function Tools() {
   const byTool = new Map(TOOLS.map((t) => [t.slug, t]));
@@ -42,16 +56,30 @@ export default function Tools() {
         <h1 className="text-3xl font-black text-zinc-50 sm:text-5xl">Free tools for event organisers</h1>
         <p className="mt-3 max-w-2xl text-lg text-zinc-300">What do you need to do? Pick the job below. Everything is free and works in your browser, with no account.</p>
       </header>
-      <Stagger className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {TASKS.filter((k) => byTool.has(k.slug)).map((k) => (
-          <Item key={k.slug} className="h-full"><TiltLink href={byTool.get(k.slug)!.href} className="h-full">
-            <p className="text-xs font-semibold uppercase tracking-wider text-zinc-400">I need to</p>
-            <h2 className="mt-1 font-display text-xl font-bold text-white">{k.task}</h2>
-            <p className="mt-2 text-sm leading-6 text-zinc-300">{k.line}</p>
-            <span className="mt-4 inline-flex min-h-11 items-center rounded-full bg-cyan px-5 text-sm font-bold text-ink">{k.button} →</span>
-          </TiltLink></Item>
-        ))}
-      </Stagger>
+      {GROUPS.map((g) => {
+        const cards = g.slugs.map((slug) => {
+          const k = TASKS.find((t) => t.slug === slug);
+          if (k && byTool.has(slug)) return { ...k, href: byTool.get(slug)!.href };
+          const x = EXTRA.find((t) => t.slug === slug && t.on);
+          return x ?? null;
+        }).filter((c): c is { slug: string; task: string; line: string; button: string; href: string } => c !== null);
+        if (!cards.length) return null;
+        return (
+          <section key={g.title} aria-labelledby={`tg-${g.title.replace(/\W+/g, "-").toLowerCase()}`} className="space-y-4">
+            <h2 id={`tg-${g.title.replace(/\W+/g, "-").toLowerCase()}`} className="font-display text-2xl font-bold text-white">{g.title}</h2>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {cards.map((k) => (
+                <TiltLink key={k.slug} href={k.href} className="h-full">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-zinc-400">I need to</p>
+                  <h3 className="mt-1 font-display text-xl font-bold text-white">{k.task}</h3>
+                  <p className="mt-2 text-sm leading-6 text-zinc-300">{k.line}</p>
+                  <span className="mt-4 inline-flex min-h-11 items-center text-sm font-semibold text-cyan">{k.button} <span aria-hidden="true">&nbsp;→</span></span>
+                </TiltLink>
+              ))}
+            </div>
+          </section>
+        );
+      })}
       <section className="max-w-3xl space-y-3 text-zinc-300">
         <h2 className="font-display text-2xl font-bold text-white">How the tools fit together in a first event</h2>
         <p>Most small events follow the same order. First decide the shape: how many teams, how many rooms, how many hours. The planner turns those three numbers into a format and a timed day. Next collect the teams with a registration form, so that every team name, captain and player list is in one place before match day.</p>

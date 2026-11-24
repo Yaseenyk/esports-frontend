@@ -279,3 +279,26 @@ test("the day-wise schedule and the filled-in tools have no serious accessibilit
   await expect(page.locator("#tn-own-err")).toBeVisible();
   await check();
 });
+
+test("every home page tool card has its own icon (no fallback to the ID card icon)", async ({ page }) => {
+  await page.goto("/");
+  const icons = page.locator("[data-tool-icon]");
+  const n = await icons.count();
+  expect(n).toBeGreaterThanOrEqual(17);
+  const ds = await icons.evaluateAll((els) => els.map((e) => ({ slug: e.getAttribute("data-tool-icon"), d: e.querySelector("path")?.getAttribute("d") ?? "" })));
+  const idCard = ds.find((x) => x.slug === "id-cards")!.d;
+  for (const x of ds) if (x.slug !== "id-cards") expect(x.d, x.slug ?? "").not.toBe(idCard);
+  expect(new Set(ds.map((x) => x.d)).size).toBe(ds.length);
+});
+
+test("the tools page is grouped by when you need each tool, and each whole card is the link", async ({ page }) => {
+  await page.goto("/tools/");
+  for (const g of ["Before the event", "On the day", "After the event", "For your PC and stream"]) await expect(page.getByRole("heading", { level: 2, name: g })).toBeVisible();
+  // No cyan pill buttons: the card is the link, with a cyan text cue.
+  const card = page.getByRole("link", { name: /work out standings/i });
+  await expect(card).toHaveAttribute("href", "/tools/points-table/");
+  expect(await card.locator(".bg-cyan").count()).toBe(0);
+  const kit = page.getByRole("link", { name: /put the standings on my stream/i });
+  if (process.env.NEXT_PUBLIC_OVERLAY_KIT === "1") await expect(kit).toHaveAttribute("href", "/overlay-kit/");
+  else await expect(kit).toHaveCount(0);
+});
