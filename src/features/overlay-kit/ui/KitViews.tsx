@@ -6,10 +6,10 @@ import { pointsTableData, topFraggers, teamCards, type KitArea, type KitFeed, ty
 import TeamBadge from "@/features/overlay-kit/ui/TeamBadge";
 
 /** A backdrop the text sits on over gameplay: dark for the dark designs, white for the light ones. */
-export const plate = (c: DisplayTheme) => (c.group === "Light" ? "rgba(255,255,255,.92)" : "rgba(6,8,14,.86)");
+export const plate = (c: DisplayTheme) => (c.group === "Light" ? "rgba(255,255,255,.96)" : "rgba(6,8,14,.94)");
 const box = (c: DisplayTheme): React.CSSProperties => ({ background: plate(c), border: `.2vmin solid ${c.line}`, borderRadius: `${Math.min(c.radius, 1.4)}vmin`, padding: "2.2vmin 2.6vmin" });
 const heading = (c: DisplayTheme): React.CSSProperties => ({ fontSize: "4.2vmin", lineHeight: 1.05, fontWeight: 800, color: c.fg, textTransform: c.upper ? "uppercase" : "none", letterSpacing: c.upper ? ".04em" : "-.01em" });
-const sub = (c: DisplayTheme): React.CSSProperties => ({ fontSize: "2.1vmin", color: c.soft, marginTop: ".6vmin", marginBottom: "1.6vmin" });
+const sub = (c: DisplayTheme): React.CSSProperties => ({ fontSize: "2.4vmin", color: c.soft, marginTop: ".6vmin", marginBottom: "1.6vmin" });
 
 /** The live points table: the TV screen's table (TableView) on a backdrop. */
 export function PointsOverlay({ feed, n, c }: { feed: KitFeed; n: number; c: DisplayTheme }) {
@@ -35,9 +35,9 @@ export function FraggersOverlay({ feed, players, n, c }: { feed: KitFeed | null;
           <li key={`${r.name}${i}`} style={{ display: "grid", gridTemplateColumns: "6vmin minmax(0,1fr) auto", alignItems: "center", gap: "1.6vmin", padding: "1vmin 1.6vmin", marginBottom: ".7vmin", ...surface(c, i), fontSize: "3vmin" }}>
             <span style={{ ...rankStyle(c, r.rank - 1), fontVariantNumeric: "tabular-nums" }}>{r.rank}</span>
             <span style={{ minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: c.fg, fontWeight: 800 }}>
-              {r.name}{r.team && <span style={{ color: c.soft, fontWeight: 500, fontSize: "2.2vmin" }}>  ·  {r.team}</span>}
+              {r.name}{r.team && <span style={{ color: c.soft, fontWeight: 500, fontSize: "2.4vmin" }}>  ·  {r.team}</span>}
             </span>
-            <span style={{ color: c.accent, fontWeight: 900, fontVariantNumeric: "tabular-nums" }}>{r.kills}<span style={{ color: c.soft, fontWeight: 500, fontSize: "1.9vmin" }}> kills</span></span>
+            <span style={{ color: c.accent, fontWeight: 900, fontVariantNumeric: "tabular-nums" }}>{r.kills}<span style={{ color: c.soft, fontWeight: 500, fontSize: "2.4vmin" }}> kills</span></span>
           </li>
         ))}
       </ol>
@@ -58,7 +58,7 @@ export function CardsOverlay({ feed, n, team, area, c }: { feed: KitFeed | null;
           <div style={{ minWidth: 0 }}>
             <p style={{ fontSize: "3.2vmin", fontWeight: 800, color: c.fg, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textTransform: c.upper ? "uppercase" : "none" }}>{t.team}</p>
             <p style={{ fontSize: "2.6vmin", fontWeight: 800, color: c.accent, fontVariantNumeric: "tabular-nums" }}>Rank {t.rank}<span style={{ color: c.soft }}>  ·  </span>{t.points} pts</p>
-            <p style={{ fontSize: "1.9vmin", color: c.soft, fontVariantNumeric: "tabular-nums" }}>{feed.mode === "br" ? `${t.kills ?? 0} kills · ${t.wins} ${t.wins === 1 ? "win" : "wins"}` : `${t.wins} won · ${t.lost ?? 0} lost`}</p>
+            <p style={{ fontSize: "2.4vmin", color: c.soft, fontVariantNumeric: "tabular-nums" }}>{feed.mode === "br" ? `${t.kills ?? 0} kills · ${t.wins} ${t.wins === 1 ? "win" : "wins"}` : `${t.wins} won · ${t.lost ?? 0} lost`}</p>
           </div>
         </article>
       ))}

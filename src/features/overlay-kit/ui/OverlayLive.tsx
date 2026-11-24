@@ -44,7 +44,7 @@ html[data-kit] body > *:not([data-kit-root]) { display: none !important; }`;
       <div style={{ position: "relative", width: "100%", height: "100%" }}>
         <div data-kit-area={s.area} style={{ position: "absolute", left: `${a.left}%`, top: `${a.top}%`, width: `${a.width}%`, height: `${a.height}%` }}>{view}</div>
         {waiting && (
-          <p role="status" style={{ position: "absolute", left: 0, bottom: 0, maxWidth: "70vmin", background: plate(c), color: c.fg, border: `.2vmin solid ${c.line}`, borderRadius: "1vmin", padding: "1.4vmin 2vmin", fontSize: "2.2vmin", lineHeight: 1.35 }}>
+          <p role="status" style={{ position: "absolute", left: 0, bottom: 0, maxWidth: "70vmin", background: plate(c), color: c.fg, border: `.2vmin solid ${c.line}`, borderRadius: "1vmin", padding: "1.4vmin 2vmin", fontSize: "2.4vmin", lineHeight: 1.35 }}>
             Waiting for a points table. Open a points table tool in this browser and switch on &ldquo;Send to the OBS overlay&rdquo;, or copy the OBS link again from the overlay kit page.
           </p>
         )}
