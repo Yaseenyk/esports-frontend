@@ -5,6 +5,7 @@ import { PLACEHOLDER_SLUG, findBuildTournament, tournamentStaticParams } from "@
 import { breadcrumbJsonLd, sportsEventJsonLd } from "@/features/tournaments/seo/jsonld";
 import { tournamentDescription, tournamentTitle } from "@/features/tournaments/seo/metadata";
 import RegistrationIsland from "@/features/tournaments/ui/RegistrationIsland";
+import TrustSlot from "@/features/community/TrustSlot";
 import { AboutSection, FooterNote, ResultsSection, RulesAccordion, ScheduleList, TeamList, TournamentHeader } from "@/features/tournaments/ui/TournamentParts";
 import { section, h2 } from "@/features/shared/ui/styles";
 import { SITE_URL } from "@/lib/site";
@@ -45,6 +46,7 @@ export default async function TournamentPage({ params }: { params: { slug: strin
       <ScheduleList rows={t.schedule} />
       <TeamList teams={t.teams} />
       <ResultsSection matches={t.results.matches} battleRoyale={t.results.battleRoyale} />
+      <TrustSlot slug={t.slug} />
       <RulesAccordion rules={t.rules} />
       <section className={section} aria-labelledby="how-h">
         <h2 id="how-h" className={h2}>How this page works</h2>

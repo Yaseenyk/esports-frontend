@@ -24,8 +24,9 @@ async function v3Nav() {
   const probe = async (path, want = 200) => {
     try { const r = await fetch(api + path, { signal: AbortSignal.timeout(5000) }); return r.status === want; } catch { return false; }
   };
-  const [t, l, s, p] = await Promise.all([probe("/public/tournaments?limit=1"), probe("/public/lft?limit=1"), probe("/public/scrims?limit=1"), probe("/v3/me/team-pages", 401)]);
-  return [t && "tournaments", l && "lft", s && "scrims", p && "profiles"].filter(Boolean).join(",");
+  // calendar: /public/calendar answers 200 only with flag v3.calendar on (the /calendar/ page is emitted under the same condition, see prune-community.mjs)
+  const [t, l, s, p, c] = await Promise.all([probe("/public/tournaments?limit=1"), probe("/public/lft?limit=1"), probe("/public/scrims?limit=1"), probe("/v3/me/team-pages", 401), probe("/public/calendar")]);
+  return [t && "tournaments", l && "lft", s && "scrims", p && "profiles", c && "calendar"].filter(Boolean).join(",");
 }
 
 export default async function config() {

@@ -9,6 +9,7 @@ import { indexableColleges, loadBuildColleges } from "@/features/colleges/colleg
 import { indexableOnly, loadBuildTournaments } from "@/features/tournaments/services/build-data";
 import { tournamentsIndexVerdict } from "@/features/directory/services/page-verdict";
 import { KIT_GUIDE_PATH, KIT_PATH, OVERLAY_KIT } from "@/features/overlay-kit/flag";
+import { calendarSitemapEntry } from "@/features/community/sitemap";
 
 export const dynamic = "force-static";
 
@@ -35,6 +36,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...colleges.map((c) => at(`/colleges/${c.slug}/`, 0.4)),
     // The OBS overlay kit: only while its flag is on (the browser source page /overlay-kit/live/ is noindex and never listed).
     ...(OVERLAY_KIT ? [at(KIT_PATH, 0.6, "2026-11-24"), at(KIT_GUIDE_PATH, 0.5, "2026-11-24")] : []),
+    // College esports calendar: only while it passes the index rule (5+ upcoming entries from verified organisations). Empty while the API is off.
+    ...(await calendarSitemapEntry()).map((p) => at(p.path, 0.5, p.lastModified)),
     at("/about/", 0.4), at("/contact/", 0.3), at("/privacy/", 0.2), at("/terms/", 0.2),
     // Portuguese pages: only after a native Brazilian Portuguese reader approved them (PT_BR_REVIEWED in src/lib/pt-br.ts).
     ...(PT_BR_REVIEWED ? Object.values(PT_BR_PAGES).map((p) => at(p, 0.5, "2026-11-24")) : []),

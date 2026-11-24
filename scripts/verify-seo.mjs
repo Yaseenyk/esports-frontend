@@ -24,6 +24,11 @@ const guard = await import("data:text/javascript;base64," + Buffer.from(guardJs)
 const attr = (html, re) => { const m = re.exec(html); return m ? m[1] : null; };
 const v3Indexable = new Map(); // "/tournaments/<slug>/" -> boolean, filled below
 const isV3Tournament = (p) => /^\/tournaments\/[^/]+\/$/.test(p);
+// ---- community: /trust/ always noindex; /calendar/ indexable only when its index rule passes (scripts/verify-community.mjs) ----
+import { COMMUNITY_NOINDEX, calendarVerdict } from "./verify-community.mjs";
+NOINDEX.push(...COMMUNITY_NOINDEX);
+const calendar = calendarVerdict(OUT);
+for (const msg of calendar.problems) bad("/calendar/", msg);
 // ---- phase 5: /tournaments/ (the directory) is indexable ONLY with at least MIN upcoming public tournaments (AdSense: an almost empty list is thin) ----
 const dirMin = Number(/export const MIN_UPCOMING_FOR_INDEX = (\d+);/.exec(fs.readFileSync(path.resolve("src/features/directory/domain.ts"), "utf8"))?.[1] ?? NaN);
 if (!(dirMin >= 5)) problems.push(`src/features/directory/domain.ts: MIN_UPCOMING_FOR_INDEX must be at least 5 (found ${dirMin})`);
@@ -36,6 +41,7 @@ const dirInfo = (() => {
 if (fs.existsSync(dirFile) && !dirInfo) problems.push("/tournaments/: missing or invalid eh-directory data");
 if (dirInfo && dirInfo.indexable === true && !(dirInfo.upcoming >= dirMin)) problems.push(`/tournaments/: marked indexable with only ${dirInfo.upcoming} upcoming public tournaments (needs ${dirMin})`);
 const isNoindexPath = (p) => {
+  if (p === "/calendar/") return !calendar.expectIndexable;
   if (p === "/tournaments/") {
     if (!dirInfo || dirInfo.indexable !== true || !(dirInfo.upcoming >= dirMin)) return true; // legacy page, or too few upcoming tournaments
     return dirInfo.mode === "v3" ? ![...v3Indexable.values()].some(Boolean) : false; // the v3 index also needs one page that passed the guard
@@ -147,6 +153,7 @@ for (const v of v3Pages) {
 }
 const idxEpochs = v3Pages.filter((v) => v.indexable && v.info).map((v) => v.info.input.publishedAt).filter(Number.isFinite);
 if (guard.maxInAnyWeek(idxEpochs) > guard.WEEKLY_CAP) bad("tournaments", `more than ${guard.WEEKLY_CAP} newly indexable tournament pages in one week (${guard.maxInAnyWeek(idxEpochs)})`);
+console.log(calendar.present ? `community: calendar emitted, ${calendar.count ?? 0} upcoming verified, ${calendar.expectIndexable ? "indexable" : "noindex"}.` : "community: no calendar page emitted (flag off).");
 if (v3Pages.length) console.log(`v3: ${v3Pages.length} tournament page(s), ${v3Pages.filter((v) => v.indexable).length} indexable.`); else console.log("v3: no tournament pages emitted (API off or empty).");
 if (v3Pages.length === 0 && pages.some((q) => q.url.startsWith("/tournaments/") && q.url !== "/tournaments/")) bad("tournaments", "tournament pages exist without eh-guard data");
 

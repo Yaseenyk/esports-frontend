@@ -10,7 +10,8 @@ test("public menu entries appear only for the sections that are on", () => {
   assert.deepEqual(v3PublicEntries((s) => s === "lft").map((e) => e.label), ["Find a team"]);
   assert.deepEqual(v3PublicEntries((s) => s === "tournaments").map((e) => e.label), ["Tournaments"]);
   assert.deepEqual(v3PublicEntries((s) => s === "scrims").map((e) => e.label), ["Scrim finder"]);
-  assert.equal(v3PublicEntries(() => true).length, 3);
+  assert.equal(v3PublicEntries(() => true).length, 4);
+  assert.deepEqual(v3PublicEntries((s) => s === "calendar").map((e) => e.href), ["/calendar/"]);
 });
 
 const matches = (e, q) => q.toLowerCase().split(/\s+/).every((w) => `${e.label} ${e.blurb} Page ${e.keywords}`.toLowerCase().includes(w));
