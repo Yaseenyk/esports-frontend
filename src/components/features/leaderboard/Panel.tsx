@@ -120,7 +120,7 @@ export default function Panel({ eventId, eventName, role }: PanelProps) {
     <section aria-label="Season leaderboard" className="space-y-4">
       <div className="card space-y-2 !p-4">
         <h3 className="font-display text-lg font-bold text-white">One ranking for the whole season</h3>
-        <p className="text-sm leading-6 text-zinc-300">Players and fans open one link on their phone and see every team ranked, how many points each team scored on each day, and whether it moved up or down. It is worked out from the results you record for {eventName}, so there is nothing to type twice, and it updates by itself.</p>
+        <p className="text-sm leading-6 text-zinc-300">Players and fans open one link on their phone and see every team ranked, how many points each team scored on each day, and whether it moved up or down. It is worked out from the results you record for <span>{eventName}</span>, so there is nothing to type twice, and it updates by itself.</p>
         {!canEdit && <p className="text-sm text-amber-200">You can look but not change this. Ask the owner or an editor of the event.</p>}
       </div>
 
@@ -141,7 +141,7 @@ export default function Panel({ eventId, eventName, role }: PanelProps) {
               <label className="block"><span className="text-sm font-semibold text-zinc-100">Battle royale: points for each place</span><input value={scaleText} inputMode="decimal" disabled={!canEdit} onChange={(e) => setScaleText(e.target.value)} placeholder="10, 6, 5, 4, 3, 2, 1, 1" className={`${input} mt-1`} aria-describedby="lg-scale-help" /></label>
               <p id="lg-scale-help" className="text-xs text-zinc-400">First number is for 1st place, the next for 2nd, and so on. Any place not listed scores 0. Only needed if you run battle royale games.</p>
               <button type="button" className={small} disabled={!canEdit} onClick={() => { setScaleText(COMMON_SCALE.join(", ")); setMsg(null); }}>Use a common example scale</button>
-              <p className="text-xs text-zinc-400">The example is only a starting point; official events publish their own numbers.</p>
+              <p className="text-xs text-zinc-400">{canEdit ? "The example is only a starting point; official events publish their own numbers." : "The buttons are off because you can only look at this event. The owner or an editor can change the points."}</p>
             </div>
 
             <label className="block"><span className="text-sm font-semibold text-zinc-100">Battle royale: points for each kill</span><input value={perKill} inputMode="decimal" disabled={!canEdit} onChange={(e) => setPerKill(e.target.value)} className={`${input} mt-1 sm:max-w-40`} /></label>
@@ -216,10 +216,10 @@ export default function Panel({ eventId, eventName, role }: PanelProps) {
           {preview && (
             <div className="card space-y-2 !p-4" aria-label="Preview">
               <h4 className="font-semibold text-white">Preview of the table</h4>
-              {preview.lg.empty || !preview.table ? <p className="text-sm text-zinc-300">Nothing to show yet. {matchCount} {matchCount === 1 ? "match" : "matches"} and {brGames} battle royale {brGames === 1 ? "game" : "games"} recorded, none with a result.</p> : (
+              {preview.lg.empty || !preview.table ? <p className="text-sm text-zinc-300">{`Nothing to show yet. ${matchCount} ${matchCount === 1 ? "match" : "matches"} and ${brGames} battle royale ${brGames === 1 ? "game" : "games"} recorded, none with a result.`}</p> : (
                 <>
-                  <p className="text-sm text-zinc-300">Top of the table{preview.lg.days.length > 1 ? ` after ${preview.table.day.label}` : ""}, with the points you have set above:</p>
-                  <ol className="space-y-1">{preview.table.rows.slice(0, 3).map((r) => <li key={r.team} className="text-sm text-zinc-100"><span className="font-semibold">{r.rank}.</span> {r.team}, {pointsText(r.points)} {r.points === 1 ? "point" : "points"}</li>)}</ol>
+                  <p className="text-sm text-zinc-300">{`Top of the table${preview.lg.days.length > 1 ? ` after ${preview.table.day.label}` : ""}, with the points you have set above:`}</p>
+                  <ol className="space-y-1">{preview.table.rows.slice(0, 3).map((r) => <li key={r.team} className="text-sm text-zinc-100"><span className="font-semibold">{`${r.rank}.`}</span> <span>{`${r.team}, ${pointsText(r.points)} ${r.points === 1 ? "point" : "points"}`}</span></li>)}</ol>
                 </>
               )}
             </div>

@@ -151,7 +151,7 @@ export default function HubNav({ sections = SECTIONS, home = "/", homeAria = "Es
           <div className="relative hidden h-9 min-w-[5.5rem] flex-1 items-center overflow-hidden sm:flex" aria-live="polite">
             <AnimatePresence mode="wait" initial={false}>
               <motion.span key={current?.label ?? "Home"} initial={reduce ? false : { y: 16, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={reduce ? undefined : { y: -16, opacity: 0 }} transition={{ duration: 0.22 }} className="flex items-center gap-2 truncate text-sm text-zinc-300">
-                {current ? <><Icon d={current.icon} className="h-4 w-4 text-cyan" />{current.label}</> : <span className="text-zinc-400">{homeText}</span>}
+                {current ? <><Icon d={current.icon} className="h-4 w-4 text-cyan" /><span>{current.label}</span></> : <span className="text-zinc-400">{homeText}</span>}
               </motion.span>
             </AnimatePresence>
           </div>
@@ -160,7 +160,7 @@ export default function HubNav({ sections = SECTIONS, home = "/", homeAria = "Es
             Menu <kbd className="rounded border border-white/15 px-1.5 text-[11px] text-zinc-400">M</kbd>
           </button>
           <Link href="/arcade/" aria-label={`Level ${xp.level}, ${xp.into} of ${xp.span} XP. Open the arcade`} className="group relative mx-1 flex h-11 min-w-11 items-center gap-2 rounded-full bg-white/5 px-3 outline-none transition-colors hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-cyan/60">
-            <span className="font-display text-xs font-bold text-white">LV {xp.level}</span>
+            <span className="font-display text-xs font-bold text-white">LV <span>{xp.level}</span></span>
             <span aria-hidden="true" className="hidden h-1.5 w-10 overflow-hidden rounded-full bg-white/10 min-[420px]:block"><span className="block h-full rounded-full bg-gradient-to-r from-cyan to-purple transition-[width] duration-700" style={{ width: `${Math.min(100, (xp.into / xp.span) * 100)}%` }} /></span>
           </Link>
           <button type="button" onClick={(e) => show(e.currentTarget)} aria-haspopup="dialog" className="flex h-11 items-center gap-2 rounded-full bg-cyan px-4 text-sm font-semibold text-ink outline-none transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-white/70 sm:hidden">

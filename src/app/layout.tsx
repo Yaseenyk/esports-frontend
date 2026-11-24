@@ -6,6 +6,7 @@ import MotionProvider from "@/components/MotionProvider";
 import PwaRegister from "@/components/PwaRegister";
 import GoogleTag from "@/components/GoogleTag";
 import { GTM_BOOT } from "@/lib/gtm";
+import { TRANSLATE_GUARD } from "@/lib/translate-guard";
 import { SITE_DESCRIPTION } from "@/lib/facts";
 import { INDEXABLE, SITE_URL } from "@/lib/site";
 import XpProvider from "@/components/XpProvider";
@@ -34,7 +35,7 @@ export const viewport: Viewport = { themeColor: "#05070A", width: "device-width"
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${body.variable} ${display.variable}`}>
-      <head><script dangerouslySetInnerHTML={{ __html: GTM_BOOT }} /><script defer src="https://pulse.yaseenyk.workers.dev/p.js" data-site="esports.streamerosai.com" data-exclude="/app,/admin,/gate,/display,/login,/signup,/register,/forgot-password,/reset-password,/verify-email,/unsubscribe,/join,/pass,/players,/team,/lft,/tournaments,/communities,/events,/league,/live,/score,/report,/ready,/run,/overlay,/embed,/manage,/id-card-maker,/tools/id-cards,/tools/certificates,/tools/poster,/tools/print-kits,/tools/registration,/tools/check-in,/tools/brackets,/tools/groups,/tools/schedule,/tools/points-table,/tools/round-robin,/tools/double-elimination,/tools/display-screen,/tools/plan,/arcade" /></head>
+      <head><script dangerouslySetInnerHTML={{ __html: TRANSLATE_GUARD }} /><script dangerouslySetInnerHTML={{ __html: GTM_BOOT }} /><script defer src="https://pulse.yaseenyk.workers.dev/p.js" data-site="esports.streamerosai.com" data-exclude="/app,/admin,/gate,/display,/login,/signup,/register,/forgot-password,/reset-password,/verify-email,/unsubscribe,/join,/pass,/players,/team,/lft,/tournaments,/communities,/events,/league,/live,/score,/report,/ready,/run,/overlay,/embed,/manage,/id-card-maker,/tools/id-cards,/tools/certificates,/tools/poster,/tools/print-kits,/tools/registration,/tools/check-in,/tools/brackets,/tools/groups,/tools/schedule,/tools/points-table,/tools/round-robin,/tools/double-elimination,/tools/display-screen,/tools/plan,/arcade" /></head>
       <body className="min-h-[100svh] font-sans">
         <MotionProvider>
         <PwaRegister />

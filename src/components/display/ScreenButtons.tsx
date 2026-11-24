@@ -26,7 +26,7 @@ export default function ScreenButtons({ payload, what, step }: { payload: Payloa
         </div>
         <details className="group rounded-xl border border-white/10 bg-[#0a0b0d]">
           <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-sm font-semibold text-white outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-cyan [&::-webkit-details-marker]:hidden">
-            <span>Change the look <span className="font-normal text-zinc-300">· now: {themeById(s.opts.theme).name}</span></span>
+            <span>Change the look <span className="font-normal text-zinc-300">· now: <span>{themeById(s.opts.theme).name}</span></span></span>
             <svg aria-hidden="true" viewBox="0 0 16 16" className="h-4 w-4 shrink-0 fill-none stroke-current text-zinc-400 transition-transform group-open:rotate-180" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6l5 5 5-5" /></svg>
           </summary>
           <div className="space-y-4 border-t border-white/10 p-4">

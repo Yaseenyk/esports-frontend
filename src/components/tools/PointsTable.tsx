@@ -58,7 +58,16 @@ export default function PointsTable({ preset }: { /** A game landing page: the s
     const rows = table.map((s) => [s.rank, s.name, ...s.perMatch, s.placementPoints, s.killPoints, s.total]);
     downloadBlob(new Blob([[head, ...rows].map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\r\n")], { type: "text/csv" }), "points-table.csv"); sendEvent("tool_complete", "points-table");
   };
+  // The button used to give no sign when the example was already in the boxes (the default), so people pressed it again and again.
+  const [scaleNote, setScaleNote] = useState("");
   const loadExampleScale = () => { setScaleText(EXAMPLE_SCALE.placement.join(", ")); setKill(EXAMPLE_SCALE.perKill); };
+  const exampleButton = () => {
+    const already = placement?.join(", ") === EXAMPLE_SCALE.placement.join(", ") && kill === EXAMPLE_SCALE.perKill;
+    loadExampleScale();
+    setScaleNote(already
+      ? `The example scale is already in the boxes above: ${EXAMPLE_SCALE.placement.join(", ")}, and ${EXAMPLE_SCALE.perKill} per kill. Change the numbers to match your rules.`
+      : `Example scale filled in: ${EXAMPLE_SCALE.placement.join(", ")}, and ${EXAMPLE_SCALE.perKill} per kill. The standings below use it now.`);
+  };
   const scaleSample = placement ? placement.slice(0, 3).map((p, i) => `${ord(i + 1)} place gets ${p} point${p === 1 ? "" : "s"}`).join(", ") : "";
 
   return (
@@ -67,15 +76,16 @@ export default function PointsTable({ preset }: { /** A game landing page: the s
         hint="In battle royale, a team earns points for where it finished (placement) plus points for every kill. Tell the tool your rulebook's numbers, or just tap the example button."
         status={placement ? `${placement.length} places score` : undefined}>
         <div className="grid gap-4 sm:grid-cols-[1fr_9rem_9rem]">
-          <label className="block text-sm text-zinc-200">Placement points, 1st place first<input className="field mt-1 font-mono" value={scaleText} onChange={(e) => setScaleText(e.target.value)} aria-invalid={!placement} aria-describedby="scale-help" /></label>
+          <label className="block text-sm text-zinc-200">Placement points, 1st place first<input className="field mt-1 font-mono" value={scaleText} onChange={(e) => { setScaleText(e.target.value); setScaleNote(""); }} aria-invalid={!placement} aria-describedby="scale-help" /></label>
           <NumberField label="Points per kill" value={kill} min={0} max={1000} decimal onChange={setKill} />
           <NumberField label="Matches played" value={matches} min={1} max={12} onChange={setMatches} />
         </div>
         <p id="scale-help" className={`text-sm leading-6 ${placement ? "text-zinc-300" : "text-red-300"}`} role={placement ? undefined : "alert"}>{placement ? `Type the points for each finishing position, separated by commas. With this list, ${scaleSample}${placement.length > 3 ? ", and so on" : ""}. A team below the end of the list gets 0 placement points.` : "Enter numbers only, separated by commas, for example 10, 6, 5, 4, 3, 2, 1, 1."}</p>
         <div className="flex flex-wrap items-center gap-2">
-          <button type="button" className="btn-ghost !min-h-10 px-4 text-sm" onClick={loadExampleScale}>Use a common example scale</button>
+          <button type="button" className="btn-ghost !min-h-10 px-4 text-sm" onClick={exampleButton}>Use a common example scale</button>
           <span className="text-xs text-zinc-400">The example is only a sample. Use your own rulebook&apos;s scale for a real event.</span>
         </div>
+        <p role="status" aria-live="polite" className="empty:hidden text-sm text-emerald-200" data-testid="scale-note">{scaleNote && <span key={scaleNote}>{scaleNote}</span>}</p>
         {pre && <p className="rounded-lg border border-amber-300/30 bg-amber-300/5 p-3 text-sm leading-6 text-amber-100" data-testid="preset-note">Example only: the scale above is a sample often used in custom rooms, not {pre.game}&apos;s official scale, and it may not match the current rules. For an official event follow the publisher&apos;s own rulebook; for a custom room use your own rules. See the <Link href={pre.guide} className="underline">{pre.guideLabel}</Link> and the <Link href="/guides/esports-tournament-rules-template/" className="underline">rules template</Link>.</p>}
       </ToolStep>
 
@@ -124,7 +134,7 @@ export default function PointsTable({ preset }: { /** A game landing page: the s
               <div ref={tableBox} role="region" aria-label="Standings table" tabIndex={0} className="overflow-x-auto outline-none focus-visible:ring-2 focus-visible:ring-cyan">
                 <table className="w-full min-w-[30rem] border-collapse text-left text-sm">
                   <thead><tr className="bg-[#0f1013] text-zinc-200"><th scope="col" className="px-3 py-2">Rank</th><th scope="col" className="px-3 py-2">Team</th>{Array.from({ length: matches }, (_, i) => <th key={i} scope="col" className="px-3 py-2">M{i + 1}</th>)}<th scope="col" className="px-3 py-2">Kills</th><th scope="col" className="px-3 py-2">Wins</th><th scope="col" className="sticky right-0 bg-[#0f1013] px-3 py-2 shadow-[-6px_0_6px_-6px_rgba(0,0,0,0.8)]">Total</th></tr></thead>
-                  <tbody>{table.map((s) => <tr key={s.name + s.rank} className="border-t border-white/[0.08]"><th scope="row" className="px-3 py-2 font-bold text-cyan">{s.rank}</th><td className="px-3 py-2 font-medium text-white">{s.name}{s.tied && <span className="ml-2 text-xs text-amber-300" title="Same points as another team; the tie-breakers decided the order">tie-break</span>}</td>{s.perMatch.map((p, i) => <td key={i} className="px-3 py-2 text-zinc-300">{p}</td>)}<td className="px-3 py-2 text-zinc-300">{s.kills}</td><td className="px-3 py-2 text-zinc-300">{s.wins}</td><td className="sticky right-0 bg-[#0a0b0d] px-3 py-2 font-bold text-white shadow-[-6px_0_6px_-6px_rgba(0,0,0,0.8)]">{s.total}</td></tr>)}</tbody>
+                  <tbody>{table.map((s) => <tr key={s.name + s.rank} className="border-t border-white/[0.08]"><th scope="row" className="px-3 py-2 font-bold text-cyan">{s.rank}</th><td className="px-3 py-2 font-medium text-white"><span>{s.name}</span>{s.tied && <span className="ml-2 text-xs text-amber-300" title="Same points as another team; the tie-breakers decided the order">tie-break</span>}</td>{s.perMatch.map((p, i) => <td key={i} className="px-3 py-2 text-zinc-300">{p}</td>)}<td className="px-3 py-2 text-zinc-300">{s.kills}</td><td className="px-3 py-2 text-zinc-300">{s.wins}</td><td className="sticky right-0 bg-[#0a0b0d] px-3 py-2 font-bold text-white shadow-[-6px_0_6px_-6px_rgba(0,0,0,0.8)]">{s.total}</td></tr>)}</tbody>
                 </table>
               </div>
               <p className="text-xs leading-5 text-zinc-400">M1, M2... = points earned in each match. Wins = matches finished 1st. A tie-break is the rule that orders teams on the same total: most wins, then most kills, then the better place in the last match, then team name. Put your own tie-breakers in your rules before the event.</p>
