@@ -5,7 +5,7 @@ import fs from "node:fs";
 import path from "node:path";
 
 const OUT = path.resolve("out");
-const MARKER = 'id="eh-prune-community"';
+const MARKER = "eh-prune-community"; // matched anywhere: inside the app shell the marker is only in the inline flight data, not an element
 const ROUTES = ["calendar", "trust", path.join("app", "calendar")];
 let removed = 0;
 for (const r of ROUTES) {
