@@ -6,7 +6,7 @@ import fs from "node:fs";
 import { brRecap, buildRecap, h2hRecap, joinNames, ordinal, plural, recapTargets, standingsAfter } from "../src/features/match-recap/recap.ts";
 import { toRecapFacts } from "../src/features/match-recap/services/recap.api.ts";
 import { closestTeam, fixDigits, parseResultsText, similarity } from "../src/features/screenshot-reader/parse.ts";
-import { addRow, applySuggestion, canSave, confirmRow, editRow, fromRead, removeRow, reviewSummary, rowProblems, saveBlocker, toSaveBody, unconfirmRow } from "../src/features/screenshot-reader/review.ts";
+import { addRow, applySuggestion, canSave, cleanUnconfirmed, confirmClean, confirmRow, editRow, fromRead, removeRow, reviewSummary, rowProblems, saveBlocker, toSaveBody, unconfirmRow } from "../src/features/screenshot-reader/review.ts";
 import { toShotContext } from "../src/features/screenshot-reader/services/screenshots.api.ts";
 import { BLANK_ROOM, extractCaptainToken, matchText, revealText, toCreateBody, validateRoomForm } from "../src/features/match-rooms/domain.ts";
 import { toCaptainRoom, toOrganiserRoom, toRevealed, toRoomsState } from "../src/features/match-rooms/services/rooms.api.ts";
@@ -286,4 +286,18 @@ test("revealed credentials are kept in memory only, and their block is masked fr
   assert.match(ui, /data-clarity-mask="true" translate="no"/);
   const api = read("src/features/match-rooms/services/rooms.api.ts");
   assert.match(api, /revealRoom = \(roomId: string\) => map\(v3Post/);
+});
+
+test("confirm all confirms only the rows without problems, and saving still needs every row confirmed", () => {
+  let rows = fromRead(parseResultsText("1 Alpha 12" + String.fromCharCode(10) + "2 Beta 8" + String.fromCharCode(10) + "2 Gamma 3"));
+  assert.equal(cleanUnconfirmed(rows), 1); // Beta and Gamma share placement 2
+  rows = confirmClean(rows);
+  assert.deepEqual(rows.map((r) => r.confirmed), [true, false, false]);
+  assert.match(saveBlocker(rows, "3"), /problem|confirmed/);
+  assert.throws(() => toSaveBody(rows, "3", false));
+  rows = editRow(rows, "r3", { placement: "3" });
+  rows = confirmClean(rows);
+  assert.ok(rows.every((r) => r.confirmed));
+  assert.ok(toSaveBody(rows, "3", false).rows.every((r) => r.confirmed === true));
+  assert.equal(cleanUnconfirmed(rows), 0);
 });

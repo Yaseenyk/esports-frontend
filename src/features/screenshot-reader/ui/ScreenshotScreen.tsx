@@ -56,6 +56,10 @@ export function ScreenshotScreen() {
                 <h2 id="review-h" className={h2}>2. Check every row</h2>
                 <p className="text-sm text-zinc-300" data-testid="review-summary"><span key={`${sum.confirmed}/${sum.total}`}>{sum.confirmed} of {sum.total} confirmed</span></p>
               </div>
+              <div className="flex flex-wrap items-center gap-3">
+                <button type="button" className={btnPrimary} disabled={v.cleanCount === 0} onClick={v.confirmAll}>Confirm all rows without problems</button>
+                <p className={helper}>Only after you have checked them against the screenshot. Rows with a problem stay unconfirmed, and nothing is saved until you press Save.</p>
+              </div>
               <div className="grid gap-6 lg:grid-cols-2">
                 {v.preview && (
                   <figure className="space-y-2">
@@ -103,8 +107,8 @@ function RowEditor({ r, n, problems, v }: { r: ReviewRow; n: number; problems: s
         <span className="text-sm text-zinc-400">Row {n}{r.raw ? <> · read as <span className="font-mono text-zinc-300" translate="no">{r.raw}</span></> : null}</span>
         <StatusBadge label={r.confirmed ? "Confirmed" : "Not checked"} tone={r.confirmed ? "success" : "warning"} />
       </div>
-      <div className="grid gap-3 sm:grid-cols-4">
-        <div className="sm:col-span-2">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <div className="col-span-2">
           <label htmlFor={`${id}-team`} className={label}>Team</label>
           <input id={`${id}-team`} value={r.team} maxLength={60} onChange={(e) => v.edit(r.id, { team: e.target.value })} className={input} />
         </div>
@@ -122,7 +126,7 @@ function RowEditor({ r, n, problems, v }: { r: ReviewRow; n: number; problems: s
       <div className="flex flex-wrap gap-2">
         {r.confirmed
           ? <button type="button" className={btnSecondary} onClick={() => v.unconfirm(r.id)}>Undo confirm</button>
-          : <button type="button" className={btnPrimary} disabled={problems.length > 0} onClick={() => v.confirm(r.id)}>Confirm row {n}</button>}
+          : <button type="button" className={btnSecondary} disabled={problems.length > 0} onClick={() => v.confirm(r.id)}>Confirm row {n}</button>}
         <button type="button" className={btnDanger} onClick={() => v.remove(r.id)}>Remove row {n}</button>
       </div>
     </li>

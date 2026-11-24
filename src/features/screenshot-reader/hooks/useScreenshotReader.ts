@@ -5,7 +5,7 @@ import { explainFailure } from "@/features/shared/failure";
 import { useResource } from "@/features/shared/hooks/useResource";
 import { eventLoad, useEventIdParam } from "@/features/shared/hooks/useEventIdParam";
 import { parseResultsText } from "@/features/screenshot-reader/parse";
-import { addRow, applySuggestion, confirmRow, editRow, fromRead, removeRow, saveBlocker, toSaveBody, unconfirmRow, type ReviewRow, type RowPatch } from "@/features/screenshot-reader/review";
+import { addRow, applySuggestion, cleanUnconfirmed, confirmClean, confirmRow, editRow, fromRead, removeRow, saveBlocker, toSaveBody, unconfirmRow, type ReviewRow, type RowPatch } from "@/features/screenshot-reader/review";
 import { ACCEPTED, MAX_FILE_BYTES, fetchShotContext, readScreenshotText, saveShotRows } from "@/features/screenshot-reader/services/screenshots.api";
 
 export type ReadPhase = "idle" | "reading" | "review";
@@ -61,6 +61,8 @@ export function useScreenshotReader() {
   const edit = useCallback((id: string, patch: RowPatch) => setRows((r) => editRow(r, id, patch)), []);
   const confirm = useCallback((id: string) => setRows((r) => confirmRow(r, id)), []);
   const unconfirm = useCallback((id: string) => setRows((r) => unconfirmRow(r, id)), []);
+  const confirmAll = useCallback(() => setRows((r) => confirmClean(r)), []);
+  const cleanCount = cleanUnconfirmed(rows);
   const remove = useCallback((id: string) => setRows((r) => removeRow(r, id)), []);
   const add = useCallback(() => { setRows((r) => addRow(r)); setPhase("review"); }, []);
   const suggest = useCallback((id: string) => setRows((r) => applySuggestion(r, id)), []);
@@ -83,5 +85,5 @@ export function useScreenshotReader() {
     ctx.reload();
   }, [eventId, busy, blocker, rows, matchNo, replace, pick, ctx]);
 
-  return { eventId, ctx, file, preview, pick, phase, progress, read, rows, edit, confirm, unconfirm, remove, add, suggest, matchNo, setMatchNo, replace, setReplace, existing, blocker, busy, msg, save };
+  return { eventId, ctx, file, preview, pick, phase, progress, read, rows, edit, confirm, confirmAll, cleanCount, unconfirm, remove, add, suggest, matchNo, setMatchNo, replace, setReplace, existing, blocker, busy, msg, save };
 }

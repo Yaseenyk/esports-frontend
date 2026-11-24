@@ -207,14 +207,20 @@ test.describe("flags on", () => {
     await expect(rows.nth(5).getByLabel("Team")).toHaveValue("Foxtrot Five");
     await rows.nth(3).getByRole("button", { name: "Use this name" }).click();
     await expect(rows.nth(3).getByLabel("Team")).toHaveValue("Delta Owls");
-    for (let i = 0; i < 5; i++) await rows.nth(i).getByRole("button", { name: `Confirm row ${i + 1}` }).click();
-    await expect(page.getByTestId("review-summary")).toHaveText("5 of 6 confirmed");
+    for (let i = 0; i < 4; i++) await rows.nth(i).getByRole("button", { name: `Confirm row ${i + 1}` }).click();
+    await expect(page.getByTestId("review-summary")).toHaveText("4 of 6 confirmed");
     await expect(save).toBeDisabled();
+    expect(saved).toEqual([]);
+    // One primary confirms the rest that have no problem (the person's own action; it never saves)
+    const all = page.getByRole("button", { name: "Confirm all rows without problems" });
+    await all.click();
+    await expect(page.getByTestId("review-summary")).toHaveText("6 of 6 confirmed");
+    await expect(all).toBeDisabled();
+    expect(saved).toEqual([]);
     // editing a confirmed row unconfirms it
     await rows.nth(0).getByLabel("Kills").fill("13");
     await expect(rows.nth(0)).toContainText("Not checked");
     await rows.nth(0).getByRole("button", { name: "Confirm row 1" }).click();
-    await rows.nth(5).getByRole("button", { name: "Confirm row 6" }).click();
     await expect(page.getByTestId("review-summary")).toHaveText("6 of 6 confirmed");
     expect(saved).toEqual([]); // never saved on its own
     await expect(page.getByLabel("Match number")).toHaveValue("3");

@@ -30,6 +30,13 @@ export function rowProblems(rows: readonly ReviewRow[], id: string): string[] {
 
 export const editRow = (rows: readonly ReviewRow[], id: string, patch: RowPatch): ReviewRow[] => rows.map((r) => (r.id === id ? { ...r, ...patch, confirmed: false } : r));
 export const confirmRow = (rows: readonly ReviewRow[], id: string): ReviewRow[] => (rowProblems(rows, id).length ? [...rows] : rows.map((r) => (r.id === id ? { ...r, confirmed: true } : r)));
+/**
+ * "Confirm all rows without problems": the person's own action, never automatic. Rows with a problem stay unconfirmed, and saving still
+ * needs every row confirmed (here and on the server, which refuses rows without confirmed: true).
+ */
+export const confirmClean = (rows: readonly ReviewRow[]): ReviewRow[] => rows.map((r) => (r.confirmed || rowProblems(rows, r.id).length ? r : { ...r, confirmed: true }));
+/** How many rows "Confirm all rows without problems" would confirm now. */
+export const cleanUnconfirmed = (rows: readonly ReviewRow[]): number => rows.filter((r) => !r.confirmed && rowProblems(rows, r.id).length === 0).length;
 export const unconfirmRow = (rows: readonly ReviewRow[], id: string): ReviewRow[] => rows.map((r) => (r.id === id ? { ...r, confirmed: false } : r));
 /** Removing a row can create or clear a duplicate elsewhere, so every other row is checked again: a row that now has a problem is unconfirmed. */
 export function removeRow(rows: readonly ReviewRow[], id: string): ReviewRow[] {
