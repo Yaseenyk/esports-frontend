@@ -48,7 +48,8 @@ export default function PrintKits() {
   const shown = pages.slice(0, 3);
 
   const refs = useRef<(HTMLCanvasElement | null)[]>([]);
-  useEffect(() => { shown.forEach((p, i) => { const cv = refs.current[i]; if (cv) drawKitPage(cv, p, 2.4); }); });
+  // Redraw the previews only when the pages change (it used to redraw all three on every render, including every keystroke).
+  useEffect(() => { pages.slice(0, 3).forEach((p, i) => { const cv = refs.current[i]; if (cv) drawKitPage(cv, p, 2.4); }); }, [pages]);
 
   const make = async (): Promise<Blob | null> => {
     setBusy(true); setError(""); setStatus("");
