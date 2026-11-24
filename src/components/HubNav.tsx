@@ -139,9 +139,10 @@ export default function HubNav({ sections = SECTIONS, home = "/", homeAria = "Es
   return (
     <>
       {/* The pill: hex button, wordmark, where you are, and a one-tap shortcut. */}
-      <div className="no-print sticky top-3 z-40 flex justify-center px-3 pt-3">
+      {/* The pill lines up with the page content: the site's main is max-w-6xl (72rem) with a 1rem gutter each side, so 70rem inside. */}
+      <div className="no-print sticky top-3 z-40 flex justify-center px-4 pt-3">
         <motion.nav aria-label="Main" initial={false} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.6, ease: EASE }}
-          className="flex w-full max-w-xl items-center gap-1 rounded-full bg-[#0a0b0d] p-1.5 sm:max-w-3xl">
+          className="flex w-full max-w-xl items-center gap-1 rounded-full bg-[#0a0b0d] p-1.5 sm:max-w-[70rem]">
           <button ref={hexBtn} type="button" onClick={(e) => show(e.currentTarget)} aria-label="Open the hub menu" aria-expanded={open} aria-haspopup="dialog"
             className="group relative grid h-11 w-11 shrink-0 place-items-center rounded-full outline-none ring-cyan/60 focus-visible:ring-2">
             <span aria-hidden="true" className="absolute inset-0 rounded-full bg-white/5 transition-colors group-hover:bg-white/10" />
