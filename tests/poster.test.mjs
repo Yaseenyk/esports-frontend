@@ -111,7 +111,9 @@ test("file names are safe and say the shape", () => {
 
 test("the footer honeycomb has a tile for every tool and both layouts add up to the tool count", () => {
   const src = fs.readFileSync(new URL("../src/components/SiteFooter.tsx", import.meta.url), "utf8");
-  const tiles = [...src.matchAll(/^\s+"?([a-z-]+)"?: \{ label: "/gm)].map((m) => m[1]);
+  // The tiles live in the map shared with the home page tool cards (src/lib/tool-icons.ts).
+  const icons = fs.readFileSync(new URL("../src/lib/tool-icons.ts", import.meta.url), "utf8");
+  const tiles = [...icons.matchAll(/^\s+"?([a-z-]+)"?: \{ label: "/gm)].map((m) => m[1]);
   for (const t of TOOLS) assert.ok(tiles.includes(t.slug), `no footer tile for ${t.slug}`);
   const wide = JSON.parse(/fx-comb-wide[^]*?chunk\(slugs, (\[[\d, ]+\])\)/.exec(src)[1]);
   const narrow = JSON.parse(/fx-comb-narrow[^]*?chunk\(slugs, (\[[\d, ]+\])\)/.exec(src)[1]);
