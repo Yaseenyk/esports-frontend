@@ -27,7 +27,7 @@ export default function ShareResult({ payload, what, path, lang = "en", label }:
           <span key={s.busy ? "busy" : "idle"}>{s.busy ? c.making : c.button}</span>
         </button>
         <div role="group" aria-label={c.shapeGroup} className="flex flex-wrap items-center gap-2">
-          <button type="button" className="chip" aria-pressed={s.format === "square"} onClick={() => s.setFormat("square")}>{c.square}</button>
+          <button type="button" className="chip" aria-pressed={s.format === "portrait"} onClick={() => s.setFormat("portrait")}>{c.portrait}</button>
           <button type="button" className="chip" aria-pressed={s.format === "story"} onClick={() => s.setFormat("story")}>{c.story}</button>
         </div>
       </div>

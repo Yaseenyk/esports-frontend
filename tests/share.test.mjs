@@ -1,7 +1,7 @@
 // Share cards: the layout maths, the plain-text version, the extras checks and the certificate link. Drawing needs a browser and is covered in e2e/share.spec.ts.
 import test from "node:test";
 import assert from "node:assert/strict";
-import { certificatesHref, fitText, gradientLine, matchCentres, parseBg, pickColumns, planRows, roundColumns, shareFileName, shareText, SIZES, whatsappLink, winnersText, withAlpha } from "../src/lib/share-cards.ts";
+import { certificatesHref, fitText, footerLine, SHARE_FORMATS, gradientLine, matchCentres, parseBg, pickColumns, planRows, roundColumns, shareFileName, shareText, SIZES, whatsappLink, winnersText, withAlpha } from "../src/lib/share-cards.ts";
 import { sanitizeExtras, validate, isLogo, encode, decode } from "../src/lib/display.ts";
 import { fitSize, loadExtras, saveExtras } from "../src/lib/extras-store.ts";
 import { DISPLAY_THEMES } from "../src/lib/display-themes.ts";
@@ -9,9 +9,22 @@ import { DISPLAY_THEMES } from "../src/lib/display-themes.ts";
 const measure = (s) => s.length * 10;
 const PNG = "data:image/png;base64,iVBORw0KGgo=";
 
-test("card sizes are a 1080 square and a 1080x1920 story", () => {
-  assert.deepEqual(SIZES.square, { w: 1080, h: 1080 });
+test("card sizes are exactly two: a 1080x1350 portrait post (4:5) and a 1080x1920 story (9:16), with no square", () => {
+  assert.deepEqual(Object.keys(SIZES).sort(), ["portrait", "story"]);
+  assert.deepEqual([...SHARE_FORMATS], ["portrait", "story"]);
+  assert.deepEqual(SIZES.portrait, { w: 1080, h: 1350 });
   assert.deepEqual(SIZES.story, { w: 1080, h: 1920 });
+  assert.equal(SIZES.portrait.w / SIZES.portrait.h, 4 / 5);
+  assert.equal(SIZES.story.w / SIZES.story.h, 9 / 16);
+  assert.equal(SIZES.square, undefined);
+});
+
+test("the footer with the site link fits on both shapes: same 1080 width, and the longest tool address stays short", () => {
+  // The footer is drawn on one line across the width (font 24 px, shrinking to 18 px). Both shapes are 1080 wide, so a footer that fits one fits the other.
+  assert.equal(SIZES.portrait.w, SIZES.story.w);
+  const longest = footerLine("/pt-br/points-table/free-fire/", "pt-BR");
+  // At 18 px a sans-serif glyph averages about 10 px, well under the 11.9 px that 80 characters may take in 1080 - 2 * 64 = 952 px.
+  assert.ok(longest.length <= 80, `${longest.length}: ${longest}`);
 });
 
 test("fitText leaves short text alone and cuts long text with an ellipsis that fits", () => {
@@ -72,7 +85,7 @@ test("background and gradient maths", () => {
 });
 
 test("file names are safe", () => {
-  assert.equal(shareFileName("League table", "square"), "league-table-square.png");
+  assert.equal(shareFileName("League table", "portrait"), "league-table-portrait.png");
   assert.equal(shareFileName("???", "story"), "esports-hub-story.png");
   assert.ok(shareFileName("x".repeat(200), "story").length < 60);
 });

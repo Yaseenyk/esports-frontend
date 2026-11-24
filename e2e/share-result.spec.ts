@@ -30,7 +30,7 @@ async function shareFrom(page: Page, scope: Locator, path: string, phone: boolea
   const box = scope.getByTestId("share-result").first();
   await expect(box).toBeVisible();
   const button = box.getByRole("button", { name: o.pt ? "Compartilhar resultado" : "Share result" });
-  if (o.story) await box.getByRole("button", { name: "Story (status)" }).click();
+  if (o.story) await box.getByRole("button", { name: "Story (9:16)" }).click();
   const footer = `${o.pt ? "Feito com" : "Made with"} Esports Hub · esports.streamerosai.com${path.replace(/\/$/, "")}`;
   let head: number[];
   if (phone) {
@@ -38,20 +38,20 @@ async function shareFrom(page: Page, scope: Locator, path: string, phone: boolea
     await expect.poll(() => page.evaluate(() => window.__shared)).not.toBeNull();
     const shared = (await page.evaluate(() => window.__shared))!;
     expect(shared.type).toBe("image/png");
-    expect(shared.name).toMatch(/^[a-z0-9-]+-(square|story)\.png$/);
+    expect(shared.name).toMatch(/^[a-z0-9-]+-(portrait|story)\.png$/);
     expect(shared.text?.split("\n").at(-1)).toBe(footer);
     head = shared.head;
     await expect(box.getByRole("status")).toContainText(o.pt ? "Compartilhado" : "Shared");
   } else {
     const [download] = await Promise.all([page.waitForEvent("download"), button.click()]);
-    expect(download.suggestedFilename()).toMatch(/^[a-z0-9-]+-(square|story)\.png$/);
+    expect(download.suggestedFilename()).toMatch(/^[a-z0-9-]+-(portrait|story)\.png$/);
     head = [...fs.readFileSync((await download.path())!).subarray(0, 24)];
     await expect(box.getByRole("status")).toContainText(o.pt ? "mensagem copiada" : "message copied");
     const text = await page.evaluate(() => navigator.clipboard.readText());
     expect(text.split("\n").at(-1)).toBe(footer);
   }
   expect(head.slice(0, 8)).toEqual(PNG);
-  expect(size(head)).toEqual({ w: 1080, h: o.story ? 1920 : 1080 });
+  expect(size(head)).toEqual({ w: 1080, h: o.story ? 1920 : 1350 });
 }
 
 const isPhone = (name: string) => name === "phone";

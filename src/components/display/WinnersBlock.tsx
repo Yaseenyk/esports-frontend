@@ -14,7 +14,7 @@ import type { UiLang } from "@/lib/pt-br";
  */
 export default function WinnersBlock({ first, second, third, event, title = "Winners", lang = "en", path }: { first: string; second?: string; third?: string; event?: string; title?: string; lang?: UiLang; /** The tool page, for the address on the poster. */ path?: string }) {
   const c = toolCopy(lang).winners;
-  const [format, setFormat] = useState<ShareFormat>("square");
+  const [format, setFormat] = useState<ShareFormat>("portrait");
   const [theme, setTheme] = useState("dark");
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
@@ -40,7 +40,7 @@ export default function WinnersBlock({ first, second, third, event, title = "Win
       </ol>
       <div className="flex flex-wrap items-center gap-2" role="group" aria-label={c.shapeGroup}>
         <span className="text-sm text-zinc-200">{c.shape}</span>
-        <button type="button" className="chip" aria-pressed={format === "square"} onClick={() => setFormat("square")}>{c.square}</button>
+        <button type="button" className="chip" aria-pressed={format === "portrait"} onClick={() => setFormat("portrait")}>{c.portrait}</button>
         <button type="button" className="chip" aria-pressed={format === "story"} onClick={() => setFormat("story")}>{c.story}</button>
         <label className="ml-auto flex items-center gap-2 text-sm text-zinc-200">{c.design}
           <select className="field !min-h-10" value={theme} onChange={(e) => setTheme(e.target.value)}>{DISPLAY_THEMES.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}</select>

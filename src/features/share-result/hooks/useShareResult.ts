@@ -13,13 +13,13 @@ import { resultShare } from "@/features/share-result/domain";
 export interface ShareMessage { ok: boolean; text: string }
 
 /**
- * One tap: draw the result as a picture (square post or story) and hand it on. On a phone that can share files the share sheet opens with
+ * One tap: draw the result as a picture (portrait post or story) and hand it on. On a phone that can share files the share sheet opens with
  * the picture and the message; anywhere else the picture is saved and the message is copied. The message is copied at the start of the
  * tap, while the browser still counts it as the person's action, because drawing the picture takes a moment.
  */
 export function useShareResult(payload: Payload | null, what: string, path: string, lang: UiLang = "en") {
   const c = toolCopy(lang).quick;
-  const [format, setFormat] = useState<ShareFormat>("square");
+  const [format, setFormat] = useState<ShareFormat>("portrait");
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<ShareMessage | null>(null);
 

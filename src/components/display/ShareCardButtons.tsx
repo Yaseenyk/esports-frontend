@@ -11,7 +11,7 @@ import type { UiLang } from "@/lib/pt-br";
 /** Turns what a tool shows into a picture (a post or a story) or a message for WhatsApp. The look is the same design as the screen. */
 export default function ShareCardButtons({ payload, what, theme, extras, lang = "en", path }: { payload: Payload | null; what: string; theme: string; extras?: Extras; lang?: UiLang; /** The tool page the result came from; its address goes on the picture and in the message. */ path?: string }) {
   const c = toolCopy(lang).share;
-  const [format, setFormat] = useState<ShareFormat>("square");
+  const [format, setFormat] = useState<ShareFormat>("portrait");
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const footer = footerLine(path, lang);
@@ -23,7 +23,7 @@ export default function ShareCardButtons({ payload, what, theme, extras, lang = 
     try {
       const blob = await renderShareCard(payload, { format, theme, extras, fontClass: cardFontVars, footer });
       const r = await shareOrDownload(blob, shareFileName(payload.d.title || what, format), payload.d.title || what);
-      setMsg(r === "cancelled" ? null : { ok: true, text: r === "shared" ? c.shared : c.saved(format === "square") });
+      setMsg(r === "cancelled" ? null : { ok: true, text: r === "shared" ? c.shared : c.saved(format === "portrait") });
     } catch (e) { setMsg({ ok: false, text: e instanceof Error ? e.message : c.failed }); }
     setBusy(false);
   };
@@ -40,7 +40,7 @@ export default function ShareCardButtons({ payload, what, theme, extras, lang = 
       </div>
       <div className="flex flex-wrap items-center gap-2" role="group" aria-label={c.shapeGroup}>
         <span className="text-sm text-zinc-200">{c.shape}</span>
-        <button type="button" className="chip" aria-pressed={format === "square"} onClick={() => setFormat("square")}>{c.square}</button>
+        <button type="button" className="chip" aria-pressed={format === "portrait"} onClick={() => setFormat("portrait")}>{c.portrait}</button>
         <button type="button" className="chip" aria-pressed={format === "story"} onClick={() => setFormat("story")}>{c.story}</button>
       </div>
       <div className="flex flex-wrap items-center gap-3">

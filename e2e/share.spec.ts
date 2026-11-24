@@ -91,7 +91,7 @@ test("sponsors and announcements are saved once and every tool's screen link car
 
 test("the share button gives a PNG picture, in both shapes", async ({ page }) => {
   await page.goto("/tools/points-table/");
-  for (const [chip, name] of [["Square post", "square"], ["Story", "story"]] as const) {
+  for (const [chip, name] of [["Portrait post (4:5)", "portrait"], ["Story (9:16)", "story"]] as const) {
     await page.getByRole("button", { name: chip, exact: true }).last().click(); // the share step comes after the winners block, which has its own shape chips
     const [download] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Share on WhatsApp or Instagram" }).click()]);
     expect(download.suggestedFilename()).toMatch(new RegExp(`^[a-z0-9-]+-${name}\\.png$`));
@@ -99,7 +99,7 @@ test("the share button gives a PNG picture, in both shapes", async ({ page }) =>
     expect([...bytes.subarray(0, 8)]).toEqual([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]); // the PNG signature
     // The picture size is in the IHDR chunk: width and height as big-endian numbers at bytes 16 to 24.
     expect(bytes.readUInt32BE(16)).toBe(1080);
-    expect(bytes.readUInt32BE(20)).toBe(name === "square" ? 1080 : 1920);
+    expect(bytes.readUInt32BE(20)).toBe(name === "portrait" ? 1350 : 1920);
     await expect(page.getByText(/Saved the picture/)).toBeVisible();
   }
 });

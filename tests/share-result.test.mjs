@@ -28,12 +28,12 @@ test("each tool's share message ends with that tool's own address", () => {
   assert.ok(paths.includes("/points-table/cod-mobile/") && paths.includes("/points-table/valorant/") && paths.includes("/pt-br/points-table/free-fire/"));
   for (const path of paths) {
     const lang = path.startsWith("/pt-br/") ? "pt-BR" : "en";
-    const s = resultShare(table, { path, what: "points table", format: "square", lang });
+    const s = resultShare(table, { path, what: "points table", format: "portrait", lang });
     const want = `esports.streamerosai.com${path.replace(/\/$/, "")}`;
     assert.ok(s.footer.endsWith(want), `${path}: ${s.footer}`);
     assert.equal(s.text.split("\n").at(-1), s.footer, `${path}: the message ends with the footer`);
     assert.ok(s.text.startsWith("🏆 *Standings*"));
-    assert.equal(s.fileName, "standings-square.png");
+    assert.equal(s.fileName, "standings-portrait.png");
     assert.ok(lang === "pt-BR" ? s.footer.startsWith("Feito com Esports Hub") : s.footer.startsWith("Made with Esports Hub"));
   }
 });

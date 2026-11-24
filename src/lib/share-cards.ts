@@ -8,8 +8,10 @@ import { SITE_URL } from "./site";
  * The file has two halves. The top is pure layout maths (what fits, which columns, which rounds, the plain-text version) and is unit tested in node.
  * The bottom draws on a canvas and needs a browser.
  */
-export type ShareFormat = "square" | "story";
-export const SIZES: Record<ShareFormat, { w: number; h: number }> = { square: { w: 1080, h: 1080 }, story: { w: 1080, h: 1920 } };
+/** The two picture shapes: a 4:5 portrait post (Instagram and WhatsApp feed) and a 9:16 story or status. There is no square shape. */
+export type ShareFormat = "portrait" | "story";
+export const SIZES: Record<ShareFormat, { w: number; h: number }> = { portrait: { w: 1080, h: 1350 }, story: { w: 1080, h: 1920 } };
+export const SHARE_FORMATS: readonly ShareFormat[] = ["portrait", "story"];
 export const FOOTER_TEXT = "Made with Esports Hub";
 /** The site's address as people read it on a picture: no https, no www. */
 export const SITE_HOST = SITE_URL.replace(/^https?:\/\//, "").replace(/\/+$/, "");
@@ -98,7 +100,7 @@ export function withAlpha(hex: string, a: number): string {
   return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`;
 }
 
-/** A safe file name for a card, for example "league-table-square.png". */
+/** A safe file name for a card, for example "league-table-portrait.png". */
 export function shareFileName(title: string, format: ShareFormat): string {
   const slug = title.toLowerCase().normalize("NFKD").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40);
   return `${slug || "esports-hub"}-${format}.png`;
@@ -417,7 +419,7 @@ async function begin(format: ShareFormat, themeId: string, fontClass?: string): 
   return { c, canvas };
 }
 
-/** Draws a view (table, schedule, bracket or countdown) as a PNG in the chosen design. 1080x1080 for a post, 1080x1920 for a story. */
+/** Draws a view (table, schedule, bracket or countdown) as a PNG in the chosen design. 1080x1350 for a portrait post, 1080x1920 for a story. */
 export async function renderShareCard(payload: Payload, opts: Opts): Promise<Blob> {
   const { c, canvas } = await begin(opts.format, opts.theme, opts.fontClass);
   const x = opts.extras ?? payload.x;
