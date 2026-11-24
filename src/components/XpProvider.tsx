@@ -128,7 +128,7 @@ export default function XpProvider({ children }: { children: ReactNode }) {
           {/* No opacity fade-in: the toast text is fully readable from its first frame (a half-faded toast fails contrast checks). */}
           {toasts.map((t) => (
             <motion.div key={t.id} layout initial={reduce ? false : { x: 40, scale: 0.9 }} animate={{ x: 0, scale: 1 }} exit={{ x: 40, scale: 0.9 }} transition={{ type: "spring", stiffness: 380, damping: 26 }}
-              className="pointer-events-auto flex items-center gap-3 rounded-2xl border border-white/[0.14] bg-[#0a0b0d] px-4 py-3">
+              className="pointer-events-none flex items-center gap-3 rounded-2xl border border-white/[0.14] bg-[#0a0b0d] px-4 py-3">
               <span aria-hidden="true" className="grid h-9 w-9 place-items-center bg-gradient-to-br from-cyan to-purple text-sm font-black text-ink" style={{ clipPath: "polygon(50% 0%, 93% 25%, 93% 75%, 50% 100%, 7% 75%, 7% 25%)" }}>★</span>
               <span><span className="block font-display text-sm font-bold text-white">{t.title}</span><span className="block text-xs text-zinc-400">{t.sub}</span></span>
             </motion.div>
