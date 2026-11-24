@@ -95,8 +95,23 @@ const FILLER = new Set(["team", "the", "esports", "esport", "gaming", "gg", "cla
 export type BlockReason = "game" | "org" | "slur";
 export interface BlockResult { blocked: boolean; reason?: BlockReason }
 
-/** Checks a team name against the blocklist. */
-export function checkName(name: string): BlockResult {
+/**
+ * Fancy letters back to plain ones, so a decorated or stylish name is checked like the plain name. NFKD already turns the bold,
+ * double-struck, script and full-width letters into plain ones; small capitals and a few look-alikes (Greek and Cyrillic letters
+ * that look Latin) have no decomposition, so they are mapped by hand.
+ */
+const SMALL_CAPS = Array.from("ᴀʙᴄᴅᴇꜰɢʜɪᴊᴋʟᴍɴᴏᴘǫʀꜱᴛᴜᴠᴡxʏᴢ");
+const UNSTYLE: Record<string, string> = Object.fromEntries([
+  ...SMALL_CAPS.map((c, i) => [c, String.fromCharCode(97 + i)]),
+  ["ɑ", "a"], ["ɛ", "e"], ["ɩ", "i"], ["ο", "o"], ["α", "a"], ["ѕ", "s"], ["е", "e"], ["о", "o"], ["а", "a"], ["р", "p"], ["с", "c"], ["х", "x"], ["у", "y"], ["і", "i"],
+]);
+export function unstyle(s: string): string {
+  return Array.from(s).map((c) => UNSTYLE[c] ?? c).join("").normalize("NFKD").replace(/[\u0300-\u036f]/g, "");
+}
+
+/** Checks a team name against the blocklist. Stylish letters are turned back into plain ones first, so decoration cannot hide a name. */
+export function checkName(raw: string): BlockResult {
+  const name = unstyle(raw);
   const flat = compact(name), ws = words(name);
   const any = (list: string[]) => list.some((t) => flat.some((f) => f.includes(t)));
   const word = (list: string[]) => list.some((t) => (t.includes(" ") ? ws.join(" ").includes(t) : ws.includes(t)));
@@ -140,24 +155,95 @@ export function rng(seed: number): () => number {
 
 const pick = <T,>(a: readonly T[], r: () => number): T => a[Math.floor(r() * a.length)]!;
 
-/** `count` different names from one theme. Any name the blocklist catches, or that repeats a word, is skipped. */
-export function generateNames(theme: Theme, count: number, seed: number): string[] {
-  const w = WORDS[theme], r = rng(seed), out: string[] = [], seen = new Set<string>();
+/**
+ * Game presets change the shape of a name, not the words. A Free Fire guild gets short names (some written as one word), a BGMI squad
+ * gets squad-style names, a Valorant or COD Mobile five gets scoreboard-style names, a clan gets clan-style names. These are style
+ * choices of this tool, not rules of any game: the page never claims a game's character limit.
+ */
+export type Preset = "general" | "ff-guild" | "bgmi-team" | "pc-team" | "clan";
+export const PRESETS: readonly { id: Preset; label: string; hint: string }[] = [
+  { id: "general", label: "Any team", hint: "Two words from the theme, for any game or sport." },
+  { id: "ff-guild", label: "Free Fire guild", hint: "Short names, some written as one word, for a guild or a squad." },
+  { id: "bgmi-team", label: "BGMI team", hint: "Squad-style names: two words, Team ..., ... Esports or ... Squad." },
+  { id: "pc-team", label: "Valorant or COD team", hint: "Names for a team of five that read well on a scoreboard." },
+  { id: "clan", label: "Clan", hint: "Clan-style names: The ..., ... Clan or Order of the ..." },
+];
+
+type Format = (a: string, b: string) => string;
+const FORMATS: Record<Preset, readonly Format[]> = {
+  general: [(a, b) => `${a} ${b}`],
+  "ff-guild": [(a, b) => `${a} ${b}`, (a, b) => `${a}${b}`],
+  "bgmi-team": [(a, b) => `${a} ${b}`, (_a, b) => `Team ${b}`, (_a, b) => `${b} Esports`, (a) => `${a} Squad`],
+  "pc-team": [(a, b) => `${a} ${b}`, (_a, b) => `${b} Gaming`, (a) => `${a} Five`],
+  clan: [(a, b) => `The ${a} ${b}`, (_a, b) => `${b} Clan`, (_a, b) => `Order of the ${b}`],
+};
+/** The Free Fire guild preset keeps names to this many characters: a style choice for short names, not a rule of the game. */
+export const SHORT_NAME = 14;
+
+/** `count` different names from one theme, shaped by the preset. Any name the blocklist catches, or that repeats, is skipped. */
+export function generateNames(theme: Theme, count: number, seed: number, preset: Preset = "general"): string[] {
+  const w = WORDS[theme], r = rng(seed), out: string[] = [], seen = new Set<string>(), formats = FORMATS[preset];
   const max = Math.min(count, w.first.length * w.second.length);
   for (let tries = 0; out.length < max && tries < max * 40; tries++) {
     const a = pick(w.first, r), b = pick(w.second, r);
-    const name = `${a} ${b}`;
+    const name = formats.length === 1 ? formats[0]!(a, b) : pick(formats, r)(a, b);
     if (a === b || seen.has(name) || checkName(name).blocked) continue;
+    if (preset === "ff-guild" && Array.from(name).length > SHORT_NAME) continue;
     seen.add(name); out.push(name);
   }
   return out;
 }
 
-/** What the Indian words in a name mean, for the line under it. */
+/** What the Indian words in a name mean, for the line under it. Also finds words written together ("BindaasToli"). */
 export function glossFor(name: string): string {
   const g = WORDS.indian.gloss ?? {};
-  return name.split(" ").filter((w) => g[w]).map((w) => `${w}: ${g[w]}`).join(", ");
+  return name.split(" ").flatMap((w) => w.match(/[A-Z][a-z]*/g) ?? [w]).filter((w) => g[w]).map((w) => `${w}: ${g[w]}`).join(", ");
 }
+
+// ------------------------------------------------------------------ stylish versions
+
+/**
+ * Stylish versions: fancy Unicode letters and decorative symbols around the name, as players use for guild and in-game names.
+ * We found no reliable source for what Free Fire (or any other game) accepts in a guild or team name: Garena publishes no rule we
+ * could check, and guide sites disagree on the length. So the page claims no limit, keeps the plain name next to every stylish one,
+ * and tells the player to check that it fits in the game. Some phones also show symbols they lack as empty boxes.
+ */
+export type Letters = "plain" | "bold" | "smallcaps" | "wide";
+export type Frame = "none" | "curl" | "stars" | "corner" | "mark";
+export const LETTERS: readonly { id: Letters; label: string }[] = [
+  { id: "plain", label: "Plain letters" }, { id: "bold", label: "Bold letters" }, { id: "smallcaps", label: "Small capitals" }, { id: "wide", label: "Wide letters" },
+];
+export const FRAMES: readonly { id: Frame; label: string; open: string; close: string }[] = [
+  { id: "none", label: "No symbols", open: "", close: "" },
+  { id: "curl", label: "Curls ꧁ ꧂", open: "꧁", close: "꧂" },
+  { id: "stars", label: "Stars ★", open: "★", close: "★" },
+  { id: "corner", label: "Brackets 『 』", open: "『", close: "』" },
+  { id: "mark", label: "Mark 亗", open: "亗", close: "亗" },
+];
+
+const shift = (c: string, upper: number, lower: number, digit?: number): string => {
+  const n = c.charCodeAt(0);
+  if (n >= 65 && n <= 90) return String.fromCodePoint(upper + n - 65);
+  if (n >= 97 && n <= 122) return String.fromCodePoint(lower + n - 97);
+  if (digit !== undefined && n >= 48 && n <= 57) return String.fromCodePoint(digit + n - 48);
+  return c;
+};
+const LETTER_MAP: Record<Exclude<Letters, "plain">, (c: string) => string> = {
+  bold: (c) => shift(c, 0x1d400, 0x1d41a, 0x1d7ce),
+  wide: (c) => shift(c, 0xff21, 0xff41, 0xff10),
+  smallcaps: (c) => { const l = c.toLowerCase(); return l >= "a" && l <= "z" ? SMALL_CAPS[l.charCodeAt(0) - 97]! : c; },
+};
+
+/** The stylish version of a plain name. Empty when the result would not pass the blocklist (it always should: same letters). */
+export function stylish(name: string, letters: Letters, frame: Frame): string {
+  const body = letters === "plain" ? name : Array.from(name).map(LETTER_MAP[letters]).join("");
+  const f = FRAMES.find((x) => x.id === frame) ?? FRAMES[0]!;
+  const out = `${f.open}${body}${f.close}`;
+  return checkName(out).blocked ? "" : out;
+}
+
+/** Characters as a person counts them (a symbol such as ꧁ counts once). A game may count differently, so the page says to check. */
+export const charCount = (s: string): number => Array.from(s).length;
 
 // ------------------------------------------------------------------ badge
 

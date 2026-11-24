@@ -4,6 +4,7 @@ import { Field, describedBy } from "@/features/shared/ui/Fields";
 import { btnSecondary, input, link } from "@/features/shared/ui/styles";
 import { CHECKED, GAMES, MAX_DPI, MIN_DPI, roundFor } from "@/features/sensitivity/domain";
 import { useSensitivity } from "@/features/sensitivity/hooks/useSensitivity";
+import { useEdpi } from "@/features/sensitivity/hooks/useEdpi";
 import ShareResult from "@/features/share-result/ui/ShareResult";
 
 const PATH = "/tools/sensitivity-converter/";
@@ -24,6 +25,51 @@ function NumberBox({ id, label, value, onChange, help, error }: { id: string; la
     <Field id={id} label={label} help={help} error={error}>
       <input id={id} type="text" inputMode="decimal" autoComplete="off" value={value} onChange={(e) => onChange(e.target.value.replace(",", "."))} aria-invalid={error ? true : undefined} aria-describedby={describedBy(id, help, error)} className={`${input} font-mono tabular-nums`} />
     </Field>
+  );
+}
+
+/** The eDPI calculator: sensitivity x DPI for one game, its cm/360, and the eDPI that gives the same feel in each listed game. */
+function EdpiCalculator() {
+  const e = useEdpi();
+  const r = e.check.ok ? e.check.result : null;
+  return (
+    <section aria-labelledby="edpi-h" className="space-y-4 border-t border-white/10 pt-6">
+      <h3 id="edpi-h" className="font-display text-lg text-zinc-100">eDPI calculator</h3>
+      <p className="max-w-3xl text-sm leading-6 text-zinc-300">
+        eDPI (effective DPI) is your in-game sensitivity multiplied by your mouse DPI: 0.4 at 800 DPI is an eDPI of 320. It puts a player&apos;s speed into one number, so two players in the same game can compare settings even if one uses 400 DPI and the other 1600. It does not carry across games, because each game turns by a different amount per mouse count (its yaw). Between games, compare cm/360: how many centimetres the mouse travels for one full turn.
+      </p>
+      <div className="grid gap-4 sm:grid-cols-3">
+        <GameSelect id="edpi-game" label="Game" value={e.gameId} onChange={e.setGameId} />
+        <NumberBox id="edpi-sens" label="In-game sensitivity" value={e.sens} onChange={e.setSens} error={e.sensError} />
+        <NumberBox id="edpi-dpi" label="Mouse DPI" value={e.dpi} onChange={e.setDpi} error={e.dpiError} />
+      </div>
+      {!r ? (
+        <p className="text-sm text-zinc-300">Fix the box marked above to see your eDPI.</p>
+      ) : (
+        <>
+          <p className="text-base text-zinc-300" aria-live="polite">
+            eDPI in <span key={r.game.id}>{r.game.name}</span>:{" "}
+            <strong data-testid="edpi-answer" className="font-mono text-3xl text-cyan-400 tabular-nums"><span key={r.edpi}>{roundFor(r.edpi, 2)}</span></strong>{" "}
+            <span className="text-sm">(<span key={`c${r.cm360}`} data-testid="edpi-cm">{roundFor(r.cm360, 2)}</span> cm/360, <span key={`i${r.in360}`}>{roundFor(r.in360, 2)}</span> in/360)</span>
+          </p>
+          <div role="region" aria-label="The same feel as an eDPI in every listed game" tabIndex={0} className="overflow-x-auto rounded-xl border border-white/10">
+            <table className="w-full border-collapse text-left text-sm">
+              <caption className="sr-only">The eDPI that gives the same cm/360 in each listed game</caption>
+              <thead><tr className="text-zinc-300"><th scope="col" className="px-3 py-2">Game</th><th scope="col" className="px-3 py-2">eDPI for the same feel</th></tr></thead>
+              <tbody>
+                {r.perGame.map((g) => (
+                  <tr key={g.game.id} className="border-t border-white/10">
+                    <th scope="row" className="px-3 py-2 font-medium text-zinc-100">{g.game.name}</th>
+                    <td className="px-3 py-2 font-mono text-zinc-100 tabular-nums"><span key={g.edpi}>{roundFor(g.edpi, 1)}</span></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p className="text-xs leading-5 text-zinc-400">The matching eDPI is your eDPI times this game&apos;s yaw, divided by the other game&apos;s yaw. Counter-Strike 2 and Apex Legends share a yaw of 0.022, so their eDPI values match directly.</p>
+        </>
+      )}
+    </section>
   );
 }
 
@@ -93,6 +139,8 @@ export default function SensitivityTool() {
         )}
         <ShareResult payload={s.payload} what="sensitivity" path={PATH} />
       </section>
+
+      <EdpiCalculator />
 
       <section aria-labelledby="sens-src" className="space-y-2 border-t border-white/10 pt-6 text-sm text-zinc-300">
         <h3 id="sens-src" className="font-display text-lg text-zinc-100">Where the yaw numbers come from (checked {CHECKED})</h3>

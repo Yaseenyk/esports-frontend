@@ -1,7 +1,7 @@
 import type { ToolPage } from "@/components/seo/ToolLanding";
 import { GROUPS_PAGE } from "./tool-page-groups";
 import { PRINTKITS_PAGE } from "./tool-page-printkits";
-import { PRIZE_SPLIT_PAGE, RULEBOOK_PAGE, SENSITIVITY_PAGE, TEAM_NAME_PAGE } from "./tool-page-extra";
+import { FF_GUILD_PAGE, PRIZE_SPLIT_PAGE, RULEBOOK_PAGE, SENSITIVITY_PAGE, TEAM_NAME_PAGE } from "./tool-page-extra";
 
 /** The words on the public tool pages. Written to describe what the tools really do today, and nothing more. */
 export const TOOL_PAGES: Record<string, ToolPage & { title: string; description: string }> = {
@@ -312,6 +312,7 @@ export const TOOL_PAGES: Record<string, ToolPage & { title: string; description:
   "print-kits": PRINTKITS_PAGE,
   "sensitivity-converter": SENSITIVITY_PAGE,
   "team-name-generator": TEAM_NAME_PAGE,
+  "free-fire-guild-name": FF_GUILD_PAGE,
   "prize-split": PRIZE_SPLIT_PAGE,
   rulebook: RULEBOOK_PAGE,
 };

@@ -126,3 +126,28 @@ export function allGames(sens: number, from: Game, dpiFrom: number, dpiTo: numbe
 
 /** Mobile games use touch and gyro settings with no published per-count value, so they are named here only to say there is no conversion. */
 export const MOBILE_NOT_CONVERTED = ["BGMI", "Free Fire", "Call of Duty: Mobile"] as const;
+
+// ------------------------------------------------------------------ eDPI
+
+/** eDPI ("effective DPI"): in-game sensitivity multiplied by mouse DPI. One number for a player's speed inside one game. */
+export const edpi = (sens: number, dpi: number): number => sens * dpi;
+
+/**
+ * The same feel as an eDPI in another game. eDPI x yaw is degrees per inch of mouse travel, which is what cm/360 measures, so the
+ * matching eDPI in game B is eDPI_A x yaw_A / yaw_B. Games with the same yaw (CS2 and Apex) share eDPI values; Valorant's are about
+ * 3.18 times smaller than CS2's for the same feel.
+ */
+export const edpiIn = (value: number, from: Game, to: Game): number => (value * from.yaw) / to.yaw;
+
+export interface EdpiResult { game: Game; edpi: number; cm360: number; in360: number; perGame: { game: Game; edpi: number }[] }
+export type EdpiCheck = { ok: true; result: EdpiResult } | { ok: false; error: string };
+
+/** Validates the eDPI calculator's input and returns eDPI, cm/360 and the matching eDPI in every listed game. */
+export function edpiCalc(gameId: string, sens: number, dpi: number): EdpiCheck {
+  const game = gameById(gameId);
+  if (!game) return { ok: false, error: "Choose a game." };
+  if (!(Number.isFinite(sens) && sens > 0 && sens <= MAX_SENS)) return { ok: false, error: `Type a sensitivity above 0 and up to ${MAX_SENS}.` };
+  if (!(Number.isFinite(dpi) && dpi >= MIN_DPI && dpi <= MAX_DPI)) return { ok: false, error: `Type a DPI from ${MIN_DPI} to ${MAX_DPI}.` };
+  const e = edpi(sens, dpi);
+  return { ok: true, result: { game, edpi: e, cm360: cmPer360(sens, game.yaw, dpi), in360: inchesPer360(sens, game.yaw, dpi), perGame: GAMES.map((g) => ({ game: g, edpi: edpiIn(e, game, g) })) } };
+}

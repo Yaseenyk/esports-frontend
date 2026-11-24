@@ -361,3 +361,75 @@ test("day plan: bad input is refused with a reason", () => {
   assert.equal(D.fit(590, 30, [[600, 620], [700, 800]]), 700);
   assert.equal(D.fit(790, 30, [[600, 620], [700, 800]]), null);
 });
+
+// ------------------------------------------------------------------ 25 Nov 2026: presets, stylish versions, eDPI
+
+test("eDPI: sensitivity x DPI, the matching eDPI in another game keeps cm/360, and bad input is refused", () => {
+  assert.equal(S.edpi(0.4, 800), 320);
+  assert.equal(S.edpi(1.5, 400), 600);
+  // Valorant 320 eDPI feels like CS2 320 x 0.07 / 0.022 = 1018.18; CS2 and Apex share a yaw, so their eDPI values match.
+  assert.equal(S.roundFor(S.edpiIn(320, g("valorant"), g("cs2")), 1), "1018.2");
+  assert.ok(near(S.edpiIn(800, g("cs2"), g("apex")), 800));
+  const r = S.edpiCalc("valorant", 0.4, 800);
+  assert.ok(r.ok);
+  assert.equal(r.result.edpi, 320);
+  assert.equal(S.roundFor(r.result.cm360, 2), "40.82");
+  assert.equal(r.result.perGame.length, S.GAMES.length);
+  for (const x of r.result.perGame) {
+    // The listed eDPI in each game, at any DPI, gives the same cm/360: sens = eDPI / DPI.
+    assert.ok(near(S.cmPer360(x.edpi / 800, x.game.yaw, 800), r.result.cm360, 1e-9), x.game.id);
+  }
+  assert.equal(S.edpiCalc("x", 1, 800).ok, false);
+  assert.equal(S.edpiCalc("cs2", 0, 800).ok, false);
+  assert.equal(S.edpiCalc("cs2", 1, 20).ok, false);
+});
+
+test("team names: each game preset shapes the names, keeps them clean, and the Free Fire guild preset keeps them short", () => {
+  assert.deepEqual(T.PRESETS.map((p) => p.id), ["general", "ff-guild", "bgmi-team", "pc-team", "clan"]);
+  // The default preset gives exactly the old two-word list, so nothing changes for the existing page.
+  for (const { id } of T.THEMES) assert.deepEqual(T.generateNames(id, 8, 42, "general"), T.generateNames(id, 8, 42));
+  for (const { id: preset } of T.PRESETS) for (const { id: theme } of T.THEMES) {
+    const names = T.generateNames(theme, 8, 7, preset);
+    assert.equal(names.length, 8, `${preset}/${theme}`);
+    assert.equal(new Set(names).size, 8, `${preset}/${theme} repeats`);
+    for (const n of names) assert.equal(T.checkName(n).blocked, false, n);
+    assert.deepEqual(T.generateNames(theme, 8, 7, preset), names, "same seed, same list");
+  }
+  const ff = T.THEMES.flatMap(({ id }) => T.generateNames(id, 8, 11, "ff-guild"));
+  assert.ok(ff.every((n) => Array.from(n).length <= T.SHORT_NAME), "short guild names");
+  assert.ok(ff.some((n) => !n.includes(" ")), "some written as one word");
+  const bgmi = T.THEMES.flatMap(({ id }) => T.generateNames(id, 8, 11, "bgmi-team"));
+  assert.ok(bgmi.some((n) => /^Team |Esports$|Squad$/.test(n)), "squad-style names");
+  const clan = T.THEMES.flatMap(({ id }) => T.generateNames(id, 8, 11, "clan"));
+  assert.ok(clan.every((n) => /^The |Clan$|^Order of the /.test(n)), "clan-style names");
+  assert.match(T.glossFor("BindaasToli"), /carefree.*squad/);
+});
+
+test("stylish versions: fancy letters and symbols, turned back to the plain name before the blocklist, never hiding a blocked name", () => {
+  const name = "Monsoon Cobras";
+  for (const l of T.LETTERS) for (const f of T.FRAMES) {
+    const s = T.stylish(name, l.id, f.id);
+    assert.ok(s, `${l.id}/${f.id}`);
+    if (l.id !== "plain" || f.id !== "none") assert.notEqual(s, name);
+    // Normalised, the stylish version is the plain name again (frames are symbols, removed by the check).
+    assert.equal(T.unstyle(s).replace(/[^A-Za-z ]/g, "").toLowerCase(), name.toLowerCase(), `${l.id}/${f.id}: ${s}`);
+    assert.deepEqual(T.checkName(s), { blocked: false }, s);
+    assert.equal(T.charCount(s), Array.from(s).length);
+  }
+  assert.equal(T.stylish(name, "bold", "curl"), "꧁𝐌𝐨𝐧𝐬𝐨𝐨𝐧 𝐂𝐨𝐛𝐫𝐚𝐬꧂");
+  assert.equal(T.stylish(name, "smallcaps", "none"), "ᴍᴏɴꜱᴏᴏɴ ᴄᴏʙʀᴀꜱ");
+  assert.equal(T.charCount("꧁Ab꧂"), 4);
+  // Every stylish version of every generated name passes; a blocked name stays blocked in every style.
+  for (const { id: preset } of T.PRESETS) for (const n of T.generateNames("animals", 8, 3, preset)) for (const l of T.LETTERS) for (const f of T.FRAMES) {
+    assert.equal(T.checkName(T.stylish(n, l.id, f.id)).blocked, false, `${n} ${l.id}/${f.id}`);
+  }
+  for (const bad of ["Free Fire Kings", "Garena Boys", "S8UL", "Team Liquid", "Chutiya Gang", "FF Squad"]) {
+    for (const l of T.LETTERS) for (const f of T.FRAMES) {
+      const raw = (f.open + (l.id === "plain" ? bad : Array.from(bad).map((c) => T.stylish(c, l.id, "none") || c).join("")) + f.close);
+      assert.ok(T.checkName(raw).blocked, `${raw} should be blocked`);
+      assert.equal(T.stylish(bad, l.id, f.id), "", `${bad} gets no stylish version`);
+    }
+  }
+  // Typed names in fancy letters or look-alike Cyrillic are caught as well.
+  for (const n of ["ꜰʀᴇᴇꜰɪʀᴇ Kings", "𝐒𝟖𝐔𝐋", "꧁Ｖａｌｏｒａｎｔ꧂", "Gаrena Squad", "亗ʙɢᴍɪ亗"]) assert.ok(T.checkName(n).blocked, n);
+});

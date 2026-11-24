@@ -14,12 +14,25 @@ async function seoBasics(page: Page, path: string, h1: RegExp) {
   for (const t of ["BreadcrumbList", "FAQPage", "SoftwareApplication"]) expect(types).toContain(t);
 }
 
+/** One FAQPage per page, and its questions and answers are the visible FAQ text, word for word. */
+async function faqMatchesPage(page: Page) {
+  const blocks = (await page.locator('script[type="application/ld+json"]').allInnerTexts()).map((t) => JSON.parse(t)).flat();
+  const faqs = blocks.filter((x: { "@type"?: string }) => x["@type"] === "FAQPage");
+  expect(faqs).toHaveLength(1);
+  const visible = ((await page.locator("section[aria-labelledby=faq]").textContent()) ?? "").replace(/\s+/g, " ");
+  for (const q of faqs[0].mainEntity as { name: string; acceptedAnswer: { text: string } }[]) {
+    expect(visible).toContain(q.name);
+    expect(visible).toContain(q.acceptedAnswer.text.replace(/\s+/g, " "));
+  }
+}
+
 const shareButton = (page: Page) => page.getByTestId("share-result").first().getByRole("button", { name: "Share result" });
 const head = async (download: { path(): Promise<string | null> }, n: number) => fs.readFileSync((await download.path())!).subarray(0, n);
 
 test("sensitivity converter: Valorant to CS2 with cm/360, a DPI change, other games, sources and no mobile conversion", async ({ page }) => {
   await page.goto("/tools/sensitivity-converter/");
-  await seoBasics(page, "/tools/sensitivity-converter/", /Mouse sensitivity converter/);
+  await seoBasics(page, "/tools/sensitivity-converter/", /Sensitivity converter and eDPI calculator/);
+  await expect(page).toHaveTitle(/^Sens converter and eDPI calculator/);
   const answer = page.getByTestId("sens-answer");
   await expect(answer).toHaveText("1.27"); // Valorant 0.4 at 800 DPI -> CS2: 0.4 x 0.07 / 0.022
   await expect(page.getByTestId("sens-cm")).toContainText("40.82 cm/360");
@@ -43,12 +56,28 @@ test("sensitivity converter: Valorant to CS2 with cm/360, a DPI change, other ga
   await expect(page.getByRole("heading", { name: "Why BGMI, Free Fire and COD Mobile are not in the converter" })).toBeVisible();
   await expect(page.getByLabel("To game").locator("option")).toHaveText(["Counter-Strike 2", "Valorant", "Apex Legends", "Overwatch 2"]);
   await expect(shareButton(page)).toBeEnabled();
+  // The eDPI calculator: sens x DPI, cm/360, and the eDPI that feels the same in each game.
+  await expect(page.getByRole("heading", { name: "eDPI calculator", exact: true })).toBeVisible();
+  await expect(page.getByTestId("edpi-answer")).toHaveText("320");
+  await expect(page.getByTestId("edpi-cm")).toHaveText("40.82");
+  const perGame = page.getByRole("region", { name: "The same feel as an eDPI in every listed game" });
+  await expect(perGame.getByRole("row", { name: /Counter-Strike 2/ })).toContainText("1018.2");
+  await page.locator("#edpi-sens").fill("1.5");
+  await page.locator("#edpi-dpi").fill("400");
+  await page.locator("#edpi-game").selectOption("cs2");
+  await expect(page.getByTestId("edpi-answer")).toHaveText("600");
+  await page.locator("#edpi-sens").fill("0");
+  await expect(page.getByText("Fix the box marked above to see your eDPI.")).toBeVisible();
+  // The FAQ answers the three questions people search for, and the structured data matches the visible text.
+  for (const q of ["What is eDPI?", "How do I convert Valorant sensitivity to CS2?", "What is cm/360?"]) await expect(page.locator("section[aria-labelledby=faq] summary", { hasText: q })).toHaveCount(1);
+  await faqMatchesPage(page);
 });
 
 test("team name generator: original names, the blocklist, a badge as PNG and SVG, and Create this team", async ({ page }) => {
   await page.goto("/tools/team-name-generator/");
-  await seoBasics(page, "/tools/team-name-generator/", /Esports team name generator/);
-  const names = page.getByTestId("tn-list").getByRole("radio");
+  await seoBasics(page, "/tools/team-name-generator/", /Team name generator for Free Fire guilds, BGMI teams and clans/);
+  await faqMatchesPage(page);
+  const names = page.getByTestId("tn-pick");
   await expect(names).toHaveCount(8);
   const second = (await names.nth(1).innerText()).trim();
   await names.nth(1).click();
@@ -80,6 +109,51 @@ test("team name generator: original names, the blocklist, a badge as PNG and SVG
   expect(svgText).toContain(">MC</text>");
   expect(svgText).toContain("#A855F7");
   await expect(page.getByRole("link", { name: "Create this team" })).toHaveAttribute("href", "/signup/");
+});
+
+test("team name generator: game presets, a Copy button per name, and stylish versions that keep the plain name", async ({ page, context, browserName }) => {
+  if (browserName === "chromium") await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+  await page.goto("/tools/team-name-generator/");
+  const names = page.getByTestId("tn-pick");
+  await expect(names).toHaveCount(8);
+  await expect(page.getByTestId("tn-stylish")).toHaveCount(0); // off by default on this page
+  await page.getByRole("group", { name: "Game" }).getByRole("button", { name: "Clan" }).click();
+  for (const n of await names.allInnerTexts()) expect(n.trim()).toMatch(/^The |Clan$|^Order of the /);
+  await page.getByRole("group", { name: "Game" }).getByRole("button", { name: "BGMI team" }).click();
+  await expect(names).toHaveCount(8);
+  const first = (await names.first().innerText()).trim();
+  await page.getByRole("button", { name: `Copy ${first}`, exact: true }).click();
+  await expect(page.getByText(`Copied: ${first}`)).toBeVisible();
+  await page.getByLabel("Show stylish versions (fancy letters and symbols)").check();
+  await expect(page.getByTestId("tn-stylish")).toHaveCount(8);
+  await expect(page.getByTestId("tn-style-note")).toContainText("Check it fits in the game");
+  await page.getByRole("group", { name: "Letters" }).getByRole("button", { name: "Small capitals" }).click();
+  await page.getByRole("group", { name: "Symbols" }).getByRole("button", { name: "Stars ★" }).click();
+  const styled = (await page.getByTestId("tn-stylish-text").first().innerText()).trim();
+  expect(styled.startsWith("★") && styled.endsWith("★")).toBe(true);
+  expect(styled).not.toMatch(/[A-Z]/); // small capitals replace the letters
+  await expect(names.first()).toHaveText(first); // the plain name stays next to it
+  await page.getByRole("button", { name: `Copy the stylish version of ${first}` }).click();
+  await expect(page.getByText(`Copied: ${styled}`)).toBeVisible();
+  if (browserName === "chromium") expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(styled);
+});
+
+test("Free Fire guild name page: its own indexable page, the guild preset and stylish versions on, and its own questions", async ({ page }) => {
+  await page.goto("/tools/free-fire-guild-name/");
+  await seoBasics(page, "/tools/free-fire-guild-name/", /Free Fire guild name generator/);
+  await faqMatchesPage(page);
+  await expect(page.getByRole("group", { name: "Game" }).getByRole("button", { name: "Free Fire guild" })).toHaveAttribute("aria-pressed", "true");
+  const names = page.getByTestId("tn-pick");
+  await expect(names).toHaveCount(8);
+  for (const n of await names.allInnerTexts()) expect([...n.trim()].length).toBeLessThanOrEqual(14);
+  await expect(page.getByTestId("tn-stylish")).toHaveCount(8);
+  await expect(page.getByTestId("tn-stylish").first()).toContainText("characters");
+  await expect(page.getByRole("heading", { name: "Will a stylish guild name fit in Free Fire?" })).toBeVisible();
+  // No game limit is claimed anywhere on the page.
+  const text = await page.locator("main").innerText();
+  expect(text).not.toMatch(/(limit|maximum|up to) (is |of )?\d+ characters/i);
+  await expect(page.getByRole("link", { name: "esports team names guide" })).toHaveAttribute("href", "/guides/esports-team-names-ideas/");
+  await expect(page.locator("section[aria-labelledby=related]").getByRole("link", { name: /Team name generator/ })).toHaveAttribute("href", "/tools/team-name-generator/");
 });
 
 test("slot and prize split: slots add up, a prize pool figure splits by percent and by rule, CSV and Share result", async ({ page }) => {
@@ -177,12 +251,12 @@ test("schedule maker: a bracket placed day by day in dependency order, CSV and S
 
 test("the new tools are listed on the tools page, in the sitemap and in llms.txt", async ({ page, request }) => {
   await page.goto("/tools/");
-  for (const [name, href] of [["convert mouse sensitivity", "/tools/sensitivity-converter/"], ["name a team", "/tools/team-name-generator/"], ["split slots or a prize pool", "/tools/prize-split/"], ["write the rules", "/tools/rulebook/"]]) {
+  for (const [name, href] of [["convert sensitivity or work out eDPI", "/tools/sensitivity-converter/"], ["name a team", "/tools/team-name-generator/"], ["name a Free Fire guild", "/tools/free-fire-guild-name/"], ["split slots or a prize pool", "/tools/prize-split/"], ["write the rules", "/tools/rulebook/"]]) {
     await expect(page.getByRole("link", { name: new RegExp(name, "i") })).toHaveAttribute("href", href);
   }
   const sitemap = await (await request.get("/sitemap.xml")).text();
   const llms = await (await request.get("/llms.txt")).text();
-  for (const p of ["sensitivity-converter", "team-name-generator", "prize-split", "rulebook"]) {
+  for (const p of ["sensitivity-converter", "team-name-generator", "free-fire-guild-name", "prize-split", "rulebook"]) {
     expect(sitemap).toContain(`/tools/${p}/`);
     expect(llms).toContain(`/tools/${p}/`);
   }

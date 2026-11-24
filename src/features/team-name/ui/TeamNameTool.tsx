@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Field, describedBy } from "@/features/shared/ui/Fields";
 import { btnPrimary, btnSecondary, input } from "@/features/shared/ui/styles";
-import { COLOURS, NAME_MAX, PATTERNS, SHAPES, THEMES, CREATE_TEAM_HREF } from "@/features/team-name/domain";
+import { COLOURS, FRAMES, LETTERS, NAME_MAX, PATTERNS, PRESETS, SHAPES, THEMES, CREATE_TEAM_HREF, type Preset } from "@/features/team-name/domain";
 import { useTeamName } from "@/features/team-name/hooks/useTeamName";
 
 const step = "space-y-4 border-t border-white/10 pt-6 first:border-t-0 first:pt-0";
@@ -31,22 +31,57 @@ function ColourChips({ label, value, onChange }: { label: string; value: string;
   );
 }
 
-/** Team name and badge generator: names from our own word lists, a blocklist check, and a flat badge to download. Browser only. */
-export default function TeamNameTool() {
-  const t = useTeamName();
+/**
+ * Team name and badge generator: names from our own word lists shaped by a game preset, optional stylish versions (always next to
+ * the plain name), a blocklist check on every output, and a flat badge to download. Browser only.
+ */
+export default function TeamNameTool({ preset, stylish }: { preset?: Preset; stylish?: boolean }) {
+  const t = useTeamName({ preset, stylish });
+  const hint = PRESETS.find((p) => p.id === t.preset)?.hint;
   return (
     <div className="space-y-6">
       <section aria-labelledby="tn-names" className={step}>
-        <h3 id="tn-names" className="font-display text-lg text-zinc-100">1. Pick a theme and a name</h3>
+        <h3 id="tn-names" className="font-display text-lg text-zinc-100">1. Pick a game, a theme and a name</h3>
+        <Chips label="Game" items={PRESETS} value={t.preset} onChange={t.setPreset} />
+        {hint && <p className="text-xs text-zinc-400"><span key={hint}>{hint}</span></p>}
         <Chips label="Theme" items={THEMES} value={t.theme} onChange={t.setTheme} />
-        <div role="radiogroup" aria-label="Name ideas" className="grid gap-2 sm:grid-cols-2" data-testid="tn-list">
-          {t.names.map((n) => (
-            <button key={n} type="button" role="radio" aria-checked={!t.useOwn && t.chosen === n} onClick={() => t.setChosen(n)}
-              className="min-h-11 rounded-lg border border-white/10 bg-surface px-3 text-left text-zinc-100 transition-colors hover:border-white/30 aria-checked:border-cyan-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-400">
-              <span>{n}</span>
-            </button>
-          ))}
+        <div className="space-y-3">
+          <label className="flex min-h-11 items-center gap-2 text-sm text-zinc-100">
+            <input type="checkbox" checked={t.styled} onChange={(e) => t.setStyled(e.target.checked)} className="h-5 w-5 accent-cyan" />
+            Show stylish versions (fancy letters and symbols)
+          </label>
+          {t.styled && (
+            <div className="space-y-3">
+              <Chips label="Letters" items={LETTERS} value={t.letters} onChange={t.setLetters} />
+              <Chips label="Symbols" items={FRAMES} value={t.frame} onChange={t.setFrame} />
+              <p className="text-xs leading-5 text-zinc-400" data-testid="tn-style-note">
+                Check it fits in the game before you use it. We could not find a reliable published rule for which symbols or how many characters Free Fire, BGMI or other games accept in a guild or team name, so the plain name stays next to every stylish one. Some phones show a symbol they do not have as an empty box.
+              </p>
+            </div>
+          )}
         </div>
+        <ul className="grid gap-2 sm:grid-cols-2" aria-label="Name ideas" data-testid="tn-list">
+          {t.rows.map((row) => {
+            const on = !t.useOwn && t.chosen === row.name;
+            return (
+              <li key={row.name} className={`space-y-2 rounded-lg border bg-surface p-2 ${on ? "border-cyan-400" : "border-white/10"}`}>
+                <div className="flex items-center gap-2">
+                  <button type="button" aria-pressed={on} onClick={() => t.setChosen(row.name)} data-testid="tn-pick"
+                    className="min-h-11 flex-1 rounded-md px-2 text-left text-zinc-100 transition-colors hover:bg-white/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-400">
+                    <span>{row.name}</span>
+                  </button>
+                  <button type="button" className="chip" aria-label={`Copy ${row.name}`} onClick={() => t.copy(row.name)}>Copy</button>
+                </div>
+                {row.stylish && (
+                  <div className="flex items-center gap-2 border-t border-white/10 pt-2" data-testid="tn-stylish">
+                    <span className="min-w-0 flex-1 break-all px-2 text-zinc-100"><span key={row.stylish} data-testid="tn-stylish-text">{row.stylish}</span> <span className="whitespace-nowrap text-xs text-zinc-400"><span key={row.chars}>{row.chars}</span> characters</span></span>
+                    <button type="button" className="chip" aria-label={`Copy the stylish version of ${row.name}`} onClick={() => t.copy(row.stylish)}>Copy</button>
+                  </div>
+                )}
+              </li>
+            );
+          })}
+        </ul>
         <div className="flex flex-wrap gap-3">
           <button type="button" className={btnSecondary} onClick={t.roll}>More names</button>
         </div>

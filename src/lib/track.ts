@@ -21,6 +21,9 @@ export const TOOL_IDS = [
 ] as const;
 export type ToolId = (typeof TOOL_IDS)[number];
 
+/** Tool pages that are another tool with a preset, and the tool id they report as. The backend list does not need to know them. */
+export const TOOL_PAGE_ALIASES: Record<string, ToolId> = { "free-fire-guild-name": "team-name-generator" };
+
 /** localStorage key of the privacy-page switch (a plain boolean; "1" means the visitor opted out). */
 export const TRACK_OFF_KEY = "eh_track_off";
 

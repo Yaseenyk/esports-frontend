@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 process.env.NEXT_PUBLIC_API_URL = "https://api.example.test";
-const { sendEvent, trackingAllowed, beaconBody, resetTrackForTests, TOOL_IDS, TRACK_OFF_KEY } = await import("../src/lib/track.ts");
+const { sendEvent, trackingAllowed, beaconBody, resetTrackForTests, TOOL_IDS, TOOL_PAGE_ALIASES, TRACK_OFF_KEY } = await import("../src/lib/track.ts");
 const { TOOL_PAGES } = await import("../src/lib/tool-pages.ts");
 
 /** Installs a fake browser; returns what was sent. */
@@ -80,6 +80,7 @@ test("never throws, even when storage or the beacon API throws", () => {
   assert.doesNotThrow(() => sendEvent("tool_complete", "poster"));
 });
 
-test("the tool id list is the keys of TOOL_PAGES", () => {
-  assert.deepEqual([...TOOL_IDS].sort(), Object.keys(TOOL_PAGES).sort());
+test("the tool id list is the keys of TOOL_PAGES, less the preset pages that report as another tool", () => {
+  assert.deepEqual([...TOOL_IDS].sort(), Object.keys(TOOL_PAGES).filter((k) => !(k in TOOL_PAGE_ALIASES)).sort());
+  for (const [page, id] of Object.entries(TOOL_PAGE_ALIASES)) { assert.ok(TOOL_PAGES[page], page); assert.ok(TOOL_IDS.includes(id), id); }
 });
