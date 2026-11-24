@@ -51,11 +51,12 @@ for (const [path, game] of [["/points-table/bgmi/", "BGMI"], ["/points-table/fre
   });
 }
 
-test("the Portuguese Free Fire points table is in Portuguese, noindex, linked by hreflang and computes the same table", async ({ page }) => {
+test("the Portuguese Free Fire points table is in Portuguese, indexable after native review, linked by hreflang and computes the same table", async ({ page }) => {
   await page.goto("/pt-br/points-table/free-fire/");
   await expect(page.locator("html")).toHaveAttribute("lang", "pt-BR");
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Tabela de pontos de Free Fire");
-  await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
+  // approved by a native Brazilian Portuguese reader on 24 Nov 2026 (PT_BR_REVIEWED in src/lib/pt-br.ts)
+  await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /^index, follow$/);
   await expect(page.locator('link[rel=alternate][hreflang="en"]')).toHaveAttribute("href", /\/points-table\/free-fire\/$/);
   await expect(page.locator('link[rel=alternate][hreflang="x-default"]')).toHaveAttribute("href", /\/points-table\/free-fire\/$/);
   await expect(page.getByTestId("preset-note")).toContainText("Apenas um exemplo");
@@ -71,11 +72,11 @@ test("the Portuguese Free Fire points table is in Portuguese, noindex, linked by
   expect(ld.find((x: { "@type"?: string }) => x["@type"] === "SoftwareApplication")?.inLanguage).toBe("pt-BR");
 });
 
-test("the Portuguese team names guide is noindex with hreflang, and the English guide links back", async ({ page }) => {
+test("the Portuguese team names guide is indexable after native review, with hreflang, and the English guide links back", async ({ page }) => {
   await page.goto("/pt-br/guides/free-fire-team-names-ideas/");
   await expect(page.locator("html")).toHaveAttribute("lang", "pt-BR");
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Nomes para time de Free Fire");
-  await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
+  await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /^index, follow$/);
   await expect(page.locator('link[rel=alternate][hreflang="pt-BR"]')).toHaveAttribute("href", /\/pt-br\/guides\/free-fire-team-names-ideas\/$/);
   await page.goto("/guides/free-fire-team-names-ideas/");
   await expect(page.locator("html")).toHaveAttribute("lang", "en");

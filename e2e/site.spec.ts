@@ -342,12 +342,16 @@ test("the home page keeps its motion and imagery, and the content is in the page
   // What a person sees: the game strip, the floating game icons and the animated hero cards arrive after the page has settled.
   await page.goto("/");
   await expect(page.locator(".marquee-track")).toHaveCount(1);
-  await expect(page.locator("img[src*='/games/']").first()).toBeAttached();
+  // Since 19 Nov 2026 the games are the site's own drawn badges, not publishers' icons (no /games/ images).
+  await expect(page.locator(".marquee-track span[aria-hidden='true']").first()).toBeAttached();
+  expect(await page.locator("img[src*='/games/']").count()).toBe(0);
   await page.waitForLoadState("networkidle");
   if ((page.viewportSize()?.width ?? 0) >= 1024) {
     await expect(page.locator(".hero-art")).toBeVisible({ timeout: 10_000 });
     expect(await page.locator(".hero-art .animate-float").count()).toBeGreaterThanOrEqual(6);
-    expect(await page.locator(".hero-art img").count()).toBeGreaterThanOrEqual(4);
+    // Two real ID card photos, plus four game badges. Since 19 Nov 2026 the badges are our own drawn spans, not publishers' icon images.
+    expect(await page.locator(".hero-art img").count()).toBeGreaterThanOrEqual(2);
+    expect(await page.locator(".hero-art span[aria-hidden='true']").count()).toBeGreaterThanOrEqual(4);
   }
 });
 
