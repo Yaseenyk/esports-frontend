@@ -128,6 +128,18 @@ test("the app sends a signed-out visitor to sign in and brings them back afterwa
   await expect(page.getByRole("heading", { name: "Bracket maker" })).toBeVisible();
 });
 
+test("the sign-in redirect keeps the screen's query string (?id=) so the event survives sign-in", async ({ page }) => {
+  await preflight(page);
+  await page.route("**/esports-api.yaseenyk.workers.dev/auth/login", (r) => r.fulfill(json({ token: "t", user: { id: "u", email: "a@example.com", name: "Asha Test" } })));
+  await page.route("**/esports-api.yaseenyk.workers.dev/events", (r) => r.fulfill(json([])));
+  await page.goto("/app/brackets/?id=7");
+  await expect(page).toHaveURL(/\/login\/\?next=%2Fapp%2Fbrackets%2F%3Fid%3D7$/);
+  await page.getByLabel("Email").fill("a@example.com");
+  await page.getByLabel("Password").fill("correct horse");
+  await page.getByRole("button", { name: "Sign in", exact: true }).last().click();
+  await expect(page).toHaveURL(/\/app\/brackets\/\?id=7$/);
+});
+
 test("a return address outside the app is ignored after sign-in", async ({ page }) => {
   await preflight(page);
   await page.route("**/esports-api.yaseenyk.workers.dev/auth/login", (r) => r.fulfill(json({ token: "t", user: { id: "u", email: "a@example.com", name: "Asha Test" } })));

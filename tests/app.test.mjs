@@ -1,7 +1,7 @@
 // The web app's pure logic: sign-in return address, saved session, error wording, request client edge cases, IDs and CSV safety.
 import test from "node:test";
 import assert from "node:assert/strict";
-import { safeNext } from "../src/lib/safe-next.ts";
+import { safeNext, returnTo, authHref } from "../src/lib/safe-next.ts";
 import { parseSession, authMessage, explain, gateQueueKey } from "../src/lib/api/cloud.ts";
 import { createClient, ApiError } from "../src/lib/api/client.ts";
 import { createBatchQueue } from "../src/lib/api/queue.ts";
@@ -20,6 +20,24 @@ test("safeNext keeps paths inside the app and drops everything else", () => {
   assert.equal(safeNext("/app/events/?id=e1"), "/app/events/?id=e1");
   assert.equal(safeNext("/app/brackets/"), "/app/brackets/");
   for (const bad of [null, "", "https://evil.example/", "//evil.example/app/", "/app//evil.example", "/login/", "/app/../admin", "javascript:alert(1)", "/app/\\evil", "app/x", "/application/", "/app/x#<script>"]) assert.equal(safeNext(bad), "/app/", String(bad));
+});
+
+test("the return address keeps the query string (event id) and stays same-origin", () => {
+  assert.equal(safeNext("/app/recap/?id=1"), "/app/recap/?id=1");
+  assert.equal(safeNext("/app/screenshot-results/?id=12&step=2"), "/app/screenshot-results/?id=12&step=2");
+  assert.equal(returnTo("/app/recap/", "?id=1"), "/app/recap/?id=1");
+  assert.equal(returnTo("/app/recap/", "id=1"), "/app/recap/?id=1");
+  assert.equal(returnTo("/app/recap/", ""), "/app/recap/");
+  assert.equal(returnTo("/app/recap/", "?"), "/app/recap/");
+  // a query cannot smuggle another host or a script in
+  assert.equal(returnTo("/app/recap/", "?next=//evil.example"), "/app/");
+  assert.equal(returnTo("/app/recap/", "?x=<script>"), "/app/");
+  for (const bad of ["//evil.example", "//evil.example/app/?id=1", "https://evil.example/app/?id=1", "http:/app/", "/\evil.example", "%2F%2Fevil.example"]) assert.equal(safeNext(bad), "/app/", bad);
+  assert.equal(authHref("login", "/app/recap/?id=1"), "/login/?next=%2Fapp%2Frecap%2F%3Fid%3D1");
+  assert.equal(authHref("signup", "/app/recap/?id=1"), "/signup/?next=%2Fapp%2Frecap%2F%3Fid%3D1");
+  assert.equal(authHref("login", "/app/rooms/", true), "/login/?next=%2Fapp%2Frooms%2F&expired=1");
+  assert.equal(authHref("signup", "https://evil.example/"), "/signup/?next=%2Fapp%2F");
+  assert.equal(authHref("login", "//evil.example"), "/login/?next=%2Fapp%2F");
 });
 
 // ---- saved session ----

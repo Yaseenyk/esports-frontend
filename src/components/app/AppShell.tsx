@@ -12,6 +12,7 @@ import VerifyScreen from "@/components/auth/VerifyScreen";
 import { useOrg } from "@/components/org/OrgContext";
 import { orgNav } from "@/lib/org";
 import { v3Enabled } from "@/features/shared/flags";
+import { authHref, returnTo } from "@/lib/safe-next";
 
 // The app uses the same floating pill and honeycomb menu as the public home page (HubNav); only the entries differ.
 const TABS: Section[] = [
@@ -53,7 +54,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!ready || session) return;
     const why = sessionStore.endedBy();
-    router.replace(why === "deleted" ? "/" : why === "signed-out" ? "/login/" : `/login/?next=${encodeURIComponent(path)}${why === "expired" ? "&expired=1" : ""}`);
+    // The query is part of the return address: /app/recap/?id=1 must come back with its event id.
+    router.replace(why === "deleted" ? "/" : why === "signed-out" ? "/login/" : authHref("login", returnTo(path, window.location.search), why === "expired"));
   }, [ready, session, path, router]);
 
   if (!ready || !session) {
