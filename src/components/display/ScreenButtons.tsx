@@ -16,7 +16,7 @@ import type { UiLang } from "@/lib/pt-br";
  * "Show it on a TV or stream" for a tool, as the last, optional step. The main button opens a clean full-screen view; the look
  * (14 designs) and the OBS options are tucked away until someone wants them, so the step stays simple for a first-time visitor.
  */
-export default function ScreenButtons({ payload, what, step, lang = "en" }: { payload: Payload | null; what: string; step: number; lang?: UiLang }) {
+export default function ScreenButtons({ payload, what, step, lang = "en", path }: { payload: Payload | null; what: string; step: number; lang?: UiLang; /** The tool page, for the address on share pictures. */ path?: string }) {
   const s = useScreen(payload);
   const [msg, setMsg] = useState("");
   const T = toolCopy(lang), c = T.screen;
@@ -39,7 +39,7 @@ export default function ScreenButtons({ payload, what, step, lang = "en" }: { pa
           </div>
         </details>
         <SponsorEditor value={s.extras} onChange={s.setExtras} lang={lang} />
-        <ShareCardButtons payload={s.payload} what={what} theme={s.opts.theme} extras={s.extras} lang={lang} />
+        <ShareCardButtons payload={s.payload} what={what} theme={s.opts.theme} extras={s.extras} lang={lang} path={path} />
         <PublishToLive payload={payload} what={what} lang={lang} />
         <p role="status" aria-live="polite" className={`min-h-5 text-xs ${msg === c.copied ? "text-emerald-300" : "text-amber-200"}`}>{msg}</p>
       </ToolStep>

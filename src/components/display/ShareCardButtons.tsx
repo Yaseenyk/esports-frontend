@@ -3,24 +3,25 @@
 import { useState } from "react";
 import type { Extras, Payload } from "@/lib/display";
 import { cardFontVars } from "@/components/idcard/fonts";
-import { renderShareCard, shareFileName, shareText, whatsappLink, type ShareFormat } from "@/lib/share-cards";
+import { footerLine, renderShareCard, shareFileName, shareText, whatsappLink, type ShareFormat } from "@/lib/share-cards";
 import { shareOrDownload } from "./shareFile";
 import { toolCopy } from "@/lib/tool-copy";
 import type { UiLang } from "@/lib/pt-br";
 
 /** Turns what a tool shows into a picture (a post or a story) or a message for WhatsApp. The look is the same design as the screen. */
-export default function ShareCardButtons({ payload, what, theme, extras, lang = "en" }: { payload: Payload | null; what: string; theme: string; extras?: Extras; lang?: UiLang }) {
+export default function ShareCardButtons({ payload, what, theme, extras, lang = "en", path }: { payload: Payload | null; what: string; theme: string; extras?: Extras; lang?: UiLang; /** The tool page the result came from; its address goes on the picture and in the message. */ path?: string }) {
   const c = toolCopy(lang).share;
   const [format, setFormat] = useState<ShareFormat>("square");
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
-  const text = () => (payload ? shareText(payload, { extras }) : "");
+  const footer = footerLine(path, lang);
+  const text = () => (payload ? shareText(payload, { extras, footer }) : "");
 
   const share = async () => {
     if (!payload || busy) return;
     setBusy(true); setMsg(null);
     try {
-      const blob = await renderShareCard(payload, { format, theme, extras, fontClass: cardFontVars });
+      const blob = await renderShareCard(payload, { format, theme, extras, fontClass: cardFontVars, footer });
       const r = await shareOrDownload(blob, shareFileName(payload.d.title || what, format), payload.d.title || what);
       setMsg(r === "cancelled" ? null : { ok: true, text: r === "shared" ? c.shared : c.saved(format === "square") });
     } catch (e) { setMsg({ ok: false, text: e instanceof Error ? e.message : c.failed }); }

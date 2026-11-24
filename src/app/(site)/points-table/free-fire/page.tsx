@@ -12,5 +12,5 @@ export const metadata: Metadata = {
 };
 
 export default function Page() {
-  return <><PortugueseOffer href={PT_BR_PAGES[t.path]!} /><ToolLanding t={t}><PointsTable preset={t.preset} /></ToolLanding></>;
+  return <><PortugueseOffer href={PT_BR_PAGES[t.path]!} /><ToolLanding t={t}><PointsTable preset={t.preset} path={t.path} /></ToolLanding></>;
 }

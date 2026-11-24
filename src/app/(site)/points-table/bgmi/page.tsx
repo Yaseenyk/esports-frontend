@@ -10,5 +10,5 @@ export const metadata: Metadata = {
 };
 
 export default function Page() {
-  return <ToolLanding t={t}><PointsTable preset={t.preset} /></ToolLanding>;
+  return <ToolLanding t={t}><PointsTable preset={t.preset} path={t.path} /></ToolLanding>;
 }

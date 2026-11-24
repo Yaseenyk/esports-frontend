@@ -10,6 +10,8 @@ import {
   MAX_TEAMS, MIN_TEAMS, TIE_BREAK_TEXT, buildKnockout, clampSettings, defaultSettings, groupFixtures, groupMatchCount, groupTablesView, knockoutView,
   playKnockout, qualifiers, splitGroups, standings, togglePick, type GroupResult, type Picks, type StageSettings,
 } from "@/lib/stages";
+import ShareResult from "@/features/share-result/ui/ShareResult";
+import { TOOL_PATHS } from "@/features/share-result/domain";
 import BracketTree from "./BracketTree";
 import SettingsFields from "./SettingsFields";
 
@@ -19,7 +21,7 @@ const num = (v: string): number | null => { if (v.trim() === "") return null; co
 const key = (g: string, a: string, b: string) => `${g}\u0001${a}\u0001${b}`;
 
 /** Five steps, all in the browser: add teams, choose groups, enter group scores, see the knockout, optionally put it on a TV. */
-export default function GroupsTool() {
+export default function GroupsTool({ path = TOOL_PATHS.groups }: { /** The page the tool is on, for the address on share pictures. */ path?: string } = {}) {
   const [text, setText] = useState(EXAMPLE.join("\n"));
   const [custom, setCustom] = useState<StageSettings | null>(null);
   const [scores, setScores] = useState<Record<string, Score>>({});
@@ -58,6 +60,10 @@ export default function GroupsTool() {
     if (!ready) return null;
     return screen === "groups" ? groupTablesView(tables) : ko.matches.length ? knockoutView(ko, picks) : null;
   }, [ready, screen, tables, ko, picks]);
+
+  // The two results shared straight from their steps, whatever the screen shows.
+  const tablesPayload = useMemo(() => (ready ? groupTablesView(tables) : null), [ready, tables]);
+  const knockoutPayload = useMemo(() => (ready && ko.matches.length ? knockoutView(ko, picks) : null), [ready, ko, picks]);
 
   const setScore = (g: string, a: string, b: string, side: "a" | "b", v: string) => setScores((s) => ({ ...s, [key(g, a, b)]: { ...(s[key(g, a, b)] ?? { a: null, b: null }), [side]: num(v) } }));
   const shuffle = () => { const a = [...all]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j]!, a[i]!]; } setText(a.join("\n")); };
@@ -139,6 +145,7 @@ export default function GroupsTool() {
           </div>
         )}
         {ready && <p className="text-xs leading-5 text-zinc-400">P = played, W = won, D = drawn, L = lost, Diff = scores made minus scores conceded, Pts = points (3 for a win, 1 for a draw, 0 for a loss). {TIE_BREAK_TEXT}</p>}
+        {ready && scored > 0 && <ShareResult payload={tablesPayload} what="group tables" path={path} label="Share result for the groups" />}
       </ToolStep>
 
       <ToolStep n={4} id="gk-knockout" title="See the knockout bracket" done={Boolean(played.champion)}
@@ -149,6 +156,7 @@ export default function GroupsTool() {
           <p className="text-sm text-zinc-300">{ko.sameGroupFirstRound === 0 ? "Teams from the same group do not meet in the first round. " : "Some first-round matches are between teams of the same group because the numbers leave no other way. "}{ko.byes > 0 ? `${ko.byes} team${ko.byes === 1 ? " has" : "s have"} a bye: they go straight to the next round without playing.` : ""}</p>
           <p className="text-xs text-zinc-400 sm:hidden">Swipe sideways to see every round.</p>
           <BracketTree matches={played.matches} roundNames={ko.roundNames} champion={played.champion} onPick={groupsDone ? pick : undefined} />
+          <ShareResult payload={knockoutPayload} what="knockout bracket" path={path} label="Share result for the knockout" />
         </>}
       </ToolStep>
 
@@ -160,7 +168,7 @@ export default function GroupsTool() {
           ))}
         </div>
       </fieldset>}
-      <ScreenButtons payload={payload} what={screen === "groups" ? "group tables" : "knockout bracket"} step={5} />
+      <ScreenButtons payload={payload} what={screen === "groups" ? "group tables" : "knockout bracket"} step={5} path={path} />
     </div>
   );
 }

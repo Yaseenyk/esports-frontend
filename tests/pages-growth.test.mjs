@@ -4,14 +4,14 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import { TOOL_PAGES } from "../src/lib/tool-pages.ts";
-import { GAME_PAGES } from "../src/lib/game-pages.ts";
+import { ALL_GAME_PAGES, GAME_PAGES, VALORANT_PAGE } from "../src/lib/game-pages.ts";
 import { COMPARE_DESCRIPTION, COMPARE_FAQ, COMPARE_LEAD, COMPARE_PATH, COMPARE_TITLE, COMPETITORS, CHECKED } from "../src/lib/compare.ts";
 import { GROWTH_PAGES } from "../src/lib/growth-pages.ts";
 import { GUIDES } from "../src/content/guides.ts";
 import { TOOLS } from "../src/lib/data.ts";
 
 const read = (p) => fs.readFileSync(new URL(`../${p}`, import.meta.url), "utf8");
-const toolPages = Object.values(TOOL_PAGES), gamePages = Object.values(GAME_PAGES);
+const toolPages = Object.values(TOOL_PAGES), gamePages = ALL_GAME_PAGES, brPages = Object.values(GAME_PAGES);
 const withMeta = [
   ...toolPages.map((p) => ({ id: `/tools/${p.slug}/`, title: p.title, description: p.description, faq: p.faq })),
   ...gamePages.map((p) => ({ id: p.path, title: p.title, description: p.description, faq: p.faq })),
@@ -35,7 +35,7 @@ test("each rewritten title starts with the keyword the page targets", () => {
   const starts = {
     "/tools/poster/": "Tournament poster maker", "/tools/points-table/": "Points table maker", "/tools/schedule/": "Free fixture maker",
     "/tools/round-robin/": "Round robin tournament", "/tools/brackets/": "Free tournament bracket", "/tools/check-in/": "QR code attendance",
-    "/tools/display-screen/": "Online scoreboard", "/points-table/bgmi/": "BGMI points table", "/points-table/free-fire/": "Free Fire points table",
+    "/tools/display-screen/": "Online scoreboard", "/points-table/bgmi/": "BGMI points table", "/points-table/free-fire/": "Free Fire points table", "/points-table/cod-mobile/": "COD Mobile points table", "/points-table/valorant/": "Valorant points table",
     [COMPARE_PATH]: "Free tournament software",
   };
   for (const [id, start] of Object.entries(starts)) { const p = withMeta.find((x) => x.id === id); assert.ok(p, id); assert.ok(p.title.startsWith(start), `${id}: "${p.title}" should start with "${start}"`); }
@@ -65,11 +65,12 @@ test("the poster tool is in TOOLS with a page entry, a route and a sitemap place
 });
 
 test("the game pages live outside the noindex group at their own routes and name an example scale", () => {
-  assert.deepEqual(Object.values(GAME_PAGES).map((g) => g.path).sort(), ["/points-table/bgmi/", "/points-table/free-fire/"]);
+  assert.deepEqual(ALL_GAME_PAGES.map((g) => g.path).sort(), ["/points-table/bgmi/", "/points-table/cod-mobile/", "/points-table/free-fire/", "/points-table/valorant/"]);
   for (const g of gamePages) {
     assert.ok(fs.existsSync(new URL(`../src/app/(site)${g.path}page.tsx`, import.meta.url)), g.path);
     assert.ok(!/^\/(games|events|communities|manage|arcade|live|display)\//.test(g.path));
-    assert.ok(g.lead.toLowerCase().includes("example"), `${g.path} lead should say the scale is an example`);
+    if (g === VALORANT_PAGE) assert.ok(/not an official rule/.test(g.lead), "the Valorant lead should say the points are not an official rule");
+    else assert.ok(g.lead.toLowerCase().includes("example"), `${g.path} lead should say the scale is an example`);
     assert.ok(g.lead.length >= 120 && g.steps.length >= 4 && g.benefits.length === 3);
     assert.ok(g.faq.some((f) => /official/i.test(f.q)), `${g.path} should have a question about what is official`);
   }
@@ -174,7 +175,8 @@ test("SEO pass 12 Nov: the student page, related links, game tables and the home
   assert.ok(GROWTH_PAGES.some((p) => p.path === STUDENT_PATH));
   const real = new Set(["/tools/", ...TOOLS.map((t) => t.href), ...GROWTH_PAGES.map((p) => p.path)]);
   for (const p of [...toolPages, ...gamePages, STUDENT_PAGE]) for (const r of p.related ?? []) assert.ok(real.has(r.href), `${p.slug} links to missing page ${r.href}`);
-  for (const g of gamePages) assert.ok(g.table && g.table.rows.length >= 6 && /not the official scale/.test(g.table.caption), g.path);
+  for (const g of brPages) assert.ok(g.table && g.table.rows.length >= 6 && /not (the|an) official scale/.test(g.table.caption), g.path);
+  assert.ok(VALORANT_PAGE.table && /editable/.test(VALORANT_PAGE.table.caption));
   assert.ok(TOOL_PAGES["points-table"].related.some((r) => r.href === "/points-table/bgmi/") && TOOL_PAGES["points-table"].related.some((r) => r.href === "/points-table/free-fire/"));
   assert.ok(/generator/i.test(TOOL_PAGES["brackets"].title) && /generator/i.test(TOOL_PAGES["brackets"].h1));
   assert.ok(read("src/app/(site)/page.tsx").includes("India") && read("src/app/layout.tsx").includes("for India"));

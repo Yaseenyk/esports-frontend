@@ -1,6 +1,7 @@
 import type { BracketData, Extras, Payload } from "./display";
 import { remaining } from "./display";
 import { contrast, fontCss, themeById, type DisplayTheme } from "./display-themes";
+import { SITE_URL } from "./site";
 
 /**
  * Share cards: a standings table, schedule, bracket or countdown (or a winners poster) drawn as a PNG for WhatsApp, Instagram and the like.
@@ -10,6 +11,22 @@ import { contrast, fontCss, themeById, type DisplayTheme } from "./display-theme
 export type ShareFormat = "square" | "story";
 export const SIZES: Record<ShareFormat, { w: number; h: number }> = { square: { w: 1080, h: 1080 }, story: { w: 1080, h: 1920 } };
 export const FOOTER_TEXT = "Made with Esports Hub";
+/** The site's address as people read it on a picture: no https, no www. */
+export const SITE_HOST = SITE_URL.replace(/^https?:\/\//, "").replace(/\/+$/, "");
+
+/** A tool page's address without https or the closing slash, for example "esports.streamerosai.com/points-table/free-fire". */
+export function toolLink(path?: string): string {
+  const p = (path ?? "").trim().replace(/[?#].*$/, "").replace(/\/+$/, "");
+  return p && p.startsWith("/") ? `${SITE_HOST}${p}` : SITE_HOST;
+}
+
+/**
+ * The line at the bottom of every share picture and message: who made it and the tool page the result came from, so a person who sees
+ * the picture in a group can open the same tool. "Feito com" on the Portuguese page.
+ */
+export function footerLine(path?: string, lang: "en" | "pt-BR" = "en"): string {
+  return `${lang === "pt-BR" ? "Feito com Esports Hub" : FOOTER_TEXT} · ${toolLink(path)}`;
+}
 
 // ---------------------------------------------------------------- pure helpers
 
@@ -109,7 +126,7 @@ const countdownWords = (at: string, now: number) => {
  * A plain-text version of a view, ready to paste into WhatsApp: a bold title (the asterisks WhatsApp understands), one line per row,
  * at most one trophy. Long tables stop after `maxRows` with a "+N more" line.
  */
-export function shareText(p: Payload, o: { title?: string; extras?: Extras; now?: number; maxRows?: number } = {}): string {
+export function shareText(p: Payload, o: { title?: string; extras?: Extras; now?: number; maxRows?: number; /** The last line (see footerLine). */ footer?: string } = {}): string {
   const maxRows = o.maxRows ?? 16, lines: string[] = [];
   const title = flat(o.title ?? p.d.title ?? "");
   if (p.v === "table") {
@@ -145,7 +162,7 @@ export function shareText(p: Payload, o: { title?: string; extras?: Extras; now?
   const x = o.extras ?? p.x;
   if (x?.ticker?.length) { lines.push(""); x.ticker.forEach((t) => lines.push(flat(t))); }
   if (x?.sponsors?.length) { lines.push(""); lines.push(`Sponsors: ${x.sponsors.map((s) => flat(s.name)).join(", ")}`); }
-  lines.push(""); lines.push(FOOTER_TEXT);
+  lines.push(""); lines.push(o.footer ?? footerLine());
   return lines.join("\n").replace(/\n{3,}/g, "\n\n").trim();
 }
 
@@ -154,13 +171,13 @@ export const whatsappLink = (text: string) => `https://wa.me/?text=${encodeURICo
 
 export interface WinnersData { title: string; first: string; second?: string; third?: string; event?: string }
 /** The winners as a plain-text message. */
-export function winnersText(d: WinnersData): string {
-  return [`🏆 *${flat(d.title)}*`, d.event ? flat(d.event) : "", "", `1st: ${flat(d.first)}`, d.second ? `2nd: ${flat(d.second)}` : "", d.third ? `3rd: ${flat(d.third)}` : "", "", FOOTER_TEXT].filter((l, i, a) => l !== "" || (i > 0 && a[i - 1] !== "")).join("\n").trim();
+export function winnersText(d: WinnersData, footer = footerLine()): string {
+  return [`🏆 *${flat(d.title)}*`, d.event ? flat(d.event) : "", "", `1st: ${flat(d.first)}`, d.second ? `2nd: ${flat(d.second)}` : "", d.third ? `3rd: ${flat(d.third)}` : "", "", footer].filter((l, i, a) => l !== "" || (i > 0 && a[i - 1] !== "")).join("\n").trim();
 }
 
 // ---------------------------------------------------------------- drawing (browser only)
 
-interface Opts { format: ShareFormat; theme: string; title?: string; extras?: Extras; /** A class that defines the font variables (the card fonts), so the right fonts can be found. */ fontClass?: string }
+interface Opts { format: ShareFormat; theme: string; title?: string; extras?: Extras; /** A class that defines the font variables (the card fonts), so the right fonts can be found. */ fontClass?: string; /** The bottom line with the site link (see footerLine). */ footer?: string }
 interface Cx { g: CanvasRenderingContext2D; t: DisplayTheme; W: number; H: number; m: number; fam: string; vmin: number }
 
 const medalInk = (medal: string) => (contrast(medal, "#0b0b0b") >= 4.5 ? "#0b0b0b" : "#ffffff");
@@ -259,10 +276,13 @@ function drawHeader(c: Cx, title: string, subtitle?: string): number {
 const loadImage = (src: string) => new Promise<HTMLImageElement | null>((res) => { const im = new Image(); im.onload = () => res(im); im.onerror = () => res(null); im.src = src; });
 
 /** Draws the ticker line, the sponsors and the footer at the bottom. Returns the y where the body must stop. */
-async function drawBottom(c: Cx, x?: Extras): Promise<number> {
+async function drawBottom(c: Cx, x?: Extras, footer = footerLine()): Promise<number> {
   const { g, t, W, H, m } = c;
   let y = H - m;
-  font(c, 24, 500); g.fillStyle = t.soft; g.textAlign = "right"; g.textBaseline = "bottom"; g.fillText(FOOTER_TEXT, W - m, y); g.textAlign = "left";
+  // The footer carries the tool's address, so it must stay whole: the font shrinks a little before anything is cut.
+  let fs = 24; font(c, fs, 500);
+  while (fs > 18 && width(c, footer) > W - 2 * m) { fs -= 1; font(c, fs, 500); }
+  g.fillStyle = t.soft; g.textAlign = "right"; g.textBaseline = "bottom"; g.fillText(fitText(footer, W - 2 * m, (s) => width(c, s)), W - m, y); g.textAlign = "left";
   y -= 38;
   const sponsors = x?.sponsors ?? [];
   if (sponsors.length) {
@@ -404,7 +424,7 @@ export async function renderShareCard(payload: Payload, opts: Opts): Promise<Blo
   const title = opts.title ?? payload.d.title ?? "";
   const subtitle = payload.v === "table" ? payload.d.subtitle : payload.v === "schedule" ? payload.d.date : payload.v === "countdown" ? payload.d.subtitle : undefined;
   const top = drawHeader(c, title || "Esports Hub", subtitle || undefined);
-  const bottom = (await drawBottom(c, x)) - 10;
+  const bottom = (await drawBottom(c, x, opts.footer)) - 10;
   if (payload.v === "table") drawTable(c, payload.d, top, bottom);
   else if (payload.v === "schedule") drawSchedule(c, payload.d, top, bottom);
   else if (payload.v === "countdown") drawCountdown(c, payload.d, top, bottom);
@@ -413,11 +433,11 @@ export async function renderShareCard(payload: Payload, opts: Opts): Promise<Blo
 }
 
 /** Draws the winners poster: the champion large, then second and third. */
-export async function renderWinnersCard(data: WinnersData, opts: { format: ShareFormat; theme: string; fontClass?: string }): Promise<Blob> {
+export async function renderWinnersCard(data: WinnersData, opts: { format: ShareFormat; theme: string; fontClass?: string; footer?: string }): Promise<Blob> {
   const { c, canvas } = await begin(opts.format, opts.theme, opts.fontClass);
   const { g, t, W, m } = c;
   const top = drawHeader(c, data.title || "Winners", data.event);
-  const bottom = (await drawBottom(c, undefined)) - 10;
+  const bottom = (await drawBottom(c, undefined, opts.footer)) - 10;
   const places = [data.first, data.second, data.third].map((n, i) => ({ n, i })).filter((p): p is { n: string; i: number } => Boolean(p.n));
   const gap = 24, heights = places.map((p) => (p.i === 0 ? 1.7 : 1)), unit = (bottom - top - gap * (places.length - 1)) / heights.reduce((a, b) => a + b, 0);
   let y = top; const inner = W - 2 * m;

@@ -2,7 +2,7 @@ import fs from "node:fs";
 import { expect, test } from "@playwright/test";
 import { appNav, json, preflight, signedIn } from "./helpers";
 
-const PAGES = ["/", "/games/", "/events/", "/communities/", "/arcade/", "/guides/", "/tools/", "/tools/id-cards/", "/tools/check-in/", "/tools/brackets/", "/tools/points-table/", "/tools/round-robin/", "/tools/double-elimination/", "/tools/display-screen/", "/tools/registration/", "/tools/schedule/", "/tools/plan/", "/tools/poster/", "/points-table/bgmi/", "/points-table/free-fire/", "/compare/free-tournament-software-india/", "/tools/certificates/", "/manage/", "/login/", "/signup/", "/gate/", "/about/", "/privacy/", "/terms/", "/contact/", "/guides/points-table/", "/guides/run-a-campus-tournament/"];
+const PAGES = ["/", "/games/", "/events/", "/communities/", "/arcade/", "/guides/", "/tools/", "/tools/id-cards/", "/tools/check-in/", "/tools/brackets/", "/tools/points-table/", "/tools/round-robin/", "/tools/double-elimination/", "/tools/display-screen/", "/tools/registration/", "/tools/schedule/", "/tools/plan/", "/tools/poster/", "/points-table/bgmi/", "/points-table/free-fire/", "/points-table/cod-mobile/", "/points-table/valorant/", "/compare/free-tournament-software-india/", "/tools/certificates/", "/manage/", "/login/", "/signup/", "/gate/", "/about/", "/privacy/", "/terms/", "/contact/", "/guides/points-table/", "/guides/run-a-campus-tournament/"];
 
 for (const path of PAGES) {
   test(`${path} loads with no errors and no sideways scroll`, async ({ page }) => {

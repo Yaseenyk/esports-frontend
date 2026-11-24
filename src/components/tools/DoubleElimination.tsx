@@ -9,13 +9,15 @@ import { build, champion as championOf, isPlayable, setPick, slots, type Match, 
 import { uniqueTeams } from "@/lib/seeding";
 import TeamsInput from "./TeamsInput";
 import ToolStep from "./ToolStep";
+import ShareResult from "@/features/share-result/ui/ShareResult";
+import { TOOL_PATHS } from "@/features/share-result/domain";
 
 const EXAMPLE = ["Konkan Kings", "Pune Phantoms", "Mumbai Mavericks", "Nashik Ninjas", "Goa Gamers", "Thane Titans"];
 const label = (s: Slot) => (s.kind === "team" ? s.name : s.kind === "bye" ? "Bye" : s.label);
 const roundTitle = (m: Match, rounds: number) => (m.bracket === "F" ? (m.round === 1 ? "Grand final" : "Reset final") : m.bracket === "W" ? (m.round === rounds ? "Winners final" : `Winners round ${m.round}`) : `Losers round ${m.round}`);
 
 /** Three steps: add the teams, tap the winners, optionally show it on a TV. Double elimination: nobody is out until they lose twice. */
-export default function DoubleElimination() {
+export default function DoubleElimination({ path = TOOL_PATHS["double-elimination"] }: { /** The page the tool is on, for the address on share pictures. */ path?: string } = {}) {
   const [text, setText] = useState(EXAMPLE.join("\n"));
   const [picks, setPicks] = useState<Record<string, 0 | 1 | undefined>>({});
   const teams = useMemo(() => uniqueTeams(text.split(/\r?\n/)), [text]);
@@ -108,13 +110,14 @@ export default function DoubleElimination() {
                 {resetNeeded ? rowOf(bracket.matches.find((m) => m.id === "GF2")!, wRounds) : <li className="rounded-lg border border-dashed border-white/10 p-2 text-sm text-zinc-400">Reset final: only played if the losers-bracket team wins the grand final.</li>}
               </ul>
             </section>
+            <ShareResult payload={screen} what="bracket" path={path} />
           </>
         )}
       </ToolStep>
 
-      {bracket && champion && <WinnersBlock first={champion.name} second={podium?.second} third={podium?.third} />}
+      {bracket && champion && <WinnersBlock first={champion.name} second={podium?.second} third={podium?.third} path={path} />}
 
-      <ScreenButtons payload={screen} what="bracket" step={3} />
+      <ScreenButtons payload={screen} what="bracket" step={3} path={path} />
     </div>
   );
 }

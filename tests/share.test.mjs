@@ -81,7 +81,7 @@ test("the text version of a table is clean, ready to paste and capped", () => {
   const rows = Array.from({ length: 20 }, (_, i) => [String(i + 1), `Team ${i + 1}`, "3", String(100 - i)]);
   const t = shareText({ v: "table", d: { title: "Standings", subtitle: "After 3 matches", head: ["#", "Team", "K", "Total"], rows, strong: 3 } });
   assert.match(t, /^🏆 \*Standings\*/); assert.match(t, /1\. Team 1 - 100 pts/); assert.match(t, /\+4 more/);
-  assert.ok(!t.includes("Team 17")); assert.match(t, /Made with Esports Hub$/);
+  assert.ok(!t.includes("Team 17")); assert.match(t, /Made with Esports Hub · esports.streamerosai.com$/);
   assert.ok((t.match(/\p{Extended_Pictographic}/gu) ?? []).length <= 1, "at most one emoji");
 });
 

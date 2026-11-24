@@ -23,6 +23,6 @@ function Placeholder() {
   );
 }
 
-export default function PointsTableLazy({ preset, lang }: { preset?: PointsPreset; lang?: UiLang }) {
-  return <PointsTable preset={preset} lang={lang} />;
+export default function PointsTableLazy({ preset, lang, path }: { preset?: PointsPreset; lang?: UiLang; /** The page the tool is on, for the address on share pictures. */ path?: string }) {
+  return <PointsTable preset={preset} lang={lang} path={path} />;
 }

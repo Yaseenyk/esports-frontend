@@ -28,6 +28,20 @@ export interface Standing {
 /** An example scale commonly used for custom rooms. Official tournaments publish their own, so always set yours to match your rules. */
 export const EXAMPLE_SCALE: Scale = { placement: [10, 6, 5, 4, 3, 2, 1, 1], perKill: 1 };
 
+/**
+ * The example scale on the COD Mobile Battle Royale page. It was written for this site as a starting point, with points for the top ten
+ * squads; it is not an official or agreed scale, and the page says so. Organisers replace it with the scale in their own rules.
+ */
+export const CODM_EXAMPLE_SCALE: Scale = { placement: [15, 12, 10, 8, 6, 5, 4, 3, 2, 1], perKill: 1 };
+
+/** Made-up squads and results for the COD Mobile page, so the table is not empty on first load. Labelled as an example on the page. */
+export const CODM_SAMPLE_TEAMS: TeamEntry[] = [
+  { name: "Night Ravens", matches: [{ placement: 2, kills: 7 }, { placement: 1, kills: 5 }, { placement: 6, kills: 2 }] },
+  { name: "Iron Wolves", matches: [{ placement: 1, kills: 4 }, { placement: 5, kills: 3 }, { placement: 2, kills: 6 }] },
+  { name: "Red Comets", matches: [{ placement: 4, kills: 9 }, { placement: 3, kills: 4 }, { placement: 1, kills: 3 }] },
+  { name: "Static Squad", matches: [{ placement: 3, kills: 2 }, { placement: 2, kills: 8 }, { placement: 4, kills: 4 }] },
+];
+
 /** A kill count is a whole number of at least 0; anything else (blank, negative, NaN) counts as 0. */
 const killsOf = (k: number): number => (Number.isFinite(k) && k > 0 ? k : 0);
 

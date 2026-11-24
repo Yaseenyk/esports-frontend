@@ -30,7 +30,7 @@ test("the poster maker needs an event name before it shares", async ({ page }) =
   await expect(page.getByRole("button", { name: /Download PNG/ })).toBeDisabled();
 });
 
-for (const [path, game] of [["/points-table/bgmi/", "BGMI"], ["/points-table/free-fire/", "Free Fire"]] as const) {
+for (const [path, game] of [["/points-table/bgmi/", "BGMI"], ["/points-table/free-fire/", "Free Fire"], ["/points-table/cod-mobile/", "COD Mobile"]] as const) {
   test(`${path} is an indexable page with the points table, an example-scale note and a share button`, async ({ page }) => {
     await page.goto(path);
     await expect(page.getByRole("heading", { level: 1 })).toContainText(`${game} points table maker`);

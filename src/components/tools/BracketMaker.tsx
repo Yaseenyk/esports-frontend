@@ -10,6 +10,8 @@ import { singleElimView } from "@/lib/display-views";
 import { seedOrder, uniqueTeams } from "@/lib/seeding";
 import TeamsInput from "./TeamsInput";
 import ToolStep from "./ToolStep";
+import ShareResult from "@/features/share-result/ui/ShareResult";
+import { TOOL_PATHS } from "@/features/share-result/domain";
 
 const EXAMPLE = ["Sample Squad A", "Sample Squad B", "Sample Squad C", "Sample Squad D", "Sample Squad E", "Sample Squad F", "Sample Squad G", "Sample Squad H"];
 
@@ -18,7 +20,7 @@ const roundName = (r: number, rounds: number) => (r === rounds - 1 ? "Final" : r
 type Slot = string | null;
 
 /** Three steps: add the teams, pick the winners, print it. A fourth, optional step puts it on a TV. */
-export default function BracketMaker() {
+export default function BracketMaker({ path = TOOL_PATHS.brackets }: { /** The page the tool is on, for the address on share pictures. */ path?: string } = {}) {
   const { award } = useXp();
   const [text, setText] = useState(EXAMPLE.join("\n"));
   const [picks, setPicks] = useState<Record<string, 0 | 1>>({});
@@ -134,6 +136,7 @@ export default function BracketMaker() {
             </div>
           )}
         </div>
+        {ready && <ShareResult payload={screen} what="bracket" path={path} />}
       </ToolStep>
 
       <div className="no-print">
@@ -142,9 +145,9 @@ export default function BracketMaker() {
         </ToolStep>
       </div>
 
-      {champion && ready && <WinnersBlock first={champion} second={runnerUp ?? undefined} />}
+      {champion && ready && <WinnersBlock first={champion} second={runnerUp ?? undefined} path={path} />}
 
-      <div className="no-print"><ScreenButtons payload={screen} what="bracket" step={4} /></div>
+      <div className="no-print"><ScreenButtons payload={screen} what="bracket" step={4} path={path} /></div>
     </div>
   );
 }

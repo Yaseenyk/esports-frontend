@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { cardFontVars } from "@/components/idcard/fonts";
 import { DISPLAY_THEMES } from "@/lib/display-themes";
-import { certificatesHref, renderWinnersCard, shareFileName, type ShareFormat } from "@/lib/share-cards";
+import { certificatesHref, footerLine, renderWinnersCard, shareFileName, type ShareFormat } from "@/lib/share-cards";
 import { shareOrDownload } from "./shareFile";
 import { toolCopy } from "@/lib/tool-copy";
 import type { UiLang } from "@/lib/pt-br";
@@ -12,7 +12,7 @@ import type { UiLang } from "@/lib/pt-br";
  * Shown by a tool when its results are complete: the winners, a poster to share, and a link that fills the certificate maker.
  * A plain block, not a numbered step, because it only appears once there is something to celebrate.
  */
-export default function WinnersBlock({ first, second, third, event, title = "Winners", lang = "en" }: { first: string; second?: string; third?: string; event?: string; title?: string; lang?: UiLang }) {
+export default function WinnersBlock({ first, second, third, event, title = "Winners", lang = "en", path }: { first: string; second?: string; third?: string; event?: string; title?: string; lang?: UiLang; /** The tool page, for the address on the poster. */ path?: string }) {
   const c = toolCopy(lang).winners;
   const [format, setFormat] = useState<ShareFormat>("square");
   const [theme, setTheme] = useState("dark");
@@ -22,7 +22,7 @@ export default function WinnersBlock({ first, second, third, event, title = "Win
     if (busy) return;
     setBusy(true); setMsg(null);
     try {
-      const blob = await renderWinnersCard({ title, first, second, third, event }, { format, theme, fontClass: cardFontVars });
+      const blob = await renderWinnersCard({ title, first, second, third, event }, { format, theme, fontClass: cardFontVars, footer: footerLine(path, lang) });
       const r = await shareOrDownload(blob, shareFileName(title, format), title);
       setMsg(r === "cancelled" ? null : { ok: true, text: r === "shared" ? c.shared : c.saved });
     } catch (e) { setMsg({ ok: false, text: e instanceof Error ? e.message : c.failed }); }

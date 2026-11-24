@@ -40,7 +40,7 @@ export const GAME_PAGES: Record<PointsPreset, GamePage> = {
   },
   "free-fire": {
     slug: "free-fire-points-table", path: "/points-table/free-fire/", crumb: CRUMB, preset: "free-fire", name: "Free Fire points table maker", shortName: "Free Fire points table maker", updated: "2026-11-12",
-    related: [{ href: "/points-table/bgmi/", label: "BGMI points table maker and points system", blurb: "Placement and kill points for BGMI custom rooms, with a WhatsApp-ready table." }, { href: "/tools/points-table/", label: "Points table maker for any battle royale", blurb: "The same tool without a game name, for any placement and kill scale." }],
+    related: [{ href: "/points-table/bgmi/", label: "BGMI points table maker and points system", blurb: "Placement and kill points for BGMI custom rooms, with a WhatsApp-ready table." }, { href: "/points-table/cod-mobile/", label: "COD Mobile Battle Royale points table maker", blurb: "The same placement and kill engine with its own example scale for COD Mobile custom rooms." }, { href: "/tools/points-table/", label: "Points table maker for any battle royale", blurb: "The same tool without a game name, for any placement and kill scale." }],
     title: "Free Fire points table maker and points system",
     description: "Free Fire points table maker for custom rooms: set placement and kill points, enter each team's results and get ranked standings for WhatsApp, a TV or a stream.",
     h1: "Free Fire points table maker and points system",
@@ -64,4 +64,101 @@ export const GAME_PAGES: Record<PointsPreset, GamePage> = {
       { q: "Is this an official Free Fire tool?", a: "No. It is an independent, free tool for people who run their own tournaments, and it is not affiliated with the publisher of the game. It does not connect to the game or to any official results: you enter the placements and kills yourself, so the table is only as correct as your entries. Use it for college events, cafes and community scrims, and use the organiser's own channels for official tournament standings." },
     ],
   },
+  "cod-mobile": {
+    slug: "cod-mobile-points-table", path: "/points-table/cod-mobile/", crumb: CRUMB, preset: "cod-mobile", name: "COD Mobile points table maker", shortName: "COD Mobile points table maker", updated: "2026-11-24",
+    related: [{ href: "/points-table/free-fire/", label: "Free Fire points table maker and points system", blurb: "Placement and kill points for Free Fire custom rooms, ready to post." }, { href: "/points-table/bgmi/", label: "BGMI points table maker and points system", blurb: "Placement and kill points for BGMI custom rooms, with a WhatsApp-ready table." }, { href: "/points-table/valorant/", label: "Valorant points table for league play", blurb: "For 5v5 head-to-head matches: wins, maps and rounds instead of placement and kills." }],
+    title: "COD Mobile points table maker for Battle Royale",
+    description: "Free COD Mobile Battle Royale points table maker: set placement and kill points for your custom room, enter each squad's results and share the ranked standings.",
+    h1: "COD Mobile points table maker for Battle Royale",
+    lead: "A COD Mobile Battle Royale points table adds placement points for where each squad finished to points for every kill, over all the matches of your custom room event. Type your own scale, enter each squad's place and kills, and the standings rank themselves with tie-breakers. The starting scale is an example written for this page, not an official one. Free, no account.",
+    table: { caption: "Example COD Mobile Battle Royale placement points (written for this page, not an official scale)", head: ["Place", "Placement points"], rows: [["1st", "15"], ["2nd", "12"], ["3rd", "10"], ["4th", "8"], ["5th", "6"], ["6th", "5"], ["7th", "4"], ["8th", "3"], ["9th", "2"], ["10th", "1"], ["Each kill", "1 point"]] },
+    useHeading: "Make your COD Mobile points table",
+    benefits: [
+      { title: "An example that reaches the top ten", body: "The starting scale gives points to the first ten squads, so a squad that survives long but finishes ninth still sees its effort on the table. It is a starting point written for this page, not a standard: change any number to match your rules." },
+      { title: "Battle Royale only, on purpose", body: "Placement and kill points only make sense when many squads share one lobby. For COD Mobile Multiplayer, where two teams meet head to head, use the round robin or bracket tools, which count wins and losses instead." },
+      { title: "One tap to post it", body: "Under the standings, Share result makes a square post or a status-sized picture with the table and this page's address on it. On a phone it opens the share sheet; on a computer it saves the picture and copies a message." },
+    ],
+    steps: ["Agree the mode, the map and the squad size, then set the placement points and the points per kill.", "Add a row for each squad and type its place and kills after every match.", "Check the standings, which rank the squads and mark any tie-break as you type.", "Press Share result to post the table as a picture, download a CSV, or open it on a TV."],
+    guides: ["cod-mobile-tournament-rules-template", "points-table", "run-a-custom-room-tournament", "esports-tournament-rules-template"],
+    sections: [
+      { id: "codm-differs", h2: "How a COD Mobile Battle Royale event differs", paras: [
+        "COD Mobile has two very different sides. Multiplayer is short 5v5 rounds on small maps, where one team beats another. Battle Royale puts many squads in one large lobby and the last squad alive wins. Only Battle Royale fits a placement and kills table, so keep the two apart: a Multiplayer result has no placement to score.",
+        "Battle Royale can be played solo, in duos or in squads, and more than one map and mode is offered, with the list changing between seasons. Some modes play on a smaller map with their own rules, such as coming back into the match after being knocked out, and that changes how much a kill or a placement is worth. Pick one mode, one map choice and one team size for the whole points table, or say clearly how matches on different settings count.",
+        "Players also choose a Battle Royale class (a special ability picked before the match) and can switch between first-person and third-person view in some modes. None of this changes the arithmetic of the table, but it decides whether the matches were fair, so agree it before the room opens.",
+      ] },
+      { id: "codm-agree", h2: "What to agree before the custom room opens", items: [
+        "The squad size (solo, duo or squad of four) and the number of matches that count.",
+        "The mode and map for each match, and the camera view if your mode offers a choice.",
+        "Any class, item or vehicle you do not allow, written as a list, not left to memory.",
+        "Who creates the room, and when and where the room ID and password are posted.",
+        "The placement points, the points per kill and the tie-breakers, published before the first match.",
+        "What happens on a disconnect, and how captains report a result: a screenshot of the end-of-match screen sent to one person.",
+      ], note: "Rules and settings change with game updates. Check the current version in a test room the day before, and copy section wording from the [COD Mobile rules template](/guides/cod-mobile-tournament-rules-template/)." },
+    ],
+    faq: [
+      { q: "How does a COD Mobile Battle Royale points table work?", a: "Each match gives every squad two kinds of points. Placement points depend on where the squad finished, with the winner earning the most, and kill points are a fixed amount for every elimination the squad made. Add the two for each match and add the matches together for the total. This tool does the adding: you type a squad's place and kills, and the standings show every match's points, the kills, the wins and the total, ranked from first to last." },
+      { q: "What placement points should a COD Mobile custom room use?", a: "Use the scale in your own rules. This page starts with 15, 12, 10, 8, 6, 5, 4, 3, 2 and 1 for the first ten places and 1 point per kill, a starting point written for this page so the boxes are not empty. It is not an official COD Mobile scale and not a standard other organisers have agreed. If kills should matter more, raise the points per kill; if survival should matter more, raise the top places. Publish your final numbers before the first match." },
+      { q: "Can I use this table for COD Mobile Multiplayer matches?", a: "No. Multiplayer is two teams against each other, so there is no finishing place to score, only a winner and a loser. For a Multiplayer event use the round robin tool, which counts wins, draws and losses, or the bracket maker for a knockout. The Valorant league table on this site also works for any 5v5 match game that is decided by rounds and maps, as long as you set the best-of and the points for a win yourself." },
+      { q: "How do I run a COD Mobile Battle Royale custom room tournament?", a: "Register squads with their in-game names, fix the squad size, mode and map, and publish your points scale and tie-breakers. On the day, create the room, post the room ID and password to captains at a set time, and start once every squad is in. After each match collect the end-of-match screenshots, type each squad's place and kills here, and share the updated table before the next match so everyone can check it." },
+      { q: "How are ties broken in the COD Mobile standings?", a: "When two squads have the same total, this tool puts the squad with more match wins first, then the one with more kills, then the one that placed better in the last match, then the squad name, and it marks the row as a tie-break. Those are the tool's rules, chosen so the same results always give the same order. If your event uses another order, write it in your rules before the event and settle the tied squads by hand." },
+      { q: "Should solo, duo and squad matches share one COD Mobile table?", a: "Usually not. A solo player and a squad of four are not competing for the same thing, and a kill is easier to get in some team sizes than others, so one table would compare unlike results. Run a separate table for each team size, or for each mode if you mix modes, and open each in its own browser tab. If you must combine them, decide the rule first and tell the players before anyone drops." },
+      { q: "Is this the official COD Mobile points system?", a: "No. This is an independent free calculator for people who run their own events, and it is not connected to the game or to its publisher. The starting scale was written for this page as an example. It does not read results from the game: you type the placements and kills, so the table is only as accurate as what you enter. For an official tournament, use the scale and results its organiser publishes." },
+      { q: "Can I share the COD Mobile standings on WhatsApp?", a: "Yes. Press Share result under the standings. On a phone the share sheet opens with the picture of the table, ready for a WhatsApp group or a status. On a computer the picture is saved and a text version with the page address is copied, so you can attach the image and paste the message. Choose a square post or a story shape first. You can also open the table full screen on a TV from the last step." },
+    ],
+  },
 };
+
+/**
+ * The Valorant page is a league table, not a battle royale table: Valorant is 5v5 match play, so teams are ranked by wins, then maps and
+ * rounds. Same page layout as the game pages above, with the map league tool (src/features/map-league) instead of the points table.
+ */
+export type LeaguePage = ToolPage & { title: string; description: string; path: string };
+
+export const VALORANT_PAGE: LeaguePage = {
+  slug: "valorant-points-table", path: "/points-table/valorant/", crumb: { name: "Round robin generator", href: "/tools/round-robin/" }, name: "Valorant points table maker", shortName: "Valorant points table maker", updated: "2026-11-24",
+  related: [{ href: "/tools/round-robin/", label: "Round robin tournament generator", blurb: "The same fixtures for games scored by goals or points, with draws." }, { href: "/tools/brackets/", label: "Tournament bracket maker", blurb: "A knockout bracket for the playoffs after the league." }, { href: "/tools/double-elimination/", label: "Double elimination bracket generator", blurb: "A second chance for every team, with winners and losers brackets." }],
+  title: "Valorant points table maker for leagues (free)",
+  description: "Free Valorant league table maker: enter rounds per map for best of 1, 3 or 5 matches and get standings with wins, points, map and round difference.",
+  h1: "Valorant points table maker for leagues",
+  lead: "Valorant is 5v5 match play, so its points table ranks teams by match wins, not by placement and kills. Enter the rounds each team won on every map, for best of 1, 3 or 5 matches, and the standings count wins, losses and points, then separate level teams by map difference, round difference and head-to-head. Three points for a win is a common default, not an official rule: change it to yours. Free, no account.",
+  table: { caption: "How this table orders teams (the tool's default order, editable points)", head: ["Order", "Rule"], rows: [["1", "Points: 3 for a win and 0 for a loss unless you change them"], ["2", "Map difference: maps won minus maps lost (best of 3 and 5)"], ["3", "Round difference: rounds won minus rounds lost"], ["4", "Head-to-head: points taken from the other level teams"], ["5", "Team name, A to Z"]] },
+  useHeading: "Make your Valorant league table",
+  benefits: [
+    { title: "Built for 5v5, not battle royale", body: "Teams meet head to head, so a placement and kills table would rank them wrongly. This table counts match wins and keeps the maps and rounds behind every result, so a close loss still shows." },
+    { title: "Best of 1, 3 or 5", body: "Type the rounds for each map. In a best of 3 the third map box only appears when the first two maps are split, and the series winner is worked out for you." },
+    { title: "Tie-breakers you can read", body: "Teams on the same points are separated by map difference, round difference and then the result between them, and each tied row says which rule decided it." },
+  ],
+  steps: ["Add your teams, one per line: every team is drawn to meet every other team, once or twice.", "Choose best of 1, 3 or 5 and the points for a win and a loss.", "After each map, type how many rounds each team won.", "Read the standings, then press Share result to post them as a picture, or show them on a TV."],
+  guides: ["valorant-tournament-organiser", "round-robin-schedule", "esports-tournament-rules-template"],
+  sections: [
+    { id: "val-not-br", h2: "Why a Valorant table is not a battle royale table", paras: [
+      "In a battle royale many squads share one lobby, so placement and kills are the natural score. In Valorant two teams of five meet, and a match ends with a winner and a loser. A league table for it counts wins first, and uses maps and rounds only to separate teams that won the same number of matches.",
+      "Rounds tell you how close a result was. A team that lost a map 11 to 13 played very differently from one that lost 2 to 13, and round difference is how the table rewards that. In a best of 3 or 5, map difference comes first, because a 2 to 0 series is a clearer win than 2 to 1.",
+    ] },
+    { id: "val-agree", h2: "What to agree before the first match", items: [
+      "The format of each stage: best of 1 for the league, and best of 3 or 5 for playoffs if you have the time. The [Valorant tournament guide](/guides/valorant-tournament-organiser/) shows how much longer a best of 3 day runs.",
+      "The map pool and how maps are chosen, for example teams taking turns to ban and pick, and who chooses the side.",
+      "Who hosts the custom lobby, the server region, and the lobby settings you will use, tested on the current game version.",
+      "What happens on a disconnect or a technical pause, and when a map is replayed instead of continued.",
+      "The score a forfeit gets in the table, and how long a team can be late before it forfeits.",
+      "The points for a win and a loss, and the tie-break order, published with the rules before the first match.",
+    ], note: "Game settings, the map pool and the publisher's conditions for community events change with updates. This page does not state any of them; check the current ones yourself." },
+    { id: "val-entering", h2: "Entering overtime, forfeits and unfinished matches", paras: [
+      "Type the final round count of each map, overtime included. The tool does not assume any particular winning score, because custom lobbies can change settings; it only needs one team to have more rounds. A map typed as level is flagged, because a map needs a winner.",
+      "For a forfeit, type the score your rules give it, so the table and the rules agree. A match with a map still empty or half typed does not count yet, and no team gets points from it until a team has won enough maps.",
+    ] },
+  ],
+  faq: [
+    { q: "How do I make a points table for a Valorant tournament?", a: "Add your teams, one per line, and the tool draws round robin fixtures in which every team meets every other team. Choose whether matches are best of 1, 3 or 5 and how many points a win and a loss are worth. After each map, type the rounds each team won. The standings update as you type, with matches played, wins, losses, maps, rounds and points, and you can share them as a picture, download a CSV or show them on a TV." },
+    { q: "How many points is a win in a Valorant league?", a: "There is no single answer, because each organiser sets it. This tool starts with 3 points for a win and 0 for a loss, a common default in league tables because it rewards winning clearly, but it is not an official rule of the game or its publisher. Some leagues give 1 point per win, and some give a point to the team that loses a best of 3 by a single map. Set the win and loss points in step 2 to match your rules." },
+    { q: "What are map difference and round difference in Valorant standings?", a: "Map difference is maps won minus maps lost across all finished matches, and it matters in best of 3 and best of 5 series, where a 2 to 0 win and a 2 to 1 win both count as one match win. Round difference is rounds won minus rounds lost across every counted map, so a narrow loss hurts less than a heavy one. This tool uses map difference first and round difference second to separate teams on the same points." },
+    { q: "How does head-to-head work when Valorant teams are level?", a: "When teams have the same points, map difference and round difference, the tool looks only at the matches those teams played against each other and adds the points each took from them. The team with more head-to-head points goes higher. If they are still level, for example because each beat the other once in a double round robin, team name decides so that the order never changes at random. The row shows which rule was used." },
+    { q: "How do I enter a best of 3 Valorant match?", a: "Choose Best of 3 in step 2. Each match then shows a box for map 1. Type the rounds both teams won, and the box for map 2 appears. If one team wins both maps the match is finished and shows as 2 to 0; if the maps are split, a third box appears for the decider. Rounds from every map played count towards round difference, and the maps count towards map difference. Typing a level map shows a warning." },
+    { q: "What if a Valorant match is forfeited or a team does not show?", a: "Decide the forfeit score in your rules before the event, then type that score for the map or maps, so the team that showed up gets the win and the table matches what you published. Until a team has won enough maps the match does not count, so a half-entered match never gives anyone points. If you replay a map after a technical problem, type only the replayed result. Keep the screenshot of the scoreboard in case a captain asks." },
+    { q: "Is this the official Valorant points system?", a: "No. It is an independent, free calculator for community, college and cafe leagues, and it is not affiliated with the game or its publisher. The 3 points for a win, the tie-break order and the best-of choice are common league practice that you can change, not rules from any official circuit. The tool does not read anything from the game: you type the rounds, so the table is only as correct as what you enter." },
+    { q: "Can I share the Valorant standings on WhatsApp or show them on a TV?", a: "Yes. Press Share result under the standings to make a picture of the table with this page's address on it. On a phone the share sheet opens so you can send it to a WhatsApp group or a status; on a computer the picture is saved and a text version is copied. Choose square or story first. The last step opens the same table full screen for a TV, a projector or a stream capture, and it follows your typing." },
+  ],
+};
+
+/** Every game page, battle royale and league, for the sitemap, llms.txt and the tests. */
+export const ALL_GAME_PAGES: (GamePage | LeaguePage)[] = [...Object.values(GAME_PAGES), VALORANT_PAGE];

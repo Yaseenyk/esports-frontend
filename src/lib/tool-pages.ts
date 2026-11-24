@@ -131,6 +131,7 @@ export const TOOL_PAGES: Record<string, ToolPage & { title: string; description:
   },
   "round-robin": {
     slug: "round-robin", name: "Round robin tournament generator",
+    related: [{ href: "/points-table/valorant/", label: "Valorant points table for league play", blurb: "The same fixtures with rounds per map, best of 1, 3 or 5, and map and round difference." }, { href: "/tools/groups/", label: "Group stage and knockout maker", blurb: "Several round robin groups, then a knockout bracket for the best teams." }],
     title: "Round robin tournament generator and fixture list",
     description: "Free round robin tournament generator: paste your teams, get every fixture round by round with byes for odd numbers, enter scores and see the league table.",
     h1: "Round robin tournament: fixtures and league table",
@@ -280,7 +281,7 @@ export const TOOL_PAGES: Record<string, ToolPage & { title: string; description:
     ],
   },
   "points-table": {
-    slug: "points-table", name: "Points table maker for BGMI and Free Fire", updated: "2026-11-12", related: [{ href: "/points-table/bgmi/", label: "BGMI points table maker and points system", blurb: "Placement and kill points for BGMI custom rooms, with a WhatsApp-ready table." }, { href: "/points-table/free-fire/", label: "Free Fire points table maker and points system", blurb: "Placement and kill points for Free Fire custom rooms, ready to post." }, { href: "/compare/free-tournament-software-india/", label: "Free tournament software for India, compared", blurb: "What five other tournament products show on their own pages, and where we are weaker." }],
+    slug: "points-table", name: "Points table maker for BGMI and Free Fire", updated: "2026-11-12", related: [{ href: "/points-table/bgmi/", label: "BGMI points table maker and points system", blurb: "Placement and kill points for BGMI custom rooms, with a WhatsApp-ready table." }, { href: "/points-table/free-fire/", label: "Free Fire points table maker and points system", blurb: "Placement and kill points for Free Fire custom rooms, ready to post." }, { href: "/points-table/cod-mobile/", label: "COD Mobile Battle Royale points table maker", blurb: "Placement and kill points with an example scale for COD Mobile custom rooms." }, { href: "/points-table/valorant/", label: "Valorant points table for league play", blurb: "Wins, maps and rounds for 5v5 matches, which a placement table cannot rank." }, { href: "/compare/free-tournament-software-india/", label: "Free tournament software for India, compared", blurb: "What five other tournament products show on their own pages, and where we are weaker." }],
     title: "Points table maker for BGMI and Free Fire (free)",
     description: "Free points table maker for BGMI and Free Fire custom rooms: enter placement and kills, get ranked standings and share a picture. Cricket or football: round robin.",
     h1: "Points table maker for BGMI, Free Fire and battle royale",

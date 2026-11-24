@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { sendEvent } from "@/lib/track";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { EXAMPLE_SCALE, parsePlacement, standings, type TeamEntry } from "@/lib/points";
+import { CODM_EXAMPLE_SCALE, CODM_SAMPLE_TEAMS, EXAMPLE_SCALE, parsePlacement, standings, type Scale, type TeamEntry } from "@/lib/points";
 import ScreenButtons from "@/components/display/ScreenButtons";
 import WinnersBlock from "@/components/display/WinnersBlock";
 import { pointsView } from "@/lib/display-views";
@@ -12,6 +12,8 @@ import NumberField from "./NumberField";
 import ToolStep from "./ToolStep";
 import { toolCopy } from "@/lib/tool-copy";
 import type { UiLang } from "@/lib/pt-br";
+import ShareResult from "@/features/share-result/ui/ShareResult";
+import { TOOL_PATHS } from "@/features/share-result/domain";
 
 const EXAMPLE: TeamEntry[] = [
   { name: "Alpha", matches: [{ placement: 1, kills: 5 }, { placement: 4, kills: 2 }, { placement: 2, kills: 3 }] },
@@ -21,20 +23,26 @@ const EXAMPLE: TeamEntry[] = [
 ];
 const num = (v: string) => { const n = Math.floor(Number(v)); return Number.isFinite(n) && n >= 0 ? Math.min(n, 9999) : 0; };
 
-const PRESETS = { bgmi: { game: "BGMI", guide: "/guides/bgmi-custom-room-tournament/" }, "free-fire": { game: "Free Fire", guide: "/guides/free-fire-tournament-organiser/" } } as const;
-export type PointsPreset = keyof typeof PRESETS;
+export type PointsPreset = "bgmi" | "free-fire" | "cod-mobile";
+/** Each game page's note and starting numbers. `own` marks a scale written for this site (not one seen in custom rooms), which the note says. */
+const PRESETS: Record<PointsPreset, { game: string; guide: string; scale: Scale; sample: TeamEntry[]; own?: boolean }> = {
+  bgmi: { game: "BGMI", guide: "/guides/bgmi-custom-room-tournament/", scale: EXAMPLE_SCALE, sample: EXAMPLE },
+  "free-fire": { game: "Free Fire", guide: "/guides/free-fire-tournament-organiser/", scale: EXAMPLE_SCALE, sample: EXAMPLE },
+  "cod-mobile": { game: "COD Mobile", guide: "/guides/cod-mobile-tournament-rules-template/", scale: CODM_EXAMPLE_SCALE, sample: CODM_SAMPLE_TEAMS, own: true },
+};
 
 /**
  * Four steps: set the points, enter each team's results, read the standings, optionally show them on a TV. Nothing is sent anywhere.
  * Rendered in the browser only (see PointsTableLazy), so Google Translate finishing before React starts has no server HTML here to clash with.
  */
-export default function PointsTable({ preset, lang = "en" }: { /** A game landing page: the same tool, with a note that the starting scale is only an example. */ preset?: PointsPreset; /** The words on screen; numbers and rules are the same in every language. */ lang?: UiLang } = {}) {
+export default function PointsTable({ preset, lang = "en", path = TOOL_PATHS["points-table"] }: { /** A game landing page: the same tool, with a note that the starting scale is only an example. */ preset?: PointsPreset; /** The words on screen; numbers and rules are the same in every language. */ lang?: UiLang; /** The page the tool is on, for the address on share pictures. */ path?: string } = {}) {
   const pre = preset ? PRESETS[preset] : null;
+  const START = pre?.scale ?? EXAMPLE_SCALE, SAMPLE = pre?.sample ?? EXAMPLE;
   const T = toolCopy(lang), c = T.points;
-  const [scaleText, setScaleText] = useState(EXAMPLE_SCALE.placement.join(", "));
-  const [kill, setKill] = useState(EXAMPLE_SCALE.perKill);
+  const [scaleText, setScaleText] = useState(START.placement.join(", "));
+  const [kill, setKill] = useState(START.perKill);
   const [matches, setMatches] = useState(3);
-  const [teams, setTeams] = useState<TeamEntry[]>(EXAMPLE);
+  const [teams, setTeams] = useState<TeamEntry[]>(SAMPLE);
   // What was typed in a box, so a 0 stays "0" (the stored number 0 means "empty" for a place). It is used only while it still matches the stored number.
   const [typed, setTyped] = useState<Record<string, string>>({});
   const shown = (key: string, n: number, blankZero: boolean) => { const t = typed[key]; return t !== undefined && num(t) === n ? t : n || !blankZero ? String(n) : ""; };
@@ -65,11 +73,11 @@ export default function PointsTable({ preset, lang = "en" }: { /** A game landin
   };
   // The button used to give no sign when the example was already in the boxes (the default), so people pressed it again and again.
   const [scaleNote, setScaleNote] = useState("");
-  const loadExampleScale = () => { setScaleText(EXAMPLE_SCALE.placement.join(", ")); setKill(EXAMPLE_SCALE.perKill); };
+  const loadExampleScale = () => { setScaleText(START.placement.join(", ")); setKill(START.perKill); };
   const exampleButton = () => {
-    const already = placement?.join(", ") === EXAMPLE_SCALE.placement.join(", ") && kill === EXAMPLE_SCALE.perKill;
+    const already = placement?.join(", ") === START.placement.join(", ") && kill === START.perKill;
     loadExampleScale();
-    setScaleNote((already ? c.already : c.filled)(EXAMPLE_SCALE.placement.join(", "), EXAMPLE_SCALE.perKill));
+    setScaleNote((already ? c.already : c.filled)(START.placement.join(", "), START.perKill));
   };
   const scaleSample = placement ? placement.slice(0, 3).map((p, i) => c.sampleItem(c.ord(i + 1), p)).join(", ") : "";
 
@@ -85,11 +93,11 @@ export default function PointsTable({ preset, lang = "en" }: { /** A game landin
         </div>
         <p id="scale-help" className={`text-sm leading-6 ${placement ? "text-zinc-300" : "text-red-300"}`} role={placement ? undefined : "alert"}>{placement ? c.help(scaleSample, placement.length > 3) : c.helpBad}</p>
         <div className="flex flex-wrap items-center gap-2">
-          <button type="button" className="btn-ghost !min-h-10 px-4 text-sm" onClick={exampleButton}>{c.exampleBtn}</button>
+          <button type="button" className="btn-ghost !min-h-10 px-4 text-sm" onClick={exampleButton}>{pre?.own ? c.exampleBtnOwn : c.exampleBtn}</button>
           <span className="text-xs text-zinc-400">{c.exampleNote}</span>
         </div>
         <p role="status" aria-live="polite" className="empty:hidden text-sm text-emerald-200" data-testid="scale-note">{scaleNote && <span key={scaleNote}>{scaleNote}</span>}</p>
-        {pre && <p className="rounded-lg border border-amber-300/30 bg-amber-300/5 p-3 text-sm leading-6 text-amber-100" data-testid="preset-note">{c.presetA(pre.game)}<Link href={pre.guide} className="underline">{c.guideLabel[preset!]}</Link>{c.presetAnd}<Link href="/guides/esports-tournament-rules-template/" className="underline">{c.rulesTemplate}</Link>{c.presetEnd}</p>}
+        {pre && <p className="rounded-lg border border-amber-300/30 bg-amber-300/5 p-3 text-sm leading-6 text-amber-100" data-testid="preset-note">{pre.own ? c.presetOwn(pre.game) : c.presetA(pre.game)}<Link href={pre.guide} className="underline">{c.guideLabel[preset!]}</Link>{c.presetAnd}<Link href="/guides/esports-tournament-rules-template/" className="underline">{c.rulesTemplate}</Link>{c.presetEnd}</p>}
       </ToolStep>
 
       <ToolStep n={2} id="pt-results" title={c.s2Title} done={cells > 0 && filled >= cells} stepWord={T.stepWord}
@@ -97,7 +105,7 @@ export default function PointsTable({ preset, lang = "en" }: { /** A game landin
         status={normalised.length ? c.s2Status(filled, cells) : undefined}
         actions={<>
           <button type="button" className="btn-ghost !min-h-10 px-3 text-sm" onClick={() => setTeams([...normalised, { name: c.teamN(normalised.length + 1), matches: [] }])}>{c.addTeam}</button>
-          <button type="button" className="btn-ghost !min-h-10 px-3 text-sm" onClick={() => { setTeams(EXAMPLE); setMatches(3); loadExampleScale(); }}>{c.useExample}</button>
+          <button type="button" className="btn-ghost !min-h-10 px-3 text-sm" onClick={() => { setTeams(SAMPLE); setMatches(3); loadExampleScale(); }}>{c.useExample}</button>
           {filled > 0 && <button type="button" className="btn-ghost !min-h-10 px-3 text-sm" onClick={() => setTeams(normalised.map((t) => ({ ...t, matches: t.matches.map(() => ({ placement: 0, kills: 0 })) })))}>{c.clear}</button>}
         </>}>
         {normalised.length === 0 ? <p className="rounded-xl border border-dashed border-white/15 p-6 text-center text-zinc-300">{c.noTeams}</p> : (
@@ -144,11 +152,12 @@ export default function PointsTable({ preset, lang = "en" }: { /** A game landin
             </>
           )}
         </section>
+        {table.length > 0 && filled > 0 && <ShareResult payload={screen} what={c.what} path={path} lang={lang} />}
       </ToolStep>
 
-      {table.length > 0 && filled > 0 && <WinnersBlock first={table[0]!.name} second={table[1]?.name} third={table[2]?.name} title={c.winnersTitle(matches)} lang={lang} />}
+      {table.length > 0 && filled > 0 && <WinnersBlock first={table[0]!.name} second={table[1]?.name} third={table[2]?.name} title={c.winnersTitle(matches)} lang={lang} path={path} />}
 
-      <ScreenButtons payload={screen} what={c.what} step={4} lang={lang} />
+      <ScreenButtons payload={screen} what={c.what} step={4} lang={lang} path={path} />
     </div>
   );
 }

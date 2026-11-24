@@ -10,12 +10,14 @@ import { uniqueTeams } from "@/lib/seeding";
 import NumberField from "./NumberField";
 import TeamsInput from "./TeamsInput";
 import ToolStep from "./ToolStep";
+import ShareResult from "@/features/share-result/ui/ShareResult";
+import { TOOL_PATHS } from "@/features/share-result/domain";
 
 const EXAMPLE = ["Konkan Kings", "Pune Phantoms", "Mumbai Mavericks", "Nashik Ninjas", "Goa Gamers"];
 const num = (v: string): number | null => { if (v.trim() === "") return null; const n = Math.floor(Number(v)); return Number.isFinite(n) && n >= 0 ? n : null; };
 
 /** Five steps: add teams, set how points work, enter scores, read the table, optionally show it on a TV. Everything is worked out in the browser. */
-export default function RoundRobin() {
+export default function RoundRobin({ path = TOOL_PATHS["round-robin"] }: { /** The page the tool is on, for the address on share pictures. */ path?: string } = {}) {
   const [text, setText] = useState(EXAMPLE.join("\n"));
   const [double, setDouble] = useState(false);
   const [pts, setPts] = useState(DEFAULT_POINTS);
@@ -125,9 +127,10 @@ export default function RoundRobin() {
             <p className="text-xs leading-5 text-zinc-400">When teams have the same points, a tie-break decides the order: score difference, then scores for, then wins, then team name. Write your own tie-breakers in your rules before the event.</p>
           </section>
         )}
+        {ready && scored > 0 && <ShareResult payload={screen} what="league table" path={path} />}
       </ToolStep>
 
-      <ScreenButtons payload={screen} what="league table" step={5} />
+      <ScreenButtons payload={screen} what="league table" step={5} path={path} />
     </div>
   );
 }
