@@ -12,6 +12,16 @@ import { SITE_URL } from "./site";
 export type ShareFormat = "portrait" | "story";
 export const SIZES: Record<ShareFormat, { w: number; h: number }> = { portrait: { w: 1080, h: 1350 }, story: { w: 1080, h: 1920 } };
 export const SHARE_FORMATS: readonly ShareFormat[] = ["portrait", "story"];
+/**
+ * Space kept clear at the top and bottom of each shape. Instagram and WhatsApp draw their own bars (profile, reply box) over roughly the
+ * top and bottom 250 px of a 1080x1920 story, so the title and the link stay out of those zones. A portrait post has no overlay.
+ */
+export const SAFE: Record<ShareFormat, { top: number; bottom: number }> = { portrait: { top: 64, bottom: 64 }, story: { top: 250, bottom: 250 } };
+/** The tallest a row may grow when there are only a few, so a short table does not turn into giant bars. */
+export const MAX_ROW = 140;
+
+/** Where a block of `used` pixels starts so it sits in the middle of the space from `top` to `bottom` (never above `top`). */
+export const centreTop = (top: number, bottom: number, used: number): number => top + Math.max(0, Math.floor((bottom - top - used) / 2));
 export const FOOTER_TEXT = "Made with Esports Hub";
 /** The site's address as people read it on a picture: no https, no www. */
 export const SITE_HOST = SITE_URL.replace(/^https?:\/\//, "").replace(/\/+$/, "");
@@ -180,7 +190,7 @@ export function winnersText(d: WinnersData, footer = footerLine()): string {
 // ---------------------------------------------------------------- drawing (browser only)
 
 interface Opts { format: ShareFormat; theme: string; title?: string; extras?: Extras; /** A class that defines the font variables (the card fonts), so the right fonts can be found. */ fontClass?: string; /** The bottom line with the site link (see footerLine). */ footer?: string }
-interface Cx { g: CanvasRenderingContext2D; t: DisplayTheme; W: number; H: number; m: number; fam: string; vmin: number }
+interface Cx { g: CanvasRenderingContext2D; t: DisplayTheme; W: number; H: number; m: number; fam: string; vmin: number; /** The safe zone (SAFE) of this shape. */ safe: { top: number; bottom: number } }
 
 const medalInk = (medal: string) => (contrast(medal, "#0b0b0b") >= 4.5 ? "#0b0b0b" : "#ffffff");
 
@@ -260,7 +270,7 @@ function drawHeader(c: Cx, title: string, subtitle?: string): number {
   const maxW = W - 2 * m - (t.head === "bar" ? 80 : 0);
   font(c, size); while (size > 40 && width(c, txt(c, title)) > maxW) { size -= 4; font(c, size); }
   const text = fitText(txt(c, title), maxW, (s) => width(c, s)), tw = width(c, text);
-  let y = m;
+  let y = Math.max(m, c.safe.top);
   g.textBaseline = "top"; g.textAlign = "left";
   if (t.head === "bar") {
     const grad = g.createLinearGradient(m, 0, m + tw + 80, 0); grad.addColorStop(0, t.accent); grad.addColorStop(1, t.accent2);
@@ -280,7 +290,7 @@ const loadImage = (src: string) => new Promise<HTMLImageElement | null>((res) =>
 /** Draws the ticker line, the sponsors and the footer at the bottom. Returns the y where the body must stop. */
 async function drawBottom(c: Cx, x?: Extras, footer = footerLine()): Promise<number> {
   const { g, t, W, H, m } = c;
-  let y = H - m;
+  let y = H - Math.max(m, c.safe.bottom);
   // The footer carries the tool's address, so it must stay whole: the font shrinks a little before anything is cut.
   let fs = 24; font(c, fs, 500);
   while (fs > 18 && width(c, footer) > W - 2 * m) { fs -= 1; font(c, fs, 500); }
@@ -315,14 +325,16 @@ async function drawBottom(c: Cx, x?: Extras, footer = footerLine()): Promise<num
 
 function drawTable(c: Cx, d: Extract<Payload, { v: "table" }>["d"], top: number, bottom: number) {
   const { g, t, W, m } = c, cols = pickColumns(d.head, d.strong), inner = W - 2 * m;
-  const plan = planRows(d.rows.length, bottom - top - 44, { minRow: 64, maxRow: 100 });
+  const plan = planRows(d.rows.length, bottom - top - 44, { minRow: 64, maxRow: MAX_ROW });
+  // A short table sits in the middle of the card instead of leaving the bottom half empty.
+  top = centreTop(top, bottom, 44 + plan.shown * (plan.rowH + 12) - 12 + (plan.more > 0 ? plan.rowH + 12 : 0));
   const valueCols = cols.slice(2), valW = Math.min(inner * 0.5 / Math.max(1, valueCols.length), 150), rankW = Math.min(plan.rowH - 16, 64);
   // Column heads.
   font(c, 22, 600); g.fillStyle = t.soft; g.textBaseline = "middle"; g.textAlign = "right";
   valueCols.forEach((ci, k) => g.fillText(txt(c, d.head[ci] ?? ""), W - m - 24 - (valueCols.length - 1 - k) * valW, top + 18));
   g.textAlign = "left"; g.fillText(txt(c, d.head[1] ?? ""), m + 24 + rankW + 20, top + 18);
   let y = top + 44;
-  const fs = Math.max(26, Math.min(44, plan.rowH * 0.42));
+  const fs = Math.max(26, Math.min(52, plan.rowH * 0.42));
   d.rows.slice(0, plan.shown).forEach((r, i) => {
     drawRow(c, i, m, y, inner, plan.rowH);
     drawRank(c, i, r[0] ?? String(i + 1), m + 20, y + (plan.rowH - rankW) / 2, rankW);
@@ -336,8 +348,8 @@ function drawTable(c: Cx, d: Extract<Payload, { v: "table" }>["d"], top: number,
 }
 
 function drawSchedule(c: Cx, d: Extract<Payload, { v: "schedule" }>["d"], top: number, bottom: number) {
-  const { g, t, W, m } = c, inner = W - 2 * m, plan = planRows(d.slots.length, bottom - top, { minRow: 64, maxRow: 96 });
-  let y = top; const fs = Math.max(26, Math.min(40, plan.rowH * 0.42));
+  const { g, t, W, m } = c, inner = W - 2 * m, plan = planRows(d.slots.length, bottom - top, { minRow: 64, maxRow: MAX_ROW });
+  let y = centreTop(top, bottom, plan.shown * (plan.rowH + 12) - 12 + (plan.more > 0 ? plan.rowH + 12 : 0)); const fs = Math.max(26, Math.min(46, plan.rowH * 0.42));
   d.slots.slice(0, plan.shown).forEach((s, i) => {
     drawRow(c, i, m, y, inner, plan.rowH);
     g.textBaseline = "middle"; g.textAlign = "left"; font(c, fs); g.fillStyle = t.accent; g.fillText(`R${s.n}`, m + 24, y + plan.rowH / 2 + 2);
@@ -414,7 +426,7 @@ async function begin(format: ShareFormat, themeId: string, fontClass?: string): 
   canvas.width = w; canvas.height = h;
   const g = canvas.getContext("2d");
   if (!g) throw new Error("The picture could not be made in this browser.");
-  const c: Cx = { g, t, W: w, H: h, m: 64, fam: await loadFamily(t, fontClass), vmin: Math.min(w, h) / 100 };
+  const c: Cx = { g, t, W: w, H: h, m: 64, fam: await loadFamily(t, fontClass), vmin: Math.min(w, h) / 100, safe: SAFE[format] };
   drawBackground(c);
   return { c, canvas };
 }
@@ -442,7 +454,8 @@ export async function renderWinnersCard(data: WinnersData, opts: { format: Share
   const bottom = (await drawBottom(c, undefined, opts.footer)) - 10;
   const places = [data.first, data.second, data.third].map((n, i) => ({ n, i })).filter((p): p is { n: string; i: number } => Boolean(p.n));
   const gap = 24, heights = places.map((p) => (p.i === 0 ? 1.7 : 1)), unit = (bottom - top - gap * (places.length - 1)) / heights.reduce((a, b) => a + b, 0);
-  let y = top; const inner = W - 2 * m;
+  const hs = places.map((p) => Math.min(unit * (p.i === 0 ? 1.7 : 1), p.i === 0 ? 360 : 220));
+  let y = centreTop(top, bottom, hs.reduce((a, b) => a + b, 0) + gap * (places.length - 1)); const inner = W - 2 * m;
   places.forEach((p) => {
     const h = Math.min(unit * (p.i === 0 ? 1.7 : 1), p.i === 0 ? 360 : 220);
     drawRow(c, p.i, m, y, inner, h);

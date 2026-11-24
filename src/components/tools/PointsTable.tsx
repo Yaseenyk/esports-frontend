@@ -56,7 +56,8 @@ export default function PointsTable({ preset, lang = "en", path = TOOL_PATHS["po
   const normalised = useMemo(() => teams.map((t) => ({ ...t, matches: Array.from({ length: matches }, (_, i) => t.matches[i] ?? { placement: 0, kills: 0 }) })), [teams, matches]);
   const table = useMemo(() => (placement ? standings(normalised.filter((t) => t.name.trim()), { placement, perKill: kill }) : []), [normalised, placement, kill]);
 
-  const screen = useMemo(() => (table.length ? pointsView(table, matches, c.view.title, c.view) : null), [table, matches, c]);
+  // On a game page the picture says which game ("Free Fire standings"), never a bare "Standings".
+  const screen = useMemo(() => (table.length ? pointsView(table, matches, pre ? c.view.gameTitle(pre.game) : c.view.title, c.view) : null), [table, matches, c, pre]);
   // The OBS overlay kit (behind its flag): the same ranked rows, sent to an overlay in this browser when the organiser switches it on.
   const kitFeed = useMemo(() => (OVERLAY_KIT && table.length ? feedFromStandings(table, { source: preset ?? "points-table", matches }) : null), [table, matches, preset]);
   const cells = normalised.length * matches;

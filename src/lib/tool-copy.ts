@@ -67,7 +67,7 @@ const EN = {
     csvFile: "points-table.csv",
     winnersTitle: (m: number) => `Winners after ${m} ${plural(m, "match", "matches")}`,
     what: "standings",
-    view: { title: "Standings", subtitle: (m: number) => `After ${m} ${plural(m, "match", "matches")}`, team: "Team", m: (n: number) => `M${n}`, kills: "Kills", total: "Total" },
+    view: { title: "Standings", gameTitle: (game: string) => `${game} standings`, subtitle: (m: number) => `After ${m} ${plural(m, "match", "matches")}`, team: "Team", m: (n: number) => `M${n}`, kills: "Kills", total: "Total" },
   },
   screen: {
     group: "Show on a screen",
@@ -246,7 +246,7 @@ const PT: ToolCopy = {
     csvFile: "tabela-de-pontos.csv",
     winnersTitle: (m: number) => `Vencedores após ${m} ${plural(m, "partida", "partidas")}`,
     what: "a classificação",
-    view: { title: "Classificação", subtitle: (m: number) => `Após ${m} ${plural(m, "partida", "partidas")}`, team: "Equipe", m: (n: number) => `P${n}`, kills: "Abates", total: "Total" },
+    view: { title: "Classificação", gameTitle: (game: string) => `Classificação de ${game}`, subtitle: (m: number) => `Após ${m} ${plural(m, "partida", "partidas")}`, team: "Equipe", m: (n: number) => `P${n}`, kills: "Abates", total: "Total" },
   },
   screen: {
     group: "Mostrar numa tela",

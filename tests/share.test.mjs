@@ -1,7 +1,7 @@
 // Share cards: the layout maths, the plain-text version, the extras checks and the certificate link. Drawing needs a browser and is covered in e2e/share.spec.ts.
 import test from "node:test";
 import assert from "node:assert/strict";
-import { certificatesHref, fitText, footerLine, SHARE_FORMATS, gradientLine, matchCentres, parseBg, pickColumns, planRows, roundColumns, shareFileName, shareText, SIZES, whatsappLink, winnersText, withAlpha } from "../src/lib/share-cards.ts";
+import { SAFE, MAX_ROW, centreTop, certificatesHref, fitText, footerLine, SHARE_FORMATS, gradientLine, matchCentres, parseBg, pickColumns, planRows, roundColumns, shareFileName, shareText, SIZES, whatsappLink, winnersText, withAlpha } from "../src/lib/share-cards.ts";
 import { sanitizeExtras, validate, isLogo, encode, decode } from "../src/lib/display.ts";
 import { fitSize, loadExtras, saveExtras } from "../src/lib/extras-store.ts";
 import { DISPLAY_THEMES } from "../src/lib/display-themes.ts";
@@ -33,6 +33,17 @@ test("fitText leaves short text alone and cuts long text with an ellipsis that f
   assert.ok(cut.endsWith("…") && measure(cut) <= 100, cut);
   assert.equal(fitText("anything", 0, measure), "");
   assert.equal(fitText("abcdef", 5, measure), "…");
+});
+
+test("a story keeps Instagram's top and bottom zones clear, and a short table sits in the middle with capped rows", () => {
+  assert.ok(SAFE.story.top >= 250 && SAFE.story.bottom >= 250);
+  assert.ok(SAFE.portrait.top <= 64);
+  const few = planRows(4, 1000, { minRow: 64, maxRow: MAX_ROW, gap: 12 });
+  assert.equal(few.rowH, MAX_ROW); // capped: four teams do not become 240 px bars
+  const used = 4 * few.rowH + 3 * 12;
+  const y = centreTop(300, 1300, used);
+  assert.equal(y, 300 + Math.floor((1000 - used) / 2));
+  assert.equal(centreTop(300, 1300, 5000), 300, "never above the top when it is full");
 });
 
 test("planRows keeps every row when they fit, and otherwise cuts the table and counts what is left", () => {
