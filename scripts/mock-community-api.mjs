@@ -9,6 +9,8 @@ import http from "node:http";
 const port = Number(process.argv[2] || process.env.PORT || 8799);
 const off = process.env.MOCK_COMMUNITY === "off";
 const upcoming = Number(process.env.MOCK_CAL_UPCOMING ?? 6);
+// MOCK_NO_TOURNAMENTS=1: no fixture tournament (next/og cannot draw the tournament card on Windows, which fails a build that has a tournament page).
+const noTournaments = process.env.MOCK_NO_TOURNAMENTS === "1";
 const long = (s, n) => (s + " ").repeat(Math.ceil(n / (s.length + 1))).trim();
 const day = (n) => new Date(Date.now() + 330 * 60_000 + n * 86_400_000).toISOString().slice(0, 10);
 const org = { name: "Fixture Institute of Technology", slug: "fixture-institute", verified: true };
@@ -42,7 +44,7 @@ http.createServer((req, res) => {
   if (off) return send(404, { error: "Not found" });
   if (u.pathname === "/public/community/status") return send(200, { calendar: true, trust: true });
   if (u.pathname === "/public/calendar") return send(200, { items: entries, upcomingVerified: upcoming, minimumForIndex: 5, today: day(0) });
-  if (u.pathname === "/public/tournaments") return send(200, { items: [T] });
-  if (u.pathname === `/public/tournaments/${T.slug}`) return send(200, detail);
+  if (u.pathname === "/public/tournaments" && !noTournaments) return send(200, { items: [T] });
+  if (u.pathname === `/public/tournaments/${T.slug}` && !noTournaments) return send(200, detail);
   send(404, { error: "Not found" });
 }).listen(port, () => console.log(`mock community API on ${port}${off ? " (flags off)" : ` (${upcoming} upcoming)`}`));
