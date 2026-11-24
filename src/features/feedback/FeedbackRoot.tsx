@@ -50,7 +50,7 @@ function Widget({ status, pathname }: { status: FeedbackStatus; pathname: string
   return (
     <>
       {/* Layer: z-bubble sits above page overlays (the hub menu, Online events) and below the dialog. Landscape phones (the `short` screen, height up to 500 px): vertically centred on the right edge, clear of the studio's top and bottom bars (about 66 px each). Phones: 9rem up, and hidden while a page field has focus (useFieldFocus) so it never covers what is being typed. The studio's step bar (66 px tall) can end up 64 px above the screen bottom at the end of a page, so anything lower would cover it. */}
-      <div data-typing={typing && !open ? "1" : undefined} className={`no-print fixed bottom-36 right-4 z-bubble ${typing && !open ? "max-sm:hidden" : ""} sm:bottom-6 sm:right-6 short:bottom-auto short:right-2 short:top-1/2 short:-translate-y-1/2`} style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
+      <div data-typing={typing && !open ? "1" : undefined} className={`no-print fixed bottom-36 right-4 z-bubble ${typing && !open ? "hidden sm:block" : ""} sm:bottom-6 sm:right-6 short:bottom-auto short:right-2 short:top-1/2 short:-translate-y-1/2`} style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
         <FeedbackBubble ref={bubble} open={open} onOpen={openIt} nudge={open ? null : line} onDismissNudge={dismiss} />
       </div>
       {open && (
