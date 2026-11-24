@@ -21,6 +21,8 @@ test("calendar below the index threshold: noindex, out of the sitemap, an honest
   }
   await expect(page.getByText("No upcoming events are listed yet.")).toBeVisible();
   await expect(page.getByRole("heading", { name: "List your college event" })).toBeVisible();
+  // The empty calendar offers one action, which goes to the listing section.
+  await expect(page.getByRole("link", { name: "List your college event" })).toHaveAttribute("href", "#list-cal");
   if (info && info.entries.length === 0) {
     await page.goto("/");
     await expect(page.locator('a[href="/calendar/"]')).toHaveCount(0);

@@ -58,7 +58,7 @@ export default async function CalendarPage() {
           <li>Something wrong with an entry? Tell us from the <a href="/contact/" className={link}>contact page</a> and a moderator will check it.</li>
         </ul>
       </section>
-      <section className={section} aria-labelledby="list-cal-h">
+      <section id="list-cal" className={section} aria-labelledby="list-cal-h">
         <h2 id="list-cal-h" className={h2}>List your college event</h2>
         <p className="mt-3 max-w-3xl text-zinc-300">
           Organising a college or fest tournament? Ask us to verify your organisation from the <a href="/contact/" className={link}>contact page</a>.
