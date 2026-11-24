@@ -15,7 +15,7 @@ export const FREE_FIRE_PT: GamePage = {
     { href: "/points-table/bgmi/", label: "Tabela de pontos de BGMI (em inglês)", blurb: "Pontos por colocação e por abate para salas personalizadas de BGMI." },
     { href: "/tools/points-table/", label: "Tabela de pontos para qualquer battle royale (em inglês)", blurb: "A mesma ferramenta sem o nome de um jogo, para qualquer tabela de colocação e de abates." },
   ],
-  title: "Tabela de pontos de Free Fire: sistema de pontuação grátis",
+  title: "Tabela de pontos de Free Fire grátis, com pontuação",
   description: "Tabela de pontos de Free Fire para salas personalizadas: defina os pontos por colocação e por abate, lance os resultados e tenha a classificação para o WhatsApp ou a TV.",
   h1: "Tabela de pontos de Free Fire e sistema de pontuação",
   lead: "Num sistema de pontos de Free Fire para sala personalizada, cada equipe ganha pontos de colocação pela posição em que terminou, mais pontos por cada abate, somados em todas as partidas. Coloque a sua tabela, digite a posição e os abates de cada equipe e tenha uma classificação com critérios de desempate para compartilhar no WhatsApp ou mostrar numa TV. Grátis e sem conta. A tabela mostrada é um exemplo, não uma tabela oficial.",

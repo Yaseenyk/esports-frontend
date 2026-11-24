@@ -13,9 +13,11 @@ import { toolCopy } from "../src/lib/tool-copy.ts";
 const read = (p) => fs.readFileSync(new URL(`../${p}`, import.meta.url), "utf8");
 const nums = (s) => (s.match(/\d+/g) ?? []).sort().join(",");
 
-test("the review switch is off and keeps the pages noindex, follow and out of the sitemap", () => {
-  assert.equal(PT_BR_REVIEWED, false, "only switch on after a native Brazilian Portuguese reader approved both pages");
-  assert.deepEqual(PT_BR_ROBOTS, { index: false, follow: true });
+test("the review switch decides indexing: approved on 24 Nov 2026, so the pages are indexable and in the sitemap", () => {
+  // Approved by a native Brazilian Portuguese reader, as confirmed by the owner on 24 Nov 2026 (see src/lib/pt-br.ts).
+  assert.equal(PT_BR_REVIEWED, true);
+  assert.match(read("src/lib/pt-br.ts"), /Approved 24 Nov 2026/, "the approval is recorded next to the switch");
+  assert.deepEqual(PT_BR_ROBOTS, PT_BR_REVIEWED ? { index: true, follow: true } : { index: false, follow: true });
   assert.match(read("src/app/sitemap.ts"), /PT_BR_REVIEWED \? Object\.values\(PT_BR_PAGES\)/);
   assert.match(read("scripts/verify-seo.mjs"), /if \(!PT_BR_REVIEWED\) NOINDEX\.push\(\/\^\\\/pt-br\\\/\/\)/);
 });

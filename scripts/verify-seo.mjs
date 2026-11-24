@@ -70,12 +70,15 @@ for (const p of pages) {
   if (h1s !== 1) bad(p.url, `${h1s} h1 headings (want exactly 1)`);
   if (!/property="og:title"/.test(html)) bad(p.url, "no og:title");
   if (!/property="og:image"/.test(html)) bad(p.url, "no og:image");
-  if (!/<html lang="en/.test(html)) bad(p.url, "html lang missing");
+  // English pages say lang="en"; the Brazilian Portuguese pages under /pt-br/ say lang="pt-BR".
+  if (!(p.url.startsWith("/pt-br/") ? /<html lang="pt-BR"/ : /<html lang="en/).test(html)) bad(p.url, "html lang missing");
 
   const text = html.replace(/<script[\s\S]*?<\/script>/g, " ").replace(/<style[\s\S]*?<\/style>/g, " ").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ");
   const words = text.split(" ").length;
   if (words < 120 && !["/contact/", "/privacy/", "/terms/"].includes(p.url)) bad(p.url, `thin page: only about ${words} words of text`);
-  for (const phrase of ["made-up", "sample data", "lorem ipsum", "TODO", "coming soon", "not written yet", "prototype"]) if (text.toLowerCase().includes(phrase.toLowerCase())) bad(p.url, `contains placeholder wording: "${phrase}"`);
+  for (const phrase of ["made-up", "sample data", "lorem ipsum", "coming soon", "not written yet", "prototype"]) if (text.toLowerCase().includes(phrase.toLowerCase())) bad(p.url, `contains placeholder wording: "${phrase}"`);
+  // "TODO" is a code marker, so it is matched in capitals only: Portuguese "todo"/"todos" (all) is ordinary text.
+  if (/TODO/.test(text)) bad(p.url, 'contains placeholder wording: "TODO"');
 
   for (const m of html.matchAll(/<img[^>]*>/g)) { if (!/alt=/.test(m[0])) bad(p.url, `image without alt: ${m[0].slice(0, 80)}`); if (!/loading="lazy"/.test(m[0]) && !/fetchPriority|fetchpriority/.test(m[0])) bad(p.url, `image that is not lazy-loaded: ${m[0].slice(0, 80)}`); }
   for (const m of html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)) { try { JSON.parse(m[1]); } catch { bad(p.url, "invalid JSON-LD"); } }

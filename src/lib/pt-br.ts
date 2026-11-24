@@ -8,7 +8,10 @@
  * and are left out of sitemap.xml (scripts/verify-seo.mjs fails the build if either is not true).
  * Setting it to true makes both pages indexable and adds them to the sitemap. Nothing else needs to change.
  */
-export const PT_BR_REVIEWED = false;
+/**
+ * Approved 24 Nov 2026: the owner confirmed a native Brazilian Portuguese reader read and approved both pages.
+ */
+export const PT_BR_REVIEWED = true;
 
 export type UiLang = "en" | "pt-BR";
 
