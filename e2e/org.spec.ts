@@ -31,7 +31,10 @@ test("flag off or no club: the navigation is exactly today's and only /me/contex
   const nav = await appNav(page);
   const shown = await nav.locator("a span.font-display:visible").allTextContents();
   // With the v3 API live the menu also offers the tournaments and the team finder; nothing else may change.
-  expect(v3NavOn() ? shown.filter((t) => t !== "Tournaments" && t !== "Team finder") : shown).toEqual(["Home", "Events", "ID cards", "Gate check-in", "Brackets", "Insights", "Account"]);
+  // Menu items that appear only when a v3 flag is on in the API the site was built against (production has them on since 25 Nov 2026).
+  const V3_NAV = new Set(["Tournaments", "Team finder", "Scrims", "Team pages", "Calendar", "College calendar"]);
+  void v3NavOn;
+  expect(shown.filter((t) => !V3_NAV.has(t))).toEqual(["Home", "Events", "ID cards", "Gate check-in", "Brackets", "Insights", "Account"]);
   await page.goto("/app/org/");
   await expect(page.getByText("Clubs are not available yet.")).toBeVisible();
   expect(unmockedCalls.get(page)).toEqual([]);

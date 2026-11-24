@@ -8,7 +8,9 @@ import path from "node:path";
 
 const file = path.resolve("out", "tournaments", "index.html");
 const info = (() => { try { return JSON.parse(/id="eh-directory">([\s\S]*?)<\/script>/.exec(fs.readFileSync(file, "utf8"))?.[1] ?? "{}"); } catch { return {}; } })();
-test.skip(info.mode !== "directory", "this build has no directory (v3.directory was off): see the header of this file");
+// Needs the mock API fixtures (MOCK_DIRECTORY): a build against the live API can have the directory on but holds real (or no) tournaments.
+const fixtureBuild = (() => { try { return fs.readFileSync(file, "utf8").includes("fixturetoken123"); } catch { return false; } })();
+test.skip(info.mode !== "directory" || !fixtureBuild, "needs a build made against the mock API with MOCK_DIRECTORY: see the header of this file");
 test.setTimeout(120_000);
 
 test("the directory is in the static HTML, filters by game and city, and the Register button opens the opted-in sign-up form only", async ({ page }) => {

@@ -1,12 +1,19 @@
 // The public events list and the organiser's "List this event" panel, with the server mocked.
 import { expect, test } from "@playwright/test";
+import fs from "node:fs";
+import path from "node:path";
 import { json, openPanel, preflight, signedIn } from "./helpers";
 
 const API = "**/esports-api.yaseenyk.workers.dev";
 const future = (n: number) => new Date(Date.now() + n * 86400000).toISOString().slice(0, 10);
 const e = (i: number, o: Record<string, unknown> = {}) => ({ id: `ev${i}`, title: `Cup ${i}`, game: i % 2 ? "BGMI" : "Free Fire", city: "Pune", mode: "in-person", startsOn: future(5), blurb: `About cup ${i}`, regLink: `https://esports.streamerosai.com/register/?t=tok${i}`, ended: false, ...o });
 
+// The legacy events list lives at /tournaments/ only while v3.directory is off; with it on (production since 25 Nov 2026) the page is the
+// static directory, covered by e2e/v3-directory.spec.ts.
+const directoryBuild = (() => { try { return /id="eh-directory">[^<]*"mode":"directory"/.test(fs.readFileSync(path.resolve("out", "tournaments", "index.html"), "utf8")); } catch { return false; } })();
+
 test("tournaments page: cards, filters, show more and the report confirm step", async ({ page }) => {
+  test.skip(directoryBuild, "this build serves the v3 directory at /tournaments/");
   await preflight(page);
   const reports: unknown[] = [];
   await page.route(`${API}/public/directory**`, (r) => {
@@ -40,6 +47,7 @@ test("tournaments page: cards, filters, show more and the report confirm step", 
 });
 
 test("tournaments page: error state offers retry; empty state says why and how to list", async ({ page }) => {
+  test.skip(directoryBuild, "this build serves the v3 directory at /tournaments/");
   await preflight(page);
   let fail = true;
   await page.route(`${API}/public/directory**`, (r) => (fail ? r.fulfill(json({ error: "x" }, 500)) : r.fulfill(json({ entries: [], page: 1, hasMore: false, games: [], cities: [] }))));
