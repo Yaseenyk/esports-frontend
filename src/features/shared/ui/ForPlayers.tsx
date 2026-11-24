@@ -5,9 +5,11 @@ import { v3Enabled } from "@/features/shared/flags";
 import { box, h3, link } from "@/features/shared/ui/styles";
 
 /** The signed-in dashboard card for players. Each link shows only while its section is switched on; with none on, nothing is rendered. */
-export const playerLinks = (on: (s: "lft" | "resume") => boolean = v3Enabled): { href: string; label: string; hint: string }[] => [
+export const playerLinks = (on: (s: "lft" | "resume" | "scrims" | "profiles") => boolean = v3Enabled): { href: string; label: string; hint: string }[] => [
   ...(on("resume") ? [{ href: "/app/resume/", label: "My esports resume", hint: "Your handle, games and ranks. Private until you choose otherwise." }] : []),
   ...(on("lft") ? [{ href: "/lft/", label: "Team finder", hint: "Find a team, or players for yours." }, { href: "/app/lft/", label: "My listings", hint: "Your posts and the applications you got." }] : []),
+  ...(on("scrims") ? [{ href: "/scrims/", label: "Scrim finder", hint: "Post a practice slot, or ask to join one." }] : []),
+  ...(on("profiles") ? [{ href: "/app/teams/", label: "My team pages", hint: "Private, link only or public: you choose for each team." }] : []),
 ];
 
 export function ForPlayersCard() {

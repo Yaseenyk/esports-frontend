@@ -8,7 +8,7 @@ const problems = [];
 const bad = (page, msg) => problems.push(`${page}: ${msg}`);
 
 // Pages that must stay out of search results (demo data, private screens, one-off links).
-const NOINDEX = [/^\/games\//, /^\/events\//, /^\/communities\//, /^\/manage\//, /^\/arcade\//, /^\/login\//, /^\/signup\//, /^\/forgot-password\//, /^\/reset-password\//, /^\/app\//, /^\/gate\//, /^\/join\//, /^\/pass\//, /^\/register\//, /^\/display\//, /^\/live\//, /^\/overlay\//, /^\/embed\//, /^\/score\//, /^\/report\//, /^\/ready\//, /^\/run\//, /^\/league\//, /^\/lft\//, /^\/players\//, /^\/team\//, /^\/unsubscribe\//, /^\/verify-email\//, /^\/admin\//, /^\/developers\//];
+const NOINDEX = [/^\/games\//, /^\/events\//, /^\/communities\//, /^\/manage\//, /^\/arcade\//, /^\/login\//, /^\/signup\//, /^\/forgot-password\//, /^\/reset-password\//, /^\/app\//, /^\/gate\//, /^\/join\//, /^\/pass\//, /^\/register\//, /^\/display\//, /^\/live\//, /^\/overlay\//, /^\/embed\//, /^\/score\//, /^\/report\//, /^\/ready\//, /^\/run\//, /^\/league\//, /^\/lft\//, /^\/players\//, /^\/team\//, /^\/teams\//, /^\/scrims\//, /^\/unsubscribe\//, /^\/verify-email\//, /^\/admin\//, /^\/developers\//];
 // Guides merged into a stronger guide (src/content/merged-guides.json): their pages stay for old links but must be noindex and out of the sitemap.
 const MERGED_GUIDES = Object.keys(JSON.parse(fs.readFileSync(path.resolve("src/content/merged-guides.json"), "utf8")));
 for (const slug of MERGED_GUIDES) NOINDEX.push(new RegExp(`^/guides/${slug}/$`));
@@ -24,8 +24,22 @@ const guard = await import("data:text/javascript;base64," + Buffer.from(guardJs)
 const attr = (html, re) => { const m = re.exec(html); return m ? m[1] : null; };
 const v3Indexable = new Map(); // "/tournaments/<slug>/" -> boolean, filled below
 const isV3Tournament = (p) => /^\/tournaments\/[^/]+\/$/.test(p);
+// ---- phase 5: /tournaments/ (the directory) is indexable ONLY with at least MIN upcoming public tournaments (AdSense: an almost empty list is thin) ----
+const dirMin = Number(/export const MIN_UPCOMING_FOR_INDEX = (\d+);/.exec(fs.readFileSync(path.resolve("src/features/directory/domain.ts"), "utf8"))?.[1] ?? NaN);
+if (!(dirMin >= 5)) problems.push(`src/features/directory/domain.ts: MIN_UPCOMING_FOR_INDEX must be at least 5 (found ${dirMin})`);
+const dirFile = path.join(OUT, "tournaments", "index.html");
+const dirInfo = (() => {
+  if (!fs.existsSync(dirFile)) return null;
+  const m = /<script type="application\/json" id="eh-directory">([\s\S]*?)<\/script>/.exec(fs.readFileSync(dirFile, "utf8"));
+  try { return m ? JSON.parse(m[1]) : null; } catch { return null; }
+})();
+if (fs.existsSync(dirFile) && !dirInfo) problems.push("/tournaments/: missing or invalid eh-directory data");
+if (dirInfo && dirInfo.indexable === true && !(dirInfo.upcoming >= dirMin)) problems.push(`/tournaments/: marked indexable with only ${dirInfo.upcoming} upcoming public tournaments (needs ${dirMin})`);
 const isNoindexPath = (p) => {
-  if (p === "/tournaments/") return ![...v3Indexable.values()].some(Boolean); // legacy directory, or no page passed the guard
+  if (p === "/tournaments/") {
+    if (!dirInfo || dirInfo.indexable !== true || !(dirInfo.upcoming >= dirMin)) return true; // legacy page, or too few upcoming tournaments
+    return dirInfo.mode === "v3" ? ![...v3Indexable.values()].some(Boolean) : false; // the v3 index also needs one page that passed the guard
+  }
   if (isV3Tournament(p)) return !v3Indexable.get(p);
   return NOINDEX.some((re) => re.test(p));
 };

@@ -7,6 +7,7 @@ import { COPY, COPY_IS_DRAFT } from "@/features/resume/copy";
 import { canChoose, rankLabel } from "@/features/resume/validators";
 import { GAMES, ROLES, ROLE_LABELS, gameLabel } from "@/features/shared/games";
 import type { GameRow, PublicProfile } from "@/features/resume/domain";
+import { PlayerPagePanel } from "@/features/profiles";
 import { explainFailure } from "@/features/shared/failure";
 import { SelectInput, TextArea, TextInput } from "@/features/shared/ui/Fields";
 import { EmptyState, ErrorState, NotAvailable, SkeletonRows } from "@/features/shared/ui/States";
@@ -22,6 +23,7 @@ export function ResumeEditorScreen() {
   const e = useResumeEditor();
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [agree, setAgree] = useState(false);
+  const [pageOn, setPageOn] = useState(false); // phase 3 profile page (flag v3.profiles): it then owns the visibility choice
   const topRef = useRef<HTMLParagraphElement>(null), visRef = useRef<HTMLParagraphElement>(null);
   // After a save the focus goes to the status line, not to the top of the page.
   useEffect(() => { if (e.focus.seq) (e.focus.where === "vis" ? visRef : topRef).current?.focus(); }, [e.focus]);
@@ -114,7 +116,7 @@ export function ResumeEditorScreen() {
         </div>
       </section>
 
-      {e.profile && (
+      {e.profile && !pageOn && (
         <section aria-labelledby="vis-h" className={`${section} space-y-4`}>
           <h2 id="vis-h" className={h2}>{COPY.visibilityTitle}</h2>
           <fieldset className={`${box} space-y-3`} aria-labelledby="vis-h">
@@ -139,6 +141,15 @@ export function ResumeEditorScreen() {
             {vis === "public" && e.profile && <p className="text-sm"><Link href={publicHref} className="text-cyan-400 underline underline-offset-2">See your public resume</Link></p>}
             {e.consent && <div className="border-t border-white/10 pt-3"><p className="mb-2 text-sm text-zinc-300">Changed your mind? Withdrawing consent makes your resume private straight away.</p><button type="button" onClick={e.withdrawConsent} disabled={e.busy === "consent"} className={btnDanger}>{COPY.consentWithdrawButton}</button></div>}
           </fieldset>
+        </section>
+      )}
+
+      {e.profile && <PlayerPagePanel adult={e.adult} consentGiven={e.consent} onChanged={e.res.reload} onAvailable={setPageOn} />}
+      {e.profile && pageOn && e.consent && (
+        <section aria-labelledby="wd-h" className={`${section} space-y-3`}>
+          <h2 id="wd-h" className={h3}>Consent</h2>
+          <p className="text-sm text-zinc-300">Changed your mind? Withdrawing consent makes your profile private straight away.</p>
+          <button type="button" onClick={e.withdrawConsent} disabled={e.busy === "consent"} className={btnDanger}>{COPY.consentWithdrawButton}</button>
         </section>
       )}
 

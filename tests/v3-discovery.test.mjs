@@ -9,7 +9,8 @@ test("public menu entries appear only for the sections that are on", () => {
   assert.deepEqual(v3PublicEntries(() => false), []);
   assert.deepEqual(v3PublicEntries((s) => s === "lft").map((e) => e.label), ["Find a team"]);
   assert.deepEqual(v3PublicEntries((s) => s === "tournaments").map((e) => e.label), ["Tournaments"]);
-  assert.equal(v3PublicEntries(() => true).length, 2);
+  assert.deepEqual(v3PublicEntries((s) => s === "scrims").map((e) => e.label), ["Scrim finder"]);
+  assert.equal(v3PublicEntries(() => true).length, 3);
 });
 
 const matches = (e, q) => q.toLowerCase().split(/\s+/).every((w) => `${e.label} ${e.blurb} Page ${e.keywords}`.toLowerCase().includes(w));
@@ -18,13 +19,16 @@ test("menu search finds Find a team by team, find a team, player and lft, and To
   for (const q of ["team", "find a team", "player", "lft"]) assert.ok(matches(team, q), q);
   for (const q of ["tournament", "create tournament", "my tournaments"]) assert.ok(matches(tour, q), q);
   assert.equal(matches(tour, "lft"), false);
+  const scrim = v3PublicEntries(() => true)[2];
+  for (const q of ["scrims", "bgmi scrims", "practice"]) assert.ok(matches(scrim, q), q);
 });
 
 test("the dashboard player card lists only enabled sections", () => {
   assert.deepEqual(playerLinks(() => false), []);
   assert.deepEqual(playerLinks((s) => s === "resume").map((l) => l.label), ["My esports resume"]);
   assert.deepEqual(playerLinks((s) => s === "lft").map((l) => l.label), ["Team finder", "My listings"]);
-  assert.deepEqual(playerLinks(() => true).map((l) => l.href), ["/app/resume/", "/lft/", "/app/lft/"]);
+  assert.deepEqual(playerLinks((s) => s === "lft" || s === "resume").map((l) => l.href), ["/app/resume/", "/lft/", "/app/lft/"]);
+  assert.deepEqual(playerLinks(() => true).map((l) => l.href), ["/app/resume/", "/lft/", "/app/lft/", "/scrims/", "/app/teams/"]);
 });
 
 test("the honeycomb has a row for every section, however many there are", () => {

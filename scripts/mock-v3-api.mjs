@@ -1,6 +1,7 @@
 // TEST FIXTURE SERVER, never shipped. Answers the PUBLIC v3 endpoints (API.md section 2) so the build can be tried with the backend flags "on":
 //   node scripts/mock-v3-api.mjs [port]        then:   NEXT_PUBLIC_API_URL=http://localhost:8799 npm run build
 //   MOCK_MANY=12 node scripts/mock-v3-api.mjs   12 ready tournaments published in one week, to see the weekly cap hold two back.
+//   MOCK_DIRECTORY=6 node scripts/mock-v3-api.mjs   also answer the phase 5 directory with 6 upcoming tournaments (5 or more = indexable; 0 or unset = 404, flag off).
 // Everything here is invented test data. It exists only in this file and in the local build you run against it.
 import http from "node:http";
 
@@ -13,6 +14,12 @@ const mk = (n, over = {}) => ({
   summary: long(`Test tournament ${n} used only to check the build.`, 120), seoReady: true, ...base, ...over,
 });
 const many = Number(process.env.MOCK_MANY || 0);
+const dirCount = Number(process.env.MOCK_DIRECTORY || 0);
+const DIR = Array.from({ length: dirCount }, (_, i) => ({
+  slug: `fixture-open-${i + 1}`, title: `Fixture Open ${i + 1}`, game: i % 2 ? "valorant" : "bgmi", format: "battle_royale_points", status: i === 0 ? "registration_open" : "published",
+  summary: `Test tournament ${i + 1} for the directory check.`, venue: "offline", city: i % 2 ? "Mumbai" : "Pune", state: "Maharashtra", startsAt: `2030-12-${String(10 + i).padStart(2, "0")}T10:00:00.000Z`, endsAt: null, maxTeams: 16,
+  registration: { open: i === 0, registered: 3, spotsLeft: 13 }, registerUrl: i === 0 ? "/register/?t=fixturetoken123" : null,
+}));
 const LIST = many
   ? Array.from({ length: many }, (_, i) => mk(i + 1, { publishedAt: `2030-11-0${(i % 6) + 1}T${String(10 + i).padStart(2, "0")}:00:00.000Z` }))
   : [
@@ -37,6 +44,13 @@ http.createServer((req, res) => {
   const send = (code, body) => { res.writeHead(code, { "content-type": "application/json", "access-control-allow-origin": "*" }); res.end(JSON.stringify(body)); };
   if (req.method === "OPTIONS") { res.writeHead(204, { "access-control-allow-origin": "*", "access-control-allow-headers": "*" }); return res.end(); }
   if (u.pathname === "/public/tournaments") return send(200, { items: LIST.slice(0, Number(u.searchParams.get("limit") || 24)) });
+  if (u.pathname === "/public/tournament-directory") {
+    if (!dirCount) return send(404, { error: "Not found" });
+    const g = u.searchParams.get("game"), c = (u.searchParams.get("city") || "").toLowerCase();
+    const items = DIR.filter((x) => (!g || x.game === g) && (!c || x.city.toLowerCase() === c));
+    const count = (k) => Object.entries(DIR.reduce((m, x) => ({ ...m, [x[k]]: (m[x[k]] || 0) + 1 }), {})).map(([v, n]) => ({ [k]: v, count: n }));
+    return send(200, { items, total: DIR.length, indexable: DIR.length >= 5, minForIndex: 5, cities: count("city"), games: count("game") });
+  }
   const m = u.pathname.match(/^\/public\/tournaments\/([a-z0-9-]+)(\/live)?$/);
   const t = m && LIST.find((x) => x.slug === m[1]);
   if (t && m[2]) return send(200, { slug: t.slug, status: t.status, registered: 11, spotsLeft: 5, open: t.status === "registration_open" });

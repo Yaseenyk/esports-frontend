@@ -1,5 +1,6 @@
 "use client";
 
+import { DirectoryOptIn } from "@/features/directory";
 import Link from "next/link";
 import { useMyTournaments, publicUrl, useTournamentEditor, type SlugHint } from "@/features/tournaments/hooks/useOrganiser";
 import { explainFailure } from "@/features/shared/failure";
@@ -98,6 +99,7 @@ export function TournamentEditorScreen() {
 
           <PageChecklist items={v.checklist} />
           {saved && <ShareBlock url={publicUrl(saved.slug)} isPublic={!["draft", "cancelled"].includes(saved.status)} copied={v.copied} onCopy={v.copy} />}
+          {saved && <DirectoryOptIn eventId={eventId} />}
 
           <section aria-labelledby="more-h" className={`${section} space-y-3`}>
             <h2 id="more-h" className={h2}>Registrations and disputes</h2>

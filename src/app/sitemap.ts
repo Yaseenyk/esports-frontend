@@ -7,6 +7,7 @@ import { TOOL_PAGES } from "@/lib/tool-pages";
 import { PT_BR_PAGES, PT_BR_REVIEWED } from "@/lib/pt-br";
 import { indexableColleges, loadBuildColleges } from "@/features/colleges/college";
 import { indexableOnly, loadBuildTournaments } from "@/features/tournaments/services/build-data";
+import { tournamentsIndexVerdict } from "@/features/directory/services/page-verdict";
 
 export const dynamic = "force-static";
 
@@ -21,12 +22,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // v3 tournament pages: ONLY the ones the thin-page guard passed (and the weekly cap allowed). Empty while the API is off.
   const live = indexableOnly(await loadBuildTournaments());
   const colleges = indexableColleges(await loadBuildColleges());
+  // /tournaments/ itself: only with 5 or more upcoming public tournaments (the same verdict the page uses for its robots tag).
+  const index = await tournamentsIndexVerdict();
   return [
     at("/", 1, HEADINGS), at("/tools/", 0.9, HEADINGS), at("/guides/", 0.9),
     ...TOOLS.map((t) => at(t.href, 0.9, TOOL_PAGES[t.slug]?.updated ?? HEADINGS)),
     ...GROWTH_PAGES.map((p) => at(p.path, p.priority, p.updated)),
     ...GUIDES.map((g) => at(`/guides/${g.slug}/`, 0.8, g.updated)),
-    ...(live.length > 0 ? [at("/tournaments/", 0.6, live[0].detail.publishedAt?.slice(0, 10) ?? LAUNCH), ...live.map((t) => at(`/tournaments/${t.detail.slug}/`, 0.5, t.detail.publishedAt?.slice(0, 10) ?? LAUNCH))] : []),
+    ...(index.indexable ? [at("/tournaments/", 0.6, live[0]?.detail.publishedAt?.slice(0, 10) ?? LAUNCH)] : []),
+    ...live.map((t) => at(`/tournaments/${t.detail.slug}/`, 0.5, t.detail.publishedAt?.slice(0, 10) ?? LAUNCH)),
     ...colleges.map((c) => at(`/colleges/${c.slug}/`, 0.4)),
     at("/about/", 0.4), at("/contact/", 0.3), at("/privacy/", 0.2), at("/terms/", 0.2),
     // Portuguese pages: only after a native Brazilian Portuguese reader approved them (PT_BR_REVIEWED in src/lib/pt-br.ts).

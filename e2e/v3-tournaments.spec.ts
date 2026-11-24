@@ -57,9 +57,10 @@ test("verified results show the corrected marker with the original value", async
   await expect(page.getByText("Winner").first()).toBeVisible();
 });
 
-test("the index lists the tournaments and is indexable", async ({ page }) => {
+test("the index lists the tournaments; it is indexable only with 5 or more upcoming public tournaments", async ({ page }) => {
   await page.goto("/tournaments/");
-  await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", "index, follow");
+  const info = JSON.parse((await page.locator("#eh-directory").textContent()) ?? "{}");
+  await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", info.upcoming >= 5 ? "index, follow" : "noindex, follow");
   await expect(page.getByRole("link", { name: /Fixture Cup Number 1/ })).toBeVisible();
 });
 
