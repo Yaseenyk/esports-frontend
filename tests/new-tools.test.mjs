@@ -433,3 +433,14 @@ test("stylish versions: fancy letters and symbols, turned back to the plain name
   // Typed names in fancy letters or look-alike Cyrillic are caught as well.
   for (const n of ["ꜰʀᴇᴇꜰɪʀᴇ Kings", "𝐒𝟖𝐔𝐋", "꧁Ｖａｌｏｒａｎｔ꧂", "Gаrena Squad", "亗ʙɢᴍɪ亗"]) assert.ok(T.checkName(n).blocked, n);
 });
+
+test("schedule times read as 12-hour on the page, like the time inputs", async () => {
+  const { display12 } = await import("../src/lib/schedule.ts");
+  assert.equal(display12("00:05"), "12:05 AM");
+  assert.equal(display12("09:30"), "9:30 AM");
+  assert.equal(display12("12:00"), "12:00 PM");
+  assert.equal(display12("13:45"), "1:45 PM");
+  assert.equal(display12("23:59 (+1d)"), "11:59 PM (+1d)");
+  assert.equal(display12(""), "");
+  assert.equal(display12("soon"), "soon");
+});

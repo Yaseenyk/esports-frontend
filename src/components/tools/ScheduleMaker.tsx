@@ -7,7 +7,7 @@ import ScreenButtons from "@/components/display/ScreenButtons";
 import NumberField from "./NumberField";
 import { scheduleView } from "@/lib/display-views";
 import { downloadBlob } from "@/lib/idcard/download";
-import { buildSchedule, summary, type ScheduleInput } from "@/lib/schedule";
+import { buildSchedule, display12, summary, type ScheduleInput } from "@/lib/schedule";
 import DayPlan from "@/features/schedule-plan/ui/DayPlan";
 import ShareResult from "@/features/share-result/ui/ShareResult";
 
@@ -69,20 +69,20 @@ export default function ScheduleMaker() {
 
       <ToolStep n={3} id="sc-sheet" title="Your run-sheet"
         hint="This is your timetable: each round, when it starts and ends, and which matches are played. Download it or print it and share it with the teams."
-        status={sum ? `Ends ${sum.finish}` : undefined}
+        status={sum ? `Ends ${display12(sum.finish)}` : undefined}
         actions={<><button type="button" className="btn-ghost !min-h-11 px-3 text-sm" disabled={!slots} onClick={csv}>Download (CSV)</button><button type="button" className="btn-ghost !min-h-11 px-3 text-sm no-print" disabled={!slots} onClick={() => window.print()}>Print</button></>}
         printHeader>
         <div aria-label="Schedule" aria-live="polite" role="group" className="space-y-3">
         {!slots || !sum ? <p role="alert" className="rounded-xl border border-dashed border-white/15 p-6 text-center text-sm text-red-300">Choose a start time to see the schedule.</p> : (
           <>
-            <p className="text-sm text-zinc-200"><strong className="text-white">{sum.slots} rounds</strong>, finishing at <strong className="text-white">{sum.finish}</strong>. That is {Math.floor(sum.totalMinutes / 60)} h {sum.totalMinutes % 60} min from the first start.{sum.finish.includes("(+") ? " A time marked (+1d) is after midnight, on the next day (+2d is the day after that)." : ""}</p>
+            <p className="text-sm text-zinc-200"><strong className="text-white">{sum.slots} rounds</strong>, finishing at <strong className="text-white">{display12(sum.finish)}</strong>. That is {Math.floor(sum.totalMinutes / 60)} h {sum.totalMinutes % 60} min from the first start.{sum.finish.includes("(+") ? " A time marked (+1d) is after midnight, on the next day (+2d is the day after that)." : ""}</p>
             <div role="region" aria-label="Schedule table" tabIndex={0} className="overflow-x-auto rounded-xl border border-white/[0.14] outline-none focus-visible:ring-2 focus-visible:ring-cyan">
               <table className="w-full min-w-[28rem] border-collapse text-left text-sm">
                 <thead><tr className="bg-[#0f1013] text-zinc-200"><th scope="col" className="px-3 py-2">Round</th><th scope="col" className="px-3 py-2">Start</th><th scope="col" className="px-3 py-2">End</th><th scope="col" className="px-3 py-2">Matches</th></tr></thead>
                 <tbody>
                   {slots.map((s) => (
                     <Fragment key={s.slot}>
-                      <tr className="border-t border-white/[0.08]"><th scope="row" className="px-3 py-2 font-bold text-cyan">{s.slot}</th><td className="px-3 py-2 text-white">{s.start}</td><td className="px-3 py-2 text-zinc-300">{s.end}</td><td className="px-3 py-2 text-zinc-300">{s.matches.map((m) => `M${m}`).join(", ")}</td></tr>
+                      <tr className="border-t border-white/[0.08]"><th scope="row" className="px-3 py-2 font-bold text-cyan">{s.slot}</th><td className="whitespace-nowrap px-3 py-2 text-white"><time dateTime={s.start.slice(0, 5)}>{display12(s.start)}</time></td><td className="whitespace-nowrap px-3 py-2 text-zinc-300"><time dateTime={s.end.slice(0, 5)}>{display12(s.end)}</time></td><td className="px-3 py-2 text-zinc-300">{s.matches.map((m) => `M${m}`).join(", ")}</td></tr>
                       {s.breakAfter > 0 && <tr className="border-t border-white/[0.08] bg-[#0c0d10]"><td colSpan={4} className="px-3 py-2 text-xs text-amber-200">Break: {s.breakAfter} minutes</td></tr>}
                     </Fragment>
                   ))}

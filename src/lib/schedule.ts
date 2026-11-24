@@ -27,6 +27,18 @@ export const formatTime = (minutes: number): string => {
   return `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}${day > 0 ? ` (+${day}d)` : ""}`;
 };
 
+/**
+ * A 24-hour "HH:MM" (optionally with " (+1d)") as people read it on the page: "1:05 PM (+1d)". The browser's time inputs show 12-hour
+ * time in India, so the tables use the same. CSV files and the screen payload keep the 24-hour value.
+ */
+export const display12 = (t: string | undefined): string => {
+  if (!t) return "";
+  const m = /^(\d{1,2}):(\d{2})(.*)$/.exec(t);
+  if (!m) return t;
+  const h = Number(m[1]) % 24;
+  return `${h % 12 === 0 ? 12 : h % 12}:${m[2]} ${h < 12 ? "AM" : "PM"}${m[3]}`;
+};
+
 /** Returns the slots, or null if an input is invalid. */
 export function buildSchedule(i: ScheduleInput): Slot[] | null {
   const start = parseTime(i.start);
