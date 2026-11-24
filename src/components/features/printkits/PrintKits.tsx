@@ -49,7 +49,14 @@ export default function PrintKits() {
 
   const refs = useRef<(HTMLCanvasElement | null)[]>([]);
   // Redraw the previews only when the pages change (it used to redraw all three on every render, including every keystroke).
-  useEffect(() => { pages.slice(0, 3).forEach((p, i) => { const cv = refs.current[i]; if (cv) drawKitPage(cv, p, 2.4); }); }, [pages]);
+  // The previews are far down the page, so they are drawn when the browser is idle, not during start-up.
+  useEffect(() => {
+    const draw = () => pages.slice(0, 3).forEach((p, i) => { const cv = refs.current[i]; if (cv) drawKitPage(cv, p, 2.4); });
+    const w = window as Window & { requestIdleCallback?: (f: () => void, o?: { timeout: number }) => number; cancelIdleCallback?: (n: number) => void };
+    if (typeof w.requestIdleCallback === "function") { const id = w.requestIdleCallback(draw, { timeout: 1200 }); return () => w.cancelIdleCallback?.(id); }
+    const id = window.setTimeout(draw, 200);
+    return () => window.clearTimeout(id);
+  }, [pages]);
 
   const make = async (): Promise<Blob | null> => {
     setBusy(true); setError(""); setStatus("");
