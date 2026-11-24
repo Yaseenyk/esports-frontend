@@ -8,6 +8,7 @@ import { EmptyState, ErrorState, NotAvailable, SignInPrompt, SkeletonRows, Statu
 import { box, btnDanger, btnPrimary, btnSecondary, h1, h2, h3, helper, input, link, section } from "@/features/shared/ui/styles";
 import { CRED_MAX, PHASE_TEXT, REVEAL_CHOICES, matchText, revealText, whenText, type CaptainRoom, type OrganiserRoom, type RevealedRoom, type RoomPhase } from "@/features/match-rooms/domain";
 import { useCaptainRooms, useOrganiserRooms, type Msg } from "@/features/match-rooms/hooks/useRooms";
+import { useCopy } from "@/features/shared/hooks/useCopy";
 
 const WHAT = "Match room sharing";
 const TONE: Record<RoomPhase, "neutral" | "success" | "warning"> = { waiting: "neutral", revealed: "success", expired: "warning" };
@@ -122,10 +123,10 @@ function RoomCard({ r, v, canEdit }: { r: OrganiserRoom; v: ReturnType<typeof us
       {views && (
         <div className="space-y-2" aria-label={`Who has seen ${r.label}`} role="region">
           {views.length === 0 ? <p className="text-sm text-zinc-300">Nobody has looked yet.</p> : (
-            <table className="w-full text-left text-sm">
+            <div className="overflow-x-auto"><table className="w-full min-w-max text-left text-sm">
               <thead className="text-zinc-400"><tr><th scope="col" className="py-1 pr-3 font-medium">Team captain</th><th scope="col" className="py-1 pr-3 font-medium">When</th><th scope="col" className="py-1 font-medium">Password version</th></tr></thead>
               <tbody>{views.map((x, i) => <tr key={`${x.viewedAt}-${i}`} className="border-t border-white/10 text-zinc-200"><td className="py-1 pr-3">{x.team}</td><td className="py-1 pr-3">{whenText(x.viewedAt)}</td><td className="py-1">{x.version}</td></tr>)}</tbody>
-            </table>
+            </table></div>
           )}
         </div>
       )}
@@ -174,6 +175,7 @@ export function CaptainRoomsScreen() {
 }
 
 function CaptainCard({ r, shown, err, onReveal, onHide }: { r: CaptainRoom; shown: RevealedRoom | null; err: string; onReveal: () => void; onHide: () => void }) {
+  const c = useCopy();
   return (
     <li className={`${box} space-y-3`} data-testid="captain-room">
       <div className="flex flex-wrap items-start justify-between gap-2">
@@ -187,13 +189,30 @@ function CaptainCard({ r, shown, err, onReveal, onHide }: { r: CaptainRoom; show
       {shown ? (
         <div className="space-y-3" data-clarity-mask="true" translate="no">
           <dl className="grid gap-3 sm:grid-cols-2">
-            <div><dt className="text-sm text-zinc-400">Room ID</dt><dd className="font-mono text-2xl text-zinc-100" data-testid="room-id"><span key={shown.roomId}>{shown.roomId}</span></dd></div>
-            <div><dt className="text-sm text-zinc-400">Password</dt><dd className="font-mono text-2xl text-zinc-100" data-testid="room-password"><span key={shown.password}>{shown.password}</span></dd></div>
+            <div>
+              <dt className="text-sm text-zinc-400">Room ID</dt>
+              <dd className="flex flex-wrap items-center gap-2">
+                <span className="min-w-0 break-all font-mono text-2xl text-zinc-100" data-testid="room-id"><span key={shown.roomId}>{shown.roomId}</span></span>
+                <button type="button" className={`${btnSecondary} text-sm`} onClick={() => void c.copy("id", shown.roomId)}>Copy<span className="sr-only"> room ID</span></button>
+              </dd>
+            </div>
+            <div>
+              <dt className="text-sm text-zinc-400">Password</dt>
+              <dd className="flex flex-wrap items-center gap-2">
+                <span className="min-w-0 break-all font-mono text-2xl text-zinc-100" data-testid="room-password"><span key={shown.password}>{shown.password}</span></span>
+                <button type="button" className={`${btnSecondary} text-sm`} onClick={() => void c.copy("password", shown.password)}>Copy<span className="sr-only"> password</span></button>
+              </dd>
+            </div>
           </dl>
+          <p role="status" aria-live="polite" className="min-h-5 text-sm text-success" data-testid="room-copied">
+            {c.copied === "id" ? <span key="id">Room ID copied.</span> : c.copied === "password" ? <span key="pw">Password copied.</span> : c.copied === "failed" ? <span key="no" className="text-warning">Copying is blocked here. Select the text and copy it yourself.</span> : null}
+          </p>
           <button type="button" className={btnSecondary} onClick={onHide}>Hide</button>
         </div>
       ) : (
-        <button type="button" className={btnPrimary} disabled={r.phase !== "revealed"} onClick={onReveal}>{r.phase === "revealed" ? "Show room ID and password" : "Not shown yet"}</button>
+        r.phase === "revealed"
+          ? <button type="button" className={btnPrimary} onClick={onReveal}>Show room ID and password</button>
+          : <p className="text-sm text-zinc-100" data-testid="room-not-yet">{r.phase === "waiting" ? <>Not shown yet. The room ID and password appear here from <span key={r.revealAt}>{whenText(r.revealAt)}</span>.</> : <>This room is over; its details are no longer shown.</>}</p>
       )}
       {err && <p role="alert" className="text-sm text-danger"><span key={err}>{err}</span></p>}
     </li>

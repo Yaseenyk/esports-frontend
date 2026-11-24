@@ -95,7 +95,7 @@ test.describe("flags on", () => {
     await axe(page);
   });
 
-  test("captain: claim with a link (only the token is sent), waiting room is locked, revealed room shows the details until hidden", async ({ page }) => {
+  test("captain: claim with a link (only the token is sent), waiting room is locked, revealed room shows the details until hidden", async ({ page, browserName }) => {
     const claims: unknown[] = [];
     const R1 = { id: "b".repeat(32), event: { id: "e1", name: "Gokte Cup" }, team: "Alpha Wolves", label: "Match 1 lobby", match: null, startsAt: "2026-12-01T18:30:00.000Z", revealAt: "2026-12-01T18:15:00.000Z", phase: "revealed" };
     const R2 = { ...R1, id: "c".repeat(32), label: "Final lobby", phase: "waiting" };
@@ -116,12 +116,19 @@ test.describe("flags on", () => {
 
     const cards = page.getByTestId("captain-room");
     await expect(cards).toHaveCount(2);
-    await expect(cards.nth(1).getByRole("button", { name: "Not shown yet" })).toBeDisabled();
+    // A waiting room says when it opens, in words, not as a disabled button.
+    await expect(cards.nth(1).getByTestId("room-not-yet")).toContainText("Not shown yet");
+    await expect(cards.nth(1).getByRole("button", { name: /Not shown yet|Show room ID/ })).toHaveCount(0);
     await expect(page.getByTestId("room-password")).toHaveCount(0);
     await cards.nth(0).getByRole("button", { name: "Show room ID and password" }).click();
     await expect(page.getByTestId("room-id")).toHaveText("ROOM-778812");
     await expect(page.getByTestId("room-password")).toHaveText("tiger42");
     await expect(page.locator('[data-clarity-mask="true"][translate="no"]').first()).toBeVisible();
+    // Copy buttons beside each value; the copy is announced. The values stay inside the masked, untranslated block.
+    if (browserName === "chromium") await page.context().grantPermissions(["clipboard-read", "clipboard-write"]).catch(() => undefined);
+    await cards.nth(0).getByRole("button", { name: "Copy password" }).click();
+    await expect(page.getByTestId("room-copied")).toContainText(/Password copied|Copying is blocked/);
+    await expect(page.locator('[data-clarity-mask="true"][translate="no"]').first().getByRole("button", { name: "Copy room ID" })).toBeVisible();
     // nothing about the room ever lands in storage or the address
     expect(await page.evaluate(() => JSON.stringify({ ...localStorage }) + JSON.stringify({ ...sessionStorage }) + location.href)).not.toMatch(/ROOM-778812|tiger42|abcdefghijkl/);
     await axe(page);
