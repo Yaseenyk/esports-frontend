@@ -13,6 +13,7 @@ import MembersPanel from "@/components/cloud/MembersPanel";
 import RegistrationPanel from "@/components/cloud/RegistrationPanel";
 import EventToolbox from "@/components/app/EventToolbox";
 import DuplicateEventButton from "@/components/features/duplicate/DuplicateEventButton";
+import MatchToolsLinks from "@/features/organiser-tools/ui/MatchToolsLinks";
 
 /** Saved events: a list, and for one event its numbers (people, teams, minors, checked in) with shortcuts to the tools. */
 export default function EventsPage() {
@@ -141,6 +142,7 @@ function Detail({ ev, onBack, onDeleted }: { ev: CloudEvent; onBack: () => void;
       {!canEdit && <p role="note" className="rounded-xl border border-amber-500/30 bg-[#0a0b0d] p-3 text-sm text-amber-100">You have view-only access to this event. You can look, but not change anything.</p>}
       {canEdit && <RegistrationPanel eventId={ev.id} onApproved={() => { roster.refetch(); }} />}
       <EventToolbox eventId={ev.id} eventName={ev.name} role={safeRole(ev.role)} />
+      <MatchToolsLinks eventId={ev.id} />
       {isOwner(ev.role) && <MembersPanel eventId={ev.id} />}
       {(
         <details className="group rounded-2xl border border-white/10 bg-zinc-900/40">

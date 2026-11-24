@@ -1,0 +1,9 @@
+MATCH RESULTS
+RANK TEAM KILLS POINTS
+#1 Alpha Wolves 12 22
+2nd Beta Hawks 8 14
+3. Gamma Squad 5 10
+4 De1ta 0wls 3 7
+5 Echo Esports l1 kills
+| 6 | Foxtrot Five | O |
+Spectating...

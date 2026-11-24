@@ -92,6 +92,22 @@ export async function scanAadhaar(file: File, progress?: (p: number) => void, la
   return { ...best, source: "ocr" };
 }
 
+/**
+ * Reads the text of any picture (used by the results screenshot reader) with the same in-browser Tesseract worker and language data source as
+ * the card scanner. The picture is drawn on a local canvas, read, and dropped; nothing is sent anywhere. English only.
+ */
+export async function recognizeText(file: File, progress?: (p: number) => void): Promise<string> {
+  onProgress = progress ?? null;
+  try {
+    const w = await getWorker("eng");
+    const cv = await prepare(file, "soft");
+    try {
+      const { data } = await w.recognize(cv);
+      return data.text;
+    } finally { cv.width = cv.height = 0; }
+  } finally { onProgress = null; }
+}
+
 export async function stopOcr() {
   if (!workerP) return;
   const w = await workerP;
