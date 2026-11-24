@@ -3,7 +3,12 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
-import { SEARCH_INDEX, type Hit } from "@/lib/data";
+import type { Hit } from "@/lib/search-index";
+
+// The index is a static file, fetched the first time someone uses the box, so no page carries it (it lists every guide) in its JavaScript.
+let indexCache: Hit[] | null = null;
+let indexLoad: Promise<Hit[]> | null = null;
+const loadIndex = () => (indexLoad ??= fetch("/search-index.json").then((r) => (r.ok ? r.json() : [])).then((l: Hit[]) => (indexCache = l)).catch(() => { indexLoad = null; return []; }));
 
 const KIND_STYLE: Record<Hit["kind"], string> = {
   Game: "bg-amber-500/15 text-amber-300",
@@ -23,12 +28,14 @@ export default function SearchBox({ large = false, placeholder = "Search games, 
   const [i, setI] = useState(0);
   const box = useRef<HTMLDivElement>(null);
   const input = useRef<HTMLInputElement>(null);
+  const [index, setIndex] = useState<Hit[] | null>(indexCache);
+  const ensureIndex = () => { if (!index) void loadIndex().then(setIndex); };
   const hits = useMemo(() => {
     const t = q.trim().toLowerCase();
-    if (!t) return [] as Hit[];
+    if (!t || !index) return [] as Hit[];
     const words = t.split(/\s+/);
-    return SEARCH_INDEX.filter((h) => words.every((w) => `${h.title} ${h.sub} ${h.kind} ${h.keywords ?? ""}`.toLowerCase().includes(w))).slice(0, 8);
-  }, [q]);
+    return index.filter((h) => words.every((w) => `${h.title} ${h.sub} ${h.kind} ${h.keywords ?? ""}`.toLowerCase().includes(w))).slice(0, 8);
+  }, [q, index]);
   useEffect(() => {
     const key = (e: KeyboardEvent) => {
       if (e.key === "/" && !/^(INPUT|TEXTAREA|SELECT)$/.test((e.target as HTMLElement)?.tagName)) {
@@ -52,8 +59,8 @@ export default function SearchBox({ large = false, placeholder = "Search games, 
         id={large ? "search-large" : "search-small"}
         type="search"
         value={q}
-        onChange={(e) => { setQ(e.target.value); setOpen(true); setI(0); }}
-        onFocus={() => setOpen(true)}
+        onChange={(e) => { setQ(e.target.value); setOpen(true); setI(0); ensureIndex(); }}
+        onFocus={() => { setOpen(true); ensureIndex(); }}
         onKeyDown={(e) => {
           if (e.key === "ArrowDown") { e.preventDefault(); setI((x) => Math.max(0, Math.min(hits.length - 1, x + 1))); }
           else if (e.key === "ArrowUp") { e.preventDefault(); setI((x) => Math.max(0, x - 1)); }
@@ -72,7 +79,8 @@ export default function SearchBox({ large = false, placeholder = "Search games, 
       <svg aria-hidden="true" viewBox="0 0 24 24" className={`pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 fill-none stroke-zinc-500 ${large ? "h-6 w-6 left-4" : "h-5 w-5"}`} strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" /></svg>
       {open && q.trim() && (
         <ul id={`${uid}-results`} role="listbox" aria-label="Search results" className="absolute inset-x-0 top-full z-30 mt-2 overflow-hidden rounded-xl border border-white/[0.14] bg-[#0a0b0d]">
-          {hits.length === 0 && <li className="px-4 py-3 text-sm text-zinc-400">Nothing matches &ldquo;{q}&rdquo;. Try a game, a guide or a tool name.</li>}
+          {!index && <li className="px-4 py-3 text-sm text-zinc-400">Searching…</li>}
+          {index && hits.length === 0 && <li className="px-4 py-3 text-sm text-zinc-400">Nothing matches &ldquo;{q}&rdquo;. Try a game, a guide or a tool name.</li>}
           {hits.map((h, n) => (
             <li key={h.href + h.title} id={`${uid}-opt-${n}`} role="option" aria-selected={n === i}>
               <Link href={h.href} tabIndex={-1} className={`flex min-h-11 items-center gap-3 px-4 py-3 outline-none ${n === i ? "bg-zinc-800" : "hover:bg-zinc-900"}`}>

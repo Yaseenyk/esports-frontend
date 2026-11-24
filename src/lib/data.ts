@@ -1,5 +1,3 @@
-import { LISTED_GUIDES as GUIDES } from "@/content/guides";
-import { v3PublicEntries } from "@/features/shared/flags";
 /**
  * DEMO DATA for the interface prototype. Nothing here is a real event, community or result: the names and dates are
  * invented to show how the site will look when it is full. Games are listed with generic facts only (platform and the usual team size). When the app is
@@ -139,20 +137,5 @@ export const TOOLS: Tool[] = [
 
 export const gameBySlug = (slug: string) => GAMES.find((g) => g.slug === slug);
 
-/** One search index over everything, for the search box. */
-export interface Hit {
-  kind: "Game" | "Event" | "Community" | "Guide" | "Tool" | "Page";
-  title: string;
-  sub: string;
-  href: string;
-  keywords?: string; // extra words the search matches but does not show
-}
-export const SEARCH_INDEX: Hit[] = [
-  ...v3PublicEntries().map((e) => ({ kind: "Page" as const, title: e.label, sub: e.blurb, keywords: e.keywords, href: e.href })), // only the sections that are switched on
-  ...GAMES.map((g) => ({ kind: "Game" as const, title: g.name, sub: `${g.platform} · ${g.genre} · ${g.short}`, href: `/games/${g.slug}/` })),
-  ...EVENTS.map((e) => ({ kind: "Event" as const, title: e.name, sub: `${gameBySlug(e.game)?.short} · ${e.level} · ${e.mode}`, href: `/events/${e.slug}/` })),
-  ...COMMUNITIES.map((c) => ({ kind: "Community" as const, title: c.name, sub: `${c.kind} · ${c.city}`, href: `/communities/${c.slug}/` })),
-  ...GUIDES.map((g) => ({ kind: "Guide" as const, title: g.title, sub: `${g.tag} · ${g.minutes} min`, href: `/guides/${g.slug}/` })),
-  ...TOOLS.map((t) => ({ kind: "Tool" as const, title: t.name, sub: "Free tool", href: t.href })),
-  { kind: "Tool" as const, title: "Arcade: aim trainer and reaction test", sub: "Warm up and earn XP", href: "/arcade/" },
-];
+// The search box index lives in lib/search-index.ts: it lists every guide, and importing the guides here would ship all their text to every page.
+
