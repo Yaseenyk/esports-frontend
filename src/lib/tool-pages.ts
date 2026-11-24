@@ -163,6 +163,8 @@ export const TOOL_PAGES: Record<string, ToolPage & { title: string; description:
     description: "Free fixture timetable for cricket, football, kabaddi and esports: set matches, pitches or rooms, match length and breaks, and get start and end times for the day.",
     h1: "Fixture schedule maker for cricket, football, kabaddi and esports",
     lead: "Use this free fixture maker to build a match timetable for cricket, football, kabaddi or esports, with no download and no APK. Turn a fixture list into a plan for the day. Enter how many matches you have, how many can be played at the same time (pitches, courts or game rooms), how long each takes and when you want breaks, and get a round-by-round timetable with the finish time. For a college fest over several days, switch to the day-wise plan: give the number of teams and the bracket (single or double elimination, or round robin), the hours of each day, a daily break and the number of stations, and every match is placed in order so none starts before the matches that feed it are over. It suits cricket, football, kabaddi and esports. Need the pairings first? The round robin generator lists every fixture. Free, no account.",
+    intro: "Turn a list of matches into a timed plan for the day, or a day-wise plan for a fest over several days. Free, no account.",
+    leadBelow: true,
     useHeading: "Build your schedule",
     benefits: [
       { title: "Plan the whole day", body: "See straight away what time the last match ends, so you know whether the day fits before you announce it." },

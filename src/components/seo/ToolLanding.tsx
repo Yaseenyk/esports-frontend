@@ -23,6 +23,8 @@ export interface ToolPage {
   lead: string;
   /** A short plain-words opening (about two lines) shown in the header instead of `lead`, so the button comes before any jargon. `lead` stays the description for search engines and structured data. */
   intro?: string;
+  /** Show the full `lead` as the first paragraph under the tool (with `intro` in the header), so a long lede never pushes the first input down. */
+  leadBelow?: boolean;
   /** Print-shop and tech words used on the page, explained once in a small note under the tool. */
   glossary?: { term: string; meaning: string }[];
   benefits: { title: string; body: string }[];
@@ -88,6 +90,8 @@ export default function ToolLanding({ t, children, lang = "en", trust }: { t: To
       </header>
 
       {children && <section aria-labelledby="use"><h2 id="use" className="mb-4 font-display text-2xl font-bold text-white">{t.useHeading ?? u.use}</h2>{children}</section>}
+
+      {t.intro && t.leadBelow && <p className="no-print -mt-4 max-w-3xl leading-7 text-zinc-300" data-testid="lead-below">{t.lead}</p>}
 
       {t.glossary && t.glossary.length > 0 && (
         <aside className="no-print -mt-6 max-w-3xl rounded-xl border border-white/[0.14] bg-[#0a0b0d] p-4 text-sm text-zinc-300" aria-labelledby="words">

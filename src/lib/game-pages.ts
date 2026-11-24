@@ -20,6 +20,8 @@ export const GAME_PAGES: Record<PointsPreset, GamePage> = {
     h1: "BGMI points table maker and points system",
     lead: "A BGMI custom-room points system adds placement points (for where a squad finished) to kill points, match after match. Enter your own scale, type each squad's place and kills, and the table ranks them with tie-breakers. Share it as a picture on WhatsApp or show it on a TV. Free, no account. The scale shown is an example, not an official one.",
     table: { caption: "Example BGMI placement points (an example, not the official scale)", head: ["Place", "Placement points"], rows: [["1st", "10"], ["2nd", "6"], ["3rd", "5"], ["4th", "4"], ["5th", "3"], ["6th", "2"], ["7th and 8th", "1 each"], ["Each kill", "1 point"]] },
+    intro: "Type each squad's place and kills and get ranked BGMI standings with tie-breakers, ready to share. Free, no account.",
+    leadBelow: true,
     useHeading: "Make your BGMI points table",
     benefits: [
       { title: "Your rulebook, your numbers", body: "Type any placement scale and any kill value. The starting scale is only an example of the kind used in custom rooms: replace it with the scale in your own rules or the publisher's rulebook." },
@@ -48,6 +50,8 @@ export const GAME_PAGES: Record<PointsPreset, GamePage> = {
     h1: "Free Fire points table maker and points system",
     lead: "A Free Fire custom-room points system gives each team placement points for where it finished plus points for every kill, added up over all matches. Enter your own scale, type each team's place and kills, and get a ranked table with tie-breakers to share on WhatsApp or show on a TV. Free, no account. The scale shown is an example, not an official one.",
     table: { caption: "Example Free Fire placement points (an example, not the official scale)", head: ["Place", "Placement points"], rows: [["1st", "10"], ["2nd", "6"], ["3rd", "5"], ["4th", "4"], ["5th", "3"], ["6th", "2"], ["7th and 8th", "1 each"], ["Each kill", "1 point"]] },
+    intro: "Type each team's place and kills and get ranked Free Fire standings with tie-breakers, ready to share. Free, no account.",
+    leadBelow: true,
     useHeading: "Make your Free Fire points table",
     benefits: [
       { title: "Set the points yourself", body: "Type your placement points and your points per kill. The starting scale is an example only, so replace it with the scale in your own rules or the publisher's rulebook." },
@@ -75,6 +79,8 @@ export const GAME_PAGES: Record<PointsPreset, GamePage> = {
     h1: "COD Mobile points table maker for Battle Royale",
     lead: "A COD Mobile Battle Royale points table adds placement points for where each squad finished to points for every kill, over all the matches of your custom room event. Type your own scale, enter each squad's place and kills, and the standings rank themselves with tie-breakers. The starting scale is an example written for this page, not an official one. Free, no account.",
     table: { caption: "Example COD Mobile Battle Royale placement points (written for this page, not an official scale)", head: ["Place", "Placement points"], rows: [["1st", "15"], ["2nd", "12"], ["3rd", "10"], ["4th", "8"], ["5th", "6"], ["6th", "5"], ["7th", "4"], ["8th", "3"], ["9th", "2"], ["10th", "1"], ["Each kill", "1 point"]] },
+    intro: "Type each squad's place and kills and get ranked COD Mobile standings with tie-breakers, ready to share. Free, no account.",
+    leadBelow: true,
     useHeading: "Make your COD Mobile points table",
     benefits: [
       { title: "An example that reaches the top ten", body: "The starting scale gives points to the first ten squads, so a squad that survives long but finishes ninth still sees its effort on the table. It is a starting point written for this page, not a standard: change any number to match your rules." },
