@@ -324,3 +324,10 @@ test("rulebook: on a phone the Download PDF bar stays on screen while the form i
     await expect(btn).toBeVisible();
   }
 });
+
+test("prize split: counts open the digits keypad, percentages the decimal one", async ({ page }) => {
+  await page.goto("/tools/prize-split/");
+  await expect(page.getByLabel("Slots to give out")).toHaveAttribute("inputmode", "numeric");
+  await expect(page.getByLabel("Places that get a share")).toHaveAttribute("inputmode", "numeric");
+  await expect(page.getByLabel("1st place (%)")).toHaveAttribute("inputmode", "decimal");
+});

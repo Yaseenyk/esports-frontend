@@ -9,10 +9,11 @@ import ShareResult from "@/features/share-result/ui/ShareResult";
 const PATH = "/tools/prize-split/";
 const numBox = `${input} font-mono tabular-nums`;
 
-function Num({ id, label, value, onChange, help, small }: { id: string; label: string; value: string; onChange: (v: string) => void; help?: string; small?: boolean }) {
+/** Counts get the digits keypad (numeric); only percentages, which can have a decimal point, get the decimal keypad. */
+function Num({ id, label, value, onChange, help, small, decimal = false }: { id: string; label: string; value: string; onChange: (v: string) => void; help?: string; small?: boolean; decimal?: boolean }) {
   return (
     <Field id={id} label={label} help={help}>
-      <input id={id} type="text" inputMode="decimal" autoComplete="off" value={value} onChange={(e) => onChange(e.target.value)} aria-describedby={describedBy(id, help)} className={small ? `${numBox} w-24` : numBox} />
+      <input id={id} type="text" inputMode={decimal ? "decimal" : "numeric"} autoComplete="off" value={value} onChange={(e) => onChange(e.target.value)} aria-describedby={describedBy(id, help)} className={small ? `${numBox} w-24` : numBox} />
     </Field>
   );
 }
@@ -87,7 +88,7 @@ export default function PrizeSplitTool() {
         {s.rule === "custom" && (
           <div className="space-y-2">
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-              {s.percentList.map((v, i) => <Num key={i} id={`ps-pct-${i}`} label={`${ordinal(i + 1)} place (%)`} value={v} onChange={(x) => s.setPercent(i, x)} small />)}
+              {s.percentList.map((v, i) => <Num key={i} id={`ps-pct-${i}`} label={`${ordinal(i + 1)} place (%)`} value={v} onChange={(x) => s.setPercent(i, x)} small decimal />)}
             </div>
             <p className="text-xs text-zinc-400">Adds up to <span className="font-mono tabular-nums" key={s.percentSum}>{Math.round(s.percentSum * 1000) / 1000}</span>%.</p>
           </div>
