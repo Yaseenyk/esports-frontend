@@ -9,6 +9,7 @@ import TiltLink from "@/components/TiltLink";
 import { LISTED_GUIDES as GUIDES } from "@/content/guides";
 import { HOME_FAQ } from "@/content/home-faq";
 import { GAMES, TOOLS } from "@/lib/data";
+import { TOOL_TILES } from "@/lib/tool-icons";
 import { CARD_DESIGNS, CARD_SHAPES, LANGUAGES_COUNT, SCREEN_DESIGNS, SITE_DESCRIPTION } from "@/lib/facts";
 import { ORG_ID, SITE_URL } from "@/lib/site";
 import { v3Enabled } from "@/features/shared/flags";
@@ -24,18 +25,7 @@ export const metadata: Metadata = {
 
 const FAQ = HOME_FAQ;
 
-// Small line icons for the tool cards. Decorative: the words next to them carry the meaning.
-const ICON: Record<string, string> = {
-  "id-cards": "M3 7a2 2 0 012-2h14a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2zM8 11a2 2 0 100-4 2 2 0 000 4zM5.5 16c.5-1.7 1.5-2.5 2.5-2.5s2 .8 2.5 2.5M14 9h4M14 13h3",
-  brackets: "M4 5h5v4H4zM4 15h5v4H4zM15 10h5v4h-5zM9 7h3v10H9M12 12h3",
-  "double-elimination": "M3 4h5v3H3zM3 10h5v3H3zM10 7h4v3h-4zM10 13h4v3h-4zM16 10h5v4h-5zM8 5.5h2M8 11.5h2M14 8.5h2M14 14.5h2",
-  "points-table": "M4 20V10M10 20V4M16 20v-7M22 20H2",
-  registration: "M6 3h9l4 4v14H6zM14 3v5h5M9 13h7M9 17h5",
-  "round-robin": "M12 4a8 8 0 018 8M20 12l-2.5-2.5M12 20a8 8 0 01-8-8M4 12l2.5 2.5M12 8v4l3 2",
-  schedule: "M4 6h16v14H4zM4 10h16M8 3v4M16 3v4M8 14h3M13 14h3M8 17h3",
-  certificates: "M5 4h14v12H5zM9 20l3-3 3 3V16M8 8h8M8 12h5",
-  "check-in": "M4 7V5h3M17 5h3v2M20 17v2h-3M7 19H4v-2M8 12l3 3 5-6",
-};
+// Tool card icons come from the shared map (src/lib/tool-icons.ts), the same icons as the footer honeycomb.
 const STEP_ICON = ["M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7z", "M4 6h16M4 12h16M4 18h10", "M4 7V5h3M17 5h3v2M20 17v2h-3M7 19H4v-2M8 12l3 3 5-6", "M8 21h8M12 17v4M7 4h10v5a5 5 0 01-10 0z"];
 
 function Icon({ d, className = "h-5 w-5" }: { d: string; className?: string }) {
@@ -92,7 +82,7 @@ export default function Home() {
           {TOOLS.map((t) => (
             <Item key={t.slug} className="h-full">
               <TiltLink href={t.href} className="h-full">
-                <span className="tool-icon grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-cyan/20 to-purple/20 text-cyan ring-1 ring-white/10"><Icon d={ICON[t.slug] ?? ICON["id-cards"]!} /></span>
+                <span data-tool-icon={t.slug} className="tool-icon grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-cyan/20 to-purple/20 text-cyan ring-1 ring-white/10"><Icon d={TOOL_TILES[t.slug]?.d ?? TOOL_TILES["id-cards"]!.d} /></span>
                 <h3 className="mt-3 font-display text-lg font-bold text-white">{t.name}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-zinc-300">{t.blurb}</p>
                 <span className="mt-3 inline-block text-sm font-semibold text-cyan">Open →</span>
