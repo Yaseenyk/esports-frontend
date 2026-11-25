@@ -91,7 +91,7 @@ test("routes, sitemap and links: the page has a route, is in the growth pages, l
   assert.ok(read("src/app/(site)/tools/page.tsx").includes(ESPORTS_PATH) && read("src/app/(site)/tools/page.tsx").includes(`/guides/${GUIDE_SLUG}/`));
   assert.ok(read("src/components/SiteFooter.tsx").includes(ESPORTS_PATH) && read("src/components/SiteFooter.tsx").includes('"/tools/"'));
   assert.ok(read("src/lib/student-page.ts").includes(ESPORTS_PATH));
-  assert.ok(read("src/app/llms.txt/route.ts").includes("ESPORTS_PAGE"));
+  assert.ok(read("src/lib/llms.ts").includes("ESPORTS_PAGE") && read("src/app/llms.txt/route.ts").includes("llmsTxt"));
   assert.ok(guideBySlug("player-id-cards").sections.flatMap((s) => s.blocks).some((b) => b.t === "p" && b.x.includes(ESPORTS_PATH)));
   for (const r of ESPORTS_PAGE.related) assert.ok(r.href === "/tools/" || r.href === ESPORTS_PATH || TOOLS.some((t) => t.href === r.href) || GROWTH_PAGES.some((p) => p.path === r.href), r.href);
   assert.match(TOOLS.find((t) => t.slug === "id-cards").blurb, /no sign-up, built for tournaments/);
