@@ -24,14 +24,15 @@ export const PT_BR_PAGES: Record<string, string> = {
 /**
  * Portuguese path -> the date a native reader approved it, or null while it waits for review. A new page starts as null.
  * Approved 24 Nov 2026: the owner confirmed a native Brazilian Portuguese reader read and approved the points table and the team names guide.
+ * Approved 25 Nov 2026: the owner confirmed a native Brazilian Portuguese reader read and approved the nick, sensitivity converter and guild name tool pages.
  * Added 25 Nov 2026, not reviewed yet: the nick, sensitivity converter and guild name pages.
  */
 export const PT_BR_REVIEWED: Record<string, string | null> = {
   "/pt-br/points-table/free-fire/": "2026-11-24",
   "/pt-br/guides/free-fire-team-names-ideas/": "2026-11-24",
-  "/pt-br/tools/nick-free-fire/": null,
-  "/pt-br/tools/conversor-de-sensibilidade/": null,
-  "/pt-br/tools/nome-de-guilda-free-fire/": null,
+  "/pt-br/tools/nick-free-fire/": "2026-11-25",
+  "/pt-br/tools/conversor-de-sensibilidade/": "2026-11-25",
+  "/pt-br/tools/nome-de-guilda-free-fire/": "2026-11-25",
 };
 
 /** True only for a Portuguese page a native reader approved. */

@@ -13,14 +13,14 @@ import { toolCopy } from "../src/lib/tool-copy.ts";
 const read = (p) => fs.readFileSync(new URL(`../${p}`, import.meta.url), "utf8");
 const nums = (s) => (s.match(/\d+/g) ?? []).sort().join(",");
 
-test("the review switch is per page: the two pages approved on 24 Nov 2026 are indexable, the three added on 25 Nov are not", () => {
+test("the review switch is per page: all five pages are approved (two on 24 Nov 2026, three on 25 Nov 2026) and indexable", () => {
   // Approved by a native Brazilian Portuguese reader, as confirmed by the owner on 24 Nov 2026 (see src/lib/pt-br.ts).
   assert.match(read("src/lib/pt-br.ts"), /Approved 24 Nov 2026/, "the approval is recorded next to the switch");
   assert.deepEqual(PT_BR_REVIEWED, {
     "/pt-br/points-table/free-fire/": "2026-11-24", "/pt-br/guides/free-fire-team-names-ideas/": "2026-11-24",
-    "/pt-br/tools/nick-free-fire/": null, "/pt-br/tools/conversor-de-sensibilidade/": null, "/pt-br/tools/nome-de-guilda-free-fire/": null,
+    "/pt-br/tools/nick-free-fire/": "2026-11-25", "/pt-br/tools/conversor-de-sensibilidade/": "2026-11-25", "/pt-br/tools/nome-de-guilda-free-fire/": "2026-11-25",
   });
-  assert.deepEqual(PT_BR_INDEXABLE, ["/pt-br/points-table/free-fire/", "/pt-br/guides/free-fire-team-names-ideas/"]);
+  assert.deepEqual(PT_BR_INDEXABLE, ["/pt-br/points-table/free-fire/", "/pt-br/guides/free-fire-team-names-ideas/", "/pt-br/tools/nick-free-fire/", "/pt-br/tools/conversor-de-sensibilidade/", "/pt-br/tools/nome-de-guilda-free-fire/"]);
   for (const p of Object.values(PT_BR_PAGES)) {
     assert.ok(p in PT_BR_REVIEWED, `${p} has an entry in the review record`);
     assert.deepEqual(ptBrRobots(p), ptBrReviewed(p) ? { index: true, follow: true } : { index: false, follow: true });

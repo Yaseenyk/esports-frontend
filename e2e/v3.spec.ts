@@ -100,7 +100,8 @@ test("apply: hints for links and numbers, the server's code in plain words, then
   await expect(dlg).toBeVisible();
 
   await dlg.getByLabel("Message (optional)").fill("add me at https://discord.gg/abc");
-  await dlg.getByLabel("Your contact").fill("raviigl");
+  // The label reads "Your contact", or "Discord (or your main contact)" when team matching (v3.lft_match) is on in the build.
+  await dlg.locator("#ap-contact").fill("raviigl");
   await expect(dlg.getByText(/looks like a link/)).toBeVisible();
   await dlg.getByRole("button", { name: "Send application" }).click();
   expect(seen.filter((s) => s.method === "POST").length).toBe(0); // blocked on the client
@@ -111,7 +112,7 @@ test("apply: hints for links and numbers, the server's code in plain words, then
   await dlg.getByRole("button", { name: "Send application" }).click();
   await expect(dlg.getByText(/Application sent/)).toBeVisible();
   const post = seen.filter((s) => s.method === "POST").pop();
-  expect(JSON.parse(post!.body)).toEqual({ message: "I play IGL, diamond, evenings IST", contact: "raviigl" });
+  expect(JSON.parse(post!.body)).toMatchObject({ message: "I play IGL, diamond, evenings IST", contact: "raviigl" });
 });
 
 test("apply: signed-out visitors are asked to sign in, and the 18+ gate shows when not confirmed", async ({ page }) => {
@@ -142,9 +143,10 @@ test("new listing: validates, shows the server's error, then succeeds", async ({
   await page.goto("/lft/new/");
   await page.getByRole("button", { name: "Post listing" }).click();
   await expect(page.getByText("Choose a game.")).toBeVisible();
-  await page.getByLabel("Game").selectOption("bgmi");
+  await page.locator("#n-game").selectOption("bgmi"); // by id: with team matching on, "In-game name" also matches the label "Game"
   await page.getByLabel("Message").fill("call me on 9876543210 for scrims");
-  await page.getByLabel("Your contact").fill("raviigl");
+  const matching = (await page.locator("#n-c-discord").count()) > 0; // the build shows the contact list when v3.lft_match is on
+  await page.locator(matching ? "#n-c-discord" : "#n-contact").fill("raviigl");
   await expect(page.locator("#n-msg-err")).toContainText("phone number");
   await page.getByLabel("Message").fill("IGL looking for a serious squad, evenings IST");
   await page.getByRole("button", { name: "Post listing" }).click();
@@ -152,7 +154,8 @@ test("new listing: validates, shows the server's error, then succeeds", async ({
   await page.getByRole("button", { name: "Post listing" }).click();
   await expect(page.getByRole("heading", { name: "Listing posted" })).toBeVisible();
   const body = JSON.parse(seen.filter((s) => s.method === "POST").pop()!.body);
-  expect(body).toMatchObject({ kind: "looking_for_team", game: "bgmi", contact: "raviigl", expiresInDays: 14 });
+  expect(body).toMatchObject({ kind: "looking_for_team", game: "bgmi", expiresInDays: 14 });
+  expect(body.contact === "raviigl" || body.contacts?.discord === "raviigl").toBe(true);
 });
 
 test("my listings: bump, close, inbox with accept; contact appears only after accept", async ({ page }) => {

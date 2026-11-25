@@ -12,6 +12,7 @@ import { CARD_DESIGNS, SCREEN_DESIGNS } from "@/lib/facts";
 import { ESPORTS_PAGE } from "@/lib/esports-id-page";
 import { ALL_GAME_PAGES } from "@/lib/game-pages";
 import { FREE_FIRE_PT } from "@/lib/game-pages-pt";
+import { GUILD_PT, NICK_FF_PT, SENS_PT } from "@/lib/tool-pages-pt";
 import { PT_BR_PAGES, ptBrReviewed } from "@/lib/pt-br";
 import { SITE_URL } from "@/lib/site";
 import { STUDENT_PAGE } from "@/lib/student-page";
@@ -35,6 +36,7 @@ export function portuguesePages(): { path: string; title: string; description: s
   const meta: Record<string, { title: string; description: string }> = {
     [FREE_FIRE_PT.path]: { title: FREE_FIRE_PT.title, description: FREE_FIRE_PT.description },
     "/pt-br/guides/free-fire-team-names-ideas/": { title: FREE_FIRE_TEAM_NAMES_PT.title, description: FREE_FIRE_TEAM_NAMES_PT.description },
+    ...Object.fromEntries([NICK_FF_PT, SENS_PT, GUILD_PT].map((t) => [t.path, { title: t.title, description: t.description }])),
   };
   return Object.entries(PT_BR_PAGES).filter(([, pt]) => meta[pt] && ptBrReviewed(pt)).map(([en, pt]) => ({ path: pt, en, ...meta[pt]! }));
 }

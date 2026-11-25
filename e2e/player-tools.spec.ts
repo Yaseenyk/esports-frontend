@@ -29,12 +29,12 @@ async function axe(page: Page) {
 
 test.beforeEach(async ({ context }) => { await context.grantPermissions(["clipboard-read", "clipboard-write"]); });
 
-test("Free Fire name style: static ready names and symbols, the generator, copy, and no hreflang to the unreviewed pt page", async ({ page, request }) => {
+test("Free Fire name style: static ready names and symbols, the generator, copy, and hreflang to its approved pt page", async ({ page, request }) => {
   const html = await (await request.get("/tools/free-fire-name-style/")).text();
   // The lists and FAQ are in the static HTML, before any script runs.
   expect((html.match(/data-copy=/g) ?? []).length).toBeGreaterThanOrEqual(120);
   expect(html).toContain("made by this tool from our own word lists");
-  expect(html).not.toMatch(/hreflang="pt-BR"/i);
+  expect(html).toMatch(/hreflang="pt-BR" href="[^"]*\/pt-br\/tools\/nick-free-fire\/"/i); // pt page approved 25 Nov 2026
   await page.goto("/tools/free-fire-name-style/");
   await seo(page, "/tools/free-fire-name-style/", /Free Fire name style generator: stylish names you can copy/);
   await expect(page.getByTestId("ready-names").locator("li")).toHaveCount(60);
@@ -158,11 +158,12 @@ test("pt-BR tool pages: Portuguese, noindex until reviewed, no hreflang either w
     ["/pt-br/tools/nome-de-guilda-free-fire/", /Gerador de nome de guilda para Free Fire/, "Já tenho um nome: checar e usar"],
   ];
   for (const [path, h1, label] of pages) {
-    expect(sitemap).not.toContain(path);
+    // Approved by a native reader on 25 Nov 2026: indexable, in the sitemap, paired with the English page.
+    expect(sitemap).toContain(path);
     await page.goto(path);
     await expect(page.locator("html")).toHaveAttribute("lang", "pt-BR");
-    await seo(page, path, h1, { index: false });
-    await expect(page.locator("link[rel=alternate][hreflang]")).toHaveCount(0);
+    await seo(page, path, h1, { index: true });
+    await expect(page.locator('link[rel=alternate][hreflang="pt-BR"]')).toHaveAttribute("href", new RegExp(`${path}$`));
     await expect(page.getByLabel(label).first()).toBeVisible();
     await axe(page);
   }
@@ -173,6 +174,6 @@ test("pt-BR tool pages: Portuguese, noindex until reviewed, no hreflang either w
   await expect(page.getByTestId("sens-answer")).toHaveText("1.27");
   for (const en of ["/tools/free-fire-name-style/", "/tools/sensitivity-converter/", "/tools/free-fire-guild-name/"]) {
     await page.goto(en);
-    await expect(page.locator('link[rel=alternate][hreflang="pt-BR"]')).toHaveCount(0);
+    await expect(page.locator('link[rel=alternate][hreflang="pt-BR"]')).toHaveCount(1);
   }
 });
