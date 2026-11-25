@@ -9,7 +9,7 @@ import {
   blockPoster, blockRequester, cancelSlot, createSlot, fetchBlocks, fetchBoard, fetchIncoming, fetchMySlots, fetchMyTeams, fetchSent, reportSlot, requestSlot, respondTo, unblock, withdrawRequest,
 } from "@/features/scrims/services/scrims.api";
 import { toUtcIso, todayIst, type Zone } from "@/features/scrims/time";
-import { BOARD_KEYS as KEYS, EMPTY_FORM, boardSearch, parseBoardFilters, validateSlotForm, type SlotForm } from "@/features/scrims/filters";
+import { BOARD_KEYS as KEYS, EMPTY_FORM, boardSearch, parseBoardFilters, prefillFromSearch, validateSlotForm, type SlotForm } from "@/features/scrims/filters";
 
 export { boardSearch, parseBoardFilters, validateSlotForm };
 
@@ -84,6 +84,7 @@ export function useNewScrim() {
   const [serverError, setServerError] = useState("");
   const [createdId, setCreatedId] = useState<string | null>(null);
   const set = <K extends keyof SlotForm>(k: K, v: SlotForm[K]) => setForm((f) => ({ ...f, [k]: v }));
+  useEffect(() => { const pre = prefillFromSearch(window.location.search); if (Object.keys(pre).length) setForm((f) => ({ ...f, ...pre })); }, []);
   const submit = async () => {
     const e = validateSlotForm(form);
     setErrors(e); setServerError("");

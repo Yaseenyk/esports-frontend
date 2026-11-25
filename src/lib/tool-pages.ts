@@ -1,4 +1,5 @@
 import type { ToolPage } from "@/components/seo/ToolLanding";
+import { SCRIM_PLANNER_PAGE } from "@/features/squad-planner/page";
 import { trustFaq } from "@/features/tool-trust/domain";
 import { GROUPS_PAGE } from "./tool-page-groups";
 import { PRINTKITS_PAGE } from "./tool-page-printkits";
@@ -324,4 +325,5 @@ export const TOOL_PAGES: Record<string, ToolPage & { title: string; description:
   "reaction-time-test": REACTION_PAGE,
   "tap-speed-test": TAP_PAGE,
   "valorant-crosshair": CROSSHAIR_PAGE,
+  "scrim-time-planner": SCRIM_PLANNER_PAGE,
 };

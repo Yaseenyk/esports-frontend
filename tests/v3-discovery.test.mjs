@@ -29,7 +29,7 @@ test("the dashboard player card lists only enabled sections", () => {
   assert.deepEqual(playerLinks((s) => s === "resume").map((l) => l.label), ["My esports resume"]);
   assert.deepEqual(playerLinks((s) => s === "lft").map((l) => l.label), ["Team finder", "My listings"]);
   assert.deepEqual(playerLinks((s) => s === "lft" || s === "resume").map((l) => l.href), ["/app/resume/", "/lft/", "/app/lft/"]);
-  assert.deepEqual(playerLinks(() => true).map((l) => l.href), ["/app/resume/", "/lft/", "/app/lft/", "/scrims/", "/app/teams/"]);
+  assert.deepEqual(playerLinks(() => true).map((l) => l.href), ["/app/resume/", "/lft/", "/app/lft/", "/app/alerts/", "/scrims/", "/app/teams/"]);
 });
 
 test("the honeycomb has a row for every section, however many there are", () => {

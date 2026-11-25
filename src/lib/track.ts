@@ -20,6 +20,8 @@ export const TOOL_IDS = [
   "sensitivity-converter", "team-name-generator", "prize-split", "rulebook",
   // Player tools added 25 Nov 2026 (the backend TOOL_IDS list must add them, or the server ignores them).
   "free-fire-name-style", "bgmi-name-style", "reaction-time-test", "tap-speed-test", "valorant-crosshair",
+  // Added 25 Nov 2026 (builder B): the squad availability planner (backend src/metrics.ts knows it).
+  "scrim-time-planner",
 ] as const;
 export type ToolId = (typeof TOOL_IDS)[number];
 

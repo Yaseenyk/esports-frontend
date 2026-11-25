@@ -38,8 +38,8 @@ export default function SiteFooter() {
       <div className="mx-auto grid max-w-6xl grid-cols-[minmax(0,1fr)] gap-10 pt-10 lg:grid-cols-2 lg:gap-14">
         <nav aria-label="Tools" className="min-w-0">
           <p className="fx-kicker"><span>{slugs.length} free tools</span></p>
-          <div className="fx-comb fx-comb-wide">{chunk(slugs, [5, 5, 5, 5, 4]).map((row, i) => <div key={i} className="fx-row">{row.map((s) => <Hex key={s} slug={s} />)}</div>)}</div>
-          <div className="fx-comb fx-comb-narrow">{chunk(slugs, [2, 3, 2, 3, 2, 3, 2, 3, 2, 2]).map((row, i) => <div key={i} className="fx-row">{row.map((s) => <Hex key={s} slug={s} />)}</div>)}</div>
+          <div className="fx-comb fx-comb-wide">{chunk(slugs, [5, 5, 5, 5, 5]).map((row, i) => <div key={i} className="fx-row">{row.map((s) => <Hex key={s} slug={s} />)}</div>)}</div>
+          <div className="fx-comb fx-comb-narrow">{chunk(slugs, [2, 3, 2, 3, 2, 3, 2, 3, 2, 3]).map((row, i) => <div key={i} className="fx-row">{row.map((s) => <Hex key={s} slug={s} />)}</div>)}</div>
           <p className="mt-4 text-xs text-zinc-400">No account needed. They run in your browser.</p>
         </nav>
 

@@ -67,7 +67,11 @@ export function hintFor(what: "message" | "application" | "contact", c: TextChec
   }
 }
 
-export interface CreateForm { kind: string; game: string; roles: string[]; rankMin: string; rankMax: string; state: string; city: string; onlineOk: boolean; message: string; contact: string; expiresInDays: string; teamProfileId: string }
+export interface CreateForm {
+  kind: string; game: string; roles: string[]; rankMin: string; rankMax: string; state: string; city: string; onlineOk: boolean; message: string; contact: string; expiresInDays: string; teamProfileId: string;
+  /** Team matching (only sent while it is on): languages, play-hour blocks and the contacts to share after an accept. */
+  languages: string[]; playHours: string[]; contacts: { discord: string; instagram: string; ign: string };
+}
 export type FormErrors = Partial<Record<keyof CreateForm, string>>;
 
 const rankOk = (s: string) => s === "" || (/^\d{1,3}$/.test(s) && Number(s) <= 100);
@@ -81,7 +85,9 @@ export function validateCreate(f: CreateForm): FormErrors {
   if (!rankOk(f.rankMax)) e.rankMax = "A whole number from 0 to 100.";
   if (!e.rankMin && !e.rankMax && f.rankMin !== "" && f.rankMax !== "" && Number(f.rankMin) > Number(f.rankMax)) e.rankMax = "The top of the range must not be below the bottom.";
   const m = hintFor("message", checkListingMessage(f.message)); if (m) e.message = m;
-  const c = hintFor("contact", checkContact(f.contact)); if (c) e.contact = c;
+  const chosen = Object.values(f.contacts ?? {}).filter((x) => x.trim());
+  if (chosen.length) { const bad = chosen.map((x) => hintFor("contact", checkContact(x))).find(Boolean); if (bad) e.contacts = bad; }
+  else { const c = hintFor("contact", checkContact(f.contact)); if (c) e.contact = c; }
   const d = Number(f.expiresInDays);
   if (!Number.isInteger(d) || d < 1 || d > 30) e.expiresInDays = "Choose 1 to 30 days.";
   if (f.kind === "looking_for_player" && !f.teamProfileId) e.teamProfileId = "Pick the team page you are recruiting for.";
@@ -94,7 +100,17 @@ export function createBody(f: CreateForm): Record<string, unknown> {
   return {
     kind: f.kind, game: f.game, roles: f.roles, ...(n(f.rankMin) !== undefined ? { rankMin: n(f.rankMin) } : {}), ...(n(f.rankMax) !== undefined ? { rankMax: n(f.rankMax) } : {}),
     ...(f.state.trim() ? { state: f.state.trim() } : {}), ...(f.city.trim() ? { city: f.city.trim() } : {}), onlineOk: f.onlineOk,
-    message: cleanText(f.message), contact: cleanText(f.contact), expiresInDays: Number(f.expiresInDays),
+    message: cleanText(f.message), contact: cleanText(firstContact(f) || f.contact), expiresInDays: Number(f.expiresInDays),
+    ...(f.languages?.length ? { languages: f.languages.slice(0, 5) } : {}), ...(f.playHours?.length ? { playHours: f.playHours.slice(0, 5) } : {}),
+    ...(chosenContacts(f) ? { contacts: chosenContacts(f) } : {}),
     ...(f.kind === "looking_for_player" && f.teamProfileId ? { teamProfileId: f.teamProfileId } : {}),
   };
 }
+
+/** The contacts typed in the matching form, kind -> handle, or null when none was typed. */
+export function chosenContacts(f: Pick<CreateForm, "contacts">): Record<string, string> | null {
+  const out: Record<string, string> = {};
+  for (const [k, v] of Object.entries(f.contacts ?? {})) if (v.trim()) out[k] = cleanText(v);
+  return Object.keys(out).length ? out : null;
+}
+export const firstContact = (f: Pick<CreateForm, "contacts">): string => Object.values(chosenContacts(f) ?? {})[0] ?? "";

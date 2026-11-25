@@ -82,7 +82,7 @@ test("create body: optional fields are left out, teamProfileId only for a team",
 
 test("filters: parse keeps only valid values", () => {
   const f = parseFilters("?game=bgmi&kind=looking_for_team&role=igl&rank_min=10&rank_max=99&state=Maharashtra&city=Pune&online=1");
-  assert.deepEqual(f, { game: "bgmi", kind: "looking_for_team", role: "igl", rankMin: "10", rankMax: "99", state: "Maharashtra", city: "Pune", online: true });
+  assert.deepEqual(f, { game: "bgmi", kind: "looking_for_team", role: "igl", rankMin: "10", rankMax: "99", state: "Maharashtra", city: "Pune", online: true, lang: "", hours: "", sort: "" });
   const bad = parseFilters("?game=chess&kind=x&role=wizard&rank_min=abc&rank_max=500&online=yes&state=<b>x</b>");
   assert.equal(bad.game, ""); assert.equal(bad.kind, ""); assert.equal(bad.role, ""); assert.equal(bad.rankMin, ""); assert.equal(bad.rankMax, ""); assert.equal(bad.online, false);
   assert.equal(bad.state.includes("<"), false);

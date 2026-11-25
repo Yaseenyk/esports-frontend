@@ -1,5 +1,5 @@
 /** Private screens and one-off links, kept out of crawling (robots.txt). Pages that only carry demo data are crawlable but marked noindex. */
-export const PRIVATE_PATHS = ["/app/", "/gate/", "/join/", "/pass/", "/register/", "/display/", "/live/", "/overlay/", "/embed/", "/score/", "/report/", "/ready/", "/run/", "/unsubscribe/", "/verify-email/", "/login/", "/signup/", "/forgot-password/", "/reset-password/", "/admin/"];
+export const PRIVATE_PATHS = ["/app/", "/gate/", "/join/", "/pass/", "/register/", "/display/", "/live/", "/overlay/", "/embed/", "/score/", "/report/", "/ready/", "/run/", "/unsubscribe/", "/verify-email/", "/login/", "/signup/", "/forgot-password/", "/reset-password/", "/admin/", "/squad/", "/alerts/"];
 
 /**
  * AI search and assistant crawlers, named in robots.txt so a later blanket rule can never block them by accident. A named group

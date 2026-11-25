@@ -20,6 +20,23 @@ export function boardSearch(f: BoardFilters): string {
 export interface SlotForm { teamProfileId: string; game: string; day: string; time: string; zone: Zone; region: string; server: string; skillNote: string; slots: string; contact: string }
 export const EMPTY_FORM: SlotForm = { teamProfileId: "", game: "", day: "", time: "", zone: "ist", region: "india", server: "", skillNote: "", slots: "1", contact: "" };
 
+/** "?starts=<UTC ISO>&game=<game>" (the squad planner's "Post a scrim at this time" link) to India-time form fields. Unknown or bad values are dropped. */
+export function prefillFromSearch(search: string): Partial<SlotForm> {
+  const p = new URLSearchParams(search);
+  const out: Partial<SlotForm> = {};
+  const game = p.get("game") ?? "";
+  if (["bgmi", "free_fire", "valorant", "cod_mobile", "cs2", "other"].includes(game)) out.game = game;
+  const ms = Date.parse(p.get("starts") ?? "");
+  if (Number.isFinite(ms)) {
+    const d = new Date(ms + 330 * 60_000);
+    const pad = (n: number) => String(n).padStart(2, "0");
+    out.day = `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}`;
+    out.time = `${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}`;
+    out.zone = "ist";
+  }
+  return out;
+}
+
 /** Client-side checks mirror the server's (the server decides). Returns field -> message. */
 export function validateSlotForm(f: SlotForm, now: number = Date.now()): Partial<Record<keyof SlotForm, string>> {
   const e: Partial<Record<keyof SlotForm, string>> = {};

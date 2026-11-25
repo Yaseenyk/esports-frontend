@@ -3,6 +3,8 @@ import { loadBuildColleges } from "@/features/colleges/college";
 import { loadBuildCalendar, PRUNE_MARKER_ID } from "@/features/community/services/build-data";
 import { calendarIndexable, countUpcoming, MIN_UPCOMING_FOR_INDEX, todayIst } from "@/features/community/seo";
 import type { CalendarEntry } from "@/features/community/domain";
+import { v3Enabled } from "@/features/shared/flags";
+import AlertsBox from "@/features/alerts/ui/AlertsBox";
 import CalendarScreen from "@/features/community/ui/CalendarScreen";
 import { loadBuildTournaments } from "@/features/tournaments/services/build-data";
 import { h1, h2, link, section } from "@/features/shared/ui/styles";
@@ -50,6 +52,7 @@ export default async function CalendarPage() {
         </p>
       </header>
       <CalendarScreen initial={cal.items} today={today} known={known} />
+      {v3Enabled("alerts") && <AlertsBox />}
       <section className={section} aria-labelledby="how-cal-h">
         <h2 id="how-cal-h" className={h2}>How the calendar works</h2>
         <ul className="mt-3 max-w-3xl list-disc space-y-2 pl-5 text-zinc-300">

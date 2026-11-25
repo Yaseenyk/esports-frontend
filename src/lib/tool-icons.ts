@@ -26,5 +26,6 @@ export const TOOL_TILES: Record<string, { label: string; d: string }> = {
   "reaction-time-test": { label: "Reaction", d: "M12 21a8 8 0 100-16 8 8 0 000 16zM12 9v4l2.5 2.5M10 2h4M19 5l1.5-1.5" },
   "tap-speed-test": { label: "Tap speed", d: "M9 11V5a2 2 0 014 0v6M13 10a2 2 0 014 0v4a7 7 0 01-7 7 6 6 0 01-5-3l-2-4a1.8 1.8 0 013-2l2 2.5M4 4l2 2M20 4l-2 2" },
   "valorant-crosshair": { label: "Crosshair", d: "M12 3v6M12 15v6M3 12h6M15 12h6M12 11.5v1" },
+  "scrim-time-planner": { label: "Squad times", d: "M4 6h16v14H4zM4 10h16M8 3v4M16 3v4M8 14l2 2 4-4" },
   "check-in": { label: "Check-in", d: "M4 7V5h3M17 5h3v2M20 17v2h-3M7 19H4v-2M8 12l3 3 5-6" },
 };
