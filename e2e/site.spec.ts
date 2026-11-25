@@ -474,9 +474,11 @@ test("round robin ignores repeated names and treats a team called Bye as a team"
 test("changing an early double elimination result clears the results built on it", async ({ page }) => {
   await page.goto("/tools/double-elimination/");
   await page.getByLabel("One team per line").fill("Ace\nBolt\nCrow\nDove");
-  const pressed = page.locator('[aria-pressed="true"]');
-  const base = await pressed.count(); // the screen design picker on this page has one selected design of its own
   const winners = page.getByRole("region", { name: "Winners bracket rounds" });
+  // Counted inside the winners rounds only: the share and screen blocks (their own pressed chips) load on their own schedule.
+  const pressed = winners.locator('[aria-pressed="true"]');
+  const base = 0;
+  await expect(pressed).toHaveCount(base);
   await winners.getByRole("button", { name: /Ace/ }).first().click(); // Ace beats Dove
   await winners.getByRole("button", { name: /Bolt/ }).first().click(); // Bolt beats Crow
   await winners.getByRole("button", { name: /Ace/ }).last().click(); // Ace beats Bolt in the winners final
