@@ -29,7 +29,8 @@ test("admin pages are noindex and carry the title a missing page would have", ()
 });
 
 test("robots, the SEO check and the tag loader all treat /admin/ as private", () => {
-  assert.match(src("src/app/robots.ts"), /"\/admin\/"/);
+  assert.match(src("src/lib/crawlers.ts"), /"\/admin\/"/); // robots.ts reads its private paths from here
+  assert.match(src("src/app/robots.ts"), /PRIVATE_PATHS/);
   assert.match(src("scripts/verify-seo.mjs"), /\^\\\/admin\\\//);
   assert.equal(gtmAllowed("/admin/"), false);
   assert.equal(gtmAllowed("/admin/reports/"), false);

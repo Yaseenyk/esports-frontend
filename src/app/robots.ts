@@ -1,10 +1,17 @@
 import type { MetadataRoute } from "next";
+import { AI_CRAWLERS, PRIVATE_PATHS } from "@/lib/crawlers";
 import { INDEXABLE, SITE_URL } from "@/lib/site";
 
 export const dynamic = "force-static";
 
 export default function robots(): MetadataRoute.Robots {
   if (!INDEXABLE) return { rules: { userAgent: "*", disallow: "/" } };
-  // Private screens and one-off links are kept out of crawling. Pages that only carry demo data are crawlable but marked noindex.
-  return { rules: { userAgent: "*", allow: "/", disallow: ["/app/", "/gate/", "/join/", "/pass/", "/register/", "/display/", "/live/", "/overlay/", "/embed/", "/score/", "/report/", "/ready/", "/run/", "/unsubscribe/", "/verify-email/", "/login/", "/signup/", "/forgot-password/", "/reset-password/", "/admin/"] }, sitemap: `${SITE_URL}/sitemap.xml` };
+  // Everyone, and the AI crawlers by name (same private paths): see src/lib/crawlers.ts.
+  return {
+    rules: [
+      { userAgent: "*", allow: "/", disallow: PRIVATE_PATHS },
+      { userAgent: AI_CRAWLERS, allow: "/", disallow: PRIVATE_PATHS },
+    ],
+    sitemap: `${SITE_URL}/sitemap.xml`,
+  };
 }
