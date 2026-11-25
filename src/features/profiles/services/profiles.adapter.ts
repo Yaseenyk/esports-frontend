@@ -1,5 +1,6 @@
 /** API payloads (API.md section 9) to the screen shapes. Defensive: a missing or odd field becomes a safe default, never a crash. Pure. */
 import { HIDEABLE, LINK_KINDS } from "@/features/profiles/domain";
+import { toPublicBadges } from "@/features/badges/services/badges.adapter";
 import type {
   Achievement, BrRow, Certificate, Entry, GameLine, HideableField, LinkKind, MatchRow, OwnPlayerPage, OwnTeamPage, PageDetails, PlayerLink, PlayerPage, ProfileStats, TeamOnProfile, TeamPage,
   TeamPageSummary, TournamentRef, Visibility,
@@ -79,7 +80,7 @@ export function toPlayerPage(v: unknown): PlayerPage | null {
   if (typeof o.handle !== "string" || !o.handle) return null;
   return {
     slug: typeof o.slug === "string" && o.slug ? o.slug : null, handle: o.handle, bio: strOrNull(o.bio), city: strOrNull(o.city), state: strOrNull(o.state), languages: strings(o.languages), games: arr(o.games).map(toGame),
-    stats: toStats(o.stats), teamName: strOrNull(o.teamName), links: toLinks(o.links), achievements: toAchievements(o.achievements),
+    stats: toStats(o.stats), teamName: strOrNull(o.teamName), links: toLinks(o.links), achievements: toAchievements(o.achievements), badges: toPublicBadges(o.badges),
     visibility: toVisibility(o.visibility), indexable: o.indexable === true, teams: arr(o.teams).map(toTeamOn), updatedAt: strOrNull(o.updatedAt), ...results(o),
   };
 }

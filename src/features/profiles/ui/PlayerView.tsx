@@ -3,6 +3,7 @@ import { StatusBadge } from "@/features/shared/ui/States";
 import { box, h1, h2, helper, link, section } from "@/features/shared/ui/styles";
 import { linkLabel, type PlayerPage } from "@/features/profiles/domain";
 import { CertificateList, ResultsSection, TeamsSection, dayText, type TourLink } from "@/features/profiles/ui/ProfileParts";
+import { BadgeList } from "@/features/badges/ui/BadgeList";
 
 /** The tournaments behind the page's verified rows, newest first as the API orders them, each once. */
 export function recentTournaments(p: Pick<PlayerPage, "certificates" | "matches" | "battleRoyale">): { slug: string; title: string }[] {
@@ -70,6 +71,8 @@ export function PlayerView({ p, footer, kicker = "Esports player profile", linka
           </dl>
         </section>
       )}
+
+      <BadgeList badges={p.badges} />
 
       {p.achievements.length > 0 && (
         <section className={section} aria-labelledby="ach-h">

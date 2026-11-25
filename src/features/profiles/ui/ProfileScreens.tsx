@@ -13,6 +13,8 @@ import { BLOCKER_TEXT, REPORT_REASONS, visibilityLabel, type Entry, type OwnPage
 import { useCardToken, useMyPlayerPage, useMyTeamPages, usePlayerByCard, usePlayerPage, useReportPage, useSlugParam, useTeamPage, useTeamPageEditor } from "@/features/profiles/hooks/useProfiles";
 import { PlayerView } from "@/features/profiles/ui/PlayerView";
 import { CardLinkBox, PageDetailsEditor } from "@/features/profiles/ui/DetailsEditor";
+import { MyBadgesPanel } from "@/features/badges/ui/MyBadgesPanel";
+import { JournalLink } from "@/features/journal/ui/JournalLink";
 import { CertificateCard, CertificateList, ResultsSection, TeamsSection, VisibilityPicker, dayText } from "@/features/profiles/ui/ProfileParts";
 
 const GONE = "This address has no shared page. The owner may have made it private, or it never existed.";
@@ -162,6 +164,8 @@ export function PlayerPagePanel({ adult, consentGiven, onChanged, onAvailable }:
         <Blockers page={page} />
       </div>
       <PageDetailsEditor details={page.details} busy={m.busy} onSave={m.setDetails} />
+      <MyBadgesPanel />
+      <JournalLink />
       <CardLinkBox page={page} busy={m.busy} onEnsure={m.ensureCard} onReset={m.resetCard} />
       <h3 className={h3}>Tournaments on your page</h3>
       <EntryList entries={page.entries} busy={m.busy} onToggle={(e) => void m.setHidden(e.itemKey, !e.hidden)} />

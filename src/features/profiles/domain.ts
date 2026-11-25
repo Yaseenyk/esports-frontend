@@ -1,4 +1,5 @@
 /** Phase 3: public player profiles and team pages (API.md section 9, flag v3.profiles). Shapes the screens use; pure. */
+import type { PublicBadge } from "@/features/badges/domain";
 export type Visibility = "private" | "unlisted" | "public";
 
 export const VISIBILITY_CHOICES: { value: Visibility; label: string; help: string }[] = [
@@ -32,6 +33,8 @@ export interface Achievement { title: string; year: number | null }
 export interface PlayerPage extends Results {
   slug: string | null; handle: string; bio: string | null; city: string | null; state: string | null; languages: string[]; games: GameLine[]; stats: ProfileStats | null;
   teamName: string | null; links: PlayerLink[]; achievements: Achievement[];
+  /** Server badges (flag v3.achievements): earned from records, the hidden ones already removed by the API. [] while the flag is off. */
+  badges: PublicBadge[];
   visibility: Visibility; indexable: boolean; teams: TeamOnProfile[]; updatedAt: string | null;
 }
 export interface TeamPage extends Results {
@@ -59,11 +62,12 @@ export const LINKS_MAX = 6;
 export const ACHIEVEMENTS_MAX = 8;
 
 /** The show/hide switches on the edit screen, in the order the public page shows the fields. */
-export type HideableField = "bio" | "location" | "languages" | "games" | "roles" | "team" | "links" | "achievements" | "stats" | "teams" | "certificates" | "matches";
+export type HideableField = "bio" | "location" | "languages" | "games" | "roles" | "team" | "links" | "achievements" | "stats" | "teams" | "certificates" | "matches" | "badges";
 export const HIDEABLE: { value: HideableField; label: string }[] = [
   { value: "bio", label: "Bio" }, { value: "location", label: "City and state" }, { value: "languages", label: "Languages" }, { value: "games", label: "Games and in-game names" },
   { value: "roles", label: "Roles" }, { value: "team", label: "Current team" }, { value: "links", label: "Social links" }, { value: "achievements", label: "Achievements" },
   { value: "stats", label: "Verified stats" }, { value: "teams", label: "Teams captained" }, { value: "certificates", label: "Certificates" }, { value: "matches", label: "Recent matches" },
+  { value: "badges", label: "Badges" },
 ];
 export interface OwnTeamPage extends OwnPage { id: string; name: string; claimable: { tournament: TournamentRef; team: string }[] }
 export interface TeamPageSummary { id: string; slug: string; name: string; visibility: Visibility; path: string; indexable: boolean; indexBlockers: string[]; hiddenByModeration: boolean; tournaments: number; certificates: number }
