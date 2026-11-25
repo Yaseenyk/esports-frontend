@@ -106,7 +106,14 @@ test("tap speed test: taps in 5 seconds, taps per second, a best kept on this de
   await seo(page, "/tools/tap-speed-test/", /Tap speed test: taps per second \(CPS on mobile\)/);
   await page.getByRole("button", { name: "5 seconds" }).click();
   const pad = page.getByTestId("tap-pad");
-  for (let i = 0; i < 20; i++) await pad.click({ delay: 5 });
+  await expect(pad).toBeVisible();
+  // 20 taps inside the page in well under a second: 20 separate Playwright clicks could take longer than the 5-second window on a busy machine.
+  await pad.evaluate(async (el) => {
+    for (let i = 0; i < 20; i++) {
+      el.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true, cancelable: true, pointerType: "touch", isPrimary: true }));
+      await new Promise((r) => setTimeout(r, 10));
+    }
+  });
   await expect(page.getByTestId("tap-count")).toHaveText("20");
   await expect(pad).toHaveAttribute("data-phase", "done", { timeout: 8000 });
   await expect(page.getByTestId("tap-rate")).toHaveText("4");
