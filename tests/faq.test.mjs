@@ -5,7 +5,7 @@ import { TOOL_PAGES } from "../src/lib/tool-pages.ts";
 
 const pages = Object.entries(TOOL_PAGES);
 
-test("there are nineteen tool pages", () => assert.equal(pages.length, 19));
+test("there are twenty tool pages", () => assert.equal(pages.length, 20));
 
 test("every tool page has at least 7 FAQ items with real answers", () => {
   for (const [slug, p] of pages) {

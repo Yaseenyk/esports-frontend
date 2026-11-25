@@ -18,6 +18,8 @@ export const TOOL_IDS = [
   "certificates", "display-screen", "check-in", "brackets", "points-table", "groups", "print-kits",
   // Added 24 Nov 2026; tool_complete wired 25 Nov (backend src/metrics.ts knows them).
   "sensitivity-converter", "team-name-generator", "prize-split", "rulebook",
+  // Added 25 Nov 2026 (builder B): the squad availability planner (backend src/metrics.ts knows it).
+  "scrim-time-planner",
 ] as const;
 export type ToolId = (typeof TOOL_IDS)[number];
 

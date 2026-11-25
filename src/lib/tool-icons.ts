@@ -21,5 +21,6 @@ export const TOOL_TILES: Record<string, { label: string; d: string }> = {
   "team-name-generator": { label: "Team names", d: "M12 3l7 3v6c0 4-3 7-7 9-4-2-7-5-7-9V6zM9 11h6M12 8v6" },
   "free-fire-guild-name": { label: "Guild names", d: "M5 4h14l-2 6 2 6H5zM5 4v17M9 8h5M9 12h4" },
   "sensitivity-converter": { label: "Sensitivity", d: "M12 3a5 5 0 015 5v8a5 5 0 01-10 0V8a5 5 0 015-5zM12 7v4M4 12h2M18 12h2" },
+  "scrim-time-planner": { label: "Squad times", d: "M4 6h16v14H4zM4 10h16M8 3v4M16 3v4M8 14l2 2 4-4" },
   "check-in": { label: "Check-in", d: "M4 7V5h3M17 5h3v2M20 17v2h-3M7 19H4v-2M8 12l3 3 5-6" },
 };

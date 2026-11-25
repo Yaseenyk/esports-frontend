@@ -29,8 +29,9 @@ async function v3Nav() {
   const calendarProbe = async () => {
     try { const r = await fetch(api + "/public/calendar", { signal: AbortSignal.timeout(5000) }); if (r.status !== 200) return false; const j = await r.json(); return Array.isArray(j.items) && j.items.some((e) => e && e.status === "listed"); } catch { return false; }
   };
-  const [t, l, s, p, c] = await Promise.all([probe("/public/tournaments?limit=1"), probe("/public/lft?limit=1"), probe("/public/scrims?limit=1"), probe("/v3/me/team-pages", 401), calendarProbe()]);
-  return [t && "tournaments", l && "lft", s && "scrims", p && "profiles", c && "calendar"].filter(Boolean).join(",");
+  // alerts (flag v3.alerts) and LFT matching (flag v3.lft_match, on /v3/me/lft-blocks) answers 401 (not 404) on /v3/me/alerts to a caller without a token once its flag is on.
+  const [t, l, s, p, c, a, m] = await Promise.all([probe("/public/tournaments?limit=1"), probe("/public/lft?limit=1"), probe("/public/scrims?limit=1"), probe("/v3/me/team-pages", 401), calendarProbe(), probe("/v3/me/alerts", 401), probe("/v3/me/lft-blocks", 401)]);
+  return [t && "tournaments", l && "lft", s && "scrims", p && "profiles", c && "calendar", a && "alerts", m && "lftmatch"].filter(Boolean).join(",");
 }
 
 export default async function config() {

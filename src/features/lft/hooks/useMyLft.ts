@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { bumpListing, closeListing, fetchInbox, fetchMine, fetchSent, respond, withdraw } from "@/features/lft/services/lft.api";
+import { blockFromRequest, bumpListing, closeListing, fetchBlocks, fetchInbox, fetchMine, fetchSent, reportRequest, respond, unblock, withdraw } from "@/features/lft/services/lft.api";
 import type { InboxApplication, MyListing, SentApplication } from "@/features/lft/domain";
 import { useResource } from "@/features/shared/hooks/useResource";
 import { explainFailure, type V3Result } from "@/features/shared/failure";
@@ -27,6 +27,7 @@ export function useMyLft() {
     bump: (id: string) => act(id, "Bumped to the top of the board.", () => bumpListing(id)),
     close: (id: string, status: "closed" | "filled") => act(id, status === "filled" ? "Marked as filled." : "Listing closed.", () => closeListing(id, status)),
     withdraw: (id: string) => act(id, "Application withdrawn.", () => withdraw(id)),
+    blockPoster: (id: string) => act(id, "Blocked. Your open requests to them were withdrawn, and you will not see requests from each other.", () => blockFromRequest(id)),
   };
 }
 
@@ -35,11 +36,29 @@ export function useInbox(listingId: string, onChanged: () => void) {
   const inbox = useResource<InboxApplication[]>(() => fetchInbox(listingId), [listingId]);
   const [error, setError] = useState("");
   const [busyId, setBusyId] = useState("");
+  const block = async (id: string) => {
+    setBusyId(id); setError("");
+    const r = await blockFromRequest(id);
+    setBusyId("");
+    if (r.ok) { inbox.reload(); onChanged(); } else setError(explainFailure(r.failure));
+  };
+  const report = async (id: string, reason: string, note: string) => {
+    const r = await reportRequest(id, reason, note);
+    return r.ok ? "" : explainFailure(r.failure);
+  };
   const decide = async (id: string, decision: "accept" | "decline") => {
     setBusyId(id); setError("");
     const r = await respond(id, decision);
     setBusyId("");
     if (r.ok) { inbox.reload(); onChanged(); } else setError(explainFailure(r.failure));
   };
-  return { inbox, decide, error, busyId };
+  return { inbox, decide, block, report, error, busyId };
+}
+
+/** The people I blocked on the board, with unblock. */
+export function useLftBlocks() {
+  const list = useResource(fetchBlocks, []);
+  const [error, setError] = useState("");
+  const remove = async (id: string) => { const r = await unblock(id); if (r.ok) list.reload(); else setError(explainFailure(r.failure)); };
+  return { list, remove, error };
 }

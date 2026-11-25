@@ -6,7 +6,8 @@ import { useSession } from "@/components/cloud/useSession";
 import { useLftBoard } from "@/features/lft/hooks/useLftBoard";
 import { useApply, useCreateListing, useIsOwnListing, useListing, useReport } from "@/features/lft/hooks/useLftForms";
 import { useAdult } from "@/features/shared/hooks/useAdult";
-import { KINDS, GAMES, REPORT_REASONS, ROLES, ROLE_LABELS, type Listing } from "@/features/lft/domain";
+import { KINDS, GAMES, LANGUAGES, PLAY_HOURS, REPORT_REASONS, ROLES, ROLE_LABELS, type Listing, type MatchWants } from "@/features/lft/domain";
+import { v3Enabled } from "@/features/shared/flags";
 import { MESSAGE_HELP } from "@/features/lft/validators";
 import { LftCard, LftFilters, ListingDetail } from "@/features/lft/ui/LftParts";
 import { Field, SelectInput, TextArea, TextInput } from "@/features/shared/ui/Fields";
@@ -15,8 +16,31 @@ import { AdultGate, EmptyState, ErrorState, NotAvailable, SignInPrompt, Skeleton
 import { box, btnPrimary, btnSecondary, h1, link } from "@/features/shared/ui/styles";
 import { explainFailure } from "@/features/shared/failure";
 
+/** "What I look for": three groups of chips, kept in this browser only, used to rank the board. */
+function WantsPanel({ value, onChange }: { value: MatchWants; onChange: (w: MatchWants) => void }) {
+  const toggle = (k: keyof MatchWants, v: string, max: number) => onChange({ ...value, [k]: value[k].includes(v) ? value[k].filter((x) => x !== v) : value[k].length < max ? [...value[k], v] : value[k] });
+  const group = (k: keyof MatchWants, legend: string, items: { value: string; label: string }[], max: number) => (
+    <fieldset>
+      <legend className="mb-1 text-sm font-medium text-zinc-100">{legend}</legend>
+      <div className="flex flex-wrap gap-2">
+        {items.map((i) => <label key={i.value} className="flex min-h-11 items-center gap-2 rounded-lg border border-white/10 px-3 text-sm text-zinc-100"><input type="checkbox" checked={value[k].includes(i.value)} onChange={() => toggle(k, i.value, max)} className="h-4 w-4 accent-cyan-400" />{i.label}</label>)}
+      </div>
+    </fieldset>
+  );
+  return (
+    <section className={`${box} space-y-4`} aria-labelledby="wants-h">
+      <h2 id="wants-h" className="font-display text-lg font-semibold text-zinc-100">What you look for</h2>
+      <p className="text-sm text-zinc-400">Used only to sort the board for you. Saved in this browser, never on your account.</p>
+      {group("roles", "Roles (up to 4)", ROLES.map((r) => ({ value: r, label: ROLE_LABELS[r] ?? r })), 4)}
+      {group("languages", "Languages (up to 5)", LANGUAGES, 5)}
+      {group("hours", "When you play (India time)", PLAY_HOURS, 5)}
+    </section>
+  );
+}
+
 export function BoardScreen() {
   const b = useLftBoard();
+  const match = v3Enabled("lftmatch");
   return (
     <div className="mx-auto max-w-5xl space-y-6">
       <header className="space-y-2">
@@ -26,7 +50,14 @@ export function BoardScreen() {
       </header>
       {b.phase === "unavailable" ? <NotAvailable what="The board" /> : (
         <>
-          <LftFilters value={b.filters} onChange={b.setFilters} onClear={b.clear} />
+          <LftFilters value={b.filters} onChange={b.setFilters} onClear={b.clear} match={match} />
+          {match && (
+            <div className="flex flex-wrap items-center gap-3" role="group" aria-label="Sort the board">
+              <button type="button" aria-pressed={b.filters.sort !== "match"} onClick={() => b.setFilters({ ...b.filters, sort: "" })} className={b.filters.sort !== "match" ? btnPrimary : btnSecondary}>Newest first</button>
+              <button type="button" aria-pressed={b.filters.sort === "match"} onClick={() => b.setFilters({ ...b.filters, sort: "match" })} className={b.filters.sort === "match" ? btnPrimary : btnSecondary}>Best match for me</button>
+            </div>
+          )}
+          {match && b.filters.sort === "match" && <WantsPanel value={b.wants} onChange={b.setWants} />}
           <div aria-live="polite">
             {b.phase === "loading" && (b.skeleton ? <SkeletonRows label="Loading listings" /> : <p className="sr-only">Loading listings</p>)}
             {b.phase === "error" && <ErrorState message={b.failure ? explainFailure(b.failure) : "The board did not load."} onRetry={b.retry} />}
@@ -50,7 +81,7 @@ export function BoardScreen() {
 function ApplyDialog({ listing, open, onClose }: { listing: Listing; open: boolean; onClose: () => void }) {
   const a = useApply(listing.id);
   return (
-    <Modal open={open} onClose={onClose} title="Apply to this listing">
+    <Modal open={open} onClose={onClose} title={listing.kind === "looking_for_player" ? "Request to join" : "Apply to this listing"}>
       {a.sent ? (
         <div role="status" className="space-y-4">
           <p className="text-zinc-100">Application sent. The poster will see your message. Your contact is shared only if they accept you.</p>
@@ -59,7 +90,14 @@ function ApplyDialog({ listing, open, onClose }: { listing: Listing; open: boole
       ) : (
         <form onSubmit={(e) => { e.preventDefault(); void a.submit(); }} className="space-y-4" noValidate>
           <TextArea id="ap-msg" label="Message (optional)" value={a.message} onChange={a.setMessage} rows={4} max={400} error={a.hints.message} help="Plain text. No links, phone numbers, @handles or &quot;DM me&quot; lines." />
-          <TextInput id="ap-contact" label="Your contact" value={a.contact} onChange={a.setContact} maxLength={40} error={a.hints.contact} help="For example your Discord name. Shown to the poster only after they accept." />
+          <TextInput id="ap-contact" label={v3Enabled("lftmatch") ? "Discord (or your main contact)" : "Your contact"} value={a.contact} onChange={a.setContact} maxLength={40} error={a.hints.contact} help="For example your Discord name. Shown to the poster only after they accept." />
+          {v3Enabled("lftmatch") && (
+            <div className="grid gap-4 sm:grid-cols-2">
+              <TextInput id="ap-insta" label="Instagram (optional)" value={a.extra.instagram} onChange={(v) => a.setExtra({ ...a.extra, instagram: v })} maxLength={40} />
+              <TextInput id="ap-ign" label="In-game name (optional)" value={a.extra.ign} onChange={(v) => a.setExtra({ ...a.extra, ign: v })} maxLength={40} error={a.extraBad} />
+              <p className="text-xs text-zinc-400 sm:col-span-2">Only what you fill in is shared, and only if they accept your request.</p>
+            </div>
+          )}
           {a.error && <p role="alert" className="text-sm text-danger"><span aria-hidden="true">! </span>{a.error}</p>}
           <div className="flex flex-wrap gap-3"><button type="submit" disabled={a.busy} className={btnPrimary}>{a.busy ? "Sending" : "Send application"}</button><button type="button" onClick={onClose} className={btnSecondary}>Cancel</button></div>
         </form>
@@ -107,8 +145,9 @@ export function ListingScreen() {
         <>
           <ListingDetail l={l} />
           {own ? <p role="status" className="text-zinc-300">That is your own listing. You can bump, close or read its applications on your <Link href="/app/lft/" className={link}>listings page</Link>.</p> : !session ? <SignInPrompt what="Sign in and confirm you are 18 or older to apply." next="/app/lft/" /> : adult.known && !adult.adult ? <AdultGate busy={adult.busy} error={adult.error} onConfirm={adult.confirm} /> : (
-            <div className="flex flex-wrap gap-3"><button type="button" onClick={() => setDialog("apply")} className={btnPrimary}>Apply</button><button type="button" onClick={() => setDialog("report")} className={btnSecondary}>Report this listing</button></div>
+            <div className="flex flex-wrap gap-3"><button type="button" onClick={() => setDialog("apply")} className={btnPrimary}>{l.kind === "looking_for_player" ? "Request to join" : "Apply"}</button><button type="button" onClick={() => setDialog("report")} className={btnSecondary}>Report this listing</button></div>
           )}
+          <p className="text-sm text-zinc-400">Found your squad? Find a time everyone can play with the <Link href="/tools/scrim-time-planner/" className={link}>scrim time planner</Link>.</p>
           <ApplyDialog listing={l} open={dialog === "apply"} onClose={() => setDialog("")} />
           <ReportDialog listing={l} open={dialog === "report"} onClose={() => setDialog("")} />
         </>
@@ -154,7 +193,30 @@ export function NewListingScreen() {
           </div>
           <label className="flex min-h-11 items-center gap-2 text-zinc-100"><input type="checkbox" checked={form.onlineOk} onChange={(e) => set("onlineOk", e.target.checked)} className="h-5 w-5 accent-cyan-400" />Online play is fine</label>
           <TextArea id="n-msg" label="Message" value={form.message} onChange={(v) => set("message", v)} max={600} error={errors.message} help={MESSAGE_HELP} />
-          <TextInput id="n-contact" label="Your contact" value={form.contact} onChange={(v) => set("contact", v)} maxLength={40} error={errors.contact} help="For example your Discord name. Never shown on the board: only to someone you accept." />
+          {v3Enabled("lftmatch") ? (
+            <>
+              <fieldset>
+                <legend className="mb-1 text-sm font-medium text-zinc-100">Languages you speak in game (optional, up to 5)</legend>
+                <div className="flex flex-wrap gap-2">{LANGUAGES.map((x) => <label key={x.value} className="flex min-h-11 items-center gap-2 rounded-lg border border-white/10 px-3 text-sm text-zinc-100"><input type="checkbox" checked={form.languages.includes(x.value)} onChange={() => f.toggleIn("languages", x.value)} className="h-4 w-4 accent-cyan-400" />{x.label}</label>)}</div>
+              </fieldset>
+              <fieldset>
+                <legend className="mb-1 text-sm font-medium text-zinc-100">When you play, India time (optional)</legend>
+                <div className="flex flex-wrap gap-2">{PLAY_HOURS.map((x) => <label key={x.value} className="flex min-h-11 items-center gap-2 rounded-lg border border-white/10 px-3 text-sm text-zinc-100"><input type="checkbox" checked={form.playHours.includes(x.value)} onChange={() => f.toggleIn("playHours", x.value)} className="h-4 w-4 accent-cyan-400" />{x.label}</label>)}</div>
+              </fieldset>
+              <fieldset className="space-y-3" data-clarity-mask="true">
+                <legend className="mb-1 text-sm font-medium text-zinc-100">Contacts to share after you accept someone</legend>
+                <p className="text-xs text-zinc-400">Never shown on the board. Fill in at least one; only what you fill in is shared, and only with people you accept.</p>
+                <div className="grid gap-4 sm:grid-cols-3">
+                  <TextInput id="n-c-discord" label="Discord" value={form.contacts.discord} onChange={(v) => f.setContact("discord", v)} maxLength={40} />
+                  <TextInput id="n-c-insta" label="Instagram" value={form.contacts.instagram} onChange={(v) => f.setContact("instagram", v)} maxLength={40} />
+                  <TextInput id="n-c-ign" label="In-game name" value={form.contacts.ign} onChange={(v) => f.setContact("ign", v)} maxLength={40} />
+                </div>
+                {(errors.contacts || errors.contact) && <p role="alert" className="text-sm text-danger"><span aria-hidden="true">! </span>{errors.contacts || "Add at least one contact, for example your Discord name."}</p>}
+              </fieldset>
+            </>
+          ) : (
+            <TextInput id="n-contact" label="Your contact" value={form.contact} onChange={(v) => set("contact", v)} maxLength={40} error={errors.contact} help="For example your Discord name. Never shown on the board: only to someone you accept." />
+          )}
           <Field id="n-days" label="Keep it open for" error={errors.expiresInDays}>
             <select id="n-days" value={form.expiresInDays} onChange={(e) => set("expiresInDays", e.target.value)} className="min-h-11 w-full rounded-lg border border-white/10 bg-surface px-3 text-zinc-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-400">
               {["7", "14", "21", "30"].map((d) => <option key={d} value={d}>{d} days</option>)}

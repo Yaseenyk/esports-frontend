@@ -1,4 +1,5 @@
 import type { ToolPage } from "@/components/seo/ToolLanding";
+import { SCRIM_PLANNER_PAGE } from "@/features/squad-planner/page";
 import { trustFaq } from "@/features/tool-trust/domain";
 import { GROUPS_PAGE } from "./tool-page-groups";
 import { PRINTKITS_PAGE } from "./tool-page-printkits";
@@ -318,4 +319,5 @@ export const TOOL_PAGES: Record<string, ToolPage & { title: string; description:
   "free-fire-guild-name": FF_GUILD_PAGE,
   "prize-split": PRIZE_SPLIT_PAGE,
   rulebook: RULEBOOK_PAGE,
+  "scrim-time-planner": SCRIM_PLANNER_PAGE,
 };

@@ -5,7 +5,7 @@
  * Routes themselves always exist (noindex, "Not available yet" when their flag is off); this only controls links.
  */
 /** Phases 3-5 add "scrims" (flag v3.scrims) and "profiles" (flag v3.profiles: team pages and the shared player profile). */
-export type V3Section = "tournaments" | "lft" | "resume" | "disputes" | "scrims" | "profiles" | "calendar";
+export type V3Section = "tournaments" | "lft" | "resume" | "disputes" | "scrims" | "profiles" | "calendar" | "alerts" | "lftmatch";
 
 const ON = new Set((process.env.NEXT_PUBLIC_V3_NAV ?? "").split(",").map((s) => s.trim()).filter(Boolean));
 export const v3Enabled = (s: V3Section): boolean => ON.has(s);

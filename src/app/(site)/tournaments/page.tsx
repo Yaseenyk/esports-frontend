@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import TournamentsPage from "@/components/features/directory/TournamentsPage";
 import { DirectoryScreen } from "@/features/directory";
+import AlertsBox from "@/features/alerts/ui/AlertsBox";
 import { tournamentsIndexVerdict } from "@/features/directory/services/page-verdict";
 import { loadBuildTournaments, indexableOnly } from "@/features/tournaments/services/build-data";
 import { TournamentList } from "@/features/tournaments/ui/TournamentParts";
@@ -35,7 +36,7 @@ export default async function Page() {
   // The index decision travels with the page so scripts/verify-seo.mjs can re-check what was shipped. Counts only.
   const data = <script type="application/json" id="eh-directory" dangerouslySetInnerHTML={{ __html: JSON.stringify({ mode: v.mode, upcoming: v.upcoming, min: v.min, indexable: v.indexable }) }} />;
   if (v.mode === "legacy") return <>{data}<TournamentsPage /></>;
-  if (v.mode === "directory" && v.directory) return <>{data}<DirectoryScreen initial={v.directory} indexable={v.indexable} /></>;
+  if (v.mode === "directory" && v.directory) return <>{data}<DirectoryScreen initial={v.directory} indexable={v.indexable} />{v3Enabled("alerts") && <div className="mx-auto mt-8 max-w-5xl"><AlertsBox /></div>}</>;
   const all = await loadBuildTournaments();
   const ready = indexableOnly(all);
   const shown = (ready.length > 0 ? ready : all).map((t) => t.detail);

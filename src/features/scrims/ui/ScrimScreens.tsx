@@ -129,6 +129,7 @@ export function ScrimBoardScreen() {
         <h1 className={h1}>Scrim finder</h1>
         <p className="max-w-3xl text-zinc-300">Captains post open practice slots; other captains ask to join. You must be 18 or older and have a team page. {RULES}</p>
         {!bare && b.phase !== "unavailable" && <p><Link href="/scrims/new/" className={btnPrimary}>Post a scrim</Link></p>}
+        {!bare && <p className="text-sm text-zinc-400">Not sure when your squad is free? Ask them with the <Link href="/tools/scrim-time-planner/" className="text-cyan-400 underline underline-offset-2">scrim time planner</Link> first.</p>}
       </header>
       {b.phase === "unavailable" ? <NotAvailable what="The scrim finder" /> : (
         <>
