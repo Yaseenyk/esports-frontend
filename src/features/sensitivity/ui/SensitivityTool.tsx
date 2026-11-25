@@ -2,12 +2,13 @@
 
 import { Field, describedBy } from "@/features/shared/ui/Fields";
 import { btnSecondary, input, link } from "@/features/shared/ui/styles";
-import { CHECKED, GAMES, MAX_DPI, MIN_DPI, roundFor } from "@/features/sensitivity/domain";
+import { CHECKED, GAMES, roundFor } from "@/features/sensitivity/domain";
 import { useSensitivity } from "@/features/sensitivity/hooks/useSensitivity";
 import { useEdpi } from "@/features/sensitivity/hooks/useEdpi";
 import ShareResult from "@/features/share-result/ui/ShareResult";
+import { sensCopy } from "@/features/sensitivity/copy";
+import type { UiLang } from "@/lib/pt-br";
 
-const PATH = "/tools/sensitivity-converter/";
 const options = GAMES.map((g) => ({ value: g.id, label: g.name }));
 
 function GameSelect({ id, label, value, onChange }: { id: string; label: string; value: string; onChange: (v: string) => void }) {
@@ -29,33 +30,34 @@ function NumberBox({ id, label, value, onChange, help, error }: { id: string; la
 }
 
 /** The eDPI calculator: sensitivity x DPI for one game, its cm/360, and the eDPI that gives the same feel in each listed game. */
-function EdpiCalculator() {
-  const e = useEdpi();
+function EdpiCalculator({ lang }: { lang: UiLang }) {
+  const c = sensCopy(lang);
+  const e = useEdpi(lang);
   const r = e.check.ok ? e.check.result : null;
   return (
     <section aria-labelledby="edpi-h" className="space-y-4 border-t border-white/10 pt-6">
-      <h3 id="edpi-h" className="font-display text-lg text-zinc-100">eDPI calculator</h3>
+      <h3 id="edpi-h" className="font-display text-lg text-zinc-100">{c.edpiH}</h3>
       <p className="max-w-3xl text-sm leading-6 text-zinc-300">
-        eDPI (effective DPI) is your in-game sensitivity multiplied by your mouse DPI: 0.4 at 800 DPI is an eDPI of 320. It puts a player&apos;s speed into one number, so two players in the same game can compare settings even if one uses 400 DPI and the other 1600. It does not carry across games, because each game turns by a different amount per mouse count (its yaw). Between games, compare cm/360: how many centimetres the mouse travels for one full turn.
+        {c.edpiP}
       </p>
       <div className="grid gap-4 sm:grid-cols-3">
-        <GameSelect id="edpi-game" label="Game" value={e.gameId} onChange={e.setGameId} />
-        <NumberBox id="edpi-sens" label="In-game sensitivity" value={e.sens} onChange={e.setSens} error={e.sensError} />
-        <NumberBox id="edpi-dpi" label="Mouse DPI" value={e.dpi} onChange={e.setDpi} error={e.dpiError} />
+        <GameSelect id="edpi-game" label={c.edpiGame} value={e.gameId} onChange={e.setGameId} />
+        <NumberBox id="edpi-sens" label={c.edpiSens} value={e.sens} onChange={e.setSens} error={e.sensError} />
+        <NumberBox id="edpi-dpi" label={c.dpi} value={e.dpi} onChange={e.setDpi} error={e.dpiError} />
       </div>
       {!r ? (
-        <p className="text-sm text-zinc-300">Fix the box marked above to see your eDPI.</p>
+        <p className="text-sm text-zinc-300">{c.edpiFix}</p>
       ) : (
         <>
           <p className="text-base text-zinc-300" aria-live="polite">
-            eDPI in <span key={r.game.id}>{r.game.name}</span>:{" "}
+            {c.edpiIn} <span key={r.game.id}>{r.game.name}</span>:{" "}
             <strong data-testid="edpi-answer" className="font-mono text-3xl text-cyan-400 tabular-nums"><span key={r.edpi}>{roundFor(r.edpi, 2)}</span></strong>{" "}
             <span className="text-sm">(<span key={`c${r.cm360}`} data-testid="edpi-cm">{roundFor(r.cm360, 2)}</span> cm/360, <span key={`i${r.in360}`}>{roundFor(r.in360, 2)}</span> in/360)</span>
           </p>
-          <div role="region" aria-label="The same feel as an eDPI in every listed game" tabIndex={0} className="overflow-x-auto rounded-xl border border-white/10">
+          <div role="region" aria-label={c.edpiTableLabel} tabIndex={0} className="overflow-x-auto rounded-xl border border-white/10">
             <table className="w-full border-collapse text-left text-sm">
-              <caption className="sr-only">The eDPI that gives the same cm/360 in each listed game</caption>
-              <thead><tr className="text-zinc-300"><th scope="col" className="px-3 py-2">Game</th><th scope="col" className="px-3 py-2">eDPI for the same feel</th></tr></thead>
+              <caption className="sr-only">{c.edpiTableCaption}</caption>
+              <thead><tr className="text-zinc-300"><th scope="col" className="px-3 py-2">{c.game}</th><th scope="col" className="px-3 py-2">{c.edpiCol}</th></tr></thead>
               <tbody>
                 {r.perGame.map((g) => (
                   <tr key={g.game.id} className="border-t border-white/10">
@@ -66,7 +68,7 @@ function EdpiCalculator() {
               </tbody>
             </table>
           </div>
-          <p className="text-xs leading-5 text-zinc-400">The matching eDPI is your eDPI times this game&apos;s yaw, divided by the other game&apos;s yaw. Counter-Strike 2 and Apex Legends share a yaw of 0.022, so their eDPI values match directly.</p>
+          <p className="text-xs leading-5 text-zinc-400">{c.edpiNote}</p>
         </>
       )}
     </section>
@@ -77,53 +79,54 @@ function EdpiCalculator() {
  * Mouse sensitivity converter for PC games: game A sensitivity and DPI in, game B sensitivity out, with cm/360 and inches/360.
  * Everything is worked out in the browser. Changing numbers sit in their own elements so a translated page keeps working.
  */
-export default function SensitivityTool() {
-  const s = useSensitivity();
+export default function SensitivityTool({ lang = "en", path = "/tools/sensitivity-converter/" }: { lang?: UiLang; path?: string }) {
+  const c = sensCopy(lang);
+  const s = useSensitivity(lang);
   const r = s.check.ok ? s.check.result : null;
   return (
     <div className="space-y-6">
       <section aria-labelledby="sens-in" className="space-y-4 rounded-xl border border-white/10 bg-surface p-4">
-        <h3 id="sens-in" className="font-display text-lg text-zinc-100">Your current setting</h3>
+        <h3 id="sens-in" className="font-display text-lg text-zinc-100">{c.current}</h3>
         <div className="grid gap-4 sm:grid-cols-2">
-          <GameSelect id="sens-from" label="From game" value={s.fromId} onChange={s.setFromId} />
-          <GameSelect id="sens-to" label="To game" value={s.toId} onChange={s.setToId} />
-          <NumberBox id="sens-value" label="Your sensitivity in the first game" value={s.sens} onChange={s.setSens} help="The number in the game's mouse settings, for example 0.4." error={s.sensError} />
-          <NumberBox id="sens-dpi" label="Mouse DPI" value={s.dpiFrom} onChange={s.setDpiFrom} help={`From ${MIN_DPI} to ${MAX_DPI}. 400, 800 and 1600 are common.`} error={s.dpiFromError} />
+          <GameSelect id="sens-from" label={c.from} value={s.fromId} onChange={s.setFromId} />
+          <GameSelect id="sens-to" label={c.to} value={s.toId} onChange={s.setToId} />
+          <NumberBox id="sens-value" label={c.sens} value={s.sens} onChange={s.setSens} help={c.sensHelp} error={s.sensError} />
+          <NumberBox id="sens-dpi" label={c.dpi} value={s.dpiFrom} onChange={s.setDpiFrom} help={c.dpiHelp} error={s.dpiFromError} />
         </div>
         <div className="flex flex-wrap items-center gap-3">
-          <button type="button" className={btnSecondary} onClick={s.swap}>Swap the games</button>
+          <button type="button" className={btnSecondary} onClick={s.swap}>{c.swap}</button>
           <label className="flex min-h-11 items-center gap-2 text-sm text-zinc-100">
             <input type="checkbox" checked={s.dpiChange} onChange={(e) => s.setDpiChange(e.target.checked)} className="h-5 w-5 accent-cyan" />
-            I am changing my mouse DPI too
+            {c.dpiChange}
           </label>
         </div>
         {s.dpiChange && (
           <div className="grid gap-4 sm:grid-cols-2">
-            <NumberBox id="sens-dpi-to" label="New mouse DPI" value={s.dpiTo} onChange={s.setDpiTo} help="The answer keeps the same hand movement for a full turn at this DPI." error={s.dpiToError} />
+            <NumberBox id="sens-dpi-to" label={c.newDpi} value={s.dpiTo} onChange={s.setDpiTo} help={c.newDpiHelp} error={s.dpiToError} />
           </div>
         )}
       </section>
 
       <section aria-labelledby="sens-out" aria-live="polite" className="space-y-4 border-t border-white/10 pt-6">
-        <h3 id="sens-out" className="font-display text-lg text-zinc-100">Your setting in the other game</h3>
+        <h3 id="sens-out" className="font-display text-lg text-zinc-100">{c.out}</h3>
         {!r ? (
-          <p className="text-sm text-zinc-300">Fix the box marked above to see the answer.</p>
+          <p className="text-sm text-zinc-300">{c.fix}</p>
         ) : (
           <>
             <p className="text-base text-zinc-300">
-              <span>{r.to.name}</span> sensitivity:{" "}
+              <span>{r.to.name}</span> {c.sensOf}{" "}
               <strong data-testid="sens-answer" className="font-mono text-3xl text-cyan-400 tabular-nums"><span key={r.sensText}>{r.sensText}</span></strong>
             </p>
             <dl className="grid gap-3 sm:grid-cols-3">
-              <div className="rounded-xl border border-white/10 bg-surface p-3"><dt className="text-xs text-zinc-400">Distance for a full turn</dt><dd className="font-mono text-xl text-zinc-100 tabular-nums" data-testid="sens-cm"><span key={r.cm360}>{roundFor(r.cm360, 2)}</span> cm/360</dd></div>
-              <div className="rounded-xl border border-white/10 bg-surface p-3"><dt className="text-xs text-zinc-400">In inches</dt><dd className="font-mono text-xl text-zinc-100 tabular-nums"><span key={r.in360}>{roundFor(r.in360, 2)}</span> in/360</dd></div>
-              <div className="rounded-xl border border-white/10 bg-surface p-3"><dt className="text-xs text-zinc-400">eDPI (sensitivity x DPI)</dt><dd className="font-mono text-xl text-zinc-100 tabular-nums"><span key={r.edpiFrom}>{roundFor(r.edpiFrom, 1)}</span> to <span key={`t${r.edpiTo}`}>{roundFor(r.edpiTo, 1)}</span></dd></div>
+              <div className="rounded-xl border border-white/10 bg-surface p-3"><dt className="text-xs text-zinc-400">{c.turn}</dt><dd className="font-mono text-xl text-zinc-100 tabular-nums" data-testid="sens-cm"><span key={r.cm360}>{roundFor(r.cm360, 2)}</span> cm/360</dd></div>
+              <div className="rounded-xl border border-white/10 bg-surface p-3"><dt className="text-xs text-zinc-400">{c.inches}</dt><dd className="font-mono text-xl text-zinc-100 tabular-nums"><span key={r.in360}>{roundFor(r.in360, 2)}</span> in/360</dd></div>
+              <div className="rounded-xl border border-white/10 bg-surface p-3"><dt className="text-xs text-zinc-400">{c.edpiBox}</dt><dd className="font-mono text-xl text-zinc-100 tabular-nums"><span key={r.edpiFrom}>{roundFor(r.edpiFrom, 1)}</span> {c.toWord} <span key={`t${r.edpiTo}`}>{roundFor(r.edpiTo, 1)}</span></dd></div>
             </dl>
-            <p className="text-xs leading-5 text-zinc-400">Rounded to the decimals {r.to.name} takes. The rounded value gives <span key={r.cm360Rounded}>{roundFor(r.cm360Rounded, 2)}</span> cm/360. eDPI is only comparable between games with the same yaw.</p>
-            <div role="region" aria-label="The same setting in every listed game" tabIndex={0} className="overflow-x-auto rounded-xl border border-white/10">
+            <p className="text-xs leading-5 text-zinc-400"><span key={r.to.id}>{c.rounded(r.to.name)}</span> <span key={r.cm360Rounded}>{roundFor(r.cm360Rounded, 2)}</span> {c.roundedTail}</p>
+            <div role="region" aria-label={c.tableLabel} tabIndex={0} className="overflow-x-auto rounded-xl border border-white/10">
               <table className="w-full border-collapse text-left text-sm">
-                <caption className="sr-only">The same feel in every listed game</caption>
-                <thead><tr className="text-zinc-300"><th scope="col" className="px-3 py-2">Game</th><th scope="col" className="px-3 py-2">Yaw</th><th scope="col" className="px-3 py-2">Sensitivity</th></tr></thead>
+                <caption className="sr-only">{c.tableCaption}</caption>
+                <thead><tr className="text-zinc-300"><th scope="col" className="px-3 py-2">{c.game}</th><th scope="col" className="px-3 py-2">{c.yaw}</th><th scope="col" className="px-3 py-2">{c.sensCol}</th></tr></thead>
                 <tbody>
                   {s.table.map((t) => (
                     <tr key={t.game.id} className="border-t border-white/10">
@@ -137,22 +140,23 @@ export default function SensitivityTool() {
             </div>
           </>
         )}
-        <ShareResult payload={s.payload} what="sensitivity" path={PATH} />
+        <ShareResult payload={s.payload} what={c.what} path={path} lang={lang} />
       </section>
 
-      <EdpiCalculator />
+      <EdpiCalculator lang={lang} />
 
       <section aria-labelledby="sens-src" className="space-y-2 border-t border-white/10 pt-6 text-sm text-zinc-300">
-        <h3 id="sens-src" className="font-display text-lg text-zinc-100">Where the yaw numbers come from (checked {CHECKED})</h3>
+        <h3 id="sens-src" className="font-display text-lg text-zinc-100">{c.srcH(CHECKED)}</h3>
         <ul className="list-disc space-y-2 pl-5">
           {GAMES.map((g) => (
             <li key={g.id}>
-              <strong className="text-zinc-100">{g.name}: {g.yaw}.</strong> {g.basis}{" "}
+              <strong className="text-zinc-100">{g.name}: {g.yaw}.</strong> {lang === "en" ? g.basis : null}{" "}
               {g.sources.map((src, i) => <span key={src.url}>{i > 0 ? " · " : ""}<a href={src.url} className={link} rel="noopener noreferrer" target="_blank">{src.label}</a></span>)}
             </li>
           ))}
         </ul>
-        <p className="text-xs text-zinc-400">Mobile games (BGMI, Free Fire, Call of Duty: Mobile) are not in the list on purpose: their touch and gyro settings have no published value that maps to mouse counts, so any conversion would be a guess.</p>
+        {c.srcNote && <p className="text-xs text-zinc-400">{c.srcNote}</p>}
+        <p className="text-xs text-zinc-400">{c.mobile}</p>
       </section>
     </div>
   );

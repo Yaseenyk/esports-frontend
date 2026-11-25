@@ -1,9 +1,9 @@
-// The two Portuguese (Brazil) pages: held out of search until a native reader approves them, linked to the English pages with hreflang,
+// The Portuguese (Brazil) pages: each held out of search until a native reader approves it, linked to the English page with hreflang once approved,
 // and carrying the same facts (numbers, limits, structure) as the English pages they translate.
 import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
-import { PT_BR_PAGES, PT_BR_REVIEWED, PT_BR_ROBOTS, enPathFor, hreflangFor, ptBrReviewed, ptBrRobots } from "../src/lib/pt-br.ts";
+import { PT_BR_INDEXABLE, PT_BR_PAGES, PT_BR_REVIEWED, PT_BR_ROBOTS, enPathFor, hreflangFor, ptBrReviewed, ptBrRobots } from "../src/lib/pt-br.ts";
 import { GAME_PAGES } from "../src/lib/game-pages.ts";
 import { FREE_FIRE_PT } from "../src/lib/game-pages-pt.ts";
 import { FREE_FIRE_TEAM_NAMES_PT } from "../src/content/pt-br/free-fire-team-names-ideas.ts";
@@ -13,28 +13,34 @@ import { toolCopy } from "../src/lib/tool-copy.ts";
 const read = (p) => fs.readFileSync(new URL(`../${p}`, import.meta.url), "utf8");
 const nums = (s) => (s.match(/\d+/g) ?? []).sort().join(",");
 
-test("the review switch is per page: both live pages approved on 24 Nov 2026, any new page starts noindex and out of the sitemap", () => {
+test("the review switch is per page: the two pages approved on 24 Nov 2026 are indexable, the three added on 25 Nov are not", () => {
   // Approved by a native Brazilian Portuguese reader, as confirmed by the owner on 24 Nov 2026 (see src/lib/pt-br.ts).
-  assert.deepEqual(PT_BR_REVIEWED, { "/pt-br/points-table/free-fire/": "2026-11-24", "/pt-br/guides/free-fire-team-names-ideas/": "2026-11-24" });
   assert.match(read("src/lib/pt-br.ts"), /Approved 24 Nov 2026/, "the approval is recorded next to the switch");
-  for (const pt of Object.values(PT_BR_PAGES)) { assert.equal(ptBrReviewed(pt), true); assert.deepEqual(ptBrRobots(pt), { index: true, follow: true }); }
-  assert.equal(ptBrReviewed("/pt-br/tools/nick-free-fire/"), false);
-  assert.deepEqual(ptBrRobots("/pt-br/tools/nick-free-fire/"), { index: false, follow: true });
+  assert.deepEqual(PT_BR_REVIEWED, {
+    "/pt-br/points-table/free-fire/": "2026-11-24", "/pt-br/guides/free-fire-team-names-ideas/": "2026-11-24",
+    "/pt-br/tools/nick-free-fire/": null, "/pt-br/tools/conversor-de-sensibilidade/": null, "/pt-br/tools/nome-de-guilda-free-fire/": null,
+  });
+  assert.deepEqual(PT_BR_INDEXABLE, ["/pt-br/points-table/free-fire/", "/pt-br/guides/free-fire-team-names-ideas/"]);
+  for (const p of Object.values(PT_BR_PAGES)) {
+    assert.ok(p in PT_BR_REVIEWED, `${p} has an entry in the review record`);
+    assert.deepEqual(ptBrRobots(p), ptBrReviewed(p) ? { index: true, follow: true } : { index: false, follow: true });
+  }
+  assert.equal(ptBrReviewed("/pt-br/some-new-page/"), false, "a page with no entry is unreviewed");
   assert.deepEqual(PT_BR_ROBOTS, { index: false, follow: true }, "the plain constant is the unreviewed default");
-  assert.match(read("src/app/sitemap.ts"), /Object\.values\(PT_BR_PAGES\)\.filter\(ptBrReviewed\)/);
+  assert.match(read("src/app/sitemap.ts"), /PT_BR_INDEXABLE\.map/);
   assert.match(read("scripts/verify-seo.mjs"), /p\.startsWith\("\/pt-br\/"\) && !PT_BR_REVIEWED\.has\(p\)/);
   for (const f of ["src/app/(pt)/pt-br/points-table/free-fire/page.tsx", "src/app/(pt)/pt-br/guides/free-fire-team-names-ideas/page.tsx"]) assert.match(read(f), /robots: ptBrRobots\(/, f);
 });
 
-test("exactly two pages, hreflang only between indexable twins, and routes that exist", () => {
-  assert.deepEqual(Object.entries(PT_BR_PAGES), [["/points-table/free-fire/", "/pt-br/points-table/free-fire/"], ["/guides/free-fire-team-names-ideas/", "/pt-br/guides/free-fire-team-names-ideas/"]]);
+test("every page has a route; hreflang (en, pt-BR, x-default) only between approved, indexable twins, never to a noindex page", () => {
   const merged = JSON.parse(read("src/content/merged-guides.json"));
   for (const [en, pt] of Object.entries(PT_BR_PAGES)) {
-    // A merged English guide is noindex, so the pair is dropped (hreflang to a noindex page is ignored); the rest keep en, pt-BR and x-default.
+    // A merged English guide is noindex, so the pair is dropped; an unreviewed Portuguese page is noindex, so no pair either.
     const isMerged = Object.keys(merged).some((s) => en === `/guides/${s}/`);
-    assert.deepEqual(hreflangFor(en), isMerged ? undefined : { en, "pt-BR": pt, "x-default": en }, en);
+    assert.deepEqual(hreflangFor(en), ptBrReviewed(pt) && !isMerged ? { en, "pt-BR": pt, "x-default": en } : undefined, en);
     assert.equal(enPathFor(pt), en);
     assert.ok(fs.existsSync(new URL(`../src/app/(pt)${pt}page.tsx`, import.meta.url)), pt);
+    if (!ptBrReviewed(pt)) assert.match(read(`src/app/(pt)${pt}page.tsx`), /robots: ptBrRobots\(t\.path\)/, pt);
   }
   assert.equal(hreflangFor("/points-table/bgmi/"), undefined);
   assert.match(read("package.json"), /node scripts\/set-lang\.mjs/, "the build sets lang=pt-BR on the Portuguese pages");

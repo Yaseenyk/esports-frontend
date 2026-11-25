@@ -5,6 +5,7 @@
  * names, esports organisation names we know of, and slurs, so a team does not end up named after a brand or something hurtful.
  * Badges are simple shapes, initials and flat colours: no logos, no game art.
  */
+import { SMALL_CAPS, charCount, styleLetters } from "@/features/shared/fancy-text";
 
 export type Theme = "animals" | "elements" | "indian" | "legends" | "space";
 export const THEMES: readonly { id: Theme; label: string }[] = [
@@ -100,7 +101,6 @@ export interface BlockResult { blocked: boolean; reason?: BlockReason }
  * double-struck, script and full-width letters into plain ones; small capitals and a few look-alikes (Greek and Cyrillic letters
  * that look Latin) have no decomposition, so they are mapped by hand.
  */
-const SMALL_CAPS = Array.from("ᴀʙᴄᴅᴇꜰɢʜɪᴊᴋʟᴍɴᴏᴘǫʀꜱᴛᴜᴠᴡxʏᴢ");
 const UNSTYLE: Record<string, string> = Object.fromEntries([
   ...SMALL_CAPS.map((c, i) => [c, String.fromCharCode(97 + i)]),
   ["ɑ", "a"], ["ɛ", "e"], ["ɩ", "i"], ["ο", "o"], ["α", "a"], ["ѕ", "s"], ["е", "e"], ["о", "o"], ["а", "a"], ["р", "p"], ["с", "c"], ["х", "x"], ["у", "y"], ["і", "i"],
@@ -221,29 +221,16 @@ export const FRAMES: readonly { id: Frame; label: string; open: string; close: s
   { id: "mark", label: "Mark 亗", open: "亗", close: "亗" },
 ];
 
-const shift = (c: string, upper: number, lower: number, digit?: number): string => {
-  const n = c.charCodeAt(0);
-  if (n >= 65 && n <= 90) return String.fromCodePoint(upper + n - 65);
-  if (n >= 97 && n <= 122) return String.fromCodePoint(lower + n - 97);
-  if (digit !== undefined && n >= 48 && n <= 57) return String.fromCodePoint(digit + n - 48);
-  return c;
-};
-const LETTER_MAP: Record<Exclude<Letters, "plain">, (c: string) => string> = {
-  bold: (c) => shift(c, 0x1d400, 0x1d41a, 0x1d7ce),
-  wide: (c) => shift(c, 0xff21, 0xff41, 0xff10),
-  smallcaps: (c) => { const l = c.toLowerCase(); return l >= "a" && l <= "z" ? SMALL_CAPS[l.charCodeAt(0) - 97]! : c; },
-};
-
 /** The stylish version of a plain name. Empty when the result would not pass the blocklist (it always should: same letters). */
 export function stylish(name: string, letters: Letters, frame: Frame): string {
-  const body = letters === "plain" ? name : Array.from(name).map(LETTER_MAP[letters]).join("");
+  const body = styleLetters(name, letters);
   const f = FRAMES.find((x) => x.id === frame) ?? FRAMES[0]!;
   const out = `${f.open}${body}${f.close}`;
   return checkName(out).blocked ? "" : out;
 }
 
 /** Characters as a person counts them (a symbol such as ꧁ counts once). A game may count differently, so the page says to check. */
-export const charCount = (s: string): number => Array.from(s).length;
+export { charCount };
 
 // ------------------------------------------------------------------ badge
 

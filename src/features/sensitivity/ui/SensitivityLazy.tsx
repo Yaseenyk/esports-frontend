@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import type { UiLang } from "@/lib/pt-br";
 
 /**
  * The tool rendered in the browser only, like the points table: with no server HTML for the tool, a browser translator that rewrites the
@@ -11,6 +12,6 @@ const Tool = dynamic(() => import("@/features/sensitivity/ui/SensitivityTool"), 
   loading: () => <div className="min-h-screen rounded-xl border border-white/10 bg-surface" data-ph="sensitivity" aria-busy="true" />,
 });
 
-export default function SensitivityLazy() {
-  return <Tool />;
+export default function SensitivityLazy(props: { lang?: UiLang; path?: string }) {
+  return <Tool {...props} />;
 }

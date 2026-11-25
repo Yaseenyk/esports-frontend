@@ -12,11 +12,12 @@ const NOINDEX = [/^\/games\//, /^\/events\//, /^\/communities\//, /^\/manage\//,
 // Guides merged into a stronger guide (src/content/merged-guides.json): their pages stay for old links but must be noindex and out of the sitemap.
 const MERGED_GUIDES = Object.keys(JSON.parse(fs.readFileSync(path.resolve("src/content/merged-guides.json"), "utf8")));
 for (const slug of MERGED_GUIDES) NOINDEX.push(new RegExp(`^/guides/${slug}/$`));
-// Portuguese (Brazil) pages stay noindex and out of the sitemap until a native reader approves each one (PT_BR_REVIEWED in src/lib/pt-br.ts).
-const ptSrc = fs.readFileSync(path.resolve("src/lib/pt-br.ts"), "utf8");
-const ptRecord = /export const PT_BR_REVIEWED: Record<string, string> = \{([\s\S]*?)\};/.exec(ptSrc);
-if (!ptRecord) problems.push("src/lib/pt-br.ts: PT_BR_REVIEWED record not found");
-const PT_BR_REVIEWED = new Set([...(ptRecord?.[1] ?? "").matchAll(/"(\/pt-br\/[^"]+)": "\d{4}-\d{2}-\d{2}"/g)].map((m) => m[1]));
+// Portuguese (Brazil) pages stay noindex, out of the sitemap and without hreflang until a native reader approves each one: a page is
+// indexable only with a date in PT_BR_REVIEWED (src/lib/pt-br.ts). Any /pt-br/ page without a date there must be noindex.
+const PT_SRC = fs.readFileSync(path.resolve("src/lib/pt-br.ts"), "utf8");
+const PT_BLOCK = /export const PT_BR_REVIEWED[^=]*=\s*\{([\s\S]*?)\};/.exec(PT_SRC)?.[1];
+if (!PT_BLOCK) problems.push("src/lib/pt-br.ts: PT_BR_REVIEWED record not found");
+const PT_BR_REVIEWED = new Set([...(PT_BLOCK ?? "").matchAll(/"(\/pt-br\/[^"]+)":\s*"\d{4}-\d{2}-\d{2}"/g)].map((m) => m[1]));
 NOINDEX.push({ test: (p) => p.startsWith("/pt-br/") && !PT_BR_REVIEWED.has(p) });
 // ---- v3: tournament pages are indexable only when the thin-page guard passed (see src/features/tournaments/seo/thin-page-guard.ts) ----
 // The guard runs here too, from the TypeScript source, on the input each page shipped in its <script id="eh-guard">.

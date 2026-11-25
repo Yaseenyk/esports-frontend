@@ -52,6 +52,8 @@ export interface ToolPage {
   howTo?: boolean;
   /** The share card for this page, as a path under /og/. Defaults to the site card. */
   og?: string;
+  /** schema.org applicationCategory. Defaults to UtilitiesApplication; the player tests and the crosshair tool are GameApplication. */
+  appCategory?: string;
 }
 
 export interface ToolSection {
@@ -75,7 +77,7 @@ export default function ToolLanding({ t, children, lang = "en", trust }: { t: To
   return (
     <article className="space-y-12">
       <JsonLd data={[
-        softwareAppJsonLd({ url, name: t.name, description: t.lead, inLanguage: u.inLanguage, featureList: t.benefits.map((b) => b.title) }),
+        softwareAppJsonLd({ url, name: t.name, description: t.lead, inLanguage: u.inLanguage, featureList: t.benefits.map((b) => b.title), category: t.appCategory }),
         ...(t.howTo ? [{ "@context": "https://schema.org", "@type": "HowTo", name: u.howToName(hn), description: t.lead, step: t.steps.map((x, i) => ({ "@type": "HowToStep", position: i + 1, name: x.split(/[.,:]/)[0], text: x })) }] : []),
         { "@context": "https://schema.org", "@type": "FAQPage", mainEntity: t.faq.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })) },
         { "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [{ "@type": "ListItem", position: 1, name: u.home, item: `${SITE_URL}/` }, { "@type": "ListItem", position: 2, name: crumb.name, item: `${SITE_URL}${crumb.href}` }, { "@type": "ListItem", position: 3, name: t.name, item: url }] },

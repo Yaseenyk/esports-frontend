@@ -12,7 +12,7 @@ import { CARD_DESIGNS, SCREEN_DESIGNS } from "@/lib/facts";
 import { ESPORTS_PAGE } from "@/lib/esports-id-page";
 import { ALL_GAME_PAGES } from "@/lib/game-pages";
 import { FREE_FIRE_PT } from "@/lib/game-pages-pt";
-import { PT_BR_PAGES } from "@/lib/pt-br";
+import { PT_BR_PAGES, ptBrReviewed } from "@/lib/pt-br";
 import { SITE_URL } from "@/lib/site";
 import { STUDENT_PAGE } from "@/lib/student-page";
 import { TOOL_PAGES } from "@/lib/tool-pages";
@@ -36,7 +36,7 @@ export function portuguesePages(): { path: string; title: string; description: s
     [FREE_FIRE_PT.path]: { title: FREE_FIRE_PT.title, description: FREE_FIRE_PT.description },
     "/pt-br/guides/free-fire-team-names-ideas/": { title: FREE_FIRE_TEAM_NAMES_PT.title, description: FREE_FIRE_TEAM_NAMES_PT.description },
   };
-  return Object.entries(PT_BR_PAGES).filter(([, pt]) => meta[pt]).map(([en, pt]) => ({ path: pt, en, ...meta[pt]! }));
+  return Object.entries(PT_BR_PAGES).filter(([, pt]) => meta[pt] && ptBrReviewed(pt)).map(([en, pt]) => ({ path: pt, en, ...meta[pt]! }));
 }
 
 /** The honest comparison pages. */
