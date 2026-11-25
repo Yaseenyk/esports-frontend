@@ -12,6 +12,7 @@ import { box, btnPrimary, btnSecondary, h1, h2, helper, label, link } from "@/fe
 import { themeById } from "@/lib/idcard/themes";
 import { CARD_FORMATS, CARD_THEMES, PHOTO_TYPES, QR_MODES, type QrMode } from "@/features/player-card/domain";
 import { usePlayerCardStudio } from "@/features/player-card/hooks/usePlayerCardStudio";
+import { StatsStoryCard } from "@/features/player-card/ui/StatsStoryCard";
 
 /**
  * /app/player-card/: a signed-in player designs a card of themselves (name, photo, game, role, team) with a QR that opens their player page.
@@ -108,6 +109,7 @@ export function PlayerCardStudio() {
           <p className={helper}>Print it at the real size from the PNG, or share it as an image. Lost a card? Reset the QR link on your profile, then download a new one.</p>
         </section>
       </div>
+      <StatsStoryCard page={page} game={f.game} role={f.role} />
     </div>
   );
 }
