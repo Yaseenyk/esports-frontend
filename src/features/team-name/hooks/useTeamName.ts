@@ -3,13 +3,16 @@
 import { useCallback, useMemo, useState } from "react";
 import { downloadBlob } from "@/lib/idcard/download";
 import { sendEvent } from "@/lib/track";
-import { badgeFileName, badgeSvg, charCount, generateNames, glossFor, nameProblem, stylish, type Frame, type Letters, type Pattern, type Preset, type Shape, type Theme } from "@/features/team-name/domain";
+import { badgeFileName, badgeSvg, charCount, generateNames, glossFor, stylish, type Frame, type Letters, type Pattern, type Preset, type Shape, type Theme } from "@/features/team-name/domain";
 import { svgToPng } from "@/features/team-name/render";
+import { nameProblemIn, teamNameCopy } from "@/features/team-name/copy";
+import type { UiLang } from "@/lib/pt-br";
 
 export const NAMES_PER_ROLL = 8;
 
 /** The generator's state: preset, theme, the current list, the chosen or typed name, stylish versions and the badge settings. Nothing is stored. */
-export function useTeamName(initial: { preset?: Preset; stylish?: boolean } = {}) {
+export function useTeamName(initial: { preset?: Preset; stylish?: boolean; lang?: UiLang } = {}) {
+  const lang = initial.lang ?? "en", c = teamNameCopy(lang);
   const [preset, setPresetState] = useState<Preset>(initial.preset ?? "general");
   const [theme, setThemeState] = useState<Theme>("animals");
   const [seed, setSeed] = useState(1);
@@ -28,7 +31,7 @@ export function useTeamName(initial: { preset?: Preset; stylish?: boolean } = {}
   const [secondary, setSecondary] = useState("ink");
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
 
-  const ownProblem = useOwn ? nameProblem(own) : undefined;
+  const ownProblem = useOwn ? nameProblemIn(own, lang) : undefined;
   const name = useOwn ? (ownProblem ? "" : own.replace(/\s+/g, " ").trim()) : chosen || names[0] || "";
   const svg = useMemo(() => (name ? badgeSvg({ name, shape, pattern, primary, secondary }) : ""), [name, shape, pattern, primary, secondary]);
   const preview = svg ? `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}` : "";
@@ -40,19 +43,19 @@ export function useTeamName(initial: { preset?: Preset; stylish?: boolean } = {}
   const downloadSvg = useCallback(() => {
     if (!svg) return;
     downloadBlob(new Blob([svg], { type: "image/svg+xml" }), badgeFileName(name, "svg")); sendEvent("tool_complete", "team-name-generator");
-    setMsg({ ok: true, text: "Badge saved as SVG." });
-  }, [svg, name]);
+    setMsg({ ok: true, text: c.savedSvg });
+  }, [svg, name, c]);
   const downloadPng = useCallback(async () => {
     if (!svg) return;
-    try { downloadBlob(await svgToPng(svg), badgeFileName(name, "png")); sendEvent("tool_complete", "team-name-generator"); setMsg({ ok: true, text: "Badge saved as PNG (1024 x 1024)." }); }
-    catch (e) { setMsg({ ok: false, text: e instanceof Error ? e.message : "The badge could not be saved." }); }
-  }, [svg, name]);
+    try { downloadBlob(await svgToPng(svg), badgeFileName(name, "png")); sendEvent("tool_complete", "team-name-generator"); setMsg({ ok: true, text: c.savedPng }); }
+    catch (e) { setMsg({ ok: false, text: lang === "en" && e instanceof Error ? e.message : c.saveFail }); }
+  }, [svg, name, c, lang]);
   /** Copies any name: the chosen one, a name from the list or its stylish version. */
   const copy = useCallback(async (text: string) => {
     if (!text) return;
-    try { await navigator.clipboard.writeText(text); sendEvent("tool_complete", "team-name-generator"); setMsg({ ok: true, text: `Copied: ${text}` }); }
-    catch { setMsg({ ok: false, text: "Could not copy here. Select the name and copy it yourself." }); }
-  }, []);
+    try { await navigator.clipboard.writeText(text); sendEvent("tool_complete", "team-name-generator"); setMsg({ ok: true, text: c.copied(text) }); }
+    catch { setMsg({ ok: false, text: c.copyFail }); }
+  }, [c]);
   const copyName = useCallback(() => copy(name), [copy, name]);
 
   return {

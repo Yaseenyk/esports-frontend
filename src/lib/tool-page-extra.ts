@@ -51,6 +51,8 @@ export const SENSITIVITY_PAGE: Page = {
   ],
   guides: ["valorant-tournament-organiser", "manage-multiple-games", "run-a-campus-tournament"],
   related: [
+    { href: "/tools/valorant-crosshair/", label: "Valorant crosshair code generator", blurb: "Paste a crosshair code to preview it, edit it and copy it back into the game." },
+    { href: "/tools/reaction-time-test/", label: "Reaction time test", blurb: "Test your reflexes next: tap the moment the screen changes, average over five tries." },
     { href: "/tools/team-name-generator/", label: "Team name and badge generator", blurb: "Names from our own word lists and a flat badge to download for your new squad." },
     { href: "/points-table/valorant/", label: "Valorant league table", blurb: "Wins, maps and rounds for 5v5 match play, with a picture to share." },
   ],
@@ -91,6 +93,7 @@ export const TEAM_NAME_PAGE: Page = {
   guides: ["tournament-registration-form-fields", "run-a-campus-tournament", "player-id-cards"],
   related: [
     { href: "/tools/free-fire-guild-name/", label: "Free Fire guild name generator", blurb: "The same generator set up for a Free Fire guild: short names, stylish versions on, and guild questions answered." },
+    { href: "/tools/bgmi-name-style/", label: "BGMI name style generator", blurb: "A player name, not a team name: stylish letters, symbols and clan tag frames to copy." },
     { href: "/tools/registration/", label: "Registration form", blurb: "Collect team names, captains and players in one form or online link." },
     { href: "/tools/id-cards/", label: "ID card maker", blurb: "Put the new team name and badge on player ID cards with a QR code." },
   ],
@@ -225,6 +228,7 @@ export const FF_GUILD_PAGE: Page = {
   ],
   guides: ["free-fire-tournament-organiser", "tournament-registration-form-fields", "run-a-custom-room-tournament"],
   related: [
+    { href: "/tools/free-fire-name-style/", label: "Need a player name, not a guild name?", blurb: "The Free Fire name style generator: your own name in stylish letters, symbols and frames, ready to copy." },
     { href: "/tools/team-name-generator/", label: "Team name generator", blurb: "Names for a BGMI team, a Valorant or COD five, a clan or any team, with the same check and badge maker." },
     { href: "/points-table/free-fire/", label: "Free Fire points table", blurb: "Placement and kill points for a Free Fire custom room event, with a picture to share." },
   ],

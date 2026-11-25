@@ -21,6 +21,9 @@ const SITES = {
   "points-table": "components/tools/PointsTable.tsx",
   groups: "components/features/stages/GroupsTool.tsx",
   "print-kits": "components/features/printkits/PrintKits.tsx",
+  "reaction-time-test": "features/reflex/hooks/useReaction.ts",
+  "tap-speed-test": "features/reflex/hooks/useTapSpeed.ts",
+  "valorant-crosshair": "features/crosshair/hooks/useCrosshair.ts",
 };
 
 for (const [slug, file] of Object.entries(SITES)) {

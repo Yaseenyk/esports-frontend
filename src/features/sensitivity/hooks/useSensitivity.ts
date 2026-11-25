@@ -4,9 +4,12 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { sendEvent } from "@/lib/track";
 import type { Payload } from "@/lib/display";
 import { allGames, convert, dpiError, gameById, roundFor, sensError } from "@/features/sensitivity/domain";
+import { sensCopy } from "@/features/sensitivity/copy";
+import type { UiLang } from "@/lib/pt-br";
 
 /** The converter's state and its answer. Starts on a common example: Valorant 0.4 at 800 DPI. */
-export function useSensitivity() {
+export function useSensitivity(lang: UiLang = "en") {
+  const c = sensCopy(lang);
   const [fromId, setFromId] = useState("valorant");
   const [toId, setToId] = useState("cs2");
   const [sens, setSens] = useState("0.4");
@@ -40,16 +43,16 @@ export function useSensitivity() {
     return {
       v: "table",
       d: {
-        title: "Sensitivity converted",
-        subtitle: `${r.from.name} ${sens} at ${dpiFrom} DPI = ${roundFor(r.cm360, 1)} cm/360`,
-        head: ["#", "Game", `Sens at ${dpi} DPI`],
+        title: c.shareTitle,
+        subtitle: `${r.from.name} ${sens} ${c.shareAt} ${dpiFrom} DPI = ${roundFor(r.cm360, 1)} cm/360`,
+        head: ["#", c.game, c.shareSensAt(dpi)],
         rows: table.map((t, i) => [String(i + 1), t.game.name, t.text]),
         strong: 2,
       },
     };
-  }, [check, table, sens, dpiFrom, dpiTo, dpiChange]);
+  }, [check, table, sens, dpiFrom, dpiTo, dpiChange, c]);
 
   const swap = () => { setFromId(toId); setToId(fromId); };
-  const errors = { sensError: sensError(sens), dpiFromError: dpiError(dpiFrom), dpiToError: dpiChange ? dpiError(dpiTo) : undefined };
+  const errors = { sensError: sensError(sens) && c.sensError, dpiFromError: dpiError(dpiFrom) && c.dpiError, dpiToError: dpiChange && dpiError(dpiTo) ? c.dpiError : undefined };
   return { ...errors, fromId, setFromId: mark(setFromId), toId, setToId: mark(setToId), sens, setSens: mark(setSens), dpiFrom, setDpiFrom: mark(setDpiFrom), dpiTo, setDpiTo: mark(setDpiTo), dpiChange, setDpiChange, check, table, payload, swap };
 }

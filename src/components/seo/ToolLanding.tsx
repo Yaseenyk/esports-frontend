@@ -51,6 +51,8 @@ export interface ToolPage {
   howTo?: boolean;
   /** The share card for this page, as a path under /og/. Defaults to the site card. */
   og?: string;
+  /** schema.org applicationCategory. Defaults to UtilitiesApplication; the player tests and the crosshair tool are GameApplication. */
+  appCategory?: string;
 }
 
 export interface ToolSection {
@@ -74,7 +76,7 @@ export default function ToolLanding({ t, children, lang = "en", trust }: { t: To
   return (
     <article className="space-y-12">
       <JsonLd data={[
-        { "@context": "https://schema.org", "@type": "SoftwareApplication", ...(trust ? { "@id": `${url}#app` } : {}), name: t.name, applicationCategory: "UtilitiesApplication", operatingSystem: "Web", url, description: t.lead, inLanguage: u.inLanguage, isAccessibleForFree: true, browserRequirements: "Requires JavaScript. Works in any current browser.", featureList: t.benefits.map((b) => b.title), offers: { "@type": "Offer", price: "0", priceCurrency: "INR" },
+        { "@context": "https://schema.org", "@type": "SoftwareApplication", ...(trust ? { "@id": `${url}#app` } : {}), name: t.name, applicationCategory: t.appCategory ?? "UtilitiesApplication", operatingSystem: "Web", url, description: t.lead, inLanguage: u.inLanguage, isAccessibleForFree: true, browserRequirements: "Requires JavaScript. Works in any current browser.", featureList: t.benefits.map((b) => b.title), offers: { "@type": "Offer", price: "0", priceCurrency: "INR" },
           ...(trust ? { author: { "@id": OWNER.personId }, creator: { "@id": OWNER.personId }, publisher: { "@id": ORG_ID } } : {}) },
         ...(trust ? [personJsonLd()] : []),
         ...(t.howTo ? [{ "@context": "https://schema.org", "@type": "HowTo", name: u.howToName(hn), description: t.lead, step: t.steps.map((x, i) => ({ "@type": "HowToStep", position: i + 1, name: x.split(/[.,:]/)[0], text: x })) }] : []),

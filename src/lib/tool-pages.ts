@@ -3,6 +3,7 @@ import { trustFaq } from "@/features/tool-trust/domain";
 import { GROUPS_PAGE } from "./tool-page-groups";
 import { PRINTKITS_PAGE } from "./tool-page-printkits";
 import { FF_GUILD_PAGE, PRIZE_SPLIT_PAGE, RULEBOOK_PAGE, SENSITIVITY_PAGE, TEAM_NAME_PAGE } from "./tool-page-extra";
+import { BGMI_NAME_STYLE_PAGE, CROSSHAIR_PAGE, FF_NAME_STYLE_PAGE, REACTION_PAGE, TAP_PAGE } from "./tool-page-players";
 
 /** The words on the public tool pages. Written to describe what the tools really do today, and nothing more. */
 export const TOOL_PAGES: Record<string, ToolPage & { title: string; description: string }> = {
@@ -318,4 +319,9 @@ export const TOOL_PAGES: Record<string, ToolPage & { title: string; description:
   "free-fire-guild-name": FF_GUILD_PAGE,
   "prize-split": PRIZE_SPLIT_PAGE,
   rulebook: RULEBOOK_PAGE,
+  "free-fire-name-style": FF_NAME_STYLE_PAGE,
+  "bgmi-name-style": BGMI_NAME_STYLE_PAGE,
+  "reaction-time-test": REACTION_PAGE,
+  "tap-speed-test": TAP_PAGE,
+  "valorant-crosshair": CROSSHAIR_PAGE,
 };

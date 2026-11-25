@@ -21,5 +21,10 @@ export const TOOL_TILES: Record<string, { label: string; d: string }> = {
   "team-name-generator": { label: "Team names", d: "M12 3l7 3v6c0 4-3 7-7 9-4-2-7-5-7-9V6zM9 11h6M12 8v6" },
   "free-fire-guild-name": { label: "Guild names", d: "M5 4h14l-2 6 2 6H5zM5 4v17M9 8h5M9 12h4" },
   "sensitivity-converter": { label: "Sensitivity", d: "M12 3a5 5 0 015 5v8a5 5 0 01-10 0V8a5 5 0 015-5zM12 7v4M4 12h2M18 12h2" },
+  "free-fire-name-style": { label: "FF names", d: "M4 18L8 6l4 12M5.5 14h5M14 6h6M14 6v12M14 12h4" },
+  "bgmi-name-style": { label: "BGMI names", d: "M4 6h7M7.5 6v12M13 18V6l3 6 3-6v12" },
+  "reaction-time-test": { label: "Reaction", d: "M12 21a8 8 0 100-16 8 8 0 000 16zM12 9v4l2.5 2.5M10 2h4M19 5l1.5-1.5" },
+  "tap-speed-test": { label: "Tap speed", d: "M9 11V5a2 2 0 014 0v6M13 10a2 2 0 014 0v4a7 7 0 01-7 7 6 6 0 01-5-3l-2-4a1.8 1.8 0 013-2l2 2.5M4 4l2 2M20 4l-2 2" },
+  "valorant-crosshair": { label: "Crosshair", d: "M12 3v6M12 15v6M3 12h6M15 12h6M12 11.5v1" },
   "check-in": { label: "Check-in", d: "M4 7V5h3M17 5h3v2M20 17v2h-3M7 19H4v-2M8 12l3 3 5-6" },
 };

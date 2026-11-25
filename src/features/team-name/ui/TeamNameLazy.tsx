@@ -2,6 +2,7 @@
 
 import dynamic from "next/dynamic";
 import type { Preset } from "@/features/team-name/domain";
+import type { UiLang } from "@/lib/pt-br";
 
 /**
  * The tool rendered in the browser only, like the points table: with no server HTML for the tool, a browser translator that rewrites the
@@ -13,6 +14,6 @@ const Tool = dynamic(() => import("@/features/team-name/ui/TeamNameTool"), {
 });
 
 /** `preset` and `stylish` set where the tool starts (the Free Fire guild page starts on the guild preset with stylish versions on). */
-export default function TeamNameLazy(props: { preset?: Preset; stylish?: boolean }) {
+export default function TeamNameLazy(props: { preset?: Preset; stylish?: boolean; lang?: UiLang }) {
   return <Tool {...props} />;
 }
