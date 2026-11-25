@@ -12,7 +12,7 @@ import { dayLabel, groupByDay, scrimLink, timeLabel } from "@/features/squad-pla
 import { usePlan } from "@/features/squad-planner/hooks/usePlanner";
 
 /** Shade by how many are free: a word and a number carry the meaning, the shade only supports it. */
-const shade = (n: number, of: number): string => (n === 0 || of === 0 ? "" : n === of ? "bg-cyan-400/40" : n / of >= 0.5 ? "bg-cyan-400/20" : "bg-cyan-400/10");
+const shade = (n: number, of: number): string => (n === 0 || of === 0 ? "" : n === of ? "bg-cyan-400/20" : n / of >= 0.5 ? "bg-cyan-400/10" : "bg-cyan-400/5");
 
 /** The shared plan page (/squad/#t=...): tap your free hours, see the best times, post a scrim. noindex, token in the fragment only. */
 export default function PlanScreen() {
@@ -76,7 +76,7 @@ export default function PlanScreen() {
                     <button key={s.index} type="button" aria-pressed={on} onClick={() => p.toggle(s.index)}
                       className={`min-h-11 rounded-lg border px-2 text-sm transition-colors ${focus} ${on ? "border-cyan-400 text-zinc-100" : "border-white/10 text-zinc-300 hover:border-white/30"} ${shade(plan.counts[s.index] ?? 0, people)}`}>
                       <span className="block">{timeLabel(s.start)}</span>
-                      <span className="block text-xs text-zinc-400">{on ? "You: free" : "Tap if free"} · <span className="font-mono tabular-nums">{plan.counts[s.index] ?? 0}</span></span>
+                      <span className="block text-xs text-zinc-300">{on ? "You: free" : "Tap if free"} · <span className="font-mono tabular-nums">{plan.counts[s.index] ?? 0}</span></span>
                     </button>
                   );
                 })}
