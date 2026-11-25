@@ -139,9 +139,7 @@ const robots = fs.readFileSync(path.join(OUT, "robots.txt"), "utf8");
 if (/Disallow: \/\s*$/m.test(robots) && !/Allow: \//.test(robots)) bad("robots.txt", "blocks the whole site");
 if (!/Sitemap: /.test(robots)) bad("robots.txt", "no Sitemap line");
 // AI crawlers are named (src/lib/crawlers.ts) in their own group, which must repeat every private path of the "*" group.
-const robotGroups = robots.split(/
-\s*
-/).map((g) => ({ agents: [...g.matchAll(/^User-Agent: (.+)$/gim)].map((m) => m[1].trim()), disallow: [...g.matchAll(/^Disallow: (.+)$/gim)].map((m) => m[1].trim()).sort().join(" ") })).filter((g) => g.agents.length);
+const robotGroups = robots.split(/\r?\n\s*\r?\n/).map((g) => ({ agents: [...g.matchAll(/^User-Agent: (.+)$/gim)].map((m) => m[1].trim()), disallow: [...g.matchAll(/^Disallow: (.+)$/gim)].map((m) => m[1].trim()).sort().join(" ") })).filter((g) => g.agents.length);
 const starGroup = robotGroups.find((g) => g.agents.includes("*"));
 for (const bot of ["GPTBot", "OAI-SearchBot", "ChatGPT-User", "PerplexityBot", "ClaudeBot", "Claude-SearchBot", "Google-Extended", "Bingbot", "Applebot-Extended"]) {
   const g = robotGroups.find((x) => x.agents.includes(bot));
