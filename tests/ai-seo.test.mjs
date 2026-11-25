@@ -64,3 +64,9 @@ test("Organization: one helper, real sameAs only, emitted by both the English an
 test("the 404 page clears the root robots tag so only Next's noindex is left", () => {
   assert.match(read("src/app/not-found.tsx"), /robots: null/);
 });
+
+test("/about/ shows the same fact block as llms.txt, and the site description names players as well as organisers", async () => {
+  assert.match(read("src/app/(site)/about/page.tsx"), /factSentences\(\)/);
+  const { SITE_DESCRIPTION } = await import("../src/lib/facts.ts");
+  assert.match(SITE_DESCRIPTION, /players/);
+});
