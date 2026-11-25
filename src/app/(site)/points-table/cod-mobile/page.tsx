@@ -3,10 +3,11 @@ import PointsTable from "@/components/tools/PointsTableLazy";
 import ToolLanding from "@/components/seo/ToolLanding";
 import { PAGE_SCALES, battleRoyaleRules } from "@/features/tool-trust/domain";
 import { GAME_PAGES } from "@/lib/game-pages";
+import { pageTitle } from "@/lib/schema";
 
 const t = GAME_PAGES["cod-mobile"];
 export const metadata: Metadata = {
-  title: t.title, description: t.description, alternates: { canonical: t.path },
+  title: pageTitle(t.title), description: t.description, alternates: { canonical: t.path },
   openGraph: { title: t.title, description: t.description, url: t.path, images: ["/og.png"] }, twitter: { card: "summary_large_image", title: t.title, description: t.description, images: ["/og.png"] },
 };
 

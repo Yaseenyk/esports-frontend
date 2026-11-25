@@ -65,6 +65,8 @@ for (const p of pages.filter((q) => isV3Tournament(q.url))) {
   v3Pages.push({ ...p, html, info, indexable });
 }
 
+const PERSON_ID = "https://yk.streamerosai.com/#person";
+const jsonLdOfPage = (html) => [...html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)].flatMap((m) => { try { const d = JSON.parse(m[1]); return Array.isArray(d) ? d : d["@graph"] ?? [d]; } catch { return []; } });
 const decode = (s) => s.replace(/&amp;/g, "&").replace(/&#x27;/g, "'").replace(/&quot;/g, '"').replace(/&lt;/g, "<").replace(/&gt;/g, ">");
 const titles = new Map(), descs = new Map();
 let indexable = 0;
@@ -84,7 +86,7 @@ for (const p of pages) {
   const desc = decode(attr(html, /<meta name="description" content="([^"]*)"/) ?? "");
   const canon = attr(html, /<link rel="canonical" href="([^"]*)"/);
   const h1s = (html.match(/<h1[\s>]/g) || []).length;
-  if (!title) bad(p.url, "no title"); else { if (title.length > 70) bad(p.url, `title too long (${title.length}): ${title}`); if (title.length < 15) bad(p.url, `title too short: ${title}`); (titles.get(title) ?? titles.set(title, []).get(title)).push(p.url); }
+  if (!title) bad(p.url, "no title"); else { if (title.length > 60) bad(p.url, `title too long (${title.length}, max 60; use pageTitle() from src/lib/schema.ts): ${title}`); if (title.length < 15) bad(p.url, `title too short: ${title}`); (titles.get(title) ?? titles.set(title, []).get(title)).push(p.url); }
   if (!desc) bad(p.url, "no meta description"); else { if (desc.length < 70 || desc.length > 170) bad(p.url, `description length ${desc.length} (want 70 to 170)`); (descs.get(desc) ?? descs.set(desc, []).get(desc)).push(p.url); }
   if (!canon) bad(p.url, "no canonical"); else if (canon !== `${SITE}${p.url}`) bad(p.url, `canonical is ${canon}, expected ${SITE}${p.url}`);
   if (h1s !== 1) bad(p.url, `${h1s} h1 headings (want exactly 1)`);
@@ -103,6 +105,21 @@ for (const p of pages) {
   for (const m of html.matchAll(/<img[^>]*>/g)) { if (!/alt=/.test(m[0])) bad(p.url, `image without alt: ${m[0].slice(0, 80)}`); if (!/loading="lazy"/.test(m[0]) && !/fetchPriority|fetchpriority/.test(m[0])) bad(p.url, `image that is not lazy-loaded: ${m[0].slice(0, 80)}`); }
   for (const m of html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)) { try { JSON.parse(m[1]); } catch { bad(p.url, "invalid JSON-LD"); } }
   if (p.url.startsWith("/guides/") && p.url !== "/guides/" && !/"@type":"Article"/.test(html)) bad(p.url, "guide without Article structured data");
+  // Entities (src/lib/schema.ts): one Organization with sameAs, tools with @id + publisher + author, and the Person only referenced by @id.
+  const nodes = jsonLdOfPage(html);
+  const orgs = nodes.filter((d) => d["@type"] === "Organization");
+  if (orgs.length !== 1 || orgs[0]["@id"] !== `${SITE}/#org` || !(orgs[0].sameAs ?? []).length) bad(p.url, `want exactly one Organization (${SITE}/#org) with sameAs, found ${orgs.length}`);
+  for (const a of nodes.filter((d) => d["@type"] === "SoftwareApplication")) {
+    if (a["@id"] !== `${SITE}${p.url}#app`) bad(p.url, `SoftwareApplication @id is ${a["@id"]}, expected ${SITE}${p.url}#app`);
+    if (a.publisher?.["@id"] !== `${SITE}/#org` || a.author?.["@id"] !== PERSON_ID) bad(p.url, "SoftwareApplication without the Organization as publisher and the Person as author");
+  }
+  if (/"jobTitle"|"addressLocality"/.test(JSON.stringify(nodes.filter((d) => d["@type"] === "Person")))) bad(p.url, "the Person is redeclared with its own details; reference it by @id (the portfolio owns it)");
+  // hreflang pairs only between indexable pages: a link to a noindex page is ignored and can drop the pair.
+  for (const m of html.matchAll(/<link rel="alternate" hrefLang="([^"]+)" href="([^"]+)"/g)) {
+    const target = m[2].replace(SITE, "");
+    if (!urlSet.has(target)) bad(p.url, `hreflang ${m[1]} points at a missing page ${m[2]}`);
+    else if (isNoindexPath(target)) bad(p.url, `hreflang ${m[1]} points at a noindex page ${m[2]}`);
+  }
 
   for (const m of html.matchAll(/<a [^>]*href="(\/[^"#?]*)/g)) {
     const href = m[1];
@@ -160,7 +177,6 @@ if (v3Pages.length === 0 && pages.some((q) => q.url.startsWith("/tournaments/") 
 // The points table pages (25 Nov 2026). The calculators render in the browser only, so everything an assistant or a search engine needs to trust
 // the page must be in the static HTML around them: the h1, what it calculates, the scoring rules it really uses, who runs it, the "Safe to use"
 // box and the FAQ, with exactly one FAQPage that matches the visible questions and answers, a Person linked from the SoftwareApplication, no ratings.
-const PERSON_ID = "https://yk.streamerosai.com/#person";
 const TRUST_PAGES = {
   "/points-table/free-fire/": "1st 10, 2nd 6", "/points-table/bgmi/": "1st 10, 2nd 6", "/points-table/cod-mobile/": "1st 15, 2nd 12",
   "/points-table/valorant/": "3 for a match win", "/tools/points-table/": "1st 10, 2nd 6", "/pt-br/points-table/free-fire/": "1º 10, 2º 6",
@@ -198,8 +214,7 @@ for (const [u, rule] of Object.entries(TRUST_PAGES)) {
       if (!text.includes(q.acceptedAnswer?.text ?? "\u0000")) bad(u, `FAQ answer not visible on the page: ${q.name}`);
     }
   }
-  const person = ld.find((d) => d["@type"] === "Person" && d["@id"] === PERSON_ID);
-  if (!person || person.name !== "Yaseen Khatib" || !person.url?.startsWith("https://yk.streamerosai.com") || !["linkedin.com/in/yaseen-yk", "github.com/Yaseenyk"].every((s) => (person.sameAs ?? []).some((x) => x.includes(s)))) bad(u, "no Person node for Yaseen Khatib with the portfolio @id and sameAs");
+  if (ld.some((d) => d["@type"] === "Person")) bad(u, "a Person node is declared; the points table pages reference the portfolio's Person by @id only");
   const app = ld.find((d) => d["@type"] === "SoftwareApplication" || d["@type"] === "WebApplication");
   if (!app || app.author?.["@id"] !== PERSON_ID || app.creator?.["@id"] !== PERSON_ID || app.offers?.price !== "0" || app.isAccessibleForFree !== true) bad(u, "the SoftwareApplication must be free (price 0) and name the Person as author and creator");
   if (/"(aggregateRating|review|reviewRating)"/.test(JSON.stringify(ld))) bad(u, "ratings or reviews in structured data");
@@ -211,6 +226,21 @@ if (!KIT_ON) {
   for (const p of pages) if (p.url.startsWith("/overlay-kit/")) bad(p.url, "overlay kit page in a build with the overlay kit flag off");
   for (const u of smUrls) if (u.includes("/overlay-kit/")) bad("sitemap.xml", `lists ${u} with the overlay kit flag off`);
   for (const p of pages) if (/href="\/overlay-kit\//.test(fs.readFileSync(p.file, "utf8"))) bad(p.url, "links to the overlay kit with its flag off");
+}
+// The 404 page carries exactly one robots tag, and it says noindex.
+for (const f of ["404.html", path.join("404", "index.html")].map((x) => path.join(OUT, x)).filter((x) => fs.existsSync(x))) {
+  const tags = fs.readFileSync(f, "utf8").match(/<meta name="robots"[^>]*>/g) ?? [];
+  if (tags.length !== 1 || !/noindex/.test(tags[0])) bad(path.relative(OUT, f), `want one noindex robots tag, found ${tags.length}: ${tags.join(" ")}`);
+}
+// llms.txt and llms-full.txt: present, and every link in llms.txt is a real indexable page (or a file the site serves).
+const llms = fs.existsSync(path.join(OUT, "llms.txt")) ? fs.readFileSync(path.join(OUT, "llms.txt"), "utf8") : "";
+if (!llms) bad("llms.txt", "missing");
+if (!fs.existsSync(path.join(OUT, "llms-full.txt")) || fs.statSync(path.join(OUT, "llms-full.txt")).size < 10000) bad("llms-full.txt", "missing or too small");
+for (const m of llms.matchAll(/\]\((https?:\/\/[^)]+)\)/g)) {
+  const p = m[1].replace(SITE, "");
+  if (p.startsWith("http")) continue;
+  if (/\.(txt|xml)$/.test(p)) { if (!fs.existsSync(path.join(OUT, p))) bad("llms.txt", `links to a missing file ${p}`); continue; }
+  if (!urlSet.has(p)) bad("llms.txt", `links to a missing page ${p}`); else if (isNoindexPath(p)) bad("llms.txt", `links to a noindex page ${p}`);
 }
 console.log(`${pages.length} pages checked, ${indexable} indexable, ${smUrls.length} in the sitemap.`);
 if (problems.length) { console.error(`\n${problems.length} SEO problem(s):\n- ` + problems.join("\n- ")); process.exit(1); }

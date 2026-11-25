@@ -75,7 +75,7 @@ test("sensitivity converter: Valorant to CS2 with cm/360, a DPI change, other ga
 
 test("team name generator: original names, the blocklist, a badge as PNG and SVG, and Create this team", async ({ page }) => {
   await page.goto("/tools/team-name-generator/");
-  await seoBasics(page, "/tools/team-name-generator/", /Team name generator for Free Fire guilds, BGMI teams and clans/);
+  await seoBasics(page, "/tools/team-name-generator/", /Esports team name generator for BGMI teams, clans and squads/);
   await faqMatchesPage(page);
   const names = page.getByTestId("tn-pick");
   await expect(names).toHaveCount(8);

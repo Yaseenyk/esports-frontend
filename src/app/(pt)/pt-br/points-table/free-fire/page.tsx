@@ -5,10 +5,11 @@ import ToolLanding from "@/components/seo/ToolLanding";
 import { PAGE_SCALES, battleRoyaleRules } from "@/features/tool-trust/domain";
 import { FREE_FIRE_PT as t } from "@/lib/game-pages-pt";
 import { PT_BR_ROBOTS, enPathFor, hreflangFor } from "@/lib/pt-br";
+import { pageTitle } from "@/lib/schema";
 
 const en = enPathFor(t.path);
 export const metadata: Metadata = {
-  title: t.title, description: t.description, robots: PT_BR_ROBOTS,
+  title: pageTitle(t.title), description: t.description, robots: PT_BR_ROBOTS,
   alternates: { canonical: t.path, languages: hreflangFor(en) },
   openGraph: { title: t.title, description: t.description, url: t.path, locale: "pt_BR", images: ["/og.png"] }, twitter: { card: "summary_large_image", title: t.title, description: t.description, images: ["/og.png"] },
 };

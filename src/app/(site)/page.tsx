@@ -14,7 +14,7 @@ import { CARD_DESIGNS, CARD_SHAPES, LANGUAGES_COUNT, SCREEN_DESIGNS, SITE_DESCRI
 import { ORG_ID, SITE_URL } from "@/lib/site";
 import { v3Enabled } from "@/features/shared/flags";
 
-const HOME_TITLE = "Free tournament tools for India: bracket, points table, ID cards";
+const HOME_TITLE = "Free tournament tools for India: brackets, points, ID cards";
 export const metadata: Metadata = {
   title: { absolute: HOME_TITLE },
   description: SITE_DESCRIPTION,

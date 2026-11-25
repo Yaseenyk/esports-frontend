@@ -22,10 +22,13 @@ test("the review switch decides indexing: approved on 24 Nov 2026, so the pages 
   assert.match(read("scripts/verify-seo.mjs"), /if \(!PT_BR_REVIEWED\) NOINDEX\.push\(\/\^\\\/pt-br\\\/\/\)/);
 });
 
-test("exactly two pages, each with en, pt-BR and x-default links, and routes that exist", () => {
+test("exactly two pages, hreflang only between indexable twins, and routes that exist", () => {
   assert.deepEqual(Object.entries(PT_BR_PAGES), [["/points-table/free-fire/", "/pt-br/points-table/free-fire/"], ["/guides/free-fire-team-names-ideas/", "/pt-br/guides/free-fire-team-names-ideas/"]]);
+  const merged = JSON.parse(read("src/content/merged-guides.json"));
   for (const [en, pt] of Object.entries(PT_BR_PAGES)) {
-    assert.deepEqual(hreflangFor(en), { en, "pt-BR": pt, "x-default": en });
+    // A merged English guide is noindex, so the pair is dropped (hreflang to a noindex page is ignored); the rest keep en, pt-BR and x-default.
+    const isMerged = Object.keys(merged).some((s) => en === `/guides/${s}/`);
+    assert.deepEqual(hreflangFor(en), isMerged ? undefined : { en, "pt-BR": pt, "x-default": en }, en);
     assert.equal(enPathFor(pt), en);
     assert.ok(fs.existsSync(new URL(`../src/app/(pt)${pt}page.tsx`, import.meta.url)), pt);
   }

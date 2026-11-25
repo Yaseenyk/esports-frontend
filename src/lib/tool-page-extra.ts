@@ -70,9 +70,9 @@ export const SENSITIVITY_PAGE: Page = {
 
 export const TEAM_NAME_PAGE: Page = {
   slug: "team-name-generator", name: "Team name generator and badge maker", shortName: "team name generator", updated: "2026-11-25",
-  title: "Team name generator: Free Fire guild and BGMI team names",
-  description: "Free team name generator for Free Fire guild names, BGMI team names and clans: original names, stylish versions, a name check and a simple esports logo maker.",
-  h1: "Team name generator for Free Fire guilds, BGMI teams and clans, with a badge maker",
+  title: "Esports team name generator: BGMI, clan names",
+  description: "Free esports team name generator for BGMI teams, clans and Valorant or COD squads: original names, stylish versions, a name check and a badge maker.",
+  h1: "Esports team name generator for BGMI teams, clans and squads, with a badge maker",
   lead: "Get a team name that is yours. Pick a game (Free Fire guild, BGMI team, Valorant or COD team, clan, or any team) and a theme (animals, weather and elements, Indian words, legends with no gods or religion, or space), and get eight original names made from our own word lists. Turn on stylish versions for fancy letters and symbols, always shown next to the plain name. Or type your own name and check it. Every name, plain or stylish, is checked against game and publisher names, esports organisation names and abusive words. Then make a simple esports logo: a flat badge from a shape, your initials and two colours, downloaded as PNG or SVG. Free, in your browser, no account.",
   intro: "Pick a game and a theme, get eight original team names (with stylish versions if you want them), copy any of them, and download a simple badge with your initials. Free, no account.",
   useHeading: "Name your team",

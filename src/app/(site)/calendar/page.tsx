@@ -6,6 +6,7 @@ import type { CalendarEntry } from "@/features/community/domain";
 import CalendarScreen from "@/features/community/ui/CalendarScreen";
 import { loadBuildTournaments } from "@/features/tournaments/services/build-data";
 import { h1, h2, link, section } from "@/features/shared/ui/styles";
+import { pageTitle } from "@/lib/schema";
 
 /**
  * /calendar/: college and fest esports events listed by VERIFIED organisations. Built from the public API at build time and refreshed in the
@@ -22,7 +23,7 @@ export async function generateMetadata(): Promise<Metadata> {
   if (!cal) return { robots: { index: false, follow: false } };
   const indexable = calendarIndexable(indexInput(cal.items), todayIst());
   return {
-    title: TITLE, description: DESCRIPTION, alternates: { canonical: "/calendar/" },
+    title: pageTitle(TITLE), description: DESCRIPTION, alternates: { canonical: "/calendar/" },
     robots: indexable ? { index: true, follow: true } : { index: false, follow: true },
     openGraph: { type: "website", title: TITLE, description: DESCRIPTION, url: "/calendar/", images: ["/og.png"] },
     twitter: { card: "summary_large_image", images: ["/og.png"] },

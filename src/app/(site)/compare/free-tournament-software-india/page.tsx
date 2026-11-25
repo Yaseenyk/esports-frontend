@@ -5,9 +5,10 @@ import JsonLd from "@/components/seo/JsonLd";
 import { CHECKED, COMPARE_DESCRIPTION, COMPARE_FAQ, COMPARE_H1, COMPARE_LEAD, COMPARE_PATH, COMPARE_TITLE, COMPETITORS, type Fact } from "@/lib/compare";
 import { TOOLS } from "@/lib/data";
 import { ORG_ID, SITE_URL } from "@/lib/site";
+import { pageTitle } from "@/lib/schema";
 
 export const metadata: Metadata = {
-  title: COMPARE_TITLE, description: COMPARE_DESCRIPTION, alternates: { canonical: COMPARE_PATH },
+  title: pageTitle(COMPARE_TITLE), description: COMPARE_DESCRIPTION, alternates: { canonical: COMPARE_PATH },
   openGraph: { title: COMPARE_TITLE, description: COMPARE_DESCRIPTION, url: COMPARE_PATH, images: ["/og.png"] }, twitter: { card: "summary_large_image", title: COMPARE_TITLE, description: COMPARE_DESCRIPTION, images: ["/og.png"] },
 };
 

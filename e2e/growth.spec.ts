@@ -77,16 +77,18 @@ test("the Portuguese Free Fire points table is in Portuguese, indexable after na
   expect(ld.find((x: { "@type"?: string }) => x["@type"] === "SoftwareApplication")?.inLanguage).toBe("pt-BR");
 });
 
-test("the Portuguese team names guide is indexable after native review, with hreflang, and the English guide links back", async ({ page }) => {
+test("the Portuguese team names guide is indexable after native review, stands alone (no hreflang to the merged English guide), and the English guide links to it", async ({ page }) => {
   await page.goto("/pt-br/guides/free-fire-team-names-ideas/");
   await expect(page.locator("html")).toHaveAttribute("lang", "pt-BR");
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Nomes para time de Free Fire");
   await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /^index, follow$/);
-  await expect(page.locator('link[rel=alternate][hreflang="pt-BR"]')).toHaveAttribute("href", /\/pt-br\/guides\/free-fire-team-names-ideas\/$/);
+  // The English twin was merged into the general team names guide on 19 Nov 2026 and is noindex. hreflang to a noindex page is ignored
+  // and can drop the pair, so neither page declares one (25 Nov 2026); the pages still link to each other.
+  await expect(page.locator("link[rel=alternate][hreflang]")).toHaveCount(0);
+  await expect(page.getByRole("link", { name: "English version" })).toHaveAttribute("href", "/guides/free-fire-team-names-ideas/");
   await page.goto("/guides/free-fire-team-names-ideas/");
   await expect(page.locator("html")).toHaveAttribute("lang", "en");
-  await expect(page.locator('link[rel=alternate][hreflang="pt-BR"]')).toHaveAttribute("href", /\/pt-br\/guides\/free-fire-team-names-ideas\/$/);
-  // The English guide was merged into the general team names guide on 19 Nov 2026, so it is noindex too (kept for old links).
+  await expect(page.locator("link[rel=alternate][hreflang]")).toHaveCount(0);
   await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
 });
 

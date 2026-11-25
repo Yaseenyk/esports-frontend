@@ -6,9 +6,10 @@ import { TOOLS } from "@/lib/data";
 import { SITE_URL } from "@/lib/site";
 import { KIT_PATH, OVERLAY_KIT } from "@/features/overlay-kit/flag";
 import { v3Enabled } from "@/features/shared/flags";
+import { pageTitle } from "@/lib/schema";
 
 export const metadata: Metadata = {
-  title: "Free tournament tools: bracket, points table, ID card",
+  title: pageTitle("Free tournament tools: bracket, points table, ID card"),
   description: "Free tools for running esports and gaming events: ID card maker, tournament bracket maker, battle royale points table calculator and a QR gate check-in scanner.",
   alternates: { canonical: "/tools/" },
 };

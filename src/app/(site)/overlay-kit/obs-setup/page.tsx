@@ -5,13 +5,14 @@ import JsonLd from "@/components/seo/JsonLd";
 import { SITE_URL } from "@/lib/site";
 import { KIT_GUIDE_PATH, KIT_PATH } from "@/features/overlay-kit/flag";
 import StreamerOsCard from "@/features/overlay-kit/ui/StreamerOsCard";
+import { pageTitle } from "@/lib/schema";
 
 // Behind the overlay kit flag (src/features/overlay-kit/flag.ts): with the flag off, scripts/prune-v3.mjs deletes this page from ./out.
 const title = "OBS setup for the esports overlay kit, step by step";
 const description = "Add the live points table, top fraggers and team cards to OBS: Browser Source size 1920 x 1080, transparent background, docks and refreshing.";
 
 export const metadata: Metadata = {
-  title, description, alternates: { canonical: KIT_GUIDE_PATH },
+  title: pageTitle(title), description, alternates: { canonical: KIT_GUIDE_PATH },
   openGraph: { title, description, url: KIT_GUIDE_PATH, images: ["/og.png"] }, twitter: { card: "summary_large_image", title, description, images: ["/og.png"] },
 };
 

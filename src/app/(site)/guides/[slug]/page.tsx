@@ -7,6 +7,7 @@ import GuideArticle from "@/components/seo/GuideArticle";
 import PortugueseOffer from "@/components/PortugueseOffer";
 import { GUIDES, MERGED, guideBySlug } from "@/content/guides";
 import { PT_BR_PAGES, hreflangFor } from "@/lib/pt-br";
+import { pageTitle } from "@/lib/schema";
 
 export const dynamicParams = false;
 export function generateStaticParams() {
@@ -22,7 +23,7 @@ export function generateMetadata({ params }: { params: { slug: string } }): Meta
   const url = `/guides/${g.slug}/`;
   const og = ogFor(g.slug);
   return {
-    title: g.seoTitle ?? g.title, description: g.description, alternates: { canonical: url, languages: hreflangFor(url) },
+    title: pageTitle(g.seoTitle ?? g.title), description: g.description, alternates: { canonical: url, languages: hreflangFor(url) },
     // A merged guide stays online for old links, but search engines are pointed at the guide that replaced it.
     ...(MERGED[g.slug] ? { robots: { index: false, follow: true } } : {}),
     openGraph: { type: "article", title: g.seoTitle ?? g.title, description: g.description, url, publishedTime: g.published, modifiedTime: g.updated, images: [og] },

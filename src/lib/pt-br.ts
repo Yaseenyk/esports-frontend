@@ -13,6 +13,8 @@
  */
 export const PT_BR_REVIEWED = true;
 
+import MERGED_GUIDES from "@/content/merged-guides.json";
+
 export type UiLang = "en" | "pt-BR";
 
 /** English path -> Portuguese path, for the pages that have a Portuguese version. */
@@ -21,10 +23,17 @@ export const PT_BR_PAGES: Record<string, string> = {
   "/guides/free-fire-team-names-ideas/": "/pt-br/guides/free-fire-team-names-ideas/",
 };
 
-/** hreflang links for an English page that has a Portuguese version (en, pt-BR, x-default = English). Undefined for other pages. */
+/**
+ * English pages that are noindex (guides merged into another guide, src/content/merged-guides.json). A hreflang pair needs both pages
+ * indexable: hreflang pointing at a noindex page is ignored and can drop the pair. So a Portuguese page whose English twin is merged
+ * stands alone (its own canonical, no hreflang), and the merged English page does not point at it either.
+ */
+const MERGED_EN = new Set(Object.keys(MERGED_GUIDES).map((slug) => `/guides/${slug}/`));
+
+/** hreflang links for an English page that has a Portuguese version (en, pt-BR, x-default = English). Undefined for other pages, and when the English page is noindex. */
 export function hreflangFor(enPath: string): Record<string, string> | undefined {
   const pt = PT_BR_PAGES[enPath];
-  return pt ? { en: enPath, "pt-BR": pt, "x-default": enPath } : undefined;
+  return pt && !MERGED_EN.has(enPath) ? { en: enPath, "pt-BR": pt, "x-default": enPath } : undefined;
 }
 
 /** The English page for a Portuguese path. */
