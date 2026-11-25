@@ -6,6 +6,7 @@
 import { LISTED_GUIDES as GUIDES, type Block, type Guide } from "@/content/guides";
 import { FREE_FIRE_TEAM_NAMES_PT } from "@/content/pt-br/free-fire-team-names-ideas";
 import { COMPARE_DESCRIPTION, COMPARE_PATH, COMPARE_TITLE } from "@/lib/compare";
+import { FF_COMPARE_DESCRIPTION, FF_COMPARE_PATH, FF_COMPARE_TITLE } from "@/lib/compare-ff";
 import { TOOLS, type Tool } from "@/lib/data";
 import { CARD_DESIGNS, SCREEN_DESIGNS } from "@/lib/facts";
 import { ESPORTS_PAGE } from "@/lib/esports-id-page";
@@ -41,6 +42,7 @@ export function portuguesePages(): { path: string; title: string; description: s
 /** The honest comparison pages. */
 export const COMPARE_PAGES: { path: string; title: string; description: string }[] = [
   { path: COMPARE_PATH, title: COMPARE_TITLE, description: COMPARE_DESCRIPTION },
+  { path: FF_COMPARE_PATH, title: FF_COMPARE_TITLE, description: FF_COMPARE_DESCRIPTION },
 ];
 
 const andList = (xs: string[]) => (xs.length < 2 ? xs.join("") : `${xs.slice(0, -1).join(", ")} and ${xs[xs.length - 1]}`);

@@ -38,7 +38,7 @@ export default function Page() {
 
       <section aria-labelledby="how" className="card space-y-2 text-sm leading-6 text-zinc-300">
         <h2 id="how" className="font-display text-xl font-bold text-white">How to read this page</h2>
-        <p>We read one page of each product on {CHECKED} and wrote down only what appeared in the text. &quot;Not verified&quot; means it was not in the text we read. It does not mean the feature is missing. We did not sign up for or test any product, and prices and features change, so check each site before you decide. Esports Hub is made by the people who wrote this page, so read our claims with that in mind.</p>
+        <p>We read one page of each product on {CHECKED} (pointcalc.in on 25 Nov 2026) and wrote down only what appeared in the text. &quot;Not verified&quot; means it was not in the text we read. It does not mean the feature is missing. We did not sign up for or test any product, and prices and features change, so check each site before you decide. Esports Hub is made by the people who wrote this page, so read our claims with that in mind.</p>
       </section>
 
       <section aria-labelledby="table">
@@ -50,7 +50,7 @@ export default function Page() {
               <tr className="border-t border-white/[0.08] align-top"><th scope="row" className="px-3 py-3 font-bold text-cyan">Esports Hub</th><td className="px-3 py-3 text-zinc-300">Free. No paid tier today.</td><td className="px-3 py-3 text-zinc-300">All tools, with no account. A free account adds saving events online, sign-up links and live check-in.</td><td className="px-3 py-3 text-zinc-300">Brackets, points table, round robin, schedule, poster maker, certificates, ID cards, QR gate check-in, TV screens with sponsor strip and ticker.</td></tr>
               {COMPETITORS.map((c) => (
                 <tr key={c.id} className="border-t border-white/[0.08] align-top">
-                  <th scope="row" className="px-3 py-3 font-bold text-white">{c.name}<span className="mt-1 block text-xs font-normal text-zinc-400">{c.pageRead}</span></th>
+                  <th scope="row" className="px-3 py-3 font-bold text-white">{c.name}<span className="mt-1 block text-xs font-normal text-zinc-400">{c.pageRead}{c.checked ? `, read on ${c.checked}` : ""}</span></th>
                   <td className="px-3 py-3 text-zinc-300"><Facts items={c.price} /></td>
                   <td className="px-3 py-3 text-zinc-300"><Facts items={c.free} /></td>
                   <td className="px-3 py-3 text-zinc-300"><Facts items={c.seen} /></td>
@@ -59,7 +59,7 @@ export default function Page() {
             </tbody>
           </table>
         </div>
-        <p className="mt-2 text-xs text-zinc-400">Prices are in US dollars as shown on the product pages we read.</p>
+        <p className="mt-2 text-xs text-zinc-400">Prices are shown as on the product pages we read: US dollars, and Indian rupees for pointcalc.in.</p>
       </section>
 
       <section aria-labelledby="each" className="space-y-6">
@@ -89,6 +89,7 @@ export default function Page() {
         <p className="text-sm text-zinc-300">No account needed. Start with the job in front of you.</p>
         <ul className="flex flex-wrap gap-2">{TOOLS.map((t) => <li key={t.slug}><Link href={t.href} className="chip">{t.name}</Link></li>)}</ul>
         <div><Link href="/tools/" className="btn">See all free tools</Link></div>
+        <p className="text-sm text-zinc-300">Running a Free Fire tournament? See <Link href="/compare/free-fire-tournament-hosting-sites/" className="text-cyan underline underline-offset-4">Free Fire tournament hosting sites, compared</Link>.</p>
       </section>
     </article>
   );

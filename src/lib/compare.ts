@@ -2,6 +2,7 @@
  * The facts on the comparison page, kept as data so a test can check them. Every competitor statement comes from the research notes in
  * docs/seo-serp-usp-2026-11.md (section 2), read on 11 Nov 2026 from one page of each product. "seen" means it appeared in the text we read;
  * anything else is written as "not verified". Nothing here is guessed, and "not seen" is never presented as "does not exist".
+ * pointcalc.in was added on 25 Nov 2026 (it ranks for "free fire points table"), read from its home page that day; its row carries that date.
  */
 export const CHECKED = "11 Nov 2026";
 export const COMPARE_PATH = "/compare/free-tournament-software-india/";
@@ -9,6 +10,8 @@ export const COMPARE_PATH = "/compare/free-tournament-software-india/";
 export interface Fact { text: string; status: "seen" | "not verified" }
 export interface Competitor {
   id: string; name: string; site: string; pageRead: string;
+  /** Set when this product was read on a different day from CHECKED. */
+  checked?: string;
   price: Fact[]; free: Fact[]; seen: Fact[];
   stronger: string[]; weaker: string[]; verdict: string;
 }
@@ -61,16 +64,25 @@ export const COMPETITORS: Competitor[] = [
     weaker: ["Its free tier allows up to 256 participants in a tournament. Our bracket maker takes 2 to 64 teams and our double elimination tool 3 to 64.", "Its pricing page shows paid tiers with ads removed and larger limits. We have no paid tier, so we also have no such extras.", "We cannot say what other formats or features it offers, because we did not read those pages."],
     verdict: "Challonge is the safer choice for very large brackets. For a college or cafe event with up to 64 teams, Esports Hub covers the bracket and the rest of the day.",
   },
+  {
+    id: "pointcalc", name: "pointcalc.in", site: "pointcalc.in", pageRead: "home page", checked: "25 Nov 2026",
+    price: [seen("The page says \"PointCalc is free to use\" and that the core features work without a subscription."), seen("Paid plans listed: Premium ₹69, Organiser Pack ₹200, Premium + AI ₹350 and AI Team ₹500 a month; its FAQ quotes weekly prices instead.")],
+    free: [seen("Organisers download the app from the App Store or Google Play."), seen("Team captains register through a shared link without the app or an account."), nv("What the free version limits")],
+    seen: [seen("It reads placements and kills from match screenshots and works out the points table for BGMI, PUBG Mobile and Free Fire."), seen("It also makes top fraggers, slot lists, posters and certificates."), nv("Brackets or fixtures")],
+    stronger: ["Esports Hub runs in the browser: nothing to install and no paid plan.", "Each Esports Hub points table page states the scoring rules it uses, and the same site covers brackets, fixtures, ID cards and gate check-in."],
+    weaker: ["PointCalc reads results from screenshots. The Esports Hub points table asks you to type each team's placement and kills.", "PointCalc has phone apps. Esports Hub has none."],
+    verdict: "A good fit if you want results read from screenshots in a phone app and do not mind a paid plan for extras. Choose Esports Hub if you want a free browser tool and the rest of the event in one place.",
+  },
 ];
 
 export const COMPARE_TITLE = "Free tournament software for India: an honest comparison";
 export const COMPARE_DESCRIPTION = "Compare free tournament software for India: what bracketmaker.app, score7.io, pointstablemaker.com, obscoreboard.com and Challonge offer, and where we are weaker.";
 export const COMPARE_H1 = "Free tournament software for India, compared honestly";
-export const COMPARE_LEAD = "Esports Hub is a free toolkit for organisers of in-person gaming and sports events: brackets, points tables, fixtures, posters, TV screens, ID cards and gate check-in, with no account for the tools. It is not the best choice for everything. Below is what five other products showed on the pages we read, and where each one is stronger or weaker than us.";
+export const COMPARE_LEAD = "Esports Hub is a free toolkit for organisers of in-person gaming and sports events: brackets, points tables, fixtures, posters, TV screens, ID cards and gate check-in, with no account for the tools. It is not the best choice for everything. Below is what six other products showed on the pages we read, and where each one is stronger or weaker than us.";
 
 export const COMPARE_FAQ: { q: string; a: string }[] = [
   { q: "What is the best free tournament software for an event in India?", a: "It depends on the job. For a very large online bracket, Challonge's free tier allows up to 256 participants. For a public event page with a QR code and a page for every team, score7.io is a close match. For a points table image in a cricket or football preset, pointstablemaker.com fits. For a free in-person toolkit that carries an event from sign-ups to ID cards, gate check-in, brackets, a TV screen and a winners picture, with no account, use Esports Hub. We do not rank products." },
-  { q: "How did you compare these products?", a: "We read one page of each product on 11 Nov 2026 with a simple text extractor: the home page for bracketmaker.app, score7.io, pointstablemaker.com and obscoreboard.com, and the pricing page for challonge.com. We write down only what appeared in that text. When something was not in the text we say not verified, which is not the same as saying a feature does not exist. We did not sign up for any product or test it, and prices and features can change, so check the product's own site before you decide." },
+  { q: "How did you compare these products?", a: "We read one page of each product on 11 Nov 2026 with a simple text extractor: the home page for bracketmaker.app, score7.io, pointstablemaker.com and obscoreboard.com, and the pricing page for challonge.com. We added pointcalc.in on 25 Nov 2026, from its home page read that day. We write down only what appeared in that text. When something was not in the text we say not verified, which is not the same as saying a feature does not exist. We did not sign up for any product or test it, and prices and features can change, so check the product's own site before you decide." },
   { q: "Is Esports Hub really free?", a: "The tools are free to use in your browser with no account and no payment. A free account adds saving events online, player sign-up links, shared access for your team and live gate check-in across several doors. Today there is no paid tier. We do not promise that this will never change. Your own costs, such as printing ID cards or a venue screen, are separate." },
   { q: "Where is Esports Hub weaker than the others?", a: "Our bracket tools take up to 64 teams and the round robin up to 40, so very large online tournaments are better served by Challonge. Our points table is built for battle royale scoring, so cricket and football tables go through the round robin tool, while pointstablemaker.com has presets for them. We have no per-team pages, lower thirds or API control, and our live page needs a free account. We also have no bracket pages built for specific team counts yet." },
   { q: "Does Esports Hub work offline or only online?", a: "Most tools work in the browser after the page has loaded, because the calculations and pictures are made on your device, and nothing you type into them is uploaded. The gate check-in scanner can use an offline pack made in the ID card maker, so scans keep working at a door with no signal and are marked as not yet verified until the phone is back online. Features that need a server, such as saving an event online or the live page, need a connection and a free account." },
