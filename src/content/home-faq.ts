@@ -39,6 +39,10 @@ export const HOME_FAQ: { q: string; a: string }[] = [
     a: "Any game that has teams, rounds and points. The games directory lists 28, including BGMI, Free Fire MAX, Valorant, Counter-Strike 2, Call of Duty: Mobile, EA Sports FC and Chess, and brackets and round robin also suit in person sports such as football and cricket. The points table is built for battle royale placement and kill scoring, and brackets and round robin fit anything with head-to-head matches.\n\nThe guides cover how to run a college tournament, write rules, choose a format, run a Free Fire, BGMI or Valorant event, print ID cards and use QR attendance. They are practical checklists, and where a game publisher's rules matter, they tell you to check the publisher's own page.",
   },
   {
+    q: "Is there anything for players, not organisers?",
+    a: "Yes. The player tools are free and need no account: a Free Fire name style generator and a BGMI name style generator with stylish letters and symbols to copy, a reaction time test and a tap speed test made for phones (your results stay on your device), a Valorant crosshair code tool that previews a code and lets you change and copy it, and a scrim time planner where each teammate taps the hours they are free and the squad sees the best time.\n\nThere is also a team name generator, a Free Fire guild name generator and a sensitivity converter for moving your aim between PC shooters. The tools page groups the newer ones under Player tools.",
+  },
+  {
     q: "Do I need to install anything, and which devices work?",
     a: "No. Everything runs in a web browser on a phone, tablet or computer, and you can add the gate scanner to a phone's home screen so it opens like an app. Scanning needs a phone camera; printing works from any computer or from a phone connected to a printer.\n\nThe ID card maker keeps your work in the browser, so you can save a project file and open it again later or on another device, or sign in to keep events online. Use a recent version of Chrome, Edge, Firefox or Safari.",
   },

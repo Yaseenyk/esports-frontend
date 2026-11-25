@@ -8,7 +8,8 @@ import JsonLd from "@/components/seo/JsonLd";
 import TiltLink from "@/components/TiltLink";
 import { LISTED_GUIDES as GUIDES } from "@/content/guides";
 import { HOME_FAQ } from "@/content/home-faq";
-import { GAMES, TOOLS } from "@/lib/data";
+import { GAMES, TOOLS, type Tool } from "@/lib/data";
+import { organiserTools, playerTools } from "@/lib/llms";
 import { TOOL_TILES } from "@/lib/tool-icons";
 import { CARD_DESIGNS, CARD_SHAPES, LANGUAGES_COUNT, SCREEN_DESIGNS, SITE_DESCRIPTION } from "@/lib/facts";
 import { ORG_ID, SITE_URL } from "@/lib/site";
@@ -30,6 +31,19 @@ const STEP_ICON = ["M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7z", "M4 6h16M4 12h1
 
 function Icon({ d, className = "h-5 w-5" }: { d: string; className?: string }) {
   return <svg aria-hidden="true" viewBox="0 0 24 24" className={`${className} fill-none stroke-current`} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d={d} /></svg>;
+}
+
+function ToolCard({ t }: { t: Tool }) {
+  return (
+    <Item className="h-full">
+      <TiltLink href={t.href} className="h-full">
+        <span data-tool-icon={t.slug} className="tool-icon grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-cyan/20 to-purple/20 text-cyan ring-1 ring-white/10"><Icon d={TOOL_TILES[t.slug]?.d ?? TOOL_TILES["id-cards"]!.d} /></span>
+        <h3 className="mt-3 font-display text-lg font-bold text-white">{t.name}</h3>
+        <p className="mt-2 text-sm leading-relaxed text-zinc-300">{t.blurb}</p>
+        <span className="mt-3 inline-block text-sm font-semibold text-cyan">Open →</span>
+      </TiltLink>
+    </Item>
+  );
 }
 
 export default function Home() {
@@ -79,16 +93,12 @@ export default function Home() {
       <section aria-labelledby="tools">
         <Reveal className="mb-6 flex items-end justify-between gap-3"><h2 id="tools" className="text-3xl font-bold text-white">Free tools</h2><Link prefetch={false} href="/tools/" className="text-sm font-medium text-cyan hover:underline">All tools</Link></Reveal>
         <Stagger className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {TOOLS.map((t) => (
-            <Item key={t.slug} className="h-full">
-              <TiltLink href={t.href} className="h-full">
-                <span data-tool-icon={t.slug} className="tool-icon grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-cyan/20 to-purple/20 text-cyan ring-1 ring-white/10"><Icon d={TOOL_TILES[t.slug]?.d ?? TOOL_TILES["id-cards"]!.d} /></span>
-                <h3 className="mt-3 font-display text-lg font-bold text-white">{t.name}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-zinc-300">{t.blurb}</p>
-                <span className="mt-3 inline-block text-sm font-semibold text-cyan">Open →</span>
-              </TiltLink>
-            </Item>
-          ))}
+          {organiserTools().map((t) => <ToolCard key={t.slug} t={t} />)}
+        </Stagger>
+        <h3 id="player-tools" className="mb-4 mt-10 font-display text-2xl font-bold text-white">Player tools</h3>
+        <p className="-mt-2 mb-4 max-w-2xl text-sm text-zinc-300">Playing, not organising? Style your name, plan a time your squad is free, test your reflexes or build a crosshair.</p>
+        <Stagger className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {playerTools().map((t) => <ToolCard key={t.slug} t={t} />)}
         </Stagger>
         <p className="mt-4 text-sm text-zinc-400">Not sure which tool to use? <Link prefetch={false} href="/compare/free-tournament-software-india/" className="text-cyan underline underline-offset-2 hover:text-white">See free tournament software for India, compared honestly</Link>. Running a custom room? Make a <Link prefetch={false} href="/points-table/bgmi/" className="text-cyan underline underline-offset-2 hover:text-white">BGMI points table</Link> or a <Link prefetch={false} href="/points-table/free-fire/" className="text-cyan underline underline-offset-2 hover:text-white">Free Fire points table</Link>. Making ID cards for a tournament? Try the <Link prefetch={false} href="/id-card-maker/esports/" className="text-cyan underline underline-offset-2 hover:text-white">esports ID card maker</Link>: free, no sign-up, built for tournaments.</p>
       </section>

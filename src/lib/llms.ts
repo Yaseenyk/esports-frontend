@@ -24,7 +24,7 @@ import { OWNER } from "@/features/tool-trust/domain";
  */
 export const PLAYER_TOOL_SLUGS: readonly string[] = [
   "team-name-generator", "free-fire-guild-name", "sensitivity-converter",
-  "free-fire-name-style", "bgmi-name-style", "reaction-time-test", "tap-speed-test", "valorant-crosshair",
+  "free-fire-name-style", "bgmi-name-style", "reaction-time-test", "tap-speed-test", "valorant-crosshair", "scrim-time-planner",
 ];
 
 export const playerTools = (): Tool[] => TOOLS.filter((t) => PLAYER_TOOL_SLUGS.includes(t.slug));

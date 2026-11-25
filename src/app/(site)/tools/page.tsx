@@ -29,6 +29,7 @@ const TASKS: { slug: string; task: string; line: string; button: string; href?: 
   { slug: "team-name-generator", task: "name a team", line: "Get original names for a BGMI team, a Valorant or COD five or a clan, check your own, and download a simple badge with your initials.", button: "Name a team" },
   { slug: "free-fire-guild-name", task: "name a Free Fire guild", line: "Short guild names with a stylish version next to each plain one, a Copy button for both, and a guild badge.", button: "Find a guild name" },
   { slug: "sensitivity-converter", task: "convert sensitivity or work out eDPI", line: "Move from Valorant to CS2, Apex or Overwatch 2 and keep the same aim, with cm/360 and an eDPI calculator.", button: "Convert sensitivity" },
+  { slug: "scrim-time-planner", task: "find a time my squad is free", line: "Send one link; every teammate taps the hours they are free in their own time zone, and you see the best time. No accounts.", button: "Plan a squad time" },
   { slug: "free-fire-name-style", task: "style my Free Fire name", line: "Your name in stylish letters, symbols and frames, ready names and symbols to copy, and the rename steps.", button: "Style my name" },
   { slug: "bgmi-name-style", task: "style my BGMI name", line: "Stylish letters, symbols and clan tag frames for your BGMI name, each one tap to copy.", button: "Style my BGMI name" },
   { slug: "reaction-time-test", task: "test my reaction time", line: "Tap when the screen changes; get your average over five tries. Works on a phone, results stay on it.", button: "Test my reflexes" },
@@ -45,12 +46,12 @@ const EXTRA: { slug: string; task: string; line: string; button: string; href: s
   { slug: "calendar", task: "see college events", line: "Upcoming college esports events in one calendar, listed by the organisers.", button: "Open the calendar", href: "/calendar/", on: v3Enabled("calendar") },
   { slug: "overlay-kit", task: "put the standings on my stream", line: "Free OBS overlays for the points table: live standings, top fraggers and match cards, fed from the points tools.", button: "Open the overlay kit", href: KIT_PATH, on: OVERLAY_KIT },
 ];
-/** The order of a first event: before, on the day, after. The PC and stream tools come last. */
+/** The order of a first event: before, on the day, after. Then the player tools, and the PC and stream tools last. */
 const GROUPS: { title: string; slugs: string[] }[] = [
   { title: "Before the event", slugs: ["plan", "registration", "rulebook", "brackets", "double-elimination", "round-robin", "schedule", "id-cards", "poster", "team-name-generator", "free-fire-guild-name", "scrims", "calendar"] },
   { title: "On the day", slugs: ["check-in", "points-table", "display-screen"] },
   { title: "After the event", slugs: ["certificates", "prize-split"] },
-  { title: "For players", slugs: ["free-fire-name-style", "bgmi-name-style", "reaction-time-test", "tap-speed-test", "valorant-crosshair"] },
+  { title: "Player tools", slugs: ["scrim-time-planner", "free-fire-name-style", "bgmi-name-style", "reaction-time-test", "tap-speed-test", "valorant-crosshair"] },
   { title: "For your PC and stream", slugs: ["sensitivity-converter", "overlay-kit"] },
 ];
 
