@@ -168,7 +168,8 @@ test("my listings: bump, close, inbox with accept; contact appears only after ac
   });
   await page.goto("/app/lft/");
   await expect(page.getByText("Contact on file: raviigl")).toBeVisible();
-  await expect(page.getByText("Their contact:")).toContainText("wolves#1");
+  // Accepted contacts render as a list (builder B, LFT matching); an older single contact shows under the label "Contact".
+  await expect(page.locator("dl").filter({ hasText: "wolves#1" })).toContainText("Contact");
   await page.getByRole("button", { name: "Bump" }).click();
   await expect(page.getByText("Bumped to the top")).toBeVisible();
   await page.getByRole("button", { name: /Applications \(1\)/ }).click();
