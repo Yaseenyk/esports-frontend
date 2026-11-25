@@ -3,6 +3,7 @@
 // The key is public by design: it is published at /<key>.txt so the engines can check that the site is ours.
 import { execSync } from "node:child_process";
 import fs from "node:fs";
+import { urlsForChanges } from "./indexnow-match.mjs";
 
 const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? "https://esports.streamerosai.com";
 const HOST = new URL(SITE).host;
@@ -21,16 +22,9 @@ let urls;
 if (process.env.FORCE === "1") urls = all;
 else {
   let changed = [];
-  try { changed = execSync("git diff --name-only HEAD^ HEAD", { encoding: "utf8" }).split("\n").filter(Boolean); } catch { changed = []; }
-  const set = new Set();
-  for (const f of changed) {
-    if (f === "src/content/guides.ts") all.filter((u) => u.includes("/guides/")).forEach((u) => set.add(u));
-    else if (f === "src/lib/tool-pages.ts" || f === "src/lib/data.ts" || f.startsWith("src/components/tools/") || f.startsWith("src/components/seo/ToolLanding")) all.filter((u) => u.includes("/tools/")).forEach((u) => set.add(u));
-    else if (f === "src/app/(site)/page.tsx") set.add(`${SITE}/`);
-    else { const m = /^src\/app\/\(site\)\/([a-z0-9-/]+)\/page\.tsx$/.exec(f.replace(/\\/g, "/")); if (m) set.add(`${SITE}/${m[1]}/`); }
-  }
-  liveToday.forEach((u) => set.add(u));
-  urls = [...set].filter((u) => all.includes(u));
+  try { changed = execSync("git diff --name-only HEAD^ HEAD", { encoding: "utf8" }).split(/\r?\n/).filter(Boolean); } catch { changed = []; }
+  // Pages under every route group ((site), (pt)) and v3 feature folders (src/features/<name>/) are matched: see scripts/indexnow-match.mjs.
+  urls = [...new Set([...urlsForChanges(changed, all, SITE), ...liveToday])].filter((u) => all.includes(u));
 }
 if (!urls.length) { console.log("No indexable pages changed in this commit."); process.exit(0); }
 console.log(`Submitting ${urls.length} URL(s) to IndexNow:\n  ${urls.join("\n  ")}`);

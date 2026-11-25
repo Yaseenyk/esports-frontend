@@ -100,12 +100,14 @@ const WHITELIST = [
   "share-ready image for WhatsApp", "14 themes", "18K+ organisers",
   "$90, $120 and $1,200", "free trial", "on request for charities", "5 teams and 2 draft scoreboards", "lower thirds", "does not include esports",
   "Standard is $0", "$12 per month", "$0.75", "256 participants", "512 participants", "Ad removal, embed themes and file uploads",
+  // pointcalc.in home page, read on 25 Nov 2026.
+  "PointCalc is free to use", "Premium ₹69, Organiser Pack ₹200, Premium + AI ₹350 and AI Team ₹500", "App Store or Google Play", "without the app or an account", "reads placements and kills from match screenshots", "top fraggers, slot lists, posters and certificates",
 ];
 
-test("the comparison covers exactly the five products we read, no others", () => {
-  assert.deepEqual(COMPETITORS.map((c) => c.site), ["bracketmaker.app", "score7.io", "pointstablemaker.com", "obscoreboard.com", "challonge.com"]);
+test("the comparison covers exactly the six products we read, no others", () => {
+  assert.deepEqual(COMPETITORS.map((c) => c.site), ["bracketmaker.app", "score7.io", "pointstablemaker.com", "obscoreboard.com", "challonge.com", "pointcalc.in"]);
   const all = JSON.stringify([COMPETITORS, COMPARE_FAQ, COMPARE_LEAD]).toLowerCase();
-  for (const other of ["toornament", "keepthescore", "playinga", "leaguelobster", "andern", "esportsamaze", "tournamentsoftware", "justtourney", "leaguerepublic", "overlayon"]) assert.ok(!all.includes(other), `mentions ${other}, which is not one of the five`);
+  for (const other of ["toornament", "keepthescore", "playinga", "leaguelobster", "andern", "esportsamaze", "tournamentsoftware", "justtourney", "leaguerepublic", "overlayon"]) assert.ok(!all.includes(other), `mentions ${other}, which is not one of the six`);
 });
 
 test("every statement we mark as seen matches a fact from the research notes, and every other one says not verified", () => {

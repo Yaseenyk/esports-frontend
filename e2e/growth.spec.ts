@@ -132,6 +132,19 @@ test("the comparison page says when it was checked, marks what is not verified a
   await expect(page).toHaveURL(/\/tools\/poster\/$/);
 });
 
+test("the Free Fire hosting comparison: checked date, a link to every site, what is not verified, and our own gaps", async ({ page }) => {
+  await page.goto("/compare/free-fire-tournament-hosting-sites/");
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("Free Fire tournament hosting sites");
+  await expect(page.getByText("Checked on 25 Nov 2026")).toBeVisible();
+  const table = page.getByRole("region", { name: "Comparison table" });
+  for (const [name, href] of [["Battlezy", "https://battlezy.in/"], ["Game Zone", "https://gamzone.in/"], ["PointX", "https://pointx.in/"], ["Battlefy", "https://battlefy.com/"]]) await expect(table.getByRole("link", { name, exact: true })).toHaveAttribute("href", href);
+  expect(await table.getByText("not verified").count()).toBeGreaterThan(3);
+  await expect(page.getByRole("heading", { level: 2, name: "What Esports Hub does not do" })).toBeVisible();
+  await expect(page.getByText(/No entry fees, wallets, prizes or payouts/).first()).toBeVisible();
+  const ld = (await page.locator('script[type="application/ld+json"]').allInnerTexts()).map((t) => JSON.parse(t)).flat().map((x: { "@type"?: string }) => x["@type"]);
+  for (const t of ["Article", "FAQPage", "BreadcrumbList", "Organization"]) expect(ld).toContain(t);
+});
+
 test("the tools page offers the poster maker", async ({ page }) => {
   await page.goto("/tools/");
   await page.getByRole("link", { name: /make a tournament poster/i }).click();

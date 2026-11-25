@@ -2,16 +2,21 @@
  * Portuguese (Brazil) versions of two pages, for the Brazilian visitors who use the Free Fire points table with Google Translate on.
  * Only these two pages exist in Portuguese. Everything else on the site is English.
  *
- * THE REVIEW SWITCH. The project rule: no translated page is indexed before a native reader approves it.
- * PT_BR_REVIEWED stays false until a native Brazilian Portuguese reader (chosen by the site owner, Yaseen Khatib) has read both pages,
- * on a phone, and the owner records that approval here. While it is false the Portuguese pages are `noindex, follow`
- * and are left out of sitemap.xml (scripts/verify-seo.mjs fails the build if either is not true).
- * Setting it to true makes both pages indexable and adds them to the sitemap. Nothing else needs to change.
+ * THE REVIEW SWITCH, ONE PAGE AT A TIME. The project rule: no translated page is indexed before a native reader approves it.
+ * A Portuguese page is listed in PT_BR_REVIEWED, with the date, only after a native Brazilian Portuguese reader (chosen by the site
+ * owner, Yaseen Khatib) has read it on a phone and the owner records that approval here. Until then the page is `noindex, follow`
+ * and left out of sitemap.xml (scripts/verify-seo.mjs reads this record and fails the build otherwise). A new page starts unlisted.
  */
 /**
  * Approved 24 Nov 2026: the owner confirmed a native Brazilian Portuguese reader read and approved both pages.
  */
-export const PT_BR_REVIEWED = true;
+export const PT_BR_REVIEWED: Record<string, string> = {
+  "/pt-br/points-table/free-fire/": "2026-11-24",
+  "/pt-br/guides/free-fire-team-names-ideas/": "2026-11-24",
+};
+
+/** True once a native reader approved this Portuguese page. */
+export const ptBrReviewed = (ptPath: string) => !!PT_BR_REVIEWED[ptPath];
 
 import MERGED_GUIDES from "@/content/merged-guides.json";
 
@@ -39,5 +44,7 @@ export function hreflangFor(enPath: string): Record<string, string> | undefined 
 /** The English page for a Portuguese path. */
 export const enPathFor = (ptPath: string) => Object.keys(PT_BR_PAGES).find((k) => PT_BR_PAGES[k] === ptPath) ?? "/";
 
-/** Robots for a Portuguese page: held out of search until the review switch above is on. */
-export const PT_BR_ROBOTS = PT_BR_REVIEWED ? { index: true, follow: true } : { index: false, follow: true };
+/** Robots for a Portuguese page: held out of search until that page is in PT_BR_REVIEWED. */
+export const ptBrRobots = (ptPath: string) => (ptBrReviewed(ptPath) ? { index: true, follow: true } : { index: false, follow: true });
+/** Robots for a Portuguese page that has not been reviewed yet. Prefer ptBrRobots(path), which turns indexing on once the page is approved. */
+export const PT_BR_ROBOTS = { index: false, follow: true } as const;

@@ -12,9 +12,12 @@ const NOINDEX = [/^\/games\//, /^\/events\//, /^\/communities\//, /^\/manage\//,
 // Guides merged into a stronger guide (src/content/merged-guides.json): their pages stay for old links but must be noindex and out of the sitemap.
 const MERGED_GUIDES = Object.keys(JSON.parse(fs.readFileSync(path.resolve("src/content/merged-guides.json"), "utf8")));
 for (const slug of MERGED_GUIDES) NOINDEX.push(new RegExp(`^/guides/${slug}/$`));
-// Portuguese (Brazil) pages stay noindex and out of the sitemap until a native reader approves them (PT_BR_REVIEWED in src/lib/pt-br.ts).
-const PT_BR_REVIEWED = /export const PT_BR_REVIEWED = true;/.test(fs.readFileSync(path.resolve("src/lib/pt-br.ts"), "utf8"));
-if (!PT_BR_REVIEWED) NOINDEX.push(/^\/pt-br\//);
+// Portuguese (Brazil) pages stay noindex and out of the sitemap until a native reader approves each one (PT_BR_REVIEWED in src/lib/pt-br.ts).
+const ptSrc = fs.readFileSync(path.resolve("src/lib/pt-br.ts"), "utf8");
+const ptRecord = /export const PT_BR_REVIEWED: Record<string, string> = \{([\s\S]*?)\};/.exec(ptSrc);
+if (!ptRecord) problems.push("src/lib/pt-br.ts: PT_BR_REVIEWED record not found");
+const PT_BR_REVIEWED = new Set([...(ptRecord?.[1] ?? "").matchAll(/"(\/pt-br\/[^"]+)": "\d{4}-\d{2}-\d{2}"/g)].map((m) => m[1]));
+NOINDEX.push({ test: (p) => p.startsWith("/pt-br/") && !PT_BR_REVIEWED.has(p) });
 // ---- v3: tournament pages are indexable only when the thin-page guard passed (see src/features/tournaments/seo/thin-page-guard.ts) ----
 // The guard runs here too, from the TypeScript source, on the input each page shipped in its <script id="eh-guard">.
 import ts from "typescript";
@@ -152,6 +155,15 @@ for (const [d, urls] of descs) if (urls.length > 1) bad(urls.join(", "), `duplic
 const robots = fs.readFileSync(path.join(OUT, "robots.txt"), "utf8");
 if (/Disallow: \/\s*$/m.test(robots) && !/Allow: \//.test(robots)) bad("robots.txt", "blocks the whole site");
 if (!/Sitemap: /.test(robots)) bad("robots.txt", "no Sitemap line");
+// AI crawlers are named (src/lib/crawlers.ts) in their own group, which must repeat every private path of the "*" group.
+const robotGroups = robots.split(/\r?\n\s*\r?\n/).map((g) => ({ agents: [...g.matchAll(/^User-Agent: (.+)$/gim)].map((m) => m[1].trim()), disallow: [...g.matchAll(/^Disallow: (.+)$/gim)].map((m) => m[1].trim()).sort().join(" ") })).filter((g) => g.agents.length);
+const starGroup = robotGroups.find((g) => g.agents.includes("*"));
+for (const bot of ["GPTBot", "OAI-SearchBot", "ChatGPT-User", "PerplexityBot", "ClaudeBot", "Claude-SearchBot", "Google-Extended", "Bingbot", "Applebot-Extended"]) {
+  const g = robotGroups.find((x) => x.agents.includes(bot));
+  if (!g) bad("robots.txt", `${bot} is not named`);
+  else if (starGroup && g.disallow !== starGroup.disallow) bad("robots.txt", `${bot} group does not repeat the private paths of the * group`);
+  if (g && g.disallow.split(" ").includes("/")) bad("robots.txt", `${bot} is blocked from the whole site`);
+}
 const sm = fs.readFileSync(path.join(OUT, "sitemap.xml"), "utf8");
 const smUrls = [...sm.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
 for (const u of smUrls) {

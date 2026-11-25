@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import TextPage from "@/components/seo/Page";
+import { factSentences } from "@/lib/llms";
 
 export const metadata: Metadata = {
   title: "About Esports Hub",
@@ -10,7 +11,9 @@ export const metadata: Metadata = {
 
 export default function Page() {
   return (
-    <TextPage title="About Esports Hub" path="/about/" updated="2026-11-16" intro="Esports Hub is a small, independent project. It gives people who organise esports, gaming and local sports events free tools and plain guides, from sign-up to trophy.">
+    <TextPage title="About Esports Hub" path="/about/" updated="2026-11-25" intro="Esports Hub is a small, independent project. It gives people who organise esports, gaming and local sports events free tools and plain guides, from sign-up to trophy.">
+      {/* Plain sentences, counted from the code at build time (src/lib/llms.ts), so a reader or an assistant can quote any one of them. The same block opens /llms.txt. */}
+      <section aria-labelledby="facts" data-testid="fact-block" className="space-y-3"><h2 id="facts">What Esports Hub is, in short</h2>{factSentences().map((f) => <p key={f}>{f}</p>)}</section>
       <section><h2>Who makes it</h2><p>Esports Hub is made and maintained by Yaseen Khatib, an independent full-stack developer based in Hyderabad, India (<a href="https://yk.streamerosai.com/">portfolio</a>). It is not made by a game publisher, a college or a company that sells tournaments. It is a small project, so things change often and some pages are still being improved. If something does not work, or you need a tool that is missing, <Link href="/contact/">tell us</Link>: that is how the next feature gets chosen.</p></section>
       <section><h2>What it is</h2><p>Organising a college tournament or a club cup involves the same jobs every time: choosing a format, writing rules, registering teams, issuing ID cards, checking people in at the gate and publishing results. Most of the tools for this are built for large companies, cost money, or are made for other sports. Esports Hub collects the jobs that come up most often into free tools that run in a web browser, and explains how to do each job in a guide.</p></section>
       <section><h2>Who it is for</h2><p>Students and faculty who run college esports events, members of gaming clubs and communities, and small organisers in India and elsewhere who want something simple. You do not need technical knowledge.</p></section>
