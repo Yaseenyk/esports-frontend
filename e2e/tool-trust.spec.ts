@@ -1,7 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 
 // Trust signals on every points table page, desktop and phone: who runs the site, the scoring rules, the "Safe to use" box, the trust FAQ,
-// one FAQPage that matches the visible FAQ and a Person linked from the SoftwareApplication. Also: the text is in the HTML before any script
+// one FAQPage that matches the visible FAQ and the Person referenced by @id from the SoftwareApplication. Also: the text is in the HTML before any script
 // runs, and the page analytics cannot read team names from the calculator.
 
 const PAGES = [
@@ -29,10 +29,11 @@ async function checkSchema(page: Page) {
     await expect(items.nth(i).locator("summary")).toContainText(q[i]!.name);
     expect((await items.nth(i).locator("summary + div").textContent())?.trim()).toBe(q[i]!.acceptedAnswer.text);
   }
-  const person = ld.find((n) => n["@type"] === "Person");
-  expect(person?.["@id"]).toBe(PERSON_ID);
-  expect(person?.sameAs).toEqual(["https://yk.streamerosai.com/", "https://www.linkedin.com/in/yaseen-yk", "https://github.com/Yaseenyk"]);
+  // The Person belongs to the portfolio: referenced by @id, never redeclared here with its own details.
+  expect(ld.filter((n) => n["@type"] === "Person")).toHaveLength(0);
   const app = ld.find((n) => n["@type"] === "SoftwareApplication")!;
+  expect(app["@id"]).toBe(new URL(page.url()).href.split("#")[0].replace(/^http:\/\/[^/]+/, "https://esports.streamerosai.com") + "#app");
+  expect(app.publisher).toEqual({ "@id": "https://esports.streamerosai.com/#org" });
   expect(app.author).toEqual({ "@id": PERSON_ID });
   expect(app.creator).toEqual({ "@id": PERSON_ID });
   expect(app.offers).toMatchObject({ price: "0", priceCurrency: "INR" });
@@ -80,7 +81,7 @@ for (const p of PAGES) {
   });
 }
 
-test("Portuguese Free Fire page: the same blocks in Portuguese, one FAQPage and the Person", async ({ page }) => {
+test("Portuguese Free Fire page: the same blocks in Portuguese, one FAQPage and the Person reference", async ({ page }) => {
   await page.goto("/pt-br/points-table/free-fire/");
   const who = page.getByTestId("who-runs");
   await expect(who).toHaveText("Criado e mantido por Yaseen Khatib, desenvolvedor em Hyderabad, na Índia (LinkedIn).");

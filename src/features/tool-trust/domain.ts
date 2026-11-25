@@ -12,6 +12,7 @@
  *   /points-table/ and /pt-br/ pages. Clarity is told to mask the tools (data-clarity-mask) and Pulse click labels inside the tools are fixed
  *   words (data-pulse-label), so neither receives team names or scores.
  */
+import { PERSON_ID } from "@/lib/schema";
 import { EXAMPLE_SCALE, CODM_EXAMPLE_SCALE, type Scale } from "@/lib/points";
 import { DEFAULT_MAP_LEAGUE, BEST_OF } from "@/features/map-league/domain";
 
@@ -21,19 +22,13 @@ export type TrustLang = "en" | "pt-BR";
 export const OWNER = {
   name: "Yaseen Khatib",
   url: "https://yk.streamerosai.com/",
-  personId: "https://yk.streamerosai.com/#person",
+  personId: PERSON_ID,
   linkedin: "https://www.linkedin.com/in/yaseen-yk",
   github: "https://github.com/Yaseenyk",
   city: "Hyderabad",
 } as const;
 
-/** The Person node. Pages reference it by @id from the tool's SoftwareApplication (author, creator). */
-export const personJsonLd = () => ({
-  "@context": "https://schema.org", "@type": "Person", "@id": OWNER.personId, name: OWNER.name, url: OWNER.url,
-  jobTitle: "Full Stack AI Developer",
-  address: { "@type": "PostalAddress", addressLocality: OWNER.city, addressCountry: "IN" },
-  sameAs: [OWNER.url, OWNER.linkedin, OWNER.github],
-});
+// No Person node here: the portfolio owns it (PERSON_ID in src/lib/schema.ts). Pages reference it by @id only.
 
 const ordEn = (n: number) => { const t = n % 100, s = t >= 11 && t <= 13 ? "th" : ({ 1: "st", 2: "nd", 3: "rd" } as Record<number, string>)[n % 10] ?? "th"; return `${n}${s}`; };
 const ordPt = (n: number) => `${n}º`;

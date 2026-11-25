@@ -4,9 +4,10 @@ import Faq from "@/components/seo/Faq";
 import { Inline } from "@/components/seo/Prose";
 import ScrollTable from "@/components/seo/ScrollTable";
 import { LISTED_GUIDES as GUIDES } from "@/content/guides";
-import { ORG_ID, SITE_URL } from "@/lib/site";
+import { SITE_URL } from "@/lib/site";
+import { softwareAppJsonLd } from "@/lib/schema";
 import type { UiLang } from "@/lib/pt-br";
-import { OWNER, personJsonLd, type ScoringRules } from "@/features/tool-trust/domain";
+import type { ScoringRules } from "@/features/tool-trust/domain";
 import { SafeToUse, ScoringRulesBlock, WhoRuns } from "@/features/tool-trust/ui/TrustBlocks";
 
 /** The page's own words around the tool. Only the Portuguese Free Fire page passes "pt-BR". */
@@ -66,7 +67,7 @@ export const headingName = (t: ToolPage) => t.shortName ?? ((n) => n.charAt(0).t
  * A public page for one tool: what it does, the working tool itself (free, no account) and the questions people ask.
  * It is plain server-rendered HTML, so search engines read the full text; the tool loads on top of it.
  */
-export default function ToolLanding({ t, children, lang = "en", trust }: { t: ToolPage; children?: React.ReactNode; lang?: UiLang; /** The points table pages: the "who runs this" line, the scoring rules as static text, the "Safe to use" box and the Person schema. */ trust?: { rules: ScoringRules } }) {
+export default function ToolLanding({ t, children, lang = "en", trust }: { t: ToolPage; children?: React.ReactNode; lang?: UiLang; /** The points table pages: the "who runs this" line, the scoring rules as static text, and the "Safe to use" box. */ trust?: { rules: ScoringRules } }) {
   const u = UI[lang];
   const path = t.path ?? `/tools/${t.slug}/`, url = `${SITE_URL}${path}`, crumb = t.crumb ?? { name: "Tools", href: "/tools/" };
   const guides = (t.guides ?? []).map((s) => GUIDES.find((g) => g.slug === s)).filter((g): g is NonNullable<typeof g> => !!g);
@@ -74,9 +75,7 @@ export default function ToolLanding({ t, children, lang = "en", trust }: { t: To
   return (
     <article className="space-y-12">
       <JsonLd data={[
-        { "@context": "https://schema.org", "@type": "SoftwareApplication", ...(trust ? { "@id": `${url}#app` } : {}), name: t.name, applicationCategory: "UtilitiesApplication", operatingSystem: "Web", url, description: t.lead, inLanguage: u.inLanguage, isAccessibleForFree: true, browserRequirements: "Requires JavaScript. Works in any current browser.", featureList: t.benefits.map((b) => b.title), offers: { "@type": "Offer", price: "0", priceCurrency: "INR" },
-          ...(trust ? { author: { "@id": OWNER.personId }, creator: { "@id": OWNER.personId }, publisher: { "@id": ORG_ID } } : {}) },
-        ...(trust ? [personJsonLd()] : []),
+        softwareAppJsonLd({ url, name: t.name, description: t.lead, inLanguage: u.inLanguage, featureList: t.benefits.map((b) => b.title) }),
         ...(t.howTo ? [{ "@context": "https://schema.org", "@type": "HowTo", name: u.howToName(hn), description: t.lead, step: t.steps.map((x, i) => ({ "@type": "HowToStep", position: i + 1, name: x.split(/[.,:]/)[0], text: x })) }] : []),
         { "@context": "https://schema.org", "@type": "FAQPage", mainEntity: t.faq.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })) },
         { "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [{ "@type": "ListItem", position: 1, name: u.home, item: `${SITE_URL}/` }, { "@type": "ListItem", position: 2, name: crumb.name, item: `${SITE_URL}${crumb.href}` }, { "@type": "ListItem", position: 3, name: t.name, item: url }] },

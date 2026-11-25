@@ -3,7 +3,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
-import { OWNER, PAGE_SCALES, TRUST_COPY, battleRoyaleRules, leagueRules, personJsonLd, scaleText, trustFaq } from "../src/features/tool-trust/domain.ts";
+import { OWNER, PAGE_SCALES, TRUST_COPY, battleRoyaleRules, leagueRules, scaleText, trustFaq } from "../src/features/tool-trust/domain.ts";
 import { EXAMPLE_SCALE, CODM_EXAMPLE_SCALE } from "../src/lib/points.ts";
 import { DEFAULT_MAP_LEAGUE } from "../src/features/map-league/domain.ts";
 import { GAME_PAGES, VALORANT_PAGE } from "../src/lib/game-pages.ts";
@@ -14,16 +14,22 @@ import { beaconBody } from "../src/lib/track.ts";
 const read = (p) => fs.readFileSync(new URL(`../${p}`, import.meta.url), "utf8");
 const nums = (s) => (s.match(/\d+(\.\d+)?/g) ?? []).map(Number);
 
-test("the owner and the Person node match the portfolio's sitewide entity (portfolio src/lib/seo.ts)", () => {
+test("the owner matches the portfolio's sitewide entity, and this site never redeclares the Person (portfolio src/lib/seo.ts owns it)", async () => {
+  const { PERSON_ID, personRef, softwareAppJsonLd, organizationJsonLd } = await import("../src/lib/schema.ts");
   assert.equal(OWNER.personId, "https://yk.streamerosai.com/#person");
+  assert.equal(PERSON_ID, OWNER.personId);
   assert.equal(OWNER.linkedin, "https://www.linkedin.com/in/yaseen-yk");
   assert.equal(OWNER.github, "https://github.com/Yaseenyk");
-  const p = personJsonLd();
-  assert.equal(p["@type"], "Person");
-  assert.equal(p["@id"], OWNER.personId);
-  assert.equal(p.name, "Yaseen Khatib");
-  assert.deepEqual(p.sameAs, ["https://yk.streamerosai.com/", OWNER.linkedin, OWNER.github]);
-  for (const k of ["aggregateRating", "review"]) assert.ok(!(k in p));
+  assert.deepEqual(personRef(), { "@type": "Person", "@id": PERSON_ID, name: "Yaseen Khatib", url: "https://yk.streamerosai.com/" });
+  const app = softwareAppJsonLd({ url: "https://esports.streamerosai.com/tools/brackets/", name: "x", description: "y", inLanguage: "en-IN" });
+  assert.equal(app["@id"], "https://esports.streamerosai.com/tools/brackets/#app");
+  assert.deepEqual(app.author, { "@id": PERSON_ID });
+  assert.deepEqual(app.publisher, { "@id": "https://esports.streamerosai.com/#org" });
+  for (const k of ["aggregateRating", "review"]) assert.ok(!(k in app));
+  const org = organizationJsonLd();
+  assert.ok(org.sameAs.length > 0 && org.sameAs.every((u) => u.startsWith("https://github.com/Yaseenyk/")), "only profiles the owner controls");
+  // Person is never declared with its own details anywhere in the source.
+  for (const f of ["src/components/seo/ToolLanding.tsx", "src/components/seo/GuideArticle.tsx", "src/features/tool-trust/domain.ts", "src/lib/schema.ts"]) assert.doesNotMatch(read(f), /jobTitle|addressLocality/, f);
 });
 
 test("the scoring rules are built from the calculator's real scales, not typed by hand", () => {

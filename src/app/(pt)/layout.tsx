@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { Mark } from "@/components/Logo";
 import HtmlLang from "@/components/HtmlLang";
+import JsonLd from "@/components/seo/JsonLd";
+import { organizationJsonLd } from "@/lib/schema";
 
 /**
  * The frame for the Portuguese (Brazil) pages: a short header and footer in Portuguese, instead of the English menu and footer.
@@ -12,6 +14,7 @@ export default function PortugueseLayout({ children }: { children: React.ReactNo
   return (
     <>
       <HtmlLang lang="pt-BR" />
+      <JsonLd data={organizationJsonLd()} />
       <div id="top" />
       <header className="no-print mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 pt-4">
         <Link href="/" className="flex min-h-11 items-center gap-2 font-display text-lg font-bold text-white" aria-label="Esports Hub, página inicial (em inglês)"><Mark className="h-8 w-8" />Esports Hub</Link>

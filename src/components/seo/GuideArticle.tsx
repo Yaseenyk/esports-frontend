@@ -5,6 +5,7 @@ import { Blocks, Inline } from "@/components/seo/Prose";
 import type { Guide } from "@/content/guides";
 import type { UiLang } from "@/lib/pt-br";
 import { ORG_ID, SITE_URL } from "@/lib/site";
+import { personRef } from "@/lib/schema";
 
 /** The words around a guide's own text. Only the Portuguese Free Fire team names guide passes "pt-BR". */
 const UI = {
@@ -27,7 +28,7 @@ export default function GuideArticle({ g, path, og, related, notice, lang = "en"
         {
           "@context": "https://schema.org", "@type": "Article", headline: g.title, description: g.description, datePublished: g.published, dateModified: g.updated,
           mainEntityOfPage: url, image: `${SITE_URL}${og}`, inLanguage: u.inLanguage,
-          author: { "@type": "Person", "@id": "https://yk.streamerosai.com/#person", name: "Yaseen Khatib", url: "https://yk.streamerosai.com/" }, publisher: { "@id": ORG_ID },
+          author: personRef(), publisher: { "@id": ORG_ID },
         },
         { "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [{ "@type": "ListItem", position: 1, name: u.home, item: `${SITE_URL}/` }, { "@type": "ListItem", position: 2, name: u.guides, item: `${SITE_URL}/guides/` }, { "@type": "ListItem", position: 3, name: g.title, item: url }] },
         ...(g.faq?.length ? [{ "@context": "https://schema.org", "@type": "FAQPage", mainEntity: g.faq.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })) }] : []),
