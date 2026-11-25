@@ -4,7 +4,7 @@ import { TOOLS } from "@/lib/data";
 import { GROWTH_PAGES } from "@/lib/growth-pages";
 import { SITE_URL } from "@/lib/site";
 import { TOOL_PAGES } from "@/lib/tool-pages";
-import { PT_BR_PAGES, PT_BR_REVIEWED } from "@/lib/pt-br";
+import { PT_BR_PAGES, PT_BR_REVIEWED, ptBrReviewed } from "@/lib/pt-br";
 import { indexableColleges, loadBuildColleges } from "@/features/colleges/college";
 import { indexableOnly, loadBuildTournaments } from "@/features/tournaments/services/build-data";
 import { tournamentsIndexVerdict } from "@/features/directory/services/page-verdict";
@@ -39,7 +39,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // College esports calendar: only while it passes the index rule (5+ upcoming entries from verified organisations). Empty while the API is off.
     ...(await calendarSitemapEntry()).map((p) => at(p.path, 0.5, p.lastModified)),
     at("/about/", 0.4), at("/contact/", 0.3), at("/privacy/", 0.2), at("/terms/", 0.2),
-    // Portuguese pages: only after a native Brazilian Portuguese reader approved them (PT_BR_REVIEWED in src/lib/pt-br.ts).
-    ...(PT_BR_REVIEWED ? Object.values(PT_BR_PAGES).map((p) => at(p, 0.5, "2026-11-24")) : []),
+    // Portuguese pages: each one only after a native Brazilian Portuguese reader approved it (PT_BR_REVIEWED in src/lib/pt-br.ts).
+    ...Object.values(PT_BR_PAGES).filter(ptBrReviewed).map((p) => at(p, 0.5, PT_BR_REVIEWED[p])),
   ];
 }

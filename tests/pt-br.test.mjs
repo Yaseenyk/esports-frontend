@@ -3,7 +3,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
-import { PT_BR_PAGES, PT_BR_REVIEWED, PT_BR_ROBOTS, enPathFor, hreflangFor } from "../src/lib/pt-br.ts";
+import { PT_BR_PAGES, PT_BR_REVIEWED, PT_BR_ROBOTS, enPathFor, hreflangFor, ptBrReviewed, ptBrRobots } from "../src/lib/pt-br.ts";
 import { GAME_PAGES } from "../src/lib/game-pages.ts";
 import { FREE_FIRE_PT } from "../src/lib/game-pages-pt.ts";
 import { FREE_FIRE_TEAM_NAMES_PT } from "../src/content/pt-br/free-fire-team-names-ideas.ts";
@@ -13,13 +13,17 @@ import { toolCopy } from "../src/lib/tool-copy.ts";
 const read = (p) => fs.readFileSync(new URL(`../${p}`, import.meta.url), "utf8");
 const nums = (s) => (s.match(/\d+/g) ?? []).sort().join(",");
 
-test("the review switch decides indexing: approved on 24 Nov 2026, so the pages are indexable and in the sitemap", () => {
+test("the review switch is per page: both live pages approved on 24 Nov 2026, any new page starts noindex and out of the sitemap", () => {
   // Approved by a native Brazilian Portuguese reader, as confirmed by the owner on 24 Nov 2026 (see src/lib/pt-br.ts).
-  assert.equal(PT_BR_REVIEWED, true);
+  assert.deepEqual(PT_BR_REVIEWED, { "/pt-br/points-table/free-fire/": "2026-11-24", "/pt-br/guides/free-fire-team-names-ideas/": "2026-11-24" });
   assert.match(read("src/lib/pt-br.ts"), /Approved 24 Nov 2026/, "the approval is recorded next to the switch");
-  assert.deepEqual(PT_BR_ROBOTS, PT_BR_REVIEWED ? { index: true, follow: true } : { index: false, follow: true });
-  assert.match(read("src/app/sitemap.ts"), /PT_BR_REVIEWED \? Object\.values\(PT_BR_PAGES\)/);
-  assert.match(read("scripts/verify-seo.mjs"), /if \(!PT_BR_REVIEWED\) NOINDEX\.push\(\/\^\\\/pt-br\\\/\/\)/);
+  for (const pt of Object.values(PT_BR_PAGES)) { assert.equal(ptBrReviewed(pt), true); assert.deepEqual(ptBrRobots(pt), { index: true, follow: true }); }
+  assert.equal(ptBrReviewed("/pt-br/tools/nick-free-fire/"), false);
+  assert.deepEqual(ptBrRobots("/pt-br/tools/nick-free-fire/"), { index: false, follow: true });
+  assert.deepEqual(PT_BR_ROBOTS, { index: false, follow: true }, "the plain constant is the unreviewed default");
+  assert.match(read("src/app/sitemap.ts"), /Object\.values\(PT_BR_PAGES\)\.filter\(ptBrReviewed\)/);
+  assert.match(read("scripts/verify-seo.mjs"), /p\.startsWith\("\/pt-br\/"\) && !PT_BR_REVIEWED\.has\(p\)/);
+  for (const f of ["src/app/(pt)/pt-br/points-table/free-fire/page.tsx", "src/app/(pt)/pt-br/guides/free-fire-team-names-ideas/page.tsx"]) assert.match(read(f), /robots: ptBrRobots\(/, f);
 });
 
 test("exactly two pages, hreflang only between indexable twins, and routes that exist", () => {

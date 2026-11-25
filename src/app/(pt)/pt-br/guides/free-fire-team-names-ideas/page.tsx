@@ -6,7 +6,7 @@ import GuideArticle from "@/components/seo/GuideArticle";
 import { guideBySlug } from "@/content/guides";
 import { FREE_FIRE_TEAM_NAMES_PT } from "@/content/pt-br/free-fire-team-names-ideas";
 import { toGuideOn } from "@/content/scheduled";
-import { PT_BR_PAGES, PT_BR_ROBOTS, hreflangFor } from "@/lib/pt-br";
+import { PT_BR_PAGES, hreflangFor, ptBrRobots } from "@/lib/pt-br";
 import { pageTitle } from "@/lib/schema";
 
 const EN = "/guides/free-fire-team-names-ideas/";
@@ -17,7 +17,7 @@ const g = toGuideOn({ ...FREE_FIRE_TEAM_NAMES_PT, updated: english.updated }, en
 const og = fs.existsSync(path.join(process.cwd(), "public", "og", `${g.slug}.png`)) ? `/og/${g.slug}.png` : "/og.png";
 
 export const metadata: Metadata = {
-  title: pageTitle(g.seoTitle ?? g.title), description: g.description, robots: PT_BR_ROBOTS,
+  title: pageTitle(g.seoTitle ?? g.title), description: g.description, robots: ptBrRobots(PATH),
   alternates: { canonical: PATH, languages: hreflangFor(EN) },
   openGraph: { type: "article", title: g.seoTitle ?? g.title, description: g.description, url: PATH, locale: "pt_BR", publishedTime: g.published, modifiedTime: g.updated, images: [og] },
   twitter: { card: "summary_large_image", title: g.seoTitle ?? g.title, description: g.description, images: [og] },
