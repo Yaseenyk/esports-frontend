@@ -32,7 +32,10 @@ export default function OverlayKitPanel() {
       <div className="order-1 space-y-8 lg:col-start-1 lg:row-start-1">
       <section aria-labelledby="kit-data" className="space-y-3">
         <h2 id="kit-data" className="font-display text-2xl text-zinc-100">1. Your table in this browser</h2>
-        {!k.ready ? null : k.chosen ? (
+        {!k.ready ? (
+          // Same text and size as the empty state, hidden, so the line below does not jump when the browser data is read.
+          <p aria-hidden="true" className="invisible text-zinc-300">No table yet. Open a points table tool in this browser, enter your teams and switch on &ldquo;Send to the OBS overlay&rdquo; under the table.</p>
+        ) : k.chosen ? (
           <p role="status" className="text-zinc-300" data-testid="kit-source">
             Using <strong className="text-zinc-100">{SOURCE_LABEL[k.chosen.source]}</strong>: {k.chosen.teams.length} {k.chosen.teams.length === 1 ? "team" : "teams"}, leader {k.chosen.teams[0]?.team ?? "none yet"}, updated {age === 0 ? "just now" : `${age} min ago`}.
           </p>
