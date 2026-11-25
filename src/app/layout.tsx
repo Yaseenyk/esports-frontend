@@ -12,9 +12,9 @@ import { INDEXABLE, SITE_URL } from "@/lib/site";
 import XpProvider from "@/components/XpProvider";
 import FeedbackLoader from "@/features/feedback/FeedbackLoader";
 
-// Fonts are files in src/fonts (see scripts/fetch-fonts.py), so a build never needs Google.
-const body = localFont({ src: [{ path: "../fonts/inter-100-900-normal.woff2", weight: "100 900", style: "normal" }], variable: "--font-body", display: "swap" });
-const display = localFont({ src: [{ path: "../fonts/space-grotesk-300-700-normal.woff2", weight: "300 700", style: "normal" }], variable: "--font-display", display: "swap" });
+// Fonts are files in src/fonts (see scripts/fetch-fonts.py), so a build never needs Google. Not preloaded: a High-priority preload of both files competed with the first paint and delayed LCP (measured 1700 -> 1244 ms on home); display swap plus the adjusted fallback keeps CLS at 0.
+const body = localFont({ src: [{ path: "../fonts/inter-100-900-normal.woff2", weight: "100 900", style: "normal" }], variable: "--font-body", display: "swap", preload: false });
+const display = localFont({ src: [{ path: "../fonts/space-grotesk-300-700-normal.woff2", weight: "300 700", style: "normal" }], variable: "--font-display", display: "swap", preload: false });
 
 // The public website is open to search engines (set NEXT_PUBLIC_INDEXABLE=0 to close it). Pages with demo data, and the web app, set their own noindex.
 
