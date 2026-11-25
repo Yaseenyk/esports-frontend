@@ -33,13 +33,13 @@ export default function GuideArticle({ g, path, og, related, notice, lang = "en"
         ...(g.faq?.length ? [{ "@context": "https://schema.org", "@type": "FAQPage", mainEntity: g.faq.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })) }] : []),
       ]} />
       <header>
-        <nav aria-label="Breadcrumb" className="text-sm text-zinc-400"><Link href="/guides/" className="hover:text-zinc-200">{u.guides}</Link> / {g.tag}</nav>
+        <nav aria-label="Breadcrumb" className="text-sm text-zinc-400"><Link prefetch={false} href="/guides/" className="hover:text-zinc-200">{u.guides}</Link> / {g.tag}</nav>
         {notice}
         <h1 className="mt-3 text-3xl font-black leading-tight text-zinc-50 sm:text-4xl">{g.title}</h1>
-        <p className="mt-3 text-sm text-zinc-400">{u.updated} {dateText(g.updated, u.dateLocale)} · {g.minutes} {u.minRead} · {u.by} <Link href="/about/" className="underline-offset-4 hover:underline">Yaseen Khatib</Link></p>
+        <p className="mt-3 text-sm text-zinc-400">{u.updated} {dateText(g.updated, u.dateLocale)} · {g.minutes} {u.minRead} · {u.by} <Link prefetch={false} href="/about/" className="underline-offset-4 hover:underline">Yaseen Khatib</Link></p>
         {g.answer && <div role="note" aria-label={u.short} className="mt-5 rounded-xl border border-cyan/40 bg-[#0a0b0d] p-4"><p className="text-sm font-semibold uppercase tracking-wide text-cyan">{u.short}</p><p className="mt-1 leading-relaxed text-zinc-100"><Inline text={g.answer} /></p></div>}
         <p className="mt-5 text-lg leading-relaxed text-zinc-200">{g.intro}</p>
-        {g.slug === "best-free-esports-id-card-makers" && <p className="mt-5"><Link href={g.cta.href} className="btn">{g.cta.label}</Link></p>}
+        {g.slug === "best-free-esports-id-card-makers" && <p className="mt-5"><Link prefetch={false} href={g.cta.href} className="btn">{g.cta.label}</Link></p>}
       </header>
 
       <nav aria-label={u.tocLabel} className="rounded-xl border border-white/[0.14] bg-[#0a0b0d] p-4">
@@ -66,11 +66,11 @@ export default function GuideArticle({ g, path, og, related, notice, lang = "en"
         </section>
       )}
 
-      <section className="card text-center"><h2 className="font-display text-xl font-bold text-white">{u.tryIt}</h2><p className="mt-1 text-sm text-zinc-300">{u.tryLead}</p><div className="mt-4"><Link href={g.cta.href} className="btn">{g.cta.label}</Link></div></section>
+      <section className="card text-center"><h2 className="font-display text-xl font-bold text-white">{u.tryIt}</h2><p className="mt-1 text-sm text-zinc-300">{u.tryLead}</p><div className="mt-4"><Link prefetch={false} href={g.cta.href} className="btn">{g.cta.label}</Link></div></section>
 
       {related.length > 0 && (
         <section aria-labelledby="more"><h2 id="more" className="font-display text-xl font-bold text-white">{u.more}</h2>
-          <ul className="mt-4 grid gap-3 sm:grid-cols-3">{related.map((r) => <li key={r.slug}><Link href={`/guides/${r.slug}/`} className="card block h-full !p-4"><span className="tag">{r.tag}</span><span className="mt-2 block font-semibold text-white">{r.title}</span></Link></li>)}</ul>
+          <ul className="mt-4 grid gap-3 sm:grid-cols-3">{related.map((r) => <li key={r.slug}><Link prefetch={false} href={`/guides/${r.slug}/`} className="card block h-full !p-4"><span className="tag">{r.tag}</span><span className="mt-2 block font-semibold text-white">{r.title}</span></Link></li>)}</ul>
         </section>
       )}
       <p className="text-xs text-zinc-400"><Inline text={u.mistake} /></p>

@@ -36,7 +36,7 @@ export default function GuidePage({ params }: { params: { slug: string } }) {
   const path = `/guides/${g.slug}/`;
   const related = g.related.filter((s) => !MERGED[s]).map((s) => guideBySlug(s)).filter((x): x is NonNullable<typeof x> => !!x);
   const mergedInto = MERGED[g.slug] ? guideBySlug(MERGED[g.slug]) : undefined;
-  const notice = mergedInto && <p role="note" className="mt-4 rounded-xl border border-amber-500/30 bg-[#0a0b0d] px-4 py-2.5 text-sm text-amber-200">This guide has been merged into <Link href={`/guides/${mergedInto.slug}/`} className="underline underline-offset-4">{mergedInto.title}</Link>, which covers the same ground in more depth. This page stays online for old links and is not listed in search results.</p>;
+  const notice = mergedInto && <p role="note" className="mt-4 rounded-xl border border-amber-500/30 bg-[#0a0b0d] px-4 py-2.5 text-sm text-amber-200">This guide has been merged into <Link prefetch={false} href={`/guides/${mergedInto.slug}/`} className="underline underline-offset-4">{mergedInto.title}</Link>, which covers the same ground in more depth. This page stays online for old links and is not listed in search results.</p>;
   return (
     <>
       {PT_BR_PAGES[path] && <PortugueseOffer href={PT_BR_PAGES[path]!} />}

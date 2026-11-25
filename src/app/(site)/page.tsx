@@ -51,10 +51,10 @@ export default function Home() {
           <p className="mt-6 max-w-xl text-lg leading-relaxed text-zinc-200">{SITE_DESCRIPTION}</p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Link href="/tools/id-cards/" className="btn">Make ID cards</Link>
-            <Link href="/tools/" className="btn-ghost">Pick the job you need</Link>
+            <Link prefetch={false} href="/tools/" className="btn-ghost">Pick the job you need</Link>
           </div>
-          {v3Enabled("lft") && <p className="mt-3 text-sm text-zinc-300">Playing, not organising? <Link href="/lft/" className="text-cyan underline underline-offset-2 hover:text-white">Find a team</Link></p>}
-          <p className="mt-4 text-sm text-zinc-400">New here? <Link href="/tools/" className="text-cyan underline underline-offset-2 hover:text-white">Pick the job you need done</Link>, or read <Link href="/guides/run-a-campus-tournament/" className="text-cyan hover:underline">how to run a college tournament</Link>. Free, in your browser, no account for the tools.</p>
+          {v3Enabled("lft") && <p className="mt-3 text-sm text-zinc-300">Playing, not organising? <Link prefetch={false} href="/lft/" className="text-cyan underline underline-offset-2 hover:text-white">Find a team</Link></p>}
+          <p className="mt-4 text-sm text-zinc-400">New here? <Link prefetch={false} href="/tools/" className="text-cyan underline underline-offset-2 hover:text-white">Pick the job you need done</Link>, or read <Link prefetch={false} href="/guides/run-a-campus-tournament/" className="text-cyan hover:underline">how to run a college tournament</Link>. Free, in your browser, no account for the tools.</p>
           <dl className="mt-10 grid max-w-lg grid-cols-4 gap-4">
             {([["Free tools", TOOLS.length], ["Guides", GUIDES.length], ["Card designs", CARD_DESIGNS], ["Languages", LANGUAGES_COUNT]] as const).map(([k, v]) => (
               <div key={k}><dd className="font-display text-3xl font-bold text-white"><Counter to={v} /></dd><dt className="text-xs text-zinc-400">{k}</dt></div>
@@ -77,7 +77,7 @@ export default function Home() {
       </Reveal>
 
       <section aria-labelledby="tools">
-        <Reveal className="mb-6 flex items-end justify-between gap-3"><h2 id="tools" className="text-3xl font-bold text-white">Free tools</h2><Link href="/tools/" className="text-sm font-medium text-cyan hover:underline">All tools</Link></Reveal>
+        <Reveal className="mb-6 flex items-end justify-between gap-3"><h2 id="tools" className="text-3xl font-bold text-white">Free tools</h2><Link prefetch={false} href="/tools/" className="text-sm font-medium text-cyan hover:underline">All tools</Link></Reveal>
         <Stagger className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {TOOLS.map((t) => (
             <Item key={t.slug} className="h-full">
@@ -90,7 +90,7 @@ export default function Home() {
             </Item>
           ))}
         </Stagger>
-        <p className="mt-4 text-sm text-zinc-400">Not sure which tool to use? <Link href="/compare/free-tournament-software-india/" className="text-cyan underline underline-offset-2 hover:text-white">See free tournament software for India, compared honestly</Link>. Running a custom room? Make a <Link href="/points-table/bgmi/" className="text-cyan underline underline-offset-2 hover:text-white">BGMI points table</Link> or a <Link href="/points-table/free-fire/" className="text-cyan underline underline-offset-2 hover:text-white">Free Fire points table</Link>. Making ID cards for a tournament? Try the <Link href="/id-card-maker/esports/" className="text-cyan underline underline-offset-2 hover:text-white">esports ID card maker</Link>: free, no sign-up, built for tournaments.</p>
+        <p className="mt-4 text-sm text-zinc-400">Not sure which tool to use? <Link prefetch={false} href="/compare/free-tournament-software-india/" className="text-cyan underline underline-offset-2 hover:text-white">See free tournament software for India, compared honestly</Link>. Running a custom room? Make a <Link prefetch={false} href="/points-table/bgmi/" className="text-cyan underline underline-offset-2 hover:text-white">BGMI points table</Link> or a <Link prefetch={false} href="/points-table/free-fire/" className="text-cyan underline underline-offset-2 hover:text-white">Free Fire points table</Link>. Making ID cards for a tournament? Try the <Link prefetch={false} href="/id-card-maker/esports/" className="text-cyan underline underline-offset-2 hover:text-white">esports ID card maker</Link>: free, no sign-up, built for tournaments.</p>
       </section>
 
       <section aria-labelledby="proof" className="cv-auto">
@@ -107,7 +107,7 @@ export default function Home() {
             <Item key={t} className="h-full"><div className="card h-full"><h3 className="font-display font-bold text-white">{t}</h3><p className="mt-1 text-sm text-zinc-300">{d}</p></div></Item>
           ))}
         </Stagger>
-        <p className="mt-4 text-sm text-zinc-400">Not affiliated with any game publisher. <Link href="/about/" className="text-cyan underline underline-offset-2 hover:text-white">About Esports Hub</Link></p>
+        <p className="mt-4 text-sm text-zinc-400">Not affiliated with any game publisher. <Link prefetch={false} href="/about/" className="text-cyan underline underline-offset-2 hover:text-white">About Esports Hub</Link></p>
       </section>
 
       <section aria-labelledby="how" className="cv-auto">
@@ -119,7 +119,7 @@ export default function Home() {
             ["Run the day", "Check guests in at the gate and keep the points table or bracket up to date.", "/guides/event-gate-checkin/"],
             ["Finish", "Publish results, thank sponsors and keep the roster for next time.", "/guides/sponsor-pitch/"],
           ].map(([t, d, href], i) => (
-            <Item key={t} className="h-full"><div className="card h-full"><span className="grid h-10 w-10 place-items-center rounded-full bg-cyan text-ink"><Icon d={STEP_ICON[i]!} /></span><h3 className="mt-3 font-display font-bold text-white">{i + 1}. {t}</h3><p className="mt-1 text-sm text-zinc-300">{d}</p><Link href={href as string} className="mt-2 inline-block text-sm text-cyan hover:underline">Read more</Link></div></Item>
+            <Item key={t} className="h-full"><div className="card h-full"><span className="grid h-10 w-10 place-items-center rounded-full bg-cyan text-ink"><Icon d={STEP_ICON[i]!} /></span><h3 className="mt-3 font-display font-bold text-white">{i + 1}. {t}</h3><p className="mt-1 text-sm text-zinc-300">{d}</p><Link prefetch={false} href={href as string} className="mt-2 inline-block text-sm text-cyan hover:underline">Read more</Link></div></Item>
           ))}
         </Stagger>
       </section>
@@ -129,8 +129,8 @@ export default function Home() {
           <div className="grid items-center gap-8 lg:grid-cols-[1fr_1.1fr]">
             <div>
               <h2 id="games" className="text-3xl font-bold text-white">Made for any game</h2>
-              <p className="mt-3 leading-relaxed text-zinc-300">ID cards, brackets, points tables (see the <Link href="/points-table/bgmi/" className="text-cyan underline underline-offset-2 hover:text-white">BGMI points table</Link> and the <Link href="/points-table/free-fire/" className="text-cyan underline underline-offset-2 hover:text-white">Free Fire points table</Link>) and the gate scanner do not depend on the game. Use them for mobile battle royales, PC shooters, sandbox worlds or party games: you set the team size, the roles and the rules.</p>
-              <div className="mt-5 flex flex-wrap gap-3"><Link href="/guides/choosing-a-tournament-format/" className="btn-ghost">Choosing a format</Link><Link href="/guides/points-table/" className="btn-ghost">Points tables</Link></div>
+              <p className="mt-3 leading-relaxed text-zinc-300">ID cards, brackets, points tables (see the <Link prefetch={false} href="/points-table/bgmi/" className="text-cyan underline underline-offset-2 hover:text-white">BGMI points table</Link> and the <Link prefetch={false} href="/points-table/free-fire/" className="text-cyan underline underline-offset-2 hover:text-white">Free Fire points table</Link>) and the gate scanner do not depend on the game. Use them for mobile battle royales, PC shooters, sandbox worlds or party games: you set the team size, the roles and the rules.</p>
+              <div className="mt-5 flex flex-wrap gap-3"><Link prefetch={false} href="/guides/choosing-a-tournament-format/" className="btn-ghost">Choosing a format</Link><Link prefetch={false} href="/guides/points-table/" className="btn-ghost">Points tables</Link></div>
             </div>
             <div aria-hidden="true" className="grid grid-cols-4 gap-3 sm:grid-cols-6">
               {badges.map((g, i) => (<div key={g.slug} className="animate-float justify-self-center" style={{ animationDelay: `${(i % 6) * -0.9}s` }}><GameBadge game={g} size="lg" /></div>))}
@@ -140,7 +140,7 @@ export default function Home() {
       </Reveal>
 
       <section aria-labelledby="guides">
-        <Reveal className="mb-6 flex items-end justify-between gap-3"><h2 id="guides" className="text-3xl font-bold text-white">Guides</h2><Link href="/guides/" className="text-sm font-medium text-cyan hover:underline">All guides</Link></Reveal>
+        <Reveal className="mb-6 flex items-end justify-between gap-3"><h2 id="guides" className="text-3xl font-bold text-white">Guides</h2><Link prefetch={false} href="/guides/" className="text-sm font-medium text-cyan hover:underline">All guides</Link></Reveal>
         <Stagger className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {latest.map((g) => (
             <Item key={g.slug} className="h-full">
@@ -160,7 +160,7 @@ export default function Home() {
             <p className="text-sm font-semibold uppercase tracking-widest text-cyan">Good to know</p>
             <h2 id="faq" className="mt-2 text-3xl font-bold text-white">Questions</h2>
             <p className="mt-3 text-sm leading-6 text-zinc-300">What the tools do, what they cost, and what happens to your players&apos; details. Not here? Ask us.</p>
-            <Link href="/contact/" className="mt-4 inline-flex items-center gap-2 text-sm text-cyan hover:text-white">Contact us <span aria-hidden="true">→</span></Link>
+            <Link prefetch={false} href="/contact/" className="mt-4 inline-flex items-center gap-2 text-sm text-cyan hover:text-white">Contact us <span aria-hidden="true">→</span></Link>
           </Reveal>
         </div>
         <Faq items={FAQ} className="max-w-3xl" />

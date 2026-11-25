@@ -13,7 +13,7 @@ export function Inline({ text }: { text: string }) {
         const href = m[2]!;
         return /^https?:/.test(href)
           ? <a key={i} href={href} rel="noopener noreferrer" className="text-cyan underline underline-offset-2 hover:text-white">{m[1]}</a>
-          : <Link key={i} href={href} className="text-cyan underline underline-offset-2 hover:text-white">{m[1]}</Link>;
+          : <Link key={i} prefetch={false} href={href} className="text-cyan underline underline-offset-2 hover:text-white">{m[1]}</Link>;
       })}
     </>
   );

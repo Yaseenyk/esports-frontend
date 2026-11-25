@@ -82,7 +82,7 @@ export default function ToolLanding({ t, children, lang = "en", trust }: { t: To
         { "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [{ "@type": "ListItem", position: 1, name: u.home, item: `${SITE_URL}/` }, { "@type": "ListItem", position: 2, name: crumb.name, item: `${SITE_URL}${crumb.href}` }, { "@type": "ListItem", position: 3, name: t.name, item: url }] },
       ]} />
       <header className="no-print">
-        <nav aria-label="Breadcrumb" className="text-sm text-zinc-400"><Link href={crumb.href} className="hover:text-zinc-200">{crumb.name}</Link> / {t.name}</nav>
+        <nav aria-label="Breadcrumb" className="text-sm text-zinc-400"><Link prefetch={false} href={crumb.href} className="hover:text-zinc-200">{crumb.name}</Link> / {t.name}</nav>
         <h1 className="mt-3 text-3xl font-black text-zinc-50 sm:text-5xl">{t.h1}</h1>
         <p className="mt-4 max-w-2xl text-lg text-zinc-200">{t.intro ?? t.lead}</p>
         {trust && <WhoRuns lang={lang} />}
@@ -136,13 +136,13 @@ export default function ToolLanding({ t, children, lang = "en", trust }: { t: To
 
       {guides.length > 0 && (
         <section className="no-print" aria-labelledby="read"><h2 id="read" className="font-display text-2xl font-bold text-white">{u.guides}</h2>
-          <ul className="mt-4 grid gap-3 sm:grid-cols-3">{guides.map((g) => <li key={g.slug}><Link href={`/guides/${g.slug}/`} className="card block h-full !p-4"><span className="tag">{g.tag}</span><span className="mt-2 block font-semibold text-white">{g.title}</span></Link></li>)}</ul>
+          <ul className="mt-4 grid gap-3 sm:grid-cols-3">{guides.map((g) => <li key={g.slug}><Link prefetch={false} href={`/guides/${g.slug}/`} className="card block h-full !p-4"><span className="tag">{g.tag}</span><span className="mt-2 block font-semibold text-white">{g.title}</span></Link></li>)}</ul>
         </section>
       )}
 
       {t.related && t.related.length > 0 && (
         <section className="no-print" aria-labelledby="related"><h2 id="related" className="font-display text-2xl font-bold text-white">{u.related}</h2>
-          <ul className="mt-4 grid gap-3 sm:grid-cols-2">{t.related.map((r) => <li key={r.href}><Link href={r.href} className="card block h-full !p-4"><span className="block font-semibold text-white">{r.label}</span><span className="mt-1 block text-sm text-zinc-300">{r.blurb}</span></Link></li>)}</ul>
+          <ul className="mt-4 grid gap-3 sm:grid-cols-2">{t.related.map((r) => <li key={r.href}><Link prefetch={false} href={r.href} className="card block h-full !p-4"><span className="block font-semibold text-white">{r.label}</span><span className="mt-1 block text-sm text-zinc-300">{r.blurb}</span></Link></li>)}</ul>
         </section>
       )}
 
@@ -154,7 +154,7 @@ export default function ToolLanding({ t, children, lang = "en", trust }: { t: To
         <Faq items={t.faq} className="max-w-3xl" />
       </section>
 
-      <section className="card text-center"><h2 className="font-display text-xl font-bold text-white">{u.saveH}</h2><p className="mt-1 text-sm text-zinc-300">{u.saveP}</p><div className="mt-4 flex justify-center gap-3"><Link href="/signup/" className="btn">{u.signup}</Link></div></section>
+      <section className="card text-center"><h2 className="font-display text-xl font-bold text-white">{u.saveH}</h2><p className="mt-1 text-sm text-zinc-300">{u.saveP}</p><div className="mt-4 flex justify-center gap-3"><Link prefetch={false} href="/signup/" className="btn">{u.signup}</Link></div></section>
     </article>
   );
 }
