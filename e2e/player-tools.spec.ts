@@ -34,11 +34,11 @@ test("Free Fire name style: static ready names and symbols, the generator, copy,
   // The lists and FAQ are in the static HTML, before any script runs.
   expect((html.match(/data-copy=/g) ?? []).length).toBeGreaterThanOrEqual(120);
   expect(html).toContain("made by this tool from our own word lists");
-  expect(html).not.toContain('hreflang="pt-BR"');
+  expect(html).not.toMatch(/hreflang="pt-BR"/i);
   await page.goto("/tools/free-fire-name-style/");
   await seo(page, "/tools/free-fire-name-style/", /Free Fire name style generator: stylish names you can copy/);
   await expect(page.getByTestId("ready-names").locator("li")).toHaveCount(60);
-  const name = page.getByLabel("Your name");
+  const name = page.getByRole("textbox", { name: "Your name" });
   await name.fill("Arjun");
   const rows = page.getByTestId("ns-list").locator("li");
   await expect(rows).toHaveCount(11);
@@ -63,12 +63,12 @@ test("Free Fire name style: static ready names and symbols, the generator, copy,
 test("BGMI name style: clan tag looks and the rename source", async ({ page }) => {
   await page.goto("/tools/bgmi-name-style/");
   await seo(page, "/tools/bgmi-name-style/", /BGMI name style generator: stylish names and symbols/);
-  await page.getByLabel("Your name").fill("Kabir");
+  await page.getByRole("textbox", { name: "Your name" }).fill("Kabir");
   await page.getByLabel("Add a clan tag before my name").check();
-  await page.getByLabel("Clan tag", { exact: true }).fill("IND");
+  await page.getByRole("textbox", { name: "Clan tag" }).fill("IND");
   await page.getByRole("button", { name: "『TAG』Name" }).click();
   await expect(page.getByTestId("ns-list").locator("li").first()).toContainText("『IND』꧁Kabir꧂");
-  await page.getByLabel("Your name").fill("bitch");
+  await page.getByRole("textbox", { name: "Your name" }).fill("bitch");
   await expect(page.getByText("That name contains an abusive or hateful word").first()).toBeVisible();
   await expect(page.locator('a[href^="https://help.battlegroundsmobileindia.com/"]').first()).toBeVisible();
   await axe(page);
