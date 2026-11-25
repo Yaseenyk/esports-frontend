@@ -1,6 +1,7 @@
 // TEST FIXTURE SERVER, never shipped. Answers the PUBLIC v3 endpoints (API.md section 2) so the build can be tried with the backend flags "on":
 //   node scripts/mock-v3-api.mjs [port]        then:   NEXT_PUBLIC_API_URL=http://localhost:8799 npm run build
 //   MOCK_MANY=12 node scripts/mock-v3-api.mjs   12 ready tournaments published in one week, to see the weekly cap hold two back.
+//   MOCK_TOURNAMENTS=0 node scripts/mock-v3-api.mjs   no tournaments (player pages only; for Windows, where og.png cannot be drawn).
 //   MOCK_DIRECTORY=6 node scripts/mock-v3-api.mjs   also answer the phase 5 directory with 6 upcoming tournaments (5 or more = indexable; 0 or unset = 404, flag off).
 // Everything here is invented test data. It exists only in this file and in the local build you run against it.
 import http from "node:http";
@@ -20,7 +21,9 @@ const DIR = Array.from({ length: dirCount }, (_, i) => ({
   summary: `Test tournament ${i + 1} for the directory check.`, venue: "offline", city: i % 2 ? "Mumbai" : "Pune", state: "Maharashtra", startsAt: `2030-12-${String(10 + i).padStart(2, "0")}T10:00:00.000Z`, endsAt: null, maxTeams: 16,
   registration: { open: i === 0, registered: 3, spotsLeft: 13 }, registerUrl: i === 0 ? "/register/?t=fixturetoken123" : null,
 }));
-const LIST = many
+// MOCK_TOURNAMENTS=0: no tournaments at all (a Windows build cannot draw the tournament og.png cards, so this lets the player pages be checked there).
+const noTournaments = process.env.MOCK_TOURNAMENTS === "0";
+const LIST = noTournaments ? [] : many
   ? Array.from({ length: many }, (_, i) => mk(i + 1, { publishedAt: `2030-11-0${(i % 6) + 1}T${String(10 + i).padStart(2, "0")}:00:00.000Z` }))
   : [
     mk(1),
@@ -39,6 +42,16 @@ const detail = (t) => ({
   hasResults: t.status === "completed",
 });
 
+// Player pages: one profile that passes the quality gate and one that fails it (short bio, no game, no verified result). Only the first may be built.
+const player = (slug, over = {}) => ({
+  kind: "player", slug, handle: "Fixture Player", bio: long("Fixture bio written only to check the build of player pages.", 120), city: "Pune", state: "Maharashtra", languages: ["Hindi", "English"],
+  games: [{ game: "bgmi", inGameName: "FixtureOP", rankCode: null, rankOrdinal: null, roles: ["igl"] }], teamName: "Fixture Wolves", links: [{ kind: "youtube", url: "https://www.youtube.com/@fixture" }],
+  achievements: [{ title: "Fixture LAN finalist", year: 2030 }], stats: { source: "verified_results", tournaments: 1, matches: { played: 0, wins: 0, losses: 0, draws: 0 }, battleRoyale: { matches: 1, wins: 1, kills: 11, bestPlacement: 1 } },
+  visibility: "public", indexable: true, teams: [], matches: [], battleRoyale: [{ tournament: { slug: "fixture-cup-1", title: "Fixture Cup Number 1" }, team: "Fixture Wolves", matchNo: 1, placement: 1, kills: 11, corrected: false }],
+  certificates: [], updatedAt: "2030-11-02T10:00:00.000Z", ...over,
+});
+const PLAYERS = [player("fixture-player-pass"), player("fixture-player-thin", { handle: "Thin Fixture", bio: "Short.", games: [], indexable: false, battleRoyale: [], stats: null })];
+
 http.createServer((req, res) => {
   const u = new URL(req.url, "http://x");
   const send = (code, body) => { res.writeHead(code, { "content-type": "application/json", "access-control-allow-origin": "*" }); res.end(JSON.stringify(body)); };
@@ -51,6 +64,10 @@ http.createServer((req, res) => {
     const count = (k) => Object.entries(DIR.reduce((m, x) => ({ ...m, [x[k]]: (m[x[k]] || 0) + 1 }), {})).map(([v, n]) => ({ [k]: v, count: n }));
     return send(200, { items, total: DIR.length, indexable: DIR.length >= 5, minForIndex: 5, cities: count("city"), games: count("game") });
   }
+  if (u.pathname === "/public/profiles/players") return send(200, { items: PLAYERS.map((p) => ({ slug: p.slug, listedSince: "2030-11-01T10:00:00.000Z", updatedAt: p.updatedAt })) });
+  const pm = u.pathname.match(/^\/public\/profiles\/players\/([a-z0-9-]+)$/);
+  const pp = pm && PLAYERS.find((x) => x.slug === pm[1]);
+  if (pp) return send(200, pp);
   const m = u.pathname.match(/^\/public\/tournaments\/([a-z0-9-]+)(\/live)?$/);
   const t = m && LIST.find((x) => x.slug === m[1]);
   if (t && m[2]) return send(200, { slug: t.slug, status: t.status, registered: 11, spotsLeft: 5, open: t.status === "registration_open" });

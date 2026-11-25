@@ -10,15 +10,21 @@ export const dayText = (iso: string | null): string => {
   return Number.isFinite(t) ? new Date(t).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric", timeZone: "Asia/Kolkata" }) : "";
 };
 const tourHref = (slug: string) => `/tournaments/${encodeURIComponent(slug)}/`;
+/** Which tournaments have a page to link to. The pre-rendered player page passes the build's list, so it never links to a page that was not built. */
+export type TourLink = (slug: string) => boolean;
+const always: TourLink = () => true;
+function TourName({ t, linkable, className = "hover:underline" }: { t: { slug: string; title: string }; linkable: TourLink; className?: string }) {
+  return linkable(t.slug) ? <Link href={tourHref(t.slug)} className={className}>{t.title}</Link> : <>{t.title}</>;
+}
 const RESULT_WORD = { win: "Won", loss: "Lost", draw: "Draw" } as const;
 const RESULT_TONE = { win: "success", loss: "neutral", draw: "neutral" } as const;
 
 /** A certificate is a verified result the platform recorded: a completed tournament, an approved team, at least one result. Nothing typed by the player. */
-export function CertificateCard({ c, action }: { c: Certificate; action?: React.ReactNode }) {
+export function CertificateCard({ c, action, linkable = always }: { c: Certificate; action?: React.ReactNode; linkable?: TourLink }) {
   return (
     <li id={`cert-${c.id.replace(/[^a-z0-9-]/gi, "-")}`} className={box}>
       <p className="text-xs uppercase tracking-wide text-zinc-400">Verified result · {gameLabel(c.tournament.game)}</p>
-      <h3 className="mt-1 font-display text-lg text-zinc-100"><Link href={tourHref(c.tournament.slug)} className="hover:underline">{c.tournament.title}</Link></h3>
+      <h3 className="mt-1 font-display text-lg text-zinc-100"><TourName t={c.tournament} linkable={linkable} /></h3>
       <p className="mt-1 text-zinc-300">Team <span className="text-zinc-100">{c.team}</span>{c.completedOn && <> · completed {dayText(c.completedOn)}</>}</p>
       <ul className="mt-3 space-y-1 text-sm text-zinc-300">
         {c.record && <li>Matches: <span className="font-mono tabular-nums text-zinc-100">{c.record.wins}</span> won, <span className="font-mono tabular-nums">{c.record.losses}</span> lost{c.record.draws > 0 && <>, <span className="font-mono tabular-nums">{c.record.draws}</span> drawn</>}</li>}
@@ -30,16 +36,16 @@ export function CertificateCard({ c, action }: { c: Certificate; action?: React.
   );
 }
 
-export function CertificateList({ items, empty }: { items: Certificate[]; empty: string }) {
+export function CertificateList({ items, empty, linkable = always }: { items: Certificate[]; empty: string; linkable?: TourLink }) {
   return (
     <section className={section} aria-labelledby="certs-h">
       <h2 id="certs-h" className={h2}>Certificates</h2>
-      {items.length === 0 ? <p className="mt-3 text-zinc-300">{empty}</p> : <ul className="mt-4 grid gap-4 sm:grid-cols-2">{items.map((c) => <CertificateCard key={c.id} c={c} />)}</ul>}
+      {items.length === 0 ? <p className="mt-3 text-zinc-300">{empty}</p> : <ul className="mt-4 grid gap-4 sm:grid-cols-2">{items.map((c) => <CertificateCard key={c.id} c={c} linkable={linkable} />)}</ul>}
     </section>
   );
 }
 
-export function MatchTable({ rows }: { rows: MatchRow[] }) {
+export function MatchTable({ rows, linkable = always }: { rows: MatchRow[]; linkable?: TourLink }) {
   if (rows.length === 0) return null;
   return (
     <ul className="mt-4 divide-y divide-white/10">
@@ -51,14 +57,14 @@ export function MatchTable({ rows }: { rows: MatchRow[] }) {
             <StatusBadge label={RESULT_WORD[m.result]} tone={RESULT_TONE[m.result]} />
             {m.corrected && <StatusBadge label="Corrected" tone="warning" />}
           </span>
-          <span className="w-full text-xs text-zinc-400"><Link href={tourHref(m.tournament.slug)} className="hover:underline">{m.tournament.title}</Link>{m.stage ? ` · ${m.stage}` : ""}{m.round ? `, round ${m.round}` : ""}</span>
+          <span className="w-full text-xs text-zinc-400"><TourName t={m.tournament} linkable={linkable} />{m.stage ? ` · ${m.stage}` : ""}{m.round ? `, round ${m.round}` : ""}</span>
         </li>
       ))}
     </ul>
   );
 }
 
-export function BrTable({ rows }: { rows: BrRow[] }) {
+export function BrTable({ rows, linkable = always }: { rows: BrRow[]; linkable?: TourLink }) {
   if (rows.length === 0) return null;
   return (
     <ul className="mt-4 divide-y divide-white/10">
@@ -66,19 +72,19 @@ export function BrTable({ rows }: { rows: BrRow[] }) {
         <li key={i} className="flex flex-wrap items-baseline justify-between gap-2 py-3">
           <span className="text-zinc-100">Match {r.matchNo} · {r.team}</span>
           <span className="flex items-center gap-2 text-sm text-zinc-300">#<span className="font-mono tabular-nums text-zinc-100">{r.placement}</span> · <span className="font-mono tabular-nums">{r.kills}</span> kills{r.corrected && <StatusBadge label="Corrected" tone="warning" />}</span>
-          <span className="w-full text-xs text-zinc-400"><Link href={tourHref(r.tournament.slug)} className="hover:underline">{r.tournament.title}</Link></span>
+          <span className="w-full text-xs text-zinc-400"><TourName t={r.tournament} linkable={linkable} /></span>
         </li>
       ))}
     </ul>
   );
 }
 
-export function ResultsSection({ matches, battleRoyale }: { matches: MatchRow[]; battleRoyale: BrRow[] }) {
+export function ResultsSection({ matches, battleRoyale, linkable = always }: { matches: MatchRow[]; battleRoyale: BrRow[]; linkable?: TourLink }) {
   return (
     <section className={section} aria-labelledby="results-h">
       <h2 id="results-h" className={h2}>Matches</h2>
       <p className="mt-2 text-sm text-zinc-400">Verified results from tournaments on Esports Hub. Opponents that did not choose a public team page show as Unlisted team.</p>
-      {matches.length === 0 && battleRoyale.length === 0 ? <p className="mt-3 text-zinc-300">No verified results yet.</p> : <><MatchTable rows={matches} /><BrTable rows={battleRoyale} /></>}
+      {matches.length === 0 && battleRoyale.length === 0 ? <p className="mt-3 text-zinc-300">No verified results yet.</p> : <><MatchTable rows={matches} linkable={linkable} /><BrTable rows={battleRoyale} linkable={linkable} /></>}
     </section>
   );
 }

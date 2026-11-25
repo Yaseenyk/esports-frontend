@@ -10,12 +10,14 @@ import Modal from "@/features/shared/ui/Modal";
 import { EmptyState, FindNext, ErrorState, NotAvailable, SignInPrompt, SkeletonRows, StatusBadge } from "@/features/shared/ui/States";
 import { box, btnPrimary, btnSecondary, h1, h2, h3, helper, link, section } from "@/features/shared/ui/styles";
 import { BLOCKER_TEXT, REPORT_REASONS, visibilityLabel, type Entry, type OwnPage } from "@/features/profiles/domain";
-import { useMyPlayerPage, useMyTeamPages, usePlayerPage, useReportPage, useSlugParam, useTeamPage, useTeamPageEditor } from "@/features/profiles/hooks/useProfiles";
+import { useCardToken, useMyPlayerPage, useMyTeamPages, usePlayerByCard, usePlayerPage, useReportPage, useSlugParam, useTeamPage, useTeamPageEditor } from "@/features/profiles/hooks/useProfiles";
+import { PlayerView } from "@/features/profiles/ui/PlayerView";
+import { CardLinkBox, PageDetailsEditor } from "@/features/profiles/ui/DetailsEditor";
 import { CertificateCard, CertificateList, ResultsSection, TeamsSection, VisibilityPicker, dayText } from "@/features/profiles/ui/ProfileParts";
 
 const GONE = "This address has no shared page. The owner may have made it private, or it never existed.";
 
-function ReportBox({ kind, slug }: { kind: "players" | "teams"; slug: string }) {
+function ReportBox({ kind, slug }: { kind: "players" | "teams" | "cards"; slug: string }) {
   const session = useSession();
   const [open, setOpen] = useState(false);
   const r = useReportPage(kind, slug);
@@ -45,7 +47,8 @@ const linkOnlyNote = <p className="text-sm text-zinc-400">Link only: shared by i
 
 /**
  * /players/view/?s=<slug>. With v3.profiles off the API answers 404 and the page shows `fallback` (the earlier resume view), so nothing changes
- * for anyone until the flag is switched on. The route is always noindex (players/layout.tsx).
+ * for anyone until the flag is switched on. The route is always noindex (players/layout.tsx). Only Public profiles open here; Link only ones open
+ * through their card link (/p/).
  */
 export function PlayerProfileScreen({ fallback }: { fallback: React.ReactNode }) {
   const slug = useSlugParam();
@@ -55,29 +58,24 @@ export function PlayerProfileScreen({ fallback }: { fallback: React.ReactNode })
   if (res.phase === "error") return <div className="mx-auto max-w-3xl"><ErrorState message={explainFailure(res.failure)} onRetry={res.reload} /></div>;
   if (res.phase !== "ready" || !res.data) return null;
   const p = res.data;
-  return (
-    <article className="mx-auto max-w-3xl space-y-8">
-      <header className="space-y-2">
-        <p className="text-sm text-zinc-400">Esports profile</p>
-        <h1 className={h1}>{p.handle}</h1>
-        <p className="text-zinc-300">{[p.city, p.state].filter(Boolean).join(", ")}{p.languages.length > 0 && ` · ${p.languages.join(", ")}`}</p>
-        {p.bio && <p className="max-w-3xl whitespace-pre-line text-zinc-100">{p.bio}</p>}
-        {p.visibility === "unlisted" && linkOnlyNote}
-      </header>
-      {p.games.length > 0 && (
-        <section className={section} aria-labelledby="games-h">
-          <h2 id="games-h" className={h2}>Games</h2>
-          <ul className="mt-4 space-y-2">{p.games.map((g) => <li key={g.game} className={box}><span className="font-medium text-zinc-100">{gameLabel(g.game)}</span> <span className="text-zinc-300">· {g.inGameName}{g.roles.length > 0 && ` · ${g.roles.map((r) => ROLE_LABELS[r] ?? r).join(", ")}`}</span></li>)}</ul>
-          <p className={helper}>Games, names and roles are typed by the player. Results below are not.</p>
-        </section>
-      )}
-      <TeamsSection teams={p.teams} />
-      <CertificateList items={p.certificates} empty="No certificates yet. A certificate appears when a tournament this player captained is completed with verified results." />
-      <ResultsSection matches={p.matches} battleRoyale={p.battleRoyale} />
-      {p.updatedAt && <p className="text-xs text-zinc-400">Profile updated {dayText(p.updatedAt)}. It is {p.visibility === "public" ? "public" : "shared by link"} because its owner chose so, and they can make it private at any time.</p>}
-      <ReportBox kind="players" slug={p.slug} />
-    </article>
-  );
+  return <PlayerView p={p} footer={p.slug ? <ReportBox kind="players" slug={p.slug} /> : null} />;
+}
+
+const CARD_GONE = "This player card does not open a page any more. The player may have made their profile private or reset the QR on their card, or the page is under review.";
+
+/**
+ * /p/?k=<token>: the page a player card's QR opens. Always noindex and no-referrer (p/layout.tsx); the token leaves the address bar at once.
+ * Every refusal (bad, reset, private, hidden, removed) looks the same: the API gives one 404 for all of them, and so does this screen.
+ */
+export function CardProfileScreen() {
+  const token = useCardToken();
+  const res = usePlayerByCard(token);
+  const gone = <div className="mx-auto max-w-3xl"><EmptyState asPage title="This player page is not available" body={CARD_GONE} action={<FindNext />} /></div>;
+  if (token === null || (token !== "" && res.phase === "loading")) return <div className="mx-auto max-w-3xl">{res.phase === "loading" && res.showSkeleton ? <Loading label="Loading the player page" /> : <p className="sr-only">Loading the player page</p>}</div>;
+  if (token === "" || res.phase === "unavailable" || (res.phase === "ready" && !res.data)) return gone;
+  if (res.phase === "error") return <div className="mx-auto max-w-3xl"><ErrorState message={explainFailure(res.failure)} onRetry={res.reload} /></div>;
+  if (res.phase !== "ready" || !res.data) return null;
+  return <PlayerView p={res.data} kicker="Player card" footer={<ReportBox kind="cards" slug={token} />} />;
 }
 
 /** /teams/view/?s=<slug>: a team page its owner shared (Link only or Public). Always noindex (teams/layout.tsx). */
@@ -111,7 +109,7 @@ export function TeamProfileScreen() {
   );
 }
 
-function Blockers({ page }: { page: OwnPage }) {
+function Blockers({ page }: { page: Pick<OwnPage, "indexable" | "indexBlockers"> }) {
   return (
     <div className="space-y-1">
       <p className="text-sm text-zinc-100">Search engines: {page.indexable ? <StatusBadge label="May index it" tone="success" /> : <StatusBadge label="Asked not to index it" />}</p>
@@ -160,9 +158,11 @@ export function PlayerPagePanel({ adult, consentGiven, onChanged, onAvailable }:
       {page.hiddenByModeration && <p role="status" className="text-warning"><span aria-hidden="true">! </span>A moderator is reviewing reports about your page, so it is hidden for now.</p>}
       <div className={`${box} space-y-4`}>
         <VisibilityPicker name="pp-vis" value={page.visibility} busy={m.busy} onPick={(v) => { void m.setVisibility(v).then((ok) => ok && onChanged?.()); }} disabledReason={reason} />
-        <p className="text-sm text-zinc-300">Now: <span className="text-zinc-100">{visibilityLabel(page.visibility)}</span>{page.visibility !== "private" && <> · <Link href={page.path} className={link}>Open your page</Link></>}</p>
+        <p className="text-sm text-zinc-300">Now: <span className="text-zinc-100">{visibilityLabel(page.visibility)}</span>{page.path && <> · <Link href={page.path} className={link}>Open your page</Link></>}</p>
         <Blockers page={page} />
       </div>
+      <PageDetailsEditor details={page.details} busy={m.busy} onSave={m.setDetails} />
+      <CardLinkBox page={page} busy={m.busy} onEnsure={m.ensureCard} onReset={m.resetCard} />
       <h3 className={h3}>Tournaments on your page</h3>
       <EntryList entries={page.entries} busy={m.busy} onToggle={(e) => void m.setHidden(e.itemKey, !e.hidden)} />
       {page.certificates.filter((c) => !c.hidden).length > 0 && <><h3 className={h3}>Your certificates</h3><ul className="grid gap-4 sm:grid-cols-2">{page.certificates.filter((c) => !c.hidden).map((c) => <CertificateCard key={c.id} c={c} />)}</ul></>}
@@ -231,3 +231,6 @@ export function MyTeamPagesScreen() {
     </div>
   );
 }
+
+/** The report box for a Public player page (used by the pre-rendered /players/<slug>/ page). */
+export function PlayerReportBox({ slug }: { slug: string }) { return <ReportBox kind="players" slug={slug} />; }

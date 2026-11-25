@@ -4,7 +4,7 @@ import fs from "node:fs";
 import path from "node:path";
 
 let removed = 0;
-for (const top of ["tournaments", "colleges"]) {
+for (const top of ["tournaments", "colleges", "players"]) {
   const dir = path.resolve("out", top);
   if (!fs.existsSync(dir)) continue;
   for (const name of fs.readdirSync(dir)) {

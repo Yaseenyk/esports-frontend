@@ -10,6 +10,7 @@ import { indexableOnly, loadBuildTournaments } from "@/features/tournaments/serv
 import { tournamentsIndexVerdict } from "@/features/directory/services/page-verdict";
 import { KIT_GUIDE_PATH, KIT_PATH, OVERLAY_KIT } from "@/features/overlay-kit/flag";
 import { calendarSitemapEntry } from "@/features/community/sitemap";
+import { loadBuildPlayers } from "@/features/profiles/services/build-data";
 
 export const dynamic = "force-static";
 
@@ -26,6 +27,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const colleges = indexableColleges(await loadBuildColleges());
   // /tournaments/ itself: only with 5 or more upcoming public tournaments (the same verdict the page uses for its robots tag).
   const index = await tournamentsIndexVerdict();
+  // Player pages: ONLY the ones the quality gate passed (the player opted in to search) and the weekly cap allowed. Empty while the API is off.
+  const players = (await loadBuildPlayers()).filter((b) => b.indexable);
   return [
     at("/", 1, HEADINGS), at("/tools/", 0.9, HEADINGS), at("/guides/", 0.9),
     ...TOOLS.map((t) => at(t.href, 0.9, TOOL_PAGES[t.slug]?.updated ?? HEADINGS)),
@@ -34,6 +37,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...(index.indexable ? [at("/tournaments/", 0.6, live[0]?.detail.publishedAt?.slice(0, 10) ?? LAUNCH)] : []),
     ...live.map((t) => at(`/tournaments/${t.detail.slug}/`, 0.5, t.detail.publishedAt?.slice(0, 10) ?? LAUNCH)),
     ...colleges.map((c) => at(`/colleges/${c.slug}/`, 0.4)),
+    ...players.map((b) => at(`/players/${b.page.slug}/`, 0.4, b.page.updatedAt?.slice(0, 10) ?? LAUNCH)),
     // The OBS overlay kit: only while its flag is on (the browser source page /overlay-kit/live/ is noindex and never listed).
     ...(OVERLAY_KIT ? [at(KIT_PATH, 0.6, "2026-11-24"), at(KIT_GUIDE_PATH, 0.5, "2026-11-24")] : []),
     // College esports calendar: only while it passes the index rule (5+ upcoming entries from verified organisations). Empty while the API is off.

@@ -309,6 +309,7 @@ export default function IdCardStudio() {
         <div>
         <h1 className="font-display text-2xl font-bold text-white short:text-xl sm:text-3xl">ID cards <span className="text-cyan">&amp;</span> passes</h1>
         <p className="text-sm text-zinc-400"><span className="sm:hidden">Four steps: teams, people, design, print.{samplePeople > 0 ? " Demo data is loaded so you can try it." : ""}</span><span className="hidden sm:inline">Four steps: list your teams, add the people, pick a design, then print or download. Everything stays in your browser until you choose to save it online.{samplePeople > 0 ? " Demo data is loaded so you can try it." : ""}</span></p>
+        <p className="mt-1 text-sm text-zinc-400">Making a card for yourself? <a href="/app/player-card/" className="text-cyan underline underline-offset-2">Make my player card</a>, with a QR that opens your player page.</p>
         </div>
         <div className="w-full sm:w-auto">
           <LangSwitch className="mb-2 sm:hidden" />

@@ -24,8 +24,14 @@ export interface GameLine { game: string; inGameName: string; rankCode: string |
 
 export interface Results { matches: MatchRow[]; battleRoyale: BrRow[]; certificates: Certificate[] }
 
+export type LinkKind = "youtube" | "twitch" | "instagram" | "x" | "discord" | "facebook" | "kick" | "loco" | "rooter" | "website";
+export interface PlayerLink { kind: LinkKind; url: string }
+export interface Achievement { title: string; year: number | null }
+
+/** `slug` is null when the page was opened through a card link of a Link only profile (its address is the link alone). */
 export interface PlayerPage extends Results {
-  slug: string; handle: string; bio: string | null; city: string | null; state: string | null; languages: string[]; games: GameLine[]; stats: ProfileStats | null;
+  slug: string | null; handle: string; bio: string | null; city: string | null; state: string | null; languages: string[]; games: GameLine[]; stats: ProfileStats | null;
+  teamName: string | null; links: PlayerLink[]; achievements: Achievement[];
   visibility: Visibility; indexable: boolean; teams: TeamOnProfile[]; updatedAt: string | null;
 }
 export interface TeamPage extends Results {
@@ -36,7 +42,29 @@ export interface TeamPage extends Results {
 export interface OwnPage extends Results {
   slug: string; visibility: Visibility; path: string; indexable: boolean; indexBlockers: string[]; hiddenByModeration: boolean; entries: Entry[];
 }
-export interface OwnPlayerPage extends OwnPage { teams: TeamOnProfile[] }
+export interface DetailsPatch { teamName?: string | null; links?: PlayerLink[]; achievements?: Achievement[]; hiddenFields?: HideableField[]; searchOptIn?: boolean }
+export interface PageDetails { teamName: string | null; links: PlayerLink[]; achievements: Achievement[]; hiddenFields: HideableField[]; searchOptIn: boolean }
+/** `path` is null while nothing is shared (or Link only before a card link exists); `cardPath` is the QR value ("/p/?k=..."), null until made. */
+export interface OwnPlayerPage extends Omit<OwnPage, "path"> { path: string | null; cardPath: string | null; cardCreatedAt: string | null; details: PageDetails; teams: TeamOnProfile[] }
+
+export const LINK_KINDS: { value: LinkKind; label: string; example: string }[] = [
+  { value: "youtube", label: "YouTube", example: "https://www.youtube.com/@yourchannel" }, { value: "twitch", label: "Twitch", example: "https://twitch.tv/yourname" },
+  { value: "instagram", label: "Instagram", example: "https://instagram.com/yourname" }, { value: "x", label: "X (Twitter)", example: "https://x.com/yourname" },
+  { value: "discord", label: "Discord server", example: "https://discord.gg/invite" }, { value: "facebook", label: "Facebook", example: "https://facebook.com/yourpage" },
+  { value: "kick", label: "Kick", example: "https://kick.com/yourname" }, { value: "loco", label: "Loco", example: "https://loco.com/streamers/yourname" },
+  { value: "rooter", label: "Rooter", example: "https://rooter.gg/yourname" }, { value: "website", label: "Website", example: "https://example.com" },
+];
+export const linkLabel = (k: string): string => LINK_KINDS.find((x) => x.value === k)?.label ?? "Link";
+export const LINKS_MAX = 6;
+export const ACHIEVEMENTS_MAX = 8;
+
+/** The show/hide switches on the edit screen, in the order the public page shows the fields. */
+export type HideableField = "bio" | "location" | "languages" | "games" | "roles" | "team" | "links" | "achievements" | "stats" | "teams" | "certificates" | "matches";
+export const HIDEABLE: { value: HideableField; label: string }[] = [
+  { value: "bio", label: "Bio" }, { value: "location", label: "City and state" }, { value: "languages", label: "Languages" }, { value: "games", label: "Games and in-game names" },
+  { value: "roles", label: "Roles" }, { value: "team", label: "Current team" }, { value: "links", label: "Social links" }, { value: "achievements", label: "Achievements" },
+  { value: "stats", label: "Verified stats" }, { value: "teams", label: "Teams captained" }, { value: "certificates", label: "Certificates" }, { value: "matches", label: "Recent matches" },
+];
 export interface OwnTeamPage extends OwnPage { id: string; name: string; claimable: { tournament: TournamentRef; team: string }[] }
 export interface TeamPageSummary { id: string; slug: string; name: string; visibility: Visibility; path: string; indexable: boolean; indexBlockers: string[]; hiddenByModeration: boolean; tournaments: number; certificates: number }
 
@@ -47,6 +75,8 @@ export const BLOCKER_TEXT: Record<string, string> = {
   adult_required: "You have not confirmed you are 18 or older.",
   consent_required: "You have not given consent to a shared resume.",
   hidden_by_moderation: "A moderator is reviewing reports about it, so it is hidden for now.",
+  search_off: "You have not switched on Show my profile in Google search.",
+  thin_content: "It needs a bio of at least 80 characters and a game, or at least one verified result (hidden fields do not count).",
 };
 
 export const REPORT_REASONS: { value: string; label: string }[] = [

@@ -29,6 +29,7 @@ const V3_TABS: Section[] = [
   v3Enabled("tournaments") && { href: "/app/tournaments/", label: "Tournaments", blurb: "Your public pages", icon: "M8 21h8M12 17v4M7 4h10v5a5 5 0 01-10 0zM17 5h3v2a3 3 0 01-3 3M7 5H4v2a3 3 0 003 3" },
   v3Enabled("lft") && { href: "/app/lft/", label: "Team finder", blurb: "Find a team or player", icon: "M16 20v-1a4 4 0 00-4-4H8a4 4 0 00-4 4v1M10 11a3.5 3.5 0 100-7 3.5 3.5 0 000 7zM20 20v-1a3.5 3.5 0 00-2.5-3.4M16 4.2a3.5 3.5 0 010 6.6" },
   v3Enabled("resume") && { href: "/app/resume/", label: "My resume", blurb: "Your player profile", icon: "M20 21v-1a5 5 0 00-5-5H9a5 5 0 00-5 5v1M12 11a4 4 0 100-8 4 4 0 000 8z" },
+  v3Enabled("resume") && { href: "/app/player-card/", label: "Player card", blurb: "Your card with a QR", icon: "M3 7a2 2 0 012-2h14a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2zM14 9h3v3h-3zM7 9h4M7 13h4" },
   v3Enabled("disputes") && { href: "/app/disputes/", label: "Disputes", blurb: "Raise or follow one", icon: "M4 21V4M4 4h13l-2 4 2 4H4" },
   v3Enabled("scrims") && { href: "/app/scrims/", label: "Scrims", blurb: "Practice slots", icon: "M4 4l7 7M20 4l-7 7M4 20l6-6M20 20l-6-6M9 12h6" },
   v3Enabled("profiles") && { href: "/app/teams/", label: "Team pages", blurb: "Who can see them", icon: "M16 20v-1a4 4 0 00-4-4H8a4 4 0 00-4 4v1M10 11a3.5 3.5 0 100-7 3.5 3.5 0 000 7z" },

@@ -1,6 +1,8 @@
 /** API payloads (API.md section 9) to the screen shapes. Defensive: a missing or odd field becomes a safe default, never a crash. Pure. */
+import { HIDEABLE, LINK_KINDS } from "@/features/profiles/domain";
 import type {
-  BrRow, Certificate, Entry, GameLine, MatchRow, OwnPlayerPage, OwnTeamPage, PlayerPage, ProfileStats, TeamOnProfile, TeamPage, TeamPageSummary, TournamentRef, Visibility,
+  Achievement, BrRow, Certificate, Entry, GameLine, HideableField, LinkKind, MatchRow, OwnPlayerPage, OwnTeamPage, PageDetails, PlayerLink, PlayerPage, ProfileStats, TeamOnProfile, TeamPage,
+  TeamPageSummary, TournamentRef, Visibility,
 } from "@/features/profiles/domain";
 
 type R = Record<string, unknown>;
@@ -54,14 +56,37 @@ const results = (o: R) => ({
   certificates: arr(o.certificates).map(toCertificate).filter((x): x is Certificate => x !== null),
 });
 
+/**
+ * A link the page may render: http or https only, parsed by the browser's URL parser (so "javascript:", "data:" and odd encodings never pass),
+ * no user name or password. The server already allowlists the hosts; this is the second lock on the door.
+ */
+export function safeHref(v: unknown): string | null {
+  if (typeof v !== "string" || v.length > 200) return null;
+  try {
+    const u = new URL(v);
+    if ((u.protocol !== "https:" && u.protocol !== "http:") || u.username || u.password) return null;
+    return u.toString();
+  } catch { return null; }
+}
+const KINDS = new Set<string>(LINK_KINDS.map((k) => k.value));
+export const toLinks = (v: unknown): PlayerLink[] => arr(v).map((x) => { const o = obj(x); const url = safeHref(o.url); return url && KINDS.has(str(o.kind)) ? { kind: str(o.kind) as LinkKind, url } : null; }).filter((x): x is PlayerLink => x !== null).slice(0, 6);
+export const toAchievements = (v: unknown): Achievement[] => arr(v).map((x) => { const o = obj(x); const t = str(o.title).slice(0, 80); return t ? { title: t, year: numOrNull(o.year) } : null; }).filter((x): x is Achievement => x !== null).slice(0, 8);
+const FIELDS = new Set<string>(HIDEABLE.map((h) => h.value));
+const toHidden = (v: unknown): HideableField[] => strings(v).filter((x): x is HideableField => FIELDS.has(x));
+
 export function toPlayerPage(v: unknown): PlayerPage | null {
   const o = obj(v);
-  if (typeof o.slug !== "string" || typeof o.handle !== "string") return null;
+  if (typeof o.handle !== "string" || !o.handle) return null;
   return {
-    slug: o.slug, handle: o.handle, bio: strOrNull(o.bio), city: strOrNull(o.city), state: strOrNull(o.state), languages: strings(o.languages), games: arr(o.games).map(toGame),
-    stats: toStats(o.stats), visibility: toVisibility(o.visibility), indexable: o.indexable === true, teams: arr(o.teams).map(toTeamOn), updatedAt: strOrNull(o.updatedAt), ...results(o),
+    slug: typeof o.slug === "string" && o.slug ? o.slug : null, handle: o.handle, bio: strOrNull(o.bio), city: strOrNull(o.city), state: strOrNull(o.state), languages: strings(o.languages), games: arr(o.games).map(toGame),
+    stats: toStats(o.stats), teamName: strOrNull(o.teamName), links: toLinks(o.links), achievements: toAchievements(o.achievements),
+    visibility: toVisibility(o.visibility), indexable: o.indexable === true, teams: arr(o.teams).map(toTeamOn), updatedAt: strOrNull(o.updatedAt), ...results(o),
   };
 }
+
+const toDetails = (v: unknown): PageDetails => { const o = obj(v); return { teamName: strOrNull(o.teamName), links: toLinks(o.links), achievements: toAchievements(o.achievements), hiddenFields: toHidden(o.hiddenFields), searchOptIn: o.searchOptIn === true }; };
+/** "/p/?k=<22 characters>" only: anything else from the server is ignored, so the QR can never hold another address. */
+export const toCardPath = (v: unknown): string | null => (typeof v === "string" && /^\/p\/\?k=[A-Za-z0-9_-]{22}$/.test(v) ? v : null);
 
 export function toTeamPage(v: unknown): TeamPage | null {
   const o = obj(v);
@@ -80,7 +105,10 @@ export function toOwnPlayerPage(v: unknown): OwnPlayerPage | null {
   const p = obj(v).page;
   if (!p || typeof p !== "object") return null;
   const o = obj(p);
-  return { ...ownBase(o), teams: arr(o.teams).map(toTeamOn) };
+  const vis = toVisibility(o.visibility);
+  const cardPath = toCardPath(o.cardPath);
+  const path = vis === "public" ? str(o.path) || null : vis === "unlisted" ? toCardPath(o.path) : null;
+  return { ...ownBase(o), path, cardPath, cardCreatedAt: strOrNull(o.cardCreatedAt), details: toDetails(o.details), teams: arr(o.teams).map(toTeamOn) };
 }
 export function toOwnTeamPage(v: unknown): OwnTeamPage | null {
   const o = obj(obj(v).page);

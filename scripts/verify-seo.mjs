@@ -8,7 +8,7 @@ const problems = [];
 const bad = (page, msg) => problems.push(`${page}: ${msg}`);
 
 // Pages that must stay out of search results (demo data, private screens, one-off links).
-const NOINDEX = [/^\/games\//, /^\/events\//, /^\/communities\//, /^\/manage\//, /^\/arcade\//, /^\/login\//, /^\/signup\//, /^\/forgot-password\//, /^\/reset-password\//, /^\/app\//, /^\/gate\//, /^\/join\//, /^\/pass\//, /^\/register\//, /^\/display\//, /^\/live\//, /^\/overlay\//, /^\/embed\//, /^\/score\//, /^\/report\//, /^\/ready\//, /^\/run\//, /^\/league\//, /^\/lft\//, /^\/players\//, /^\/team\//, /^\/teams\//, /^\/scrims\//, /^\/unsubscribe\//, /^\/verify-email\//, /^\/admin\//, /^\/developers\//, /^\/overlay-kit\/live\//];
+const NOINDEX = [/^\/games\//, /^\/events\//, /^\/communities\//, /^\/manage\//, /^\/arcade\//, /^\/login\//, /^\/signup\//, /^\/forgot-password\//, /^\/reset-password\//, /^\/app\//, /^\/gate\//, /^\/join\//, /^\/pass\//, /^\/register\//, /^\/display\//, /^\/live\//, /^\/overlay\//, /^\/embed\//, /^\/score\//, /^\/report\//, /^\/ready\//, /^\/run\//, /^\/league\//, /^\/lft\//, /^\/players\//, /^\/team\//, /^\/teams\//, /^\/scrims\//, /^\/unsubscribe\//, /^\/verify-email\//, /^\/admin\//, /^\/developers\//, /^\/overlay-kit\/live\//, /^\/p\//];
 // Guides merged into a stronger guide (src/content/merged-guides.json): their pages stay for old links but must be noindex and out of the sitemap.
 const MERGED_GUIDES = Object.keys(JSON.parse(fs.readFileSync(path.resolve("src/content/merged-guides.json"), "utf8")));
 for (const slug of MERGED_GUIDES) NOINDEX.push(new RegExp(`^/guides/${slug}/$`));
@@ -24,6 +24,11 @@ const guard = await import("data:text/javascript;base64," + Buffer.from(guardJs)
 const attr = (html, re) => { const m = re.exec(html); return m ? m[1] : null; };
 const v3Indexable = new Map(); // "/tournaments/<slug>/" -> boolean, filled below
 const isV3Tournament = (p) => /^\/tournaments\/[^/]+\/$/.test(p);
+// ---- player pages: /players/<slug>/ is indexable only when the quality gate passed (src/features/profiles/seo/player-gate.ts); /players/view/ never ----
+const gateSrc = fs.readFileSync(path.resolve("src/features/profiles/seo/player-gate.ts"), "utf8");
+const playerGate = await import("data:text/javascript;base64," + Buffer.from(ts.transpileModule(gateSrc, { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2020 } }).outputText).toString("base64"));
+const playerIndexable = new Map(); // "/players/<slug>/" -> boolean
+const isPlayerPage = (p) => /^\/players\/[^/]+\/$/.test(p) && p !== "/players/view/";
 // ---- community: /trust/ always noindex; /calendar/ indexable only when its index rule passes (scripts/verify-community.mjs) ----
 import { COMMUNITY_NOINDEX, calendarVerdict } from "./verify-community.mjs";
 NOINDEX.push(...COMMUNITY_NOINDEX);
@@ -47,6 +52,7 @@ const isNoindexPath = (p) => {
     return dirInfo.mode === "v3" ? ![...v3Indexable.values()].some(Boolean) : false; // the v3 index also needs one page that passed the guard
   }
   if (isV3Tournament(p)) return !v3Indexable.get(p);
+  if (isPlayerPage(p)) return !playerIndexable.get(p);
   return NOINDEX.some((re) => re.test(p));
 };
 
@@ -63,6 +69,17 @@ for (const p of pages.filter((q) => isV3Tournament(q.url))) {
   const indexable = !/noindex/.test(robotsMeta);
   v3Indexable.set(p.url, indexable);
   v3Pages.push({ ...p, html, info, indexable });
+}
+
+const playerPages = [];
+for (const p of pages.filter((q) => isPlayerPage(q.url))) {
+  const html = fs.readFileSync(p.file, "utf8");
+  const m = /<script type="application\/json" id="eh-player">([\s\S]*?)<\/script>/.exec(html);
+  let info = null;
+  try { info = m ? JSON.parse(m[1]) : null; } catch { /* reported below */ }
+  const indexable = !/noindex/.test(attr(html, /<meta name="robots" content="([^"]*)"/) ?? "");
+  playerIndexable.set(p.url, indexable);
+  playerPages.push({ ...p, html, info, indexable });
 }
 
 const PERSON_ID = "https://yk.streamerosai.com/#person";
@@ -168,6 +185,50 @@ for (const v of v3Pages) {
   if (!fs.existsSync(png) || fs.readFileSync(png).subarray(1, 4).toString() !== "PNG") bad(v.url, "missing or invalid og.png card");
   if (!v.html.includes(`og:image" content="${SITE}${v.url}og.png"`)) bad(v.url, "og:image does not point at this tournament's card");
 }
+// Player pages: gate re-checked on what shipped, ProfilePage + BreadcrumbList, canonical, sitemap, and no personal or internal data in the HTML.
+const PII = [
+  [/[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+\.[A-Za-z]{2,}/, "an email address"], [/(?<![\w/.-])(?:\+?91[\s-]?)?[6-9]\d{4}[\s-]?\d{5}(?!\d)/, "a phone number"],
+  [/\b[0-9a-f]{32}\b/, "a 32-character internal id"], [/\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b/i, "a UUID"],
+  [/\/p\/\?k=|"cardPath"|user_?id|"userId"|adultConfirmed|resumeConsent|\baadhaar\b|date of birth|\bdob\b/i, "a private field or card link"],
+];
+for (const v of playerPages) {
+  if (!v.info) { bad(v.url, "player page without its eh-player data"); continue; }
+  const failures = playerGate.playerGateFailures(v.info.input ?? {});
+  if (failures.length) bad(v.url, `a player page was emitted for a profile that fails the gate: ${failures.join(", ")}`);
+  const visibleText = v.html.replace(/<script[\s\S]*?<\/script>/g, " ");
+  for (const [re, what] of PII) if (re.test(visibleText) || re.test(JSON.stringify(jsonLdOf(v.html)))) bad(v.url, `contains ${what}`);
+  const canon = attr(v.html, /<link rel="canonical" href="([^"]*)"/);
+  if (canon !== `${SITE}${v.url}`) bad(v.url, `canonical is ${canon}`);
+  if ((v.html.match(/<h1[\s>]/g) || []).length !== 1) bad(v.url, "player page must have exactly one h1");
+  const ld = jsonLdOf(v.html);
+  const prof = ld.filter((d) => d["@type"] === "ProfilePage");
+  if (v.indexable) {
+    if (v.info.indexable !== true) bad(v.url, "indexable but the build did not mark it indexable");
+    const title = decode(attr(v.html, /<title>([^<]*)<\/title>/) ?? "");
+    if (title.length > 60) bad(v.url, `player page title longer than 60 characters: ${title}`);
+    if (prof.length !== 1 || prof[0].mainEntity?.["@type"] !== "Person" || !prof[0].mainEntity?.name) bad(v.url, "needs exactly one ProfilePage whose mainEntity is a Person with a name");
+    if (prof[0] && prof[0].url !== `${SITE}${v.url}`) bad(v.url, "ProfilePage url differs from the canonical");
+    if (!ld.some((d) => d["@type"] === "BreadcrumbList")) bad(v.url, "no BreadcrumbList");
+    if (!smUrls.includes(`${SITE}${v.url}`)) bad("sitemap.xml", `missing indexable player page ${v.url}`);
+  } else {
+    if (prof.length) bad(v.url, "ProfilePage JSON-LD on a noindex player page");
+    if (smUrls.includes(`${SITE}${v.url}`)) bad("sitemap.xml", `lists a noindex player page ${v.url}`);
+  }
+}
+const playerEpochs = playerPages.filter((v) => v.indexable).length;
+if (playerEpochs > 0) console.log(`players: ${playerPages.length} pre-rendered page(s), ${playerEpochs} indexable.`); else console.log("players: no pre-rendered player pages (API off or none passed the gate).");
+// The mock API (scripts/mock-v3-api.mjs) serves one profile that passes and one that fails: only the passing one may be built.
+if (fs.existsSync(path.join(OUT, "players", "fixture-player-pass", "index.html")) && fs.existsSync(path.join(OUT, "players", "fixture-player-thin"))) bad("/players/fixture-player-thin/", "a profile that fails the gate was built");
+// The card page and the shared-profile page always exist and are always noindex, nofollow.
+for (const u of ["/p/", "/players/view/"]) {
+  const f = path.join(OUT, ...u.split("/").filter(Boolean), "index.html");
+  if (!fs.existsSync(f)) { bad(u, "missing from the build"); continue; }
+  const h = fs.readFileSync(f, "utf8");
+  if (!/<meta name="robots" content="noindex, nofollow"/.test(h)) bad(u, "must be noindex, nofollow");
+  if (!/<meta name="referrer" content="no-referrer"/.test(h)) bad(u, "must send no referrer");
+  if (smUrls.some((x) => x.startsWith(`${SITE}${u}`))) bad("sitemap.xml", `lists ${u}`);
+}
+
 const idxEpochs = v3Pages.filter((v) => v.indexable && v.info).map((v) => v.info.input.publishedAt).filter(Number.isFinite);
 if (guard.maxInAnyWeek(idxEpochs) > guard.WEEKLY_CAP) bad("tournaments", `more than ${guard.WEEKLY_CAP} newly indexable tournament pages in one week (${guard.maxInAnyWeek(idxEpochs)})`);
 console.log(calendar.present ? `community: calendar emitted, ${calendar.count ?? 0} upcoming verified, ${calendar.expectIndexable ? "indexable" : "noindex"}.` : "community: no calendar page emitted (flag off).");
