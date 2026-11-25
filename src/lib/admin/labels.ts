@@ -9,6 +9,7 @@ export const KILL_COPY: Record<string, KillCopy> = {
   "kill.uploads": { title: "Photo and file uploads", stops: "No new photos or files can be uploaded.", warn: "ID card photos and logos cannot be added until you turn this back on." },
   "kill.mail": { title: "Emails (reminders and password resets)", stops: "The site stops sending email.", warn: "People who ask for a password reset will not get an email while this is stopped." },
   "kill.tracking": { title: "Usage counting", stops: "The site stops counting how it is used.", warn: "Counts will have a gap for the time this is stopped. Nothing else changes." },
+  "kill.feedback": { title: "Feedback button", stops: "New feedback and screenshots stop, and the feedback button is hidden.", warn: "Visitors cannot send feedback until you turn this back on." },
   "kill.public_writes": { title: "Everything the public can save", stops: "Every public form and action that saves something stops.", warn: "This is the big switch for a database emergency. Check-ins, forms and reports from the public all stop working." },
 };
 

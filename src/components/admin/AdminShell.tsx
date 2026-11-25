@@ -10,6 +10,10 @@ import SignIn from "./SignIn";
 const TABS = [
   { href: "/admin/", label: "Home" },
   { href: "/admin/reports/", label: "Reports" },
+  { href: "/admin/content/", label: "Content" },
+  { href: "/admin/orgs/", label: "Organisations" },
+  { href: "/admin/users/", label: "Users" },
+  { href: "/admin/feedback/", label: "Feedback" },
   { href: "/admin/lookup/", label: "Lookup" },
   { href: "/admin/switches/", label: "Switches" },
   { href: "/admin/usage/", label: "Usage" },

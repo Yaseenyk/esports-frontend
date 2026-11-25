@@ -94,7 +94,7 @@ test("reports are copied through an allow-list: no roster, photo or email can co
   const r = p.items[0];
   assert.equal(r.note.length, 200);
   assert.equal(r.link, "/team/x/");
-  assert.deepEqual(Object.keys(r).sort(), ["createdAt", "hidden", "id", "link", "note", "priority", "reasonCode", "reporters", "source", "status", "targetId", "targetType"]);
+  assert.deepEqual(Object.keys(r).sort(), ["createdAt", "eventId", "hidden", "id", "link", "note", "priority", "reasonCode", "reporters", "source", "status", "targetId", "targetType"]);
   assert.equal(JSON.stringify(r).includes("Kid"), false);
 });
 
@@ -185,4 +185,70 @@ test("network failure is a plain sentence with status 0", async () => {
   const c = createAdminClient({ base: "x", fetchImpl: async () => { throw new Error("down"); }, store: () => store, now: () => NOW });
   await assert.rejects(c.usage(), (e) => e.status === 0 && /connection/.test(e.message));
   assert.equal(c.hasSession(), true);
+});
+
+// ---- staff console additions (overview, orgs, users, content, feedback, sign-in helpers) ----
+
+test("lists never show a full email: the client masks anything the server sends unmasked", async () => {
+  const { c } = setup((url) => url.includes("/users") ? res(200, { items: [{ id: "u1", email: "plain@example.com", status: "active", createdAt: "2026-11-01T00:00:00Z", orgs: [{ id: "o1", name: "Club", kind: "team", role: "admin", verified: true }] }, { id: "u2", email: "a***@e***.com" }], next: 25 })
+    : res(200, { items: [{ id: "o1", name: "Club", kind: "team", members: 2, events: 1, owner: { id: "u1", email: "owner@example.com" } }], next: null }), fresh());
+  const u = await c.users("plain");
+  assert.equal(u.items[0].email, "p***@e***.com");
+  assert.equal(u.items[1].email, "a***@e***.com");
+  assert.deepEqual(u.items[0].orgs, [{ id: "o1", name: "Club", kind: "team", role: "admin", verified: true }]);
+  assert.equal(u.next, "25");
+  const o = await c.orgs("pending");
+  assert.equal(o.items[0].owner.email, "o***@e***.com");
+});
+
+test("reveal, verify and content actions send the reason; a reply target is passed only for ratings", async () => {
+  const { c, calls } = setup((url) => url.endsWith("/reveal") ? res(200, { id: "u1", email: "full@example.com" }) : url.endsWith("/verify") ? res(200, { slug: "my-club" }) : res(200, { ok: true }), fresh());
+  assert.equal(await c.revealEmail("u1", "user_request"), "full@example.com");
+  assert.deepEqual(JSON.parse(calls[0].body), { reasonCode: "user_request" });
+  assert.deepEqual(await c.verifyOrg("o1", "other", "my-club"), { slug: "my-club" });
+  assert.deepEqual(JSON.parse(calls[1].body), { reasonCode: "other", slug: "my-club" });
+  await c.setContentHidden("ratings", "r1", true, "abuse", "reply");
+  assert.equal(calls[2].url, "http://api/admin/v1/content/ratings/r1/hide");
+  assert.deepEqual(JSON.parse(calls[2].body), { reasonCode: "abuse", target: "reply" });
+  await c.setContentHidden("scrims", "s1", false, "other");
+  assert.equal(calls[3].url, "http://api/admin/v1/content/scrims/s1/restore");
+  assert.deepEqual(JSON.parse(calls[3].body), { reasonCode: "other" });
+});
+
+test("content items keep only same-site links and known kinds", async () => {
+  const { c } = setup(() => res(200, { kind: "results", available: true, reasons: ["spam", 3], items: [{ kind: "results", id: "e1", title: "Cup", meta: ["bgmi"], link: "https://evil.example/x", hidden: true }, { kind: "results", id: "e2", title: "Cup 2", link: "/tournaments/cup-2/" }, { kind: "photos", id: "p1" }] }), fresh());
+  const p = await c.content("results");
+  assert.deepEqual(p.reasons, ["spam"]);
+  assert.equal(p.items.length, 2);
+  assert.equal(p.items[0].link, null);
+  assert.equal(p.items[0].hidden, true);
+  assert.equal(p.items[1].link, "/tournaments/cup-2/");
+});
+
+test("feedback switched off (404) keeps the staff session and answers null", async () => {
+  const { c } = setup(() => res(404, { error: "Not found" }), fresh());
+  assert.equal(await c.feedback("new"), null);
+  assert.equal(c.hasSession(), true);
+});
+
+test("overview counts keep null as 'not available', never zero", async () => {
+  const { c } = setup(() => res(200, { counts: { users: 4, ratings: null }, recent: [{ id: 1, action: "org.verified", actorType: "staff", actorId: "secret" }] }), fresh());
+  const o = await c.overview();
+  assert.equal(o.counts.users, 4);
+  assert.equal(o.counts.ratings, null);
+  assert.equal(o.recent[0].action, "org.verified");
+  assert.equal(JSON.stringify(o).includes("secret"), false);
+});
+
+test("sign-in helpers: Google and the site token are used in memory only; enrolment checks the secret shape", async () => {
+  const { c, store, calls } = setup((url) => url.endsWith("/auth/google") ? res(200, { token: "GTOKEN" }) : url.endsWith("/me") ? res(401, { error: "x" }) : res(200, { secret: "JBSWY3DPEHPK3PXP", otpauthUrl: "otpauth://totp/Esports%20Hub:x?secret=JBSWY3DPEHPK3PXP" }));
+  assert.equal(await c.checkGoogle("cred"), "GTOKEN");
+  assert.equal(await c.checkUserToken("OLD"), false);
+  assert.equal(calls[1].auth, "Bearer OLD");
+  const e = await c.enroll("GTOKEN");
+  assert.equal(e.secret, "JBSWY3DPEHPK3PXP");
+  assert.equal(calls[2].url, "http://api/admin/v1/session/enroll");
+  assert.equal(store.m.size, 0, "nothing is stored before the code step");
+  const bad = setup(() => res(200, { secret: "<script>", otpauthUrl: "javascript:x" }));
+  await assert.rejects(bad.c.enroll("T"), (x) => x instanceof AdminError && x.status === 502);
 });

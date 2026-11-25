@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { type Lookup as Found, admin } from "@/lib/admin/client";
 import { targetLabel } from "@/lib/admin/labels";
 import { Empty, H1, say } from "./ui";
@@ -10,6 +10,15 @@ export default function Lookup() {
   const [by, setBy] = useState<"id" | "email">("id");
   const [value, setValue] = useState("");
   const [state, setState] = useState<{ s: "idle" | "busy" | "none" | "error" | "found"; msg?: string; hit?: Found }>({ s: "idle" });
+
+  // /admin/lookup/?id=<id> (a link from a report) looks the id up straight away. Only an id is ever taken from the address, never an email.
+  useEffect(() => {
+    const id = new URLSearchParams(location.search).get("id");
+    if (!id || !/^[A-Za-z0-9._~-]{1,64}$/.test(id)) return;
+    setValue(id);
+    setState({ s: "busy" });
+    admin.lookup("id", id).then((hit) => setState(hit ? { s: "found", hit } : { s: "none" }), (x) => setState({ s: "error", msg: say(x) }));
+  }, []);
 
   async function go(e: React.FormEvent) {
     e.preventDefault();

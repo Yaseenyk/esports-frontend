@@ -90,3 +90,8 @@ test("forms: the calendar body and the rating form validation", () => {
   assert.match(ratingProblem({ ...f, displayName: "R" }), /2 to 40/);
   assert.match(ratingProblem({ ...f, review: "<script>alert(1)</script> long enough" }), /Plain text/);
 });
+
+test("trust rules shown on /trust/ mirror the backend: 5 ratings before a score, a 30-day window", async () => {
+  const { TRUST_RULES } = await import("../src/features/community/domain.ts");
+  assert.deepEqual(TRUST_RULES, { MIN_RATINGS: 5, WINDOW_DAYS: 30 });
+});

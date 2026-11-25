@@ -47,15 +47,38 @@ export interface Report {
   status: string; priority: number; reporters: number; createdAt: string; hidden: boolean;
   /** A same-site path to the public page, when the server sends one. */
   link: string | null;
+  /** The event the reported page belongs to (an id), so the screen can open it in the content hub. */
+  eventId: string | null;
 }
 export interface Takedown { targetType: string; targetId: string; reasonCode: string; at: string }
 export interface Page<T> { items: T[]; next: string | null }
-export interface Flag { key: string; value: boolean; updatedAt: string | null; settable: boolean; stepUp: boolean }
+export interface Flag { key: string; value: boolean; updatedAt: string | null; settable: boolean; stepUp: boolean; description: string | null; reasonCode: string | null; display: string | null }
 export interface UsageItem { key: string; label: string; value: number | null; limit: number | null; unit: string; source: string; note: string | null; available: boolean }
 export interface Usage { items: UsageItem[]; note: string | null }
 export interface AuditRow { id: string; at: string; actorType: string; action: string; targetType: string; targetId: string; reasonCode: string; orgId: string | null }
 /** What a lookup may show: metadata only, copied through an allow-list. Never a roster, a photo, a registration or an email. */
 export interface Lookup { kind: string; id: string; status: string; createdAt: string | null; emailVerified: boolean | null; counts: { label: string; value: number }[] }
+
+/** Home page numbers. A null count means that part is not available on this database (not "zero"). */
+export interface Overview { counts: Record<string, number | null>; recent: AuditRow[] }
+export interface OrgRow { id: string; name: string; kind: string; slug: string | null; status: string; createdAt: string; verifiedAt: string | null; members: number; events: number; owner: { id: string; email: string } | null }
+export type OrgTab = "pending" | "verified" | "all";
+export interface UserOrg { id: string; name: string; kind: string; role: string; verified: boolean }
+/** Emails arrive MASKED ("y***@g***.com"); the full address comes only from revealEmail, which is logged with a reason. */
+export interface UserRow { id: string; email: string; status: string; createdAt: string; emailVerifiedAt: string | null; staff: boolean; orgs: UserOrg[] }
+export const CONTENT_KINDS = ["scrims", "lft", "directory", "calendar", "ratings", "results"] as const;
+export type ContentKind = (typeof CONTENT_KINDS)[number];
+export interface ContentItem { kind: ContentKind; id: string; title: string; body: string | null; meta: string[]; status: string; hidden: boolean; hiddenReason: string | null; reports: number; createdAt: string | null; link: string | null; reply: string | null; replyHidden: boolean }
+export interface ContentPage { kind: ContentKind; available: boolean; reasons: string[]; items: ContentItem[]; next: string | null }
+export type FeedbackStatus = "new" | "triaged" | "fixed" | "wontfix";
+export interface FeedbackItem { id: string; createdAt: string; kind: string; status: string; message: string; pagePath: string; deviceClass: string; attachmentCount: number; staffNote: string | null; hasContact: boolean }
+
+/** Reasons for hiding a calendar entry or a rating (their own list on the server). */
+export const MODERATION_REASON_LABELS: Record<string, string> = {
+  abuse: "Abuse or harassment", personal_info: "Personal details shown", false_claim: "False claim", spam: "Spam", conflict_of_interest: "Conflict of interest",
+  off_topic: "Off topic", report_unfounded: "The report was unfounded", appeal_upheld: "The appeal was upheld", other: "Something else",
+};
+export const anyReasonLabel = (code: string) => REASONS.find((r) => r.code === code)?.label ?? MODERATION_REASON_LABELS[code] ?? code.replace(/_/g, " ");
 
 // ---- token helpers ----
 
@@ -137,6 +160,19 @@ export function createAdminClient(o: AdminOptions) {
 
     /** Step 1: the ordinary account sign-in. The token is returned to the caller's memory and is never stored. */
     async checkPassword(email: string, password: string): Promise<string> { return tokenOf(await raw("POST", "/auth/login", { email, password })); },
+    /** Step 1 with Google: the server checks the ID token and answers the ordinary account token (kept in memory only, like the password step). */
+    async checkGoogle(credential: string): Promise<string> { return tokenOf(await raw("POST", "/auth/google", { credential })); },
+    /** Is an ordinary account token still good? true, false (expired or signed out) or "inactive" (suspended / pending deletion). */
+    async checkUserToken(userToken: string): Promise<true | false | "inactive"> {
+      try { await raw("GET", "/me", undefined, userToken); return true; } catch (e) { if (e instanceof AdminError && e.status === 403) return "inactive"; if (e instanceof AdminError && e.status === 401) return false; throw e; }
+    },
+    /** First sign-in only: a staff account without an authenticator gets a new secret (shown once). 404 = not possible for this account. */
+    async enroll(userToken: string): Promise<{ secret: string; otpauthUrl: string }> {
+      const r = rec(await raw("POST", "/admin/v1/session/enroll", {}, userToken));
+      const secret = str(r.secret); const otpauthUrl = str(r.otpauthUrl);
+      if (!/^[A-Z2-7]{16,64}$/.test(secret) || !otpauthUrl.startsWith("otpauth://totp/")) throw new AdminError(502, "The server sent an answer this page does not understand.");
+      return { secret, otpauthUrl };
+    },
     /** Step 2: the authenticator code. A 404 means this account is not staff. */
     async openSession(userToken: string, code: string): Promise<void> { write(tokenOf(await raw("POST", "/admin/v1/session", { code }, userToken))); },
     async stepUp(code: string): Promise<void> {
@@ -161,6 +197,35 @@ export function createAdminClient(o: AdminOptions) {
     async setFlag(key: string, value: boolean, reasonCode: string): Promise<void> { await call("PUT", `/flags/${encodeURIComponent(key)}`, { value, reasonCode }); },
 
     async usage(): Promise<Usage> { return toUsage(await call("GET", "/usage")); },
+
+    async overview(): Promise<Overview> {
+      const r = rec(await call("GET", "/overview")); const c = rec(r.counts);
+      return { counts: Object.fromEntries(Object.entries(c).map(([k, v]) => [k, num(v)])), recent: (Array.isArray(r.recent) ? r.recent : []).map((x) => toAudit(rec(x))).filter((x): x is AuditRow => x !== null) };
+    },
+    async orgs(status: OrgTab, search?: string, after?: string): Promise<Page<OrgRow>> { return pageOf(await call("GET", `/orgs${q({ status, q: search, after })}`), toOrg); },
+    async verifyOrg(id: string, reasonCode: string, slug?: string): Promise<{ slug: string | null }> { const r = rec(await call("POST", `/orgs/${encodeURIComponent(id)}/verify`, slug ? { reasonCode, slug } : { reasonCode })); return { slug: str(r.slug) || null }; },
+    async unverifyOrg(id: string, reasonCode: string): Promise<void> { await call("POST", `/orgs/${encodeURIComponent(id)}/unverify`, { reasonCode }); },
+    async suspendOrg(id: string, reasonCode: string): Promise<void> { await call("POST", `/orgs/${encodeURIComponent(id)}/suspend`, { reasonCode }); },
+    async restoreOrg(id: string, reasonCode: string): Promise<void> { await call("POST", `/orgs/${encodeURIComponent(id)}/restore`, { reasonCode }); },
+    async users(search?: string, after?: string): Promise<Page<UserRow>> { return pageOf(await call("GET", `/users${q({ q: search, after })}`), toUser); },
+    /** The full email of one account. The server logs who asked, when, and the reason. */
+    async revealEmail(id: string, reasonCode: string): Promise<string> { const e = str(rec(await call("POST", `/users/${encodeURIComponent(id)}/reveal`, { reasonCode })).email); if (!e.includes("@")) throw new AdminError(502, "The server sent an answer this page does not understand."); return e; },
+    /** Suspend and restore need a fresh authenticator code (step-up), like the server requires. */
+    async suspendUser(id: string, reasonCode: string): Promise<void> { await call("POST", `/users/${encodeURIComponent(id)}/suspend`, { reasonCode }); },
+    async restoreUser(id: string, reasonCode: string): Promise<void> { await call("POST", `/users/${encodeURIComponent(id)}/restore`, { reasonCode }); },
+    async content(kind: ContentKind, o3: { state?: "all" | "hidden"; id?: string; after?: string } = {}): Promise<ContentPage> {
+      const r = rec(await call("GET", `/content${q({ kind, state: o3.state === "hidden" ? "hidden" : undefined, id: o3.id, after: o3.after })}`));
+      const p = pageOf(r, toContent);
+      return { kind, available: r.available !== false, reasons: Array.isArray(r.reasons) ? r.reasons.filter((x): x is string => typeof x === "string") : [], items: p.items, next: p.next };
+    },
+    async setContentHidden(kind: ContentKind, id: string, hide: boolean, reasonCode: string, target?: "review" | "reply"): Promise<void> {
+      await call("POST", `/content/${kind}/${encodeURIComponent(id)}/${hide ? "hide" : "restore"}`, target ? { reasonCode, target } : { reasonCode });
+    },
+    /** Feedback answers 404 while feedback.enabled is off: that means "switched off", not "signed out", so the session stays. Returns null then. */
+    async feedback(status: FeedbackStatus, cursor?: string): Promise<Page<FeedbackItem> | null> {
+      try { return pageOf(await call("GET", `/feedback${q({ status, cursor })}`, undefined, { lookup: true }), toFeedback); } catch (e) { if (e instanceof AdminError && e.status === 404) return null; throw e; }
+    },
+    async triageFeedback(id: string, patch: { status?: FeedbackStatus; staffNote?: string | null }): Promise<void> { await call("PATCH", `/feedback/${encodeURIComponent(id)}`, patch, { lookup: true }); },
     async audit(after?: string, org?: string): Promise<Page<AuditRow>> { return pageOf(await call("GET", `/audit${q({ after, org })}`), toAudit); },
   };
 }
@@ -186,7 +251,7 @@ function toReport(r: Record<string, unknown>): Report | null {
   const id = str(r.id); if (!id) return null;
   const status = str(r.status, "open");
   // An upheld report is `actioned`: its target is hidden, so the screen offers "restore".
-  return { source: r.source === "directory" ? "directory" : "report", id, targetType: str(r.targetType ?? r.target_type, "page"), targetId: str(r.targetId ?? r.target_id), reasonCode: str(r.reasonCode ?? r.reason_code, "other"), note: str(r.note).slice(0, 200), status, priority: num(r.priority) ?? 1, reporters: num(r.reporters ?? r.reporterCount ?? r.distinctReporters) ?? 1, createdAt: str(r.createdAt ?? r.created_at), hidden: r.hidden === true || status === "actioned" || status === "hidden", link: safeLink(r.link ?? r.path) };
+  return { source: r.source === "directory" ? "directory" : "report", id, targetType: str(r.targetType ?? r.target_type, "page"), targetId: str(r.targetId ?? r.target_id), reasonCode: str(r.reasonCode ?? r.reason_code, "other"), note: str(r.note).slice(0, 200), status, priority: num(r.priority) ?? 1, reporters: num(r.reporters ?? r.reporterCount ?? r.distinctReporters) ?? 1, createdAt: str(r.createdAt ?? r.created_at), hidden: r.hidden === true || status === "actioned" || status === "hidden", link: safeLink(r.link ?? r.path), eventId: /^[A-Za-z0-9._~-]{1,64}$/.test(str(r.eventId)) ? str(r.eventId) : null };
 }
 
 function toTakedown(r: Record<string, unknown>): Takedown | null {
@@ -204,8 +269,9 @@ function toAudit(r: Record<string, unknown>): AuditRow | null {
 function toFlags(raw: unknown): Flag[] {
   const r = rec(raw);
   const src = r.flags ?? raw;
-  if (Array.isArray(src)) return src.map((x) => rec(x)).filter((x) => str(x.key)).map((x) => ({ key: str(x.key), value: x.value === true || x.value === 1, updatedAt: str(x.updatedAt ?? x.updated_at) || null, settable: x.settable !== false, stepUp: x.stepUp === true || str(x.key).startsWith("kill.") }));
-  return Object.entries(rec(src)).map(([key, v]) => ({ key, value: v === true || v === 1, updatedAt: null, settable: true, stepUp: key.startsWith("kill.") }));
+  // `display` keeps a non-boolean value (authz.mode is "legacy" / "shadow" / "org") so the screen can show it as text.
+  if (Array.isArray(src)) return src.map((x) => rec(x)).filter((x) => str(x.key)).map((x) => ({ key: str(x.key), value: x.value === true || x.value === 1, updatedAt: str(x.updatedAt ?? x.updated_at) || null, settable: x.settable !== false, stepUp: x.stepUp === true || str(x.key).startsWith("kill."), description: str(x.description) || null, reasonCode: str(x.reasonCode) || null, display: typeof x.value === "string" ? x.value : null }));
+  return Object.entries(rec(src)).map(([key, v]) => ({ key, value: v === true || v === 1, updatedAt: null, settable: true, stepUp: key.startsWith("kill."), description: null, reasonCode: null, display: typeof v === "string" ? v : null }));
 }
 
 // The server sends ids `d1_rows_written_today`, `worker_requests_today`, `mail_sent_today`, `db_size_bytes` (and a label); the short names are kept as a fallback.
@@ -232,4 +298,40 @@ function toLookup(raw: unknown): Lookup | null {
   for (const k of Object.keys(COUNT_LABELS)) { const n = num(c[k]); if (n !== null) counts.push({ label: COUNT_LABELS[k], value: n }); }
   if (num(r.eventCount) !== null && !("events" in c) && !("eventsOwned" in c)) counts.push({ label: "Events", value: num(r.eventCount) as number });
   return { kind: str(r.kind ?? r.type, "item"), id, status: str(r.status, "active"), createdAt: str(r.createdAt ?? r.created_at) || null, emailVerified: typeof r.emailVerified === "boolean" ? r.emailVerified : null, counts };
+}
+
+function toOrg(r: Record<string, unknown>): OrgRow | null {
+  const id = str(r.id); if (!id) return null;
+  const o = rec(r.owner);
+  return { id, name: str(r.name, "Organisation"), kind: str(r.kind, "team"), slug: str(r.slug) || null, status: str(r.status, "active"), createdAt: str(r.createdAt), verifiedAt: str(r.verifiedAt) || null, members: num(r.members) ?? 0, events: num(r.events) ?? 0, owner: str(o.id) ? { id: str(o.id), email: maskedOnly(str(o.email)) } : null };
+}
+
+/** Defence in depth: an address that is not masked is masked here, so a list can never show a full email even if the server sent one. */
+export const maskedOnly = (e: string): string => {
+  if (!e || e.includes("***")) return e;
+  const at = e.lastIndexOf("@"); if (at < 1) return "***";
+  const domain = e.slice(at + 1); const dot = domain.lastIndexOf(".");
+  return `${e[0]}***@${domain[0] ?? ""}***${dot > 0 ? domain.slice(dot) : ""}`;
+};
+
+function toUser(r: Record<string, unknown>): UserRow | null {
+  const id = str(r.id); if (!id) return null;
+  const orgs = (Array.isArray(r.orgs) ? r.orgs : []).map((x) => rec(x)).filter((x) => str(x.id)).map((x) => ({ id: str(x.id), name: str(x.name), kind: str(x.kind), role: str(x.role), verified: x.verified === true }));
+  return { id, email: maskedOnly(str(r.email)), status: str(r.status, "active"), createdAt: str(r.createdAt), emailVerifiedAt: str(r.emailVerifiedAt) || null, staff: r.staff === true, orgs };
+}
+
+function toContent(r: Record<string, unknown>): ContentItem | null {
+  const id = str(r.id); const kind = str(r.kind) as ContentKind;
+  if (!id || !(CONTENT_KINDS as readonly string[]).includes(kind)) return null;
+  return {
+    kind, id, title: str(r.title, "Item").slice(0, 200), body: r.body === null || r.body === undefined ? null : str(r.body).slice(0, 1200),
+    meta: (Array.isArray(r.meta) ? r.meta : []).map((m) => str(m)).filter(Boolean).slice(0, 6), status: str(r.status), hidden: r.hidden === true,
+    hiddenReason: str(r.hiddenReason) || null, reports: num(r.reports) ?? 0, createdAt: str(r.createdAt) || null, link: safeLink(r.link),
+    reply: r.reply === null || r.reply === undefined ? null : str(r.reply).slice(0, 1200), replyHidden: r.replyHidden === true,
+  };
+}
+
+function toFeedback(r: Record<string, unknown>): FeedbackItem | null {
+  const id = str(r.id); if (!id) return null;
+  return { id, createdAt: str(r.createdAt), kind: str(r.kind, "other"), status: str(r.status, "new"), message: str(r.message).slice(0, 2000), pagePath: str(r.pagePath), deviceClass: str(r.deviceClass), attachmentCount: num(r.attachmentCount) ?? 0, staffNote: str(r.staffNote) || null, hasContact: r.hasContact === true };
 }

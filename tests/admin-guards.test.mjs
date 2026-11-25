@@ -47,3 +47,19 @@ test("no staff-creation screen exists", () => {
 test("every admin screen is a static page", () => {
   for (const f of walk("src/app/(admin)").filter((x) => x.endsWith("page.tsx"))) assert.ok(!/generateStaticParams|dynamic\s*=|cookies\(|headers\(/.test(src(f)), f);
 });
+
+test("the site sign-in is only READ by the console (never written, renewed or cleared)", () => {
+  const s = noComments(src("src/lib/site-session.ts"));
+  assert.match(s, /localStorage\.getItem/);
+  assert.ok(!/setItem|removeItem|clear\(/.test(s));
+  for (const f of files) assert.ok(!/eh-session-v1/.test(src(f)), f);
+});
+
+test("staff sign-in always ends with the authenticator step and never stores the account token", () => {
+  const s = noComments(src("src/components/admin/SignIn.tsx"));
+  assert.match(s, /openSession\(/);
+  assert.ok(!/sessionStorage|localStorage/.test(s));
+  assert.match(s, /autoComplete="one-time-code"/);
+  assert.match(s, /autoComplete="current-password"/);
+  assert.match(s, /\/forgot-password\//);
+});

@@ -15,6 +15,19 @@ const COPY: Record<Action, { button: string; title: string; body: string; confir
   takedown: { button: "Take down", title: "Take this down?", body: "It is removed from the public site and stays removed even if the owner edits it. Only staff can bring it back, and you can do that later.", confirm: "Take it down", done: "Taken down. Only staff can restore it.", danger: true },
 };
 
+/** Where the reported thing lives in the console: the content hub for a directory listing or an event's pages, and the lookup for the event. */
+function ContentLinks({ r }: { r: Report }) {
+  const ev = r.targetType === "directory_entry" ? r.targetId : r.eventId;
+  if (!ev) return null;
+  const kind = r.targetType === "directory_entry" ? "directory" : "results";
+  return (
+    <p className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm">
+      <Link href={`/admin/content/?kind=${kind}&id=${encodeURIComponent(ev)}`} className="text-cyan underline underline-offset-2">See it in Content</Link>
+      <Link href={`/admin/lookup/?id=${encodeURIComponent(ev)}`} className="text-cyan underline underline-offset-2">Look up the event</Link>
+    </p>
+  );
+}
+
 function Card({ r, onDone }: { r: Report; onDone: (msg: string) => void }) {
   const [open, setOpen] = useState(false);
   const [action, setAction] = useState<Action | null>(null);
@@ -44,6 +57,7 @@ function Card({ r, onDone }: { r: Report; onDone: (msg: string) => void }) {
         <div id={panelId} className="border-t border-zinc-800 p-4">
           {r.note && <p className="text-sm text-zinc-200"><span className="text-zinc-400">What they wrote: </span>{r.note}</p>}
           {r.link && <p className="mt-2 text-sm"><Link href={r.link} target="_blank" rel="noopener noreferrer" className="text-cyan underline underline-offset-2">Open the public page (new tab)</Link></p>}
+          <ContentLinks r={r} />
           {r.status === "needs_other_staff" && <p className="mt-2 text-sm text-amber-200">This is about your own organisation, so another staff member has to decide it.</p>}
           {r.status === "open" || r.status === "needs_other_staff" || r.hidden ? (
             action ? (

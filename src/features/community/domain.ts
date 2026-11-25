@@ -65,6 +65,9 @@ export interface RatingBody {
 }
 export interface MyTrust { adultConfirmed: boolean; isOrganiser: boolean; canReply: boolean; window: RatingWindow; myRating: OwnRating | null; suggestedName: string | null }
 
+/** The trust score rules, mirrored from the backend (src/v3/lib/community.ts TRUST). Shown on /trust/ even before a tournament is chosen; the live page uses the server's numbers. */
+export const TRUST_RULES = { MIN_RATINGS: 5, WINDOW_DAYS: 30 } as const;
+
 export const TRUST_REPORT_REASONS: { value: string; label: string }[] = [
   { value: "abuse", label: "Abusive or hateful" },
   { value: "personal_info", label: "Shares someone's personal details" },

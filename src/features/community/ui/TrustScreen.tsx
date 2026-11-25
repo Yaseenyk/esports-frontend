@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { windowSentence } from "@/features/community/domain";
+import { TRUST_RULES, windowSentence } from "@/features/community/domain";
 import { useTrust } from "@/features/community/hooks/useTrust";
 import { RatingForm } from "@/features/community/ui/RatingForm";
 import { HowItWorks, ReviewItem, ScoreBlock } from "@/features/community/ui/TrustParts";
@@ -70,6 +70,6 @@ export default function TrustScreen() {
   const [slug, setSlug] = useState<string | null>(null);
   useEffect(() => { const v = new URLSearchParams(window.location.search).get("t") ?? ""; setSlug(/^[a-z0-9-]{1,80}$/.test(v) ? v : ""); }, []);
   if (slug === null) return null;
-  if (!slug) return <NotAvailable what="This organiser page" asPage action={SEE_TOURNAMENTS} />;
+  if (!slug) return <div className="space-y-8"><NotAvailable what="This organiser page" asPage action={SEE_TOURNAMENTS} /><HowItWorks minimum={TRUST_RULES.MIN_RATINGS} days={TRUST_RULES.WINDOW_DAYS} /></div>;
   return <Body slug={slug} />;
 }

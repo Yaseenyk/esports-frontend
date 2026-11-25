@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { AdminError, REASONS, admin } from "@/lib/admin/client";
+import { AdminError, REASONS, admin, anyReasonLabel } from "@/lib/admin/client";
 
 /** Loads something once and again on demand. Three honest states: loading, failed (with a retry), ready. */
 export function useLoad<T>(load: () => Promise<T>, deps: unknown[] = []) {
@@ -69,8 +69,10 @@ export function Stat({ label, value, hint }: { label: string; value: string; hin
  * and nothing is hidden behind a layer. A reason is always required; a fresh authenticator code is asked for only when needed.
  * Escape cancels. Focus lands on the heading when it opens and returns to where it was when it closes.
  */
-export function ConfirmPanel({ title, children, confirmLabel, danger, needsCode, onConfirm, onCancel }: {
+export function ConfirmPanel({ title, children, confirmLabel, danger, needsCode, reasons, onConfirm, onCancel }: {
   title: string; children: React.ReactNode; confirmLabel: string; danger?: boolean; needsCode?: boolean;
+  /** Reason codes this action accepts (the server's own list for that kind). Default: the staff reason codes. */
+  reasons?: readonly string[];
   onConfirm: (reasonCode: string) => Promise<void>; onCancel: () => void;
 }) {
   const head = useRef<HTMLHeadingElement>(null);
@@ -104,7 +106,7 @@ export function ConfirmPanel({ title, children, confirmLabel, danger, needsCode,
       <label htmlFor={`${id}-r`} className="mt-3 block text-sm font-medium text-zinc-100">Reason (required)</label>
       <select id={`${id}-r`} className="field mt-1" value={reason} onChange={(e) => setReason(e.target.value)} aria-describedby={err ? `${id}-e` : undefined} aria-invalid={err && !reason ? true : undefined}>
         <option value="">Choose a reason...</option>
-        {REASONS.map((r) => <option key={r.code} value={r.code}>{r.label}</option>)}
+        {(reasons && reasons.length ? reasons.map((c) => ({ code: c, label: anyReasonLabel(c) })) : REASONS).map((r) => <option key={r.code} value={r.code}>{r.label}</option>)}
       </select>
       {needCode && (
         <>
