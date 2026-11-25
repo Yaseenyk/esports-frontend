@@ -1,8 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import type { OwnPlayerPage } from "@/features/profiles/domain";
-import { box, btnPrimary, btnSecondary, h2, helper, link, section } from "@/features/shared/ui/styles";
+import { box, btnPrimary, btnSecondary, h2, helper, section } from "@/features/shared/ui/styles";
 import { useStatsStory } from "@/features/player-card/hooks/useStatsStory";
 
 /**
@@ -17,7 +16,7 @@ export function StatsStoryCard({ page, game, role }: { page: OwnPlayerPage | nul
       <h2 id="ss-h" className={h2}>Stats for your Instagram or WhatsApp story</h2>
       <p className="max-w-3xl text-zinc-300">A picture of your player page with a QR code to it. Numbers marked Verified come from results organisers recorded; you cannot type them. Top and bottom are left clear for the app&apos;s own bars.</p>
       {!shared ? (
-        <p className="text-zinc-300">Share your player page first (Link only with a card link, or Public), so the QR opens something. <Link href="/app/resume/#pp-h" className={link}>Choose who can see my page</Link></p>
+        <p className="text-zinc-300" data-testid="story-share-first">Share your player page first (Link only with a card link, or Public, as described above), so the QR on the picture opens something.</p>
       ) : (
         <div className="grid gap-8 lg:grid-cols-2">
           <div className="space-y-4">
