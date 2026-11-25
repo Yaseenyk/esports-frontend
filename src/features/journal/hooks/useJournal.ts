@@ -24,7 +24,9 @@ export function useJournal() {
   const [period, setPeriod] = useState<Period>("week");
   const [game, setGame] = useState("");
 
-  useEffect(() => { if (res.phase === "ready") { setItems(res.data.items); setCap(res.data.cap); } }, [res]);
+  // Copy the loaded list once per load (the resource object itself is new on every render; its data is not).
+  const loaded = res.phase === "ready" ? res.data : null;
+  useEffect(() => { if (loaded) { setItems(loaded.items); setCap(loaded.cap); } }, [loaded]);
 
   const problems = draftProblems(draft, today);
   const setField = (k: DraftField, v: string) => setDraft((d) => ({ ...d, [k]: v }));
@@ -85,8 +87,9 @@ export function useJournal() {
   };
 }
 
-/** Whether the journal is open for this account (one read; "unavailable" while the flag is off), and how many matches it holds. */
+const NO_ENTRIES: JournalEntry[] = [];
+/** Whether the journal is open for this account (one read; "unavailable" while the flag is off), and how many matches it holds. `items` is stable between renders. */
 export function useJournalAvailable() {
   const res = useResource(fetchJournal, []);
-  return res.phase === "ready" ? { on: true, count: res.data.items.length, items: res.data.items } : { on: false, count: 0, items: [] as JournalEntry[] };
+  return res.phase === "ready" ? { on: true, count: res.data.items.length, items: res.data.items } : { on: false, count: 0, items: NO_ENTRIES };
 }

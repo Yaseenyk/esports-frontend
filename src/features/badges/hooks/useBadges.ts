@@ -12,7 +12,8 @@ export function useMyBadges() {
   const [data, setData] = useState<OwnBadges | null>(null);
   const [busy, setBusy] = useState("");
   const [error, setError] = useState("");
-  useEffect(() => { if (res.phase === "ready") setData(res.data); }, [res]);
+  const loaded = res.phase === "ready" ? res.data : null;
+  useEffect(() => { if (loaded) setData(loaded); }, [loaded]);
   const toggle = async (id: string, hidden: boolean) => {
     setBusy(id); setError("");
     const r = await putBadgeHidden(id, hidden);

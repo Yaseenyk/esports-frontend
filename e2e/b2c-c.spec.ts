@@ -42,11 +42,11 @@ test("journal: log a match, see progress as charts and as a table, export CSV, d
   await expect(page.getByRole("img", { name: /Matches per week/ })).toBeVisible();
   await expect(page.getByRole("img", { name: /Kills per match/ })).toBeVisible();
   // validation stays in the page; nothing is sent
-  await page.getByLabel("Kills").fill("abc");
+  await page.getByRole("textbox", { name: "Kills" }).fill("abc");
   await page.getByRole("button", { name: "Save match" }).click();
   await expect(page.getByText(/Kills: a whole number/)).toBeVisible();
   expect(posted).toHaveLength(0);
-  await page.getByLabel("Kills").fill("6");
+  await page.getByRole("textbox", { name: "Kills" }).fill("6");
   await page.getByLabel("Placement (optional)").fill("2");
   await page.getByLabel("Notes (optional)").fill("<b>not html</b>");
   await page.getByRole("button", { name: "Save match" }).click();
@@ -131,9 +131,10 @@ test("owner: badge panel says badges are not device XP, and each earned badge ha
     "GET /v3/me/journal": () => ({ body: { items: [], cap: 2000 } }),
   });
   await page.goto("/app/resume/");
-  const panel = page.locator("section", { has: page.getByRole("heading", { name: "Badges", exact: true }) });
+  const panel = page.getByRole("region", { name: "Badges", exact: true });
   await expect(panel).toContainText("are not badges");
-  await panel.getByRole("checkbox", { name: /First win/ }).uncheck();
+  await panel.getByRole("checkbox", { name: /First win/ }).click();
+  await expect(panel.getByRole("checkbox", { name: /First win/ })).not.toBeChecked();
   await expect(panel.getByText("(hidden)")).toBeVisible();
   expect(JSON.parse(seen.find((s) => s.path === "/v3/me/badges/hidden")!.body)).toEqual({ badge: "first_win", hidden: true });
   await expect(page.getByRole("link", { name: "match journal" })).toHaveAttribute("href", "/app/journal/");
