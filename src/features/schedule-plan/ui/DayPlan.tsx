@@ -6,7 +6,7 @@ import { Field } from "@/features/shared/ui/Fields";
 import { btnSecondary, input } from "@/features/shared/ui/styles";
 import { MAX_COUNT, MAX_DAYS, MAX_STATIONS, MAX_TEAMS, SOURCES, type Source } from "@/features/schedule-plan/domain";
 import { useDayPlan } from "@/features/schedule-plan/hooks/useDayPlan";
-import ShareResult from "@/features/share-result/ui/ShareResult";
+import { ShareResult } from "@/components/display/LazyResults";
 import { display12 } from "@/lib/schedule";
 
 const PATH = "/tools/schedule/";

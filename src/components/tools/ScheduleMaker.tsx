@@ -3,13 +3,12 @@
 import { Fragment, useMemo, useState } from "react";
 import { sendEvent } from "@/lib/track";
 import ToolStep from "./ToolStep";
-import ScreenButtons from "@/components/display/ScreenButtons";
+import { ScreenButtons, ShareResult } from "@/components/display/LazyResults";
 import NumberField from "./NumberField";
 import { scheduleView } from "@/lib/display-views";
 import { downloadBlob } from "@/lib/idcard/download";
 import { buildSchedule, display12, summary, type ScheduleInput } from "@/lib/schedule";
 import DayPlan from "@/features/schedule-plan/ui/DayPlan";
-import ShareResult from "@/features/share-result/ui/ShareResult";
 
 /** Free match schedule and run-sheet maker. Everything is worked out in the browser. */
 export default function ScheduleMaker() {

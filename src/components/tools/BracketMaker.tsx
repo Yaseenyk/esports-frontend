@@ -4,13 +4,11 @@ import { AnimatePresence, m as motion } from "framer-motion";
 import { sendEvent } from "@/lib/track";
 import { useEffect, useMemo, useState } from "react";
 import { useXp } from "@/components/XpProvider";
-import ScreenButtons from "@/components/display/ScreenButtons";
-import WinnersBlock from "@/components/display/WinnersBlock";
+import { ScreenButtons, WinnersBlock, ShareResult } from "@/components/display/LazyResults";
 import { singleElimView } from "@/lib/display-views";
 import { seedOrder, uniqueTeams } from "@/lib/seeding";
 import TeamsInput from "./TeamsInput";
 import ToolStep from "./ToolStep";
-import ShareResult from "@/features/share-result/ui/ShareResult";
 import { TOOL_PATHS } from "@/features/share-result/domain";
 
 const EXAMPLE = ["Sample Squad A", "Sample Squad B", "Sample Squad C", "Sample Squad D", "Sample Squad E", "Sample Squad F", "Sample Squad G", "Sample Squad H"];

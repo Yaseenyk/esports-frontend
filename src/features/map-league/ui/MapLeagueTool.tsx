@@ -1,6 +1,6 @@
 "use client";
 
-import ScreenButtons from "@/components/display/ScreenButtons";
+import { ScreenButtons, ShareResult, OverlayKitConnect } from "@/components/display/LazyResults";
 import NumberField from "@/components/tools/NumberField";
 import TeamsInput from "@/components/tools/TeamsInput";
 import ToolStep from "@/components/tools/ToolStep";
@@ -9,9 +9,7 @@ import { BYE } from "@/lib/roundrobin";
 import { sendEvent } from "@/lib/track";
 import { BEST_OF, TIE_WORDS, type MapLeagueRow } from "@/features/map-league/domain";
 import { EXAMPLE_TEAMS, MAX_TEAMS, MIN_TEAMS, useMapLeague } from "@/features/map-league/hooks/useMapLeague";
-import ShareResult from "@/features/share-result/ui/ShareResult";
 import { OVERLAY_KIT } from "@/features/overlay-kit/flag";
-import OverlayKitConnect from "@/features/overlay-kit/ui/OverlayKitConnect";
 import { useKitLeagueFeed } from "@/features/overlay-kit/hooks/useKitLeagueFeed";
 
 const signed = (n: number) => (n > 0 ? `+${n}` : String(n));

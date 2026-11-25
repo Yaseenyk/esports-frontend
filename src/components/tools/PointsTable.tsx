@@ -4,19 +4,16 @@ import Link from "next/link";
 import { sendEvent } from "@/lib/track";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { CODM_EXAMPLE_SCALE, CODM_SAMPLE_TEAMS, EXAMPLE_SCALE, parsePlacement, standings, type Scale, type TeamEntry } from "@/lib/points";
-import ScreenButtons from "@/components/display/ScreenButtons";
-import WinnersBlock from "@/components/display/WinnersBlock";
+import { ScreenButtons, WinnersBlock, ShareResult, OverlayKitConnect } from "@/components/display/LazyResults";
 import { pointsView } from "@/lib/display-views";
 import { downloadBlob } from "@/lib/idcard/download";
 import NumberField from "./NumberField";
 import ToolStep from "./ToolStep";
 import { toolCopy } from "@/lib/tool-copy";
 import type { UiLang } from "@/lib/pt-br";
-import ShareResult from "@/features/share-result/ui/ShareResult";
 import { TOOL_PATHS } from "@/features/share-result/domain";
 import { OVERLAY_KIT } from "@/features/overlay-kit/flag";
 import { feedFromStandings } from "@/features/overlay-kit/domain";
-import OverlayKitConnect from "@/features/overlay-kit/ui/OverlayKitConnect";
 
 const EXAMPLE: TeamEntry[] = [
   { name: "Alpha", matches: [{ placement: 1, kills: 5 }, { placement: 4, kills: 2 }, { placement: 2, kills: 3 }] },

@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { sendEvent } from "@/lib/track";
-import ScreenButtons from "@/components/display/ScreenButtons";
+import { ScreenButtons, ShareResult } from "@/components/display/LazyResults";
 import { leagueView } from "@/lib/display-views";
 import { downloadBlob } from "@/lib/idcard/download";
 import { BYE, BYE_LABEL, DEFAULT_POINTS, fixtures, matchCount, table, type Fixture, type Score } from "@/lib/roundrobin";
@@ -10,7 +10,6 @@ import { uniqueTeams } from "@/lib/seeding";
 import NumberField from "./NumberField";
 import TeamsInput from "./TeamsInput";
 import ToolStep from "./ToolStep";
-import ShareResult from "@/features/share-result/ui/ShareResult";
 import { TOOL_PATHS } from "@/features/share-result/domain";
 
 const EXAMPLE = ["Konkan Kings", "Pune Phantoms", "Mumbai Mavericks", "Nashik Ninjas", "Goa Gamers"];

@@ -196,6 +196,12 @@ html[data-display] .aurora, html[data-display] canvas.hexfield, html[data-displa
 .pt-slot { min-height: 4600px; }
 @media (min-width: 640px) { .pt-slot { min-height: 3000px; } }
 @media (min-width: 1024px) { .pt-slot { min-height: 2680px; } }
+/* Placeholders for the tools' share, winners, TV-screen and overlay blocks while their code loads (components/display/LazyResults.tsx).
+   Heights measured on the live site on 25 Nov 2026 at 412 px, 700 px and 1280 px wide. */
+.lr-share { min-height: 373px; } .lr-winners { min-height: 635px; } .lr-screen { min-height: 625px; } .lr-kit { min-height: 310px; }
+@media (min-width: 640px) { .lr-share { min-height: 201px; } .lr-winners { min-height: 327px; } .lr-screen { min-height: 435px; } .lr-kit { min-height: 242px; } }
+@media (min-width: 1024px) { .lr-share { min-height: 181px; } }
+@media print { .lr-share, .lr-winners, .lr-screen, .lr-kit { display: none; } }
 
 /* Below-the-fold blocks are not styled, laid out or painted until they near the screen. Measured: about a third less style and layout work on the home page. The reserved height keeps the scrollbar steady. */
 .cv-auto { content-visibility: auto; contain-intrinsic-size: auto 700px; }

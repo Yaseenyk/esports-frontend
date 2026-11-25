@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { sendEvent } from "@/lib/track";
-import ScreenButtons from "@/components/display/ScreenButtons";
+import { ScreenButtons, ShareResult } from "@/components/display/LazyResults";
 import TeamsInput from "@/components/tools/TeamsInput";
 import ToolStep from "@/components/tools/ToolStep";
 import { uniqueTeams } from "@/lib/seeding";
@@ -10,7 +10,6 @@ import {
   MAX_TEAMS, MIN_TEAMS, TIE_BREAK_TEXT, buildKnockout, clampSettings, defaultSettings, groupFixtures, groupMatchCount, groupTablesView, knockoutView,
   playKnockout, qualifiers, splitGroups, standings, togglePick, type GroupResult, type Picks, type StageSettings,
 } from "@/lib/stages";
-import ShareResult from "@/features/share-result/ui/ShareResult";
 import { TOOL_PATHS } from "@/features/share-result/domain";
 import BracketTree from "./BracketTree";
 import SettingsFields from "./SettingsFields";

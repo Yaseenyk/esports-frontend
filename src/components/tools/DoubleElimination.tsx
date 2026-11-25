@@ -2,14 +2,12 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { sendEvent } from "@/lib/track";
-import ScreenButtons from "@/components/display/ScreenButtons";
-import WinnersBlock from "@/components/display/WinnersBlock";
+import { ScreenButtons, WinnersBlock, ShareResult } from "@/components/display/LazyResults";
 import { doubleElimView } from "@/lib/display-views";
 import { build, champion as championOf, isPlayable, setPick, slots, type Match, type Slot } from "@/lib/doubleelim";
 import { uniqueTeams } from "@/lib/seeding";
 import TeamsInput from "./TeamsInput";
 import ToolStep from "./ToolStep";
-import ShareResult from "@/features/share-result/ui/ShareResult";
 import { TOOL_PATHS } from "@/features/share-result/domain";
 
 const EXAMPLE = ["Konkan Kings", "Pune Phantoms", "Mumbai Mavericks", "Nashik Ninjas", "Goa Gamers", "Thane Titans"];
