@@ -14,6 +14,16 @@ export function releaseDate(index: number): string {
   return d.toISOString().slice(0, 10);
 }
 
+/**
+ * Queue pause (owner, 28 Nov 2026). Google November 2026 core update (10-24 Nov) dropped this site and the other new
+ * subdomains from search; a timer adding templated guides is the likeliest negative signal, so no scheduled guide released
+ * after this date goes live. Guides already live stay live. Set to null to resume the Monday/Wednesday schedule.
+ */
+export const PAUSED_AFTER: string | null = "2026-11-28";
+
+/** The last release day the site may show: today, or the pause date when the queue is paused. */
+export const releaseCutoff = (): string => (PAUSED_AFTER && PAUSED_AFTER < today() ? PAUSED_AFTER : today());
+
 /** Today in UTC. `GUIDES_NOW=2027-01-01` previews a later day in a local build or a test. */
 export const today = (): string => process.env.GUIDES_NOW ?? new Date().toISOString().slice(0, 10);
 

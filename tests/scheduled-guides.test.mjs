@@ -5,7 +5,7 @@ import assert from "node:assert/strict";
 import { CORE_GUIDES } from "../src/content/guides.ts";
 import { DRAFTS, HELD_DRAFTS, LIVE_NOW, SCHEDULED } from "../src/content/scheduled/index.ts";
 import { HELD } from "../src/content/scheduled/held.ts";
-import { FIRST_RELEASE, releaseDate } from "../src/content/scheduled/schedule.ts";
+import { FIRST_RELEASE, PAUSED_AFTER, releaseCutoff, releaseDate } from "../src/content/scheduled/schedule.ts";
 import { FACTS } from "../src/content/scheduled/facts.ts";
 import { TOOLS } from "../src/lib/data.ts";
 
@@ -142,4 +142,12 @@ test("release logic: nothing is live before its date, and the list is the schedu
   assert.equal(DRAFTS.length, SCHEDULED.length);
   for (const g of LIVE_NOW) assert.equal(g.published, "2026-11-16");
   assert.equal(SCHEDULED[0].published, FIRST_RELEASE);
+});
+
+test("queue pause (28 Nov 2026): no scheduled guide after the pause date is released, guides already live stay", () => {
+  assert.equal(PAUSED_AFTER, "2026-11-28");
+  assert.ok(releaseCutoff() <= PAUSED_AFTER);
+  const live = SCHEDULED.filter((g) => g.published <= releaseCutoff());
+  assert.ok(live.every((g) => g.published <= PAUSED_AFTER));
+  assert.ok(live.some((g) => g.published === FIRST_RELEASE), "the guides already released stay live");
 });

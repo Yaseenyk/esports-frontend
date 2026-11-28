@@ -1,6 +1,6 @@
 import type { Guide } from "../guides";
 import { mdToBlocks } from "./md";
-import { LIVE_NOW_DATE, releaseDate, today } from "./schedule";
+import { LIVE_NOW_DATE, releaseCutoff, releaseDate } from "./schedule";
 import type { Draft } from "./types";
 import { BATCH_01 } from "./batch-01";
 import { BATCH_02 } from "./batch-02";
@@ -56,5 +56,5 @@ export const LIVE_NOW: Guide[] = LIVE_NOW_DRAFTS.map((d) => toGuideOn(d, LIVE_NO
 /** All scheduled guides with their release dates, including ones not live yet. Tests and the schedule doc read this. */
 export const SCHEDULED: Guide[] = DRAFTS.map(toGuide);
 
-/** Only the guides whose day has come. The site's daily deploy (00:17 UTC) turns the next one on. */
-export const RELEASED: Guide[] = SCHEDULED.filter((g) => g.published <= today());
+/** Only the guides whose day has come (and, while paused, not after PAUSED_AFTER). The site's daily deploy (00:17 UTC) turns the next one on. */
+export const RELEASED: Guide[] = SCHEDULED.filter((g) => g.published <= releaseCutoff()); // capped while the queue is paused (schedule.ts)
